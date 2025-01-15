@@ -1,0 +1,40 @@
+# User-specific files
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows Installer files
+*.vspscc
+*.vssscc
+
+# .NET Core
+bin/
+obj/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# NPM Packages
+node_modules/
+
+# Web/Node.js - Debug & Build folders
+wwwroot/
+
+# ASP.NET Core environment variables
+.env
