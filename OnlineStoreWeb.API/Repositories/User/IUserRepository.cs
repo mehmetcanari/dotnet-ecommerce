@@ -4,5 +4,5 @@ interface IUserRepository
     User GetUserWithId(int id);
     void AddUser(CreateUserDto createUserDto);
     void UpdateUser(UpdateUserDto updateUserDto);
-    void DeletUser(int id);
+    void DeleteUser(int id);
 }
