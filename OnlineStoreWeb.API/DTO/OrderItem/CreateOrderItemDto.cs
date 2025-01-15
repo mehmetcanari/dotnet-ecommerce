@@ -1,6 +1,5 @@
-public class OrderItem
+public record CreateOrderItemDto
 {
-    public int Id {get; set;}
     public int Quantity {get;set;}
     public Product Product { get; set; }
 }
