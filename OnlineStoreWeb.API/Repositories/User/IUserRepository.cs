@@ -1,4 +1,4 @@
-interface IUserRepository
+public interface IUserRepository
 {
     Task<List<User>> GetAllUsersAsync();
     Task<User?> GetUserWithIdAsync(int id);

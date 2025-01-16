@@ -1,63 +1,134 @@
-namespace OnlineStoreWeb.API.Controllers.Product;
+using Microsoft.AspNetCore.Mvc;
 
-public class ProductController
+namespace OnlineStoreWeb.API.Controllers.Product
 {
-    private readonly IProductRepository _productRepository;
-    private readonly WebApplication _app;
-
-    public ProductController(IProductRepository productRepository, WebApplication app)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ProductController : ControllerBase
     {
-        _productRepository = productRepository;
-        _app = app;
-    }
+        private readonly IProductRepository _productRepository;
+        private readonly ILogger<ProductController> _logger;
 
-    public void InitializeController()
-    {
-    }
+        public ProductController(IProductRepository productRepository, ILogger<ProductController> logger)
+        {
+            _productRepository = productRepository;
+            _logger = logger;
+        }
 
-    public void PostProduct()
-    {
-        _app.MapPost("/api/product", async (CreateProductDto productDto) =>
+        [HttpPost]
+        public async Task<IActionResult> CreateProduct(CreateProductDto productDto)
         {
             try
             {
                 if (productDto == null)
-                    return Results.BadRequest("Product data is required");
+                    return BadRequest(new { message = "Product data is required" });
 
                 await _productRepository.AddProductAsync(productDto);
-                return Results.Created($"/api/product", productDto + "Product created successfully");
+                return Created($"/api/product", new { message = "Product created successfully" });
             }
             catch (Exception ex)
             {
-                return Results.StatusCode(500);
+                _logger.LogError(ex, "Error creating product");
+                return StatusCode(500, "Internal server error");
             }
-        });
-    }
+        }
 
-    public void GetAllProducts()
-    {
-        _app.MapGet("/api/product", async () =>
+        [HttpGet]
+        public async Task<IActionResult> GetAllProducts()
         {
             try
             {
                 var products = await _productRepository.GetAllProductsAsync();
-                if (products == null)
-                    return Results.NotFound("No products found");
+                if (!products.Any())
+                    return NotFound(new { message = "No products found" });
 
-                return Results.Ok($"Products fetched successfully: {products}");
+                return Ok(products);
             }
             catch (Exception ex)
             {
-                return Results.Problem(ex.Message + "Error fetching products");
+                _logger.LogError(ex, "Unexpected error while fetching products: {Message}", ex.Message);
+                return StatusCode(500, "An unexpected error occurred while fetching products");
             }
-        });
-    }
+        }
 
-    public void GetProductWithId()
-    {
-        _app.MapGet("/api/product/{id}", async (int id) =>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProductWithId(int id)
         {
-            return await _productRepository.GetProductWithIdAsync(id);
-        });
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                var product = await _productRepository.GetProductWithIdAsync(id);
+                if (product == null)
+                    return NotFound(new { message = $"with id: {id} product not found" });
+
+                return Ok(product);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Product fetching process error: {Message}", ex.Message);
+                return BadRequest(new { message = "Product fetching process error" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while fetching product: {Message}", ex.Message);
+                return StatusCode(500, "An unexpected error occurred while fetching the product");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, UpdateProductDto updateDto)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                if (updateDto == null)
+                    return BadRequest(new { message = "Product update data is required" });
+
+                await _productRepository.UpdateProductAsync(updateDto);
+                return Ok(new { message = "Product updated successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Validation error while updating product: {Message}", ex.Message);
+                return BadRequest(new { message = "Invalid product data provided" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Product not found for update: {Message}", ex.Message);
+                return NotFound(new { message = $"Product with ID {id} not found" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
+                return StatusCode(500, "An unexpected error occurred while updating the product");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                await _productRepository.DeleteProductAsync(id);
+                return Ok(new { message = "Product deleted successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Product not found for deletion: {Message}", ex.Message);
+                return NotFound(new { message = $"Product with ID {id} not found" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
+                return StatusCode(500, "An unexpected error occurred while deleting the product");
+            }
+        }
     }
 }

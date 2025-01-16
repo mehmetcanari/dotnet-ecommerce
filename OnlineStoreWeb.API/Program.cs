@@ -1,8 +1,26 @@
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddOpenApi();
+using Microsoft.EntityFrameworkCore;
 
-DependencyInjection.AddDependencyInjection(builder.Services);
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+// Database context
+builder.Services.AddDbContext<StoreDbContext>(options =>
+    options.UseInMemoryDatabase("StoreDb"));
+
+// Repositories
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
 app.Run();
 
