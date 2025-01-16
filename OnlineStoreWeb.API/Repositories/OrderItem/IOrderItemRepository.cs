@@ -1,8 +1,8 @@
-interface IOrderItemRepository
+public interface IOrderItemRepository
 {
-    List<OrderItem> GetAllOrderItems();
-    OrderItem GetOrderItemWithId(int id);
-    void AddOrderItem(CreateOrderItemDto createOrderItemDto);
-    void UpdateOrderItem(UpdateOrderItemDto updateOrderItemDto);
-    void DeleteOrderItem(int id);
+    Task<List<OrderItem>> GetAllOrderItemsAsync();
+    Task<OrderItem?> GetOrderItemWithIdAsync(int id);
+    Task AddOrderItemAsync(CreateOrderItemDto createOrderItemDto);
+    Task UpdateOrderItemAsync(UpdateOrderItemDto updateOrderItemDto);
+    Task DeleteOrderItemAsync(int id);
 }

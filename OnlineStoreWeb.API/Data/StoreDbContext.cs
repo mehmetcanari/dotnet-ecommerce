@@ -1,7 +1,11 @@
-public class StoreDbContext
+using Microsoft.EntityFrameworkCore;
+
+public class StoreDbContext : DbContext
 {
-    public required List<Product> Products {get; set;}
-    public required List<Order> Orders {get; set;}
-    public required List<OrderItem> OrderItems {get; set;}
-    public required List<User> Users {get; set;}
+    public StoreDbContext(DbContextOptions<StoreDbContext> options) : base(options){}
+
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<User> Users => Set<User>();
 }

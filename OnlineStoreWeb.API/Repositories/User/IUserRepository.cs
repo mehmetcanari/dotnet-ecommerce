@@ -1,8 +1,8 @@
 interface IUserRepository
 {
-    List<User> GetAllUsers();
-    User GetUserWithId(int id);
-    void AddUser(CreateUserDto createUserDto);
-    void UpdateUser(UpdateUserDto updateUserDto);
-    void DeleteUser(int id);
+    Task<List<User>> GetAllUsersAsync();
+    Task<User?> GetUserWithIdAsync(int id);
+    Task AddUserAsync(CreateUserDto createUserDto);
+    Task UpdateUserAsync(UpdateUserDto updateUserDto);
+    Task DeleteUserAsync(int id);
 }

@@ -1,35 +1,89 @@
+using Microsoft.EntityFrameworkCore;
 
 public class OrderItemRepository : IOrderItemRepository
 {
-    public readonly StoreDbContext _context;
+    private readonly StoreDbContext _context;
 
     public OrderItemRepository(StoreDbContext context)
     {
         _context = context;
     }
 
-    public void AddOrderItem(CreateOrderItemDto createOrderItemDto)
+    public async Task<List<OrderItem>> GetAllOrderItemsAsync()
     {
-        throw new NotImplementedException();
+        try
+        {
+            return await _context.OrderItems.ToListAsync(); 
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error fetching order items", ex);
+        }
     }
 
-    public void UpdateOrderItem(UpdateOrderItemDto updateOrderItemDto)
+    public async Task<OrderItem?> GetOrderItemWithIdAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error fetching order item", ex);
+        }
     }
 
-    public void DeleteOrderItem(int id)
+    public async Task AddOrderItemAsync(CreateOrderItemDto createOrderItemDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var orderItem = new OrderItem
+            {
+                Quantity = createOrderItemDto.Quantity,
+            Product = createOrderItemDto.Product,
+            OrderItemCreated = createOrderItemDto.OrderItemCreated
+        };
+
+            await _context.OrderItems.AddAsync(orderItem);
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error adding order item", ex);
+        }
     }
 
-    public List<OrderItem> GetAllOrderItems()
+    public async Task UpdateOrderItemAsync(UpdateOrderItemDto updateOrderItemDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == updateOrderItemDto.Id)
+                ?? throw new Exception("OrderItem not found");
+
+        orderItem.Quantity = updateOrderItemDto.Quantity;
+        orderItem.Product = updateOrderItemDto.Product;
+            orderItem.OrderItemUpdated = updateOrderItemDto.OrderItemUpdated;
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error updating order item", ex);
+        }
     }
 
-    public OrderItem GetOrderItemWithId(int id)
+    public async Task DeleteOrderItemAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id)
+                ?? throw new Exception("OrderItem not found");
+
+            _context.OrderItems.Remove(orderItem);
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error deleting order item", ex);
+        }
     }
 }

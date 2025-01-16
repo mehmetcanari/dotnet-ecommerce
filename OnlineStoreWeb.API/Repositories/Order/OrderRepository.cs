@@ -1,40 +1,86 @@
+using Microsoft.EntityFrameworkCore;
 
 public class OrderRepository : IOrderRepository
 {
-    public readonly StoreDbContext _context;
+    private readonly StoreDbContext _context;
 
     public OrderRepository(StoreDbContext context)
     {
         _context = context;
     }
 
-    public void AddOrder(CreateOrderDto createOrderDto)
+    public async Task<List<Order>> GetAllOrdersAsync()
     {
-        Order order = new Order();
+        try
         {
-            order.Id = _context.Orders.Max(o => o.Id) + 1;
-
-            
+            return await _context.Orders.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error fetching orders", ex);
         }
     }
 
-    public void DeleteOrder(int id)
+    public async Task<Order?> GetOrderWithIdAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error fetching order", ex);
+        }
     }
 
-    public List<Order> GetAllOrders()
+    public async Task AddOrderAsync(CreateOrderDto createOrderDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var order = new Order 
+            {
+                Product = createOrderDto.Product,
+                OrderCreated = createOrderDto.OrderCreated
+            };
+            await _context.Orders.AddAsync(order);
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error adding order", ex);
+        }
     }
 
-    public Order GetOrderWithId(int id)
+    public async Task UpdateOrderAsync(UpdateOrderDto updateOrderDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == updateOrderDto.Id) 
+                ?? throw new Exception("Order not found");
+
+            order.Product = updateOrderDto.Product;
+            order.OrderUpdated = updateOrderDto.OrderUpdated;
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error updating order", ex);
+        }
     }
 
-    public void UpdateOrder(UpdateOrderDto updateOrderDto)
+    public async Task DeleteOrderAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id)
+                ?? throw new Exception("Order not found");
+
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error deleting order", ex);
+        }
     }
 }
