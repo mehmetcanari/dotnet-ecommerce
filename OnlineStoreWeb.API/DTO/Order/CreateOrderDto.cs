@@ -1,5 +1,5 @@
 public record CreateOrderDto
 {
-    public Product Product { get; set; }
-    public DateTime OrderCreated = DateTime.Now;
+    public OrderItem OrderItem { get; set; }
+    public DateTime OrderCreated = DateTime.UtcNow;
 }

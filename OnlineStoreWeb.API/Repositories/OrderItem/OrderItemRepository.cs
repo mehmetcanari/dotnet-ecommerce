@@ -15,9 +15,13 @@ public class OrderItemRepository : IOrderItemRepository
         {
             return await _context.OrderItems.ToListAsync(); 
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to fetch order items", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error fetching order items", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -27,9 +31,13 @@ public class OrderItemRepository : IOrderItemRepository
         {
             return await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id);
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to fetch order item", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error fetching order item", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -37,9 +45,9 @@ public class OrderItemRepository : IOrderItemRepository
     {
         try
         {
-            var orderItem = new OrderItem
-            {
-                Quantity = createOrderItemDto.Quantity,
+        var orderItem = new OrderItem
+        {
+            Quantity = createOrderItemDto.Quantity,
             Product = createOrderItemDto.Product,
             OrderItemCreated = createOrderItemDto.OrderItemCreated
         };
@@ -47,9 +55,13 @@ public class OrderItemRepository : IOrderItemRepository
             await _context.OrderItems.AddAsync(orderItem);
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to save order item", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error adding order item", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -60,14 +72,18 @@ public class OrderItemRepository : IOrderItemRepository
             var orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == updateOrderItemDto.Id)
                 ?? throw new Exception("OrderItem not found");
 
-        orderItem.Quantity = updateOrderItemDto.Quantity;
-        orderItem.Product = updateOrderItemDto.Product;
+            orderItem.Quantity = updateOrderItemDto.Quantity;
+            orderItem.Product = updateOrderItemDto.Product;
             orderItem.OrderItemUpdated = updateOrderItemDto.OrderItemUpdated;
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to update order item", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error updating order item", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -81,9 +97,13 @@ public class OrderItemRepository : IOrderItemRepository
             _context.OrderItems.Remove(orderItem);
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to delete order item", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error deleting order item", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 }

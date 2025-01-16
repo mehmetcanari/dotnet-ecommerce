@@ -16,9 +16,13 @@ public class ProductRepository : IProductRepository
         {
             return await _context.Products.ToListAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to fetch products", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error fetching products", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -28,9 +32,13 @@ public class ProductRepository : IProductRepository
         {
             return await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to fetch product", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error fetching product", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -45,12 +53,17 @@ public class ProductRepository : IProductRepository
                 Description = createProductDto.Description,
                 ProductCreated = createProductDto.ProductCreated,
             };
+
             await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to save product", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error adding product", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -68,9 +81,13 @@ public class ProductRepository : IProductRepository
 
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to update product", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error updating product", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -84,9 +101,13 @@ public class ProductRepository : IProductRepository
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to delete product", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error deleting product", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 }

@@ -15,9 +15,13 @@ public class UserRepository : IUserRepository
         {
             return await _context.Users.ToListAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to fetch users", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error fetching users", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -27,9 +31,13 @@ public class UserRepository : IUserRepository
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to fetch user", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error fetching user", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -47,9 +55,13 @@ public class UserRepository : IUserRepository
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to save user", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error adding user", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -67,9 +79,13 @@ public class UserRepository : IUserRepository
 
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to update user", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error updating user", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -83,9 +99,13 @@ public class UserRepository : IUserRepository
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to delete user", ex);
+        }
         catch (Exception ex)
         {
-            throw new Exception("Error deleting user", ex);
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 }
