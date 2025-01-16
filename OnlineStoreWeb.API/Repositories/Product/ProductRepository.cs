@@ -13,6 +13,11 @@ public class ProductRepository : IProductRepository
         throw new NotImplementedException();
     }
 
+    public void UpdateProduct(UpdateProductDto updateProductDto)
+    {
+        throw new NotImplementedException();
+    }
+
     public void DeleteProduct(int id)
     {
         throw new NotImplementedException();
@@ -24,11 +29,6 @@ public class ProductRepository : IProductRepository
     }
 
     public Product GetProductWithId(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void UpdateProduct(UpdateProductDto updateProductDto)
     {
         throw new NotImplementedException();
     }

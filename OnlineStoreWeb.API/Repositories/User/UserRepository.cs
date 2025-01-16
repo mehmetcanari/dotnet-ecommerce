@@ -13,6 +13,11 @@ public class UserRepository : IUserRepository
         throw new NotImplementedException();
     }
 
+    public void UpdateUser(UpdateUserDto updateUserDto)
+    {
+        throw new NotImplementedException();
+    }
+
     public void DeleteUser(int id)
     {
         throw new NotImplementedException();
@@ -24,11 +29,6 @@ public class UserRepository : IUserRepository
     }
 
     public User GetUserWithId(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void UpdateUser(UpdateUserDto updateUserDto)
     {
         throw new NotImplementedException();
     }

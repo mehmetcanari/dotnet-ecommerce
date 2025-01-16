@@ -13,6 +13,11 @@ public class OrderItemRepository : IOrderItemRepository
         throw new NotImplementedException();
     }
 
+    public void UpdateOrderItem(UpdateOrderItemDto updateOrderItemDto)
+    {
+        throw new NotImplementedException();
+    }
+
     public void DeleteOrderItem(int id)
     {
         throw new NotImplementedException();
@@ -24,11 +29,6 @@ public class OrderItemRepository : IOrderItemRepository
     }
 
     public OrderItem GetOrderItemWithId(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void UpdateOrderItem(UpdateOrderItemDto updateOrderItemDto)
     {
         throw new NotImplementedException();
     }

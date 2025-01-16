@@ -8,9 +8,14 @@ public class OrderRepository : IOrderRepository
         _context = context;
     }
 
-    public void AddOrder(CreateUserDto createUserDto)
+    public void AddOrder(CreateOrderDto createOrderDto)
     {
-        throw new NotImplementedException();
+        Order order = new Order();
+        {
+            order.Id = _context.Orders.Max(o => o.Id) + 1;
+
+            
+        }
     }
 
     public void DeleteOrder(int id)
@@ -28,7 +33,7 @@ public class OrderRepository : IOrderRepository
         throw new NotImplementedException();
     }
 
-    public void UpdateOrder(UpdateUserDto updateUserDto)
+    public void UpdateOrder(UpdateOrderDto updateOrderDto)
     {
         throw new NotImplementedException();
     }
