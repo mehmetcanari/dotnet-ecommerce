@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:5076/
+@baseUrl = http://localhost:5076
 @resource = orders
 
 ###

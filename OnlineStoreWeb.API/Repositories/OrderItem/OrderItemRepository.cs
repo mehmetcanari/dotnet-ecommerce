@@ -49,7 +49,8 @@ public class OrderItemRepository : IOrderItemRepository
         {
             Quantity = createOrderItemDto.Quantity,
             Product = createOrderItemDto.Product,
-            OrderItemCreated = createOrderItemDto.OrderItemCreated
+            OrderItemCreated = createOrderItemDto.OrderItemCreated,
+            OrderItemUpdated = createOrderItemDto.OrderItemUpdated
         };
 
             await _context.OrderItems.AddAsync(orderItem);

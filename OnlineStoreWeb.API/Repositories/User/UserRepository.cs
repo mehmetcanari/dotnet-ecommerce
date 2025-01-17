@@ -50,7 +50,8 @@ public class UserRepository : IUserRepository
                 Username = createUserDto.Username,
                 Email = createUserDto.Email,
                 Password = createUserDto.Password,
-                UserCreated = createUserDto.UserCreated
+                UserCreated = createUserDto.UserCreated,
+                UserUpdated = createUserDto.UserUpdated
             };
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();

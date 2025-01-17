@@ -4,4 +4,5 @@ public record CreateProductDto
     public string Description {get;set;}
     public double Price {get;set;}
     public DateTime ProductCreated = DateTime.UtcNow;
+    public DateTime ProductUpdated = DateTime.UtcNow;
 }

@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:5076/
+@baseUrl = http://localhost:5076
 @resource = products
 
 ###
@@ -6,9 +6,9 @@ POST {{baseUrl}}/{{resource}}
 Content-Type: application/json
 
 {
-    "name": "Product 1",
-    "description": "Description 1",
-    "price": 100
+    "name": "AGT Effect Plus Premium Laminate Flooring 8mm",
+    "description": "AC4 Class 33 Commercial Grade, 8mm thickness, High resistance to scratches and impacts, Natural wood texture, Easy-click installation system, Antibacterial surface treatment, 20-year warranty, Oak pattern",
+    "price": 24.99
 }
 
 ###
@@ -22,9 +22,9 @@ PUT {{baseUrl}}/{{resource}}/1
 Content-Type: application/json
 
 {
-    "name": "Product 1",
-    "description": "Description 1",
-    "price": 100
+    "name": "Quick-Step Classic Natural Oak Laminate Flooring",
+    "description": "AC5 Class 32 Commercial Grade, 7mm thickness, Water-resistant HydroSeal technology, Uniclic installation system, Double-edge beveled, Suitable for residential and medium commercial use, 15-year warranty",
+    "price": 59.99
 }
 
 ###

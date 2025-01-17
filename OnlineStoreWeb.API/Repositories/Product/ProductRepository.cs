@@ -52,6 +52,7 @@ public class ProductRepository : IProductRepository
                 Price = createProductDto.Price,
                 Description = createProductDto.Description,
                 ProductCreated = createProductDto.ProductCreated,
+                ProductUpdated = createProductDto.ProductUpdated
             };
 
             await _context.Products.AddAsync(product);

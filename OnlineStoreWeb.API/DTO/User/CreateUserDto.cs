@@ -7,4 +7,5 @@ public record CreateUserDto
     public string LastName { get; set; }
     public string PhoneNumber { get; set; }
     public DateTime UserCreated = DateTime.UtcNow;
+    public DateTime UserUpdated = DateTime.UtcNow;
 }

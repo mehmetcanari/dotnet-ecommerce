@@ -48,7 +48,8 @@ public class OrderRepository : IOrderRepository
             var order = new Order 
             {
                 OrderItem = createOrderDto.OrderItem,
-                OrderCreated = createOrderDto.OrderCreated
+                OrderCreated = createOrderDto.OrderCreated,
+                OrderUpdated = createOrderDto.OrderUpdated
             };
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();

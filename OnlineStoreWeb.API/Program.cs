@@ -18,7 +18,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // TODO: Enable HTTPS redirection, currently no need
 app.UseAuthorization();
 app.MapControllers();
 
