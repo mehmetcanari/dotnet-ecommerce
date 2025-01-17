@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace OnlineStoreWeb.API.Controllers.Product
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("products")]
     public class ProductController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
@@ -24,7 +24,7 @@ namespace OnlineStoreWeb.API.Controllers.Product
                     return BadRequest(new { message = "Product data is required" });
 
                 await _productRepository.AddProductAsync(productDto);
-                return Created($"/api/product", new { message = "Product created successfully" });
+                return Created($"products", new { message = "Product created successfully" });
             }
             catch (Exception ex)
             {
@@ -78,17 +78,14 @@ namespace OnlineStoreWeb.API.Controllers.Product
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, UpdateProductDto updateDto)
+        public async Task<IActionResult> UpdateProduct(int id, UpdateProductDto updateProductDto)
         {
             try
             {
-                if (id <= 0)
-                    return BadRequest(new { message = "Invalid product ID" });
-
-                if (updateDto == null)
+                if (updateProductDto == null)
                     return BadRequest(new { message = "Product update data is required" });
 
-                await _productRepository.UpdateProductAsync(updateDto);
+                await _productRepository.UpdateProductAsync(id, updateProductDto);
                 return Ok(new { message = "Product updated successfully" });
             }
             catch (InvalidOperationException ex)

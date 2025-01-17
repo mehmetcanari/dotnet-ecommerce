@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace OnlineStoreWeb.API.Controllers.Order
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("orders")]
     public class OrderController : ControllerBase
     {
         private readonly IOrderRepository _orderRepository;
@@ -24,7 +24,7 @@ namespace OnlineStoreWeb.API.Controllers.Order
                     return BadRequest(new { message = "Order data is required" });
 
                 await _orderRepository.AddOrderAsync(orderDto);
-                return Created($"/api/order", new { message = "Order created successfully" });
+                return Created($"orders", new { message = "Order created successfully" });
             }
             catch (InvalidOperationException ex)
             {
@@ -93,7 +93,7 @@ namespace OnlineStoreWeb.API.Controllers.Order
                 if (updateDto == null)
                     return BadRequest(new { message = "Order update data is required" });
 
-                await _orderRepository.UpdateOrderAsync(updateDto);
+                await _orderRepository.UpdateOrderAsync(id, updateDto);
                 return Ok(new { message = "Order updated successfully" });
             }
             catch (InvalidOperationException ex)

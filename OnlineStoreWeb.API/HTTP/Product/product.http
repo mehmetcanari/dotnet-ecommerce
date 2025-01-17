@@ -1,0 +1,32 @@
+@baseUrl = http://localhost:5076/
+@resource = products
+
+###
+POST {{baseUrl}}/{{resource}}
+Content-Type: application/json
+
+{
+    "name": "Product 1",
+    "description": "Description 1",
+    "price": 100
+}
+
+###
+GET {{baseUrl}}/{{resource}}
+
+###
+GET {{baseUrl}}/{{resource}}/1
+
+###
+PUT {{baseUrl}}/{{resource}}/1
+Content-Type: application/json
+
+{
+    "name": "Product 1",
+    "description": "Description 1",
+    "price": 100
+}
+
+###
+DELETE {{baseUrl}}/{{resource}}/1
+

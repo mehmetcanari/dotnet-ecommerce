@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("users")]
 public class UserController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
@@ -25,7 +25,7 @@ public class UserController : ControllerBase
                 return BadRequest(new { message = "User data is required" });
 
             await _userRepository.AddUserAsync(userDto);
-            return Created($"/api/user", new { message = "User created successfully" });
+            return Created($"users", new { message = "User created successfully" });
         }
         catch (InvalidOperationException ex)
         {
@@ -94,7 +94,7 @@ public class UserController : ControllerBase
             if (updateDto == null)
                 return BadRequest(new { message = "User update data is required" });
 
-            await _userRepository.UpdateUserAsync(updateDto);
+            await _userRepository.UpdateUserAsync(id, updateDto);
             return Ok(new { message = "User updated successfully" });
         }
         catch (InvalidOperationException ex)

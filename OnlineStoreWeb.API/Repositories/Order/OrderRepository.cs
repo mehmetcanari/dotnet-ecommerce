@@ -63,11 +63,11 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task UpdateOrderAsync(UpdateOrderDto updateOrderDto)
+    public async Task UpdateOrderAsync(int id, UpdateOrderDto updateOrderDto)
     {
         try
         {
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == updateOrderDto.Id) 
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id) 
                 ?? throw new Exception("Order not found");
 
             order.OrderItem = updateOrderDto.OrderItem;

@@ -65,11 +65,11 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task UpdateUserAsync(UpdateUserDto updateUserDto)
+    public async Task UpdateUserAsync(int id, UpdateUserDto updateUserDto)
     {
         try
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == updateUserDto.Id)
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id)
                 ?? throw new Exception("User not found");
 
             user.Username = updateUserDto.Username;

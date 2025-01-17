@@ -67,11 +67,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task UpdateProductAsync(UpdateProductDto updateProductDto)
+    public async Task UpdateProductAsync(int id, UpdateProductDto updateProductDto)
     {
         try
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == updateProductDto.Id)
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id)
                 ?? throw new Exception("Product not found");
 
             product.Name = updateProductDto.Name;
