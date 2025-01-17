@@ -3,6 +3,6 @@ public record CreateProductDto
     public string Name {get;set;}
     public string Description {get;set;}
     public double Price {get;set;}
-    public DateTime ProductCreated = DateTime.UtcNow;
-    public DateTime ProductUpdated = DateTime.UtcNow;
+    public string? ImageUrl {get;set;}
+    public int StockQuantity {get;set;}
 }

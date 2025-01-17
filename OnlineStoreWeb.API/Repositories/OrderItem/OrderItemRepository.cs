@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore;
 public class OrderItemRepository : IOrderItemRepository
 {
     private readonly StoreDbContext _context;
+    private readonly IProductRepository _productRepository;
 
-    public OrderItemRepository(StoreDbContext context)
+    public OrderItemRepository(StoreDbContext context, IProductRepository productRepository)
     {
         _context = context;
+        _productRepository = productRepository;
     }
 
     public async Task<List<OrderItem>> GetAllOrderItemsAsync()
@@ -41,17 +43,21 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
 
-    public async Task AddOrderItemAsync(CreateOrderItemDto createOrderItemDto)
+    public async Task AddOrderItemAsync(CreateOrderItemDto createOrderItemRequest)
     {
         try
         {
-        var orderItem = new OrderItem
-        {
-            Quantity = createOrderItemDto.Quantity,
-            Product = createOrderItemDto.Product,
-            OrderItemCreated = createOrderItemDto.OrderItemCreated,
-            OrderItemUpdated = createOrderItemDto.OrderItemUpdated
-        };
+            Product fetchedProduct = await _productRepository.GetProductWithIdAsync(createOrderItemRequest.ProductId)
+                ?? throw new Exception("Product not found");
+
+            OrderItem orderItem = new OrderItem
+            {
+                Quantity = createOrderItemRequest.Quantity,
+                UserId = createOrderItemRequest.UserId,
+                ProductId = createOrderItemRequest.ProductId,
+                Price = fetchedProduct.Price,
+                OrderItemUpdated = DateTime.UtcNow
+            };
 
             await _context.OrderItems.AddAsync(orderItem);
             await _context.SaveChangesAsync();
@@ -66,16 +72,21 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
 
-    public async Task UpdateOrderItemAsync(int id, UpdateOrderItemDto updateOrderItemDto)
+    public async Task UpdateOrderItemAsync(int id, UpdateOrderItemDto updateOrderItemRequest)
     {
         try
         {
-            var orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id)
+            OrderItem orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id)
                 ?? throw new Exception("OrderItem not found");
 
-            orderItem.Quantity = updateOrderItemDto.Quantity;
-            orderItem.Product = updateOrderItemDto.Product;
-            orderItem.OrderItemUpdated = updateOrderItemDto.OrderItemUpdated;
+            Product fetchedProduct = await _productRepository.GetProductWithIdAsync(updateOrderItemRequest.ProductId)
+                ?? throw new Exception("Product not found");
+
+            orderItem.Quantity = updateOrderItemRequest.Quantity;
+            orderItem.ProductId = updateOrderItemRequest.ProductId;
+            orderItem.UserId = updateOrderItemRequest.UserId;
+            orderItem.Price = fetchedProduct.Price;
+            orderItem.OrderItemUpdated = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
@@ -92,7 +103,7 @@ public class OrderItemRepository : IOrderItemRepository
     {
         try
         {
-            var orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id)
+            OrderItem orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id)
                 ?? throw new Exception("OrderItem not found");
 
             _context.OrderItems.Remove(orderItem);

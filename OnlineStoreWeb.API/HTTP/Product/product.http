@@ -18,7 +18,7 @@ GET {{baseUrl}}/{{resource}}
 GET {{baseUrl}}/{{resource}}/1
 
 ###
-PUT {{baseUrl}}/{{resource}}/1
+PUT {{baseUrl}}/{{resource}}/8
 Content-Type: application/json
 
 {
@@ -28,5 +28,6 @@ Content-Type: application/json
 }
 
 ###
-DELETE {{baseUrl}}/{{resource}}/1
+DELETE {{baseUrl}}/{{resource}}/6
+
 

@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore;
 public class OrderRepository : IOrderRepository
 {
     private readonly StoreDbContext _context;
+    private readonly IOrderItemRepository _orderItemRepository;
 
-    public OrderRepository(StoreDbContext context)
+    public OrderRepository(StoreDbContext context, IOrderItemRepository orderItemRepository)
     {
         _context = context;
+        _orderItemRepository = orderItemRepository;
     }
 
     public async Task<List<Order>> GetAllOrdersAsync()
@@ -41,15 +43,20 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task AddOrderAsync(CreateOrderDto createOrderDto)
+    public async Task AddOrderAsync(CreateOrderDto createOrderRequest)
     {
         try
         {
-            var order = new Order 
+            List<OrderItem> orderItems = await _orderItemRepository.GetAllOrderItemsAsync();
+            List<OrderItem> userOrderItems = orderItems.Where(item => item.UserId == createOrderRequest.UserId).ToList();
+
+            Order order = new Order 
             {
-                OrderItem = createOrderDto.OrderItem,
-                OrderCreated = createOrderDto.OrderCreated,
-                OrderUpdated = createOrderDto.OrderUpdated
+                UserId = createOrderRequest.UserId,
+                ShippingAddress = createOrderRequest.ShippingAddress,
+                OrderItems = userOrderItems,
+                OrderDate = DateTime.UtcNow,
+                Status = Order.OrderStatus.Pending
             };
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
@@ -64,26 +71,6 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task UpdateOrderAsync(int id, UpdateOrderDto updateOrderDto)
-    {
-        try
-        {
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id) 
-                ?? throw new Exception("Order not found");
-
-            order.OrderItem = updateOrderDto.OrderItem;
-            order.OrderUpdated = updateOrderDto.OrderUpdated;
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to update order", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("An unexpected error occurred", ex);
-        }
-    }
 
     public async Task DeleteOrderAsync(int id)
     {

@@ -42,17 +42,19 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task AddProductAsync(CreateProductDto createProductDto)
+    public async Task AddProductAsync(CreateProductDto createProductRequest)
     {
         try
         {
             var product = new Product
             {
-                Name = createProductDto.Name,
-                Price = createProductDto.Price,
-                Description = createProductDto.Description,
-                ProductCreated = createProductDto.ProductCreated,
-                ProductUpdated = createProductDto.ProductUpdated
+                Name = createProductRequest.Name,
+                Description = createProductRequest.Description,
+                Price = createProductRequest.Price,
+                ImageUrl = createProductRequest.ImageUrl,
+                StockQuantity = createProductRequest.StockQuantity,
+                ProductCreated = DateTime.UtcNow,
+                ProductUpdated = DateTime.UtcNow
             };
 
             await _context.Products.AddAsync(product);
@@ -68,17 +70,19 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task UpdateProductAsync(int id, UpdateProductDto updateProductDto)
+    public async Task UpdateProductAsync(int id, UpdateProductDto updateProductRequest)
     {
         try
         {
             var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id)
                 ?? throw new Exception("Product not found");
 
-            product.Name = updateProductDto.Name;
-            product.Price = updateProductDto.Price;
-            product.Description = updateProductDto.Description;
-            product.ProductUpdated = updateProductDto.ProductUpdated;
+            product.Name = updateProductRequest.Name;
+            product.Description = updateProductRequest.Description;
+            product.Price = updateProductRequest.Price;
+            product.ImageUrl = updateProductRequest.ImageUrl;
+            product.StockQuantity = updateProductRequest.StockQuantity;
+            product.ProductUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
         }

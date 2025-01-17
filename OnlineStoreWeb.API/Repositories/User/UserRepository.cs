@@ -41,17 +41,20 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task AddUserAsync(CreateUserDto createUserDto)
+    public async Task AddUserAsync(CreateUserDto createUserRequest)
     {
         try
         {
             var user = new User
             {
-                Username = createUserDto.Username,
-                Email = createUserDto.Email,
-                Password = createUserDto.Password,
-                UserCreated = createUserDto.UserCreated,
-                UserUpdated = createUserDto.UserUpdated
+                FullName = createUserRequest.FullName,
+                Email = createUserRequest.Email,
+                Password = createUserRequest.Password,
+                Address = createUserRequest.Address,
+                PhoneNumber = createUserRequest.PhoneNumber,
+                DateOfBirth = createUserRequest.DateOfBirth,
+                UserCreated = DateTime.UtcNow,
+                UserUpdated = DateTime.UtcNow
             };
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
@@ -66,17 +69,18 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task UpdateUserAsync(int id, UpdateUserDto updateUserDto)
+    public async Task UpdateUserAsync(int id, UpdateUserDto updateUserRequest)
     {
         try
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id)
                 ?? throw new Exception("User not found");
 
-            user.Username = updateUserDto.Username;
-            user.Email = updateUserDto.Email;
-            user.Password = updateUserDto.Password;
-            user.UserUpdated = updateUserDto.UserUpdated;
+            user.Email = updateUserRequest.Email;
+            user.Password = updateUserRequest.Password;
+            user.Address = updateUserRequest.Address;
+            user.PhoneNumber = updateUserRequest.PhoneNumber;
+            user.UserUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
         }
