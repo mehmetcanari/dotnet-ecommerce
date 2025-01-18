@@ -1,23 +1,23 @@
 using Microsoft.EntityFrameworkCore;
 
-public class UserRepository : IUserRepository
+public class AccountRepository : IAccountRepository
 {
     private readonly StoreDbContext _context;
 
-    public UserRepository(StoreDbContext context)
+    public AccountRepository(StoreDbContext context)
     {
         _context = context;
     }
 
-    public async Task<List<User>> GetAllUsersAsync()
+    public async Task<List<Account>> GetAllAccountsAsync()
     {
         try
         {
-            return await _context.Users.ToListAsync();
+            return await _context.Accounts.ToListAsync();
         }
         catch (DbUpdateException ex)
         {
-            throw new DbUpdateException("Failed to fetch users", ex);
+            throw new DbUpdateException("Failed to fetch accounts", ex);
         }
         catch (Exception ex)
         {
@@ -25,15 +25,15 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task<User?> GetUserWithIdAsync(int id)
+    public async Task<Account?> GetAccountWithIdAsync(int id)
     {
         try
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await _context.Accounts.FirstOrDefaultAsync(u => u.Id == id);
         }
         catch (DbUpdateException ex)
         {
-            throw new DbUpdateException("Failed to fetch user", ex);
+            throw new DbUpdateException("Failed to fetch account", ex);
         }
         catch (Exception ex)
         {
@@ -41,11 +41,11 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task AddUserAsync(CreateUserDto createUserRequest)
+    public async Task AddAccountAsync(AccountRegisterDto createUserRequest)
     {
         try
         {
-            var user = new User
+            Account account = new Account
             {
                 FullName = createUserRequest.FullName,
                 Email = createUserRequest.Email,
@@ -56,12 +56,12 @@ public class UserRepository : IUserRepository
                 UserCreated = DateTime.UtcNow,
                 UserUpdated = DateTime.UtcNow
             };
-            await _context.Users.AddAsync(user);
+            await _context.Accounts.AddAsync(account);
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
-            throw new DbUpdateException("Failed to save user", ex);
+            throw new DbUpdateException("Failed to save account", ex);
         }
         catch (Exception ex)
         {
@@ -69,24 +69,24 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task UpdateUserAsync(int id, UpdateUserDto updateUserRequest)
+    public async Task UpdateAccountAsync(int id, AccountUpdateDto updateUserRequest)
     {
         try
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id)
+            var account = await _context.Accounts.FirstOrDefaultAsync(u => u.Id == id)
                 ?? throw new Exception("User not found");
 
-            user.Email = updateUserRequest.Email;
-            user.Password = updateUserRequest.Password;
-            user.Address = updateUserRequest.Address;
-            user.PhoneNumber = updateUserRequest.PhoneNumber;
-            user.UserUpdated = DateTime.UtcNow;
+            account.Email = updateUserRequest.Email;
+            account.Password = updateUserRequest.Password;
+            account.Address = updateUserRequest.Address;
+            account.PhoneNumber = updateUserRequest.PhoneNumber;
+            account.UserUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
-            throw new DbUpdateException("Failed to update user", ex);
+            throw new DbUpdateException("Failed to update account", ex);
         }
         catch (Exception ex)
         {
@@ -94,19 +94,19 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task DeleteUserAsync(int id)
+    public async Task DeleteAccountAsync(int id)
     {
         try
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id)
-                ?? throw new Exception("User not found");
+            Account account = await _context.Accounts.FirstOrDefaultAsync(u => u.Id == id)
+                ?? throw new Exception("Account not found");
 
-            _context.Users.Remove(user);
+            _context.Accounts.Remove(account);
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
-            throw new DbUpdateException("Failed to delete user", ex);
+            throw new DbUpdateException("Failed to delete account", ex);
         }
         catch (Exception ex)
         {

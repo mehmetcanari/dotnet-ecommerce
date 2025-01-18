@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-public class OrderItemRepository : IOrderItemRepository
+public class OrderItemRepository :  IOrderItemRepository
 {
     private readonly StoreDbContext _context;
     private readonly IProductRepository _productRepository;
@@ -27,11 +27,30 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
 
-    public async Task<OrderItem?> GetOrderItemWithIdAsync(int id)
+    public async Task<List<OrderItem>> GetAllOrderItemsWithUserIdAsync(int userId)
     {
         try
         {
-            return await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id);
+            List<OrderItem> orderItems = await _context.OrderItems.Where(o => o.UserId == userId).ToListAsync();
+            return orderItems;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to fetch order items", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task<OrderItem?> GetSpecifiedOrderItemsWithUserIdAsync(int userId, int orderItemId)
+    {
+        try
+        {
+            OrderItem orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.UserId == userId && o.Id == orderItemId)
+                ?? throw new Exception("OrderItem not found");
+            return orderItem;
         }
         catch (DbUpdateException ex)
         {
@@ -76,7 +95,7 @@ public class OrderItemRepository : IOrderItemRepository
     {
         try
         {
-            OrderItem orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id)
+            OrderItem orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id && o.UserId == updateOrderItemRequest.UserId)
                 ?? throw new Exception("OrderItem not found");
 
             Product fetchedProduct = await _productRepository.GetProductWithIdAsync(updateOrderItemRequest.ProductId)
@@ -84,7 +103,6 @@ public class OrderItemRepository : IOrderItemRepository
 
             orderItem.Quantity = updateOrderItemRequest.Quantity;
             orderItem.ProductId = updateOrderItemRequest.ProductId;
-            orderItem.UserId = updateOrderItemRequest.UserId;
             orderItem.Price = fetchedProduct.Price;
             orderItem.OrderItemUpdated = DateTime.UtcNow;
             await _context.SaveChangesAsync();
@@ -99,11 +117,11 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
 
-    public async Task DeleteOrderItemAsync(int id)
+    public async Task DeleteSpecifiedUserOrderItemAsync(int userId, int orderItemId)
     {
         try
         {
-            OrderItem orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.Id == id)
+            OrderItem orderItem = await _context.OrderItems.FirstOrDefaultAsync(o => o.UserId == userId && o.Id == orderItemId)
                 ?? throw new Exception("OrderItem not found");
 
             _context.OrderItems.Remove(orderItem);
@@ -111,11 +129,43 @@ public class OrderItemRepository : IOrderItemRepository
         }
         catch (DbUpdateException ex)
         {
-            throw new DbUpdateException("Failed to delete order item", ex);
+            throw new DbUpdateException("Failed to delete order items", ex);
         }
         catch (Exception ex)
         {
             throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task DeleteAllUserOrderItemsAsync(int userId)
+    {
+        try
+        {
+            List<OrderItem> orderItems = await _context.OrderItems.Where(o => o.UserId == userId).ToListAsync();
+            _context.OrderItems.RemoveRange(orderItems);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to delete order items", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task DeleteAllOrderItemsAsync()
+    {
+        try
+        {
+            List<OrderItem> orderItems = await _context.OrderItems.ToListAsync();
+            _context.OrderItems.RemoveRange(orderItems);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to delete order items", ex);
         }
     }
 }

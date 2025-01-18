@@ -4,6 +4,7 @@ public class Order
     public int UserId { get; set; }
     public DateTime OrderDate = DateTime.UtcNow;
     public string ShippingAddress { get; set; }
+    public string PaymentMethod { get; set; }
     public double TotalAmount 
     {
         get

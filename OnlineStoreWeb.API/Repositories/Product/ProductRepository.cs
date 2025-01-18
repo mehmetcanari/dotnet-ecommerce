@@ -30,7 +30,12 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            return await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+            Product product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id) 
+                ?? throw new Exception("Product not found");
+            if (product == null)
+                throw new Exception("Product not found");
+
+            return product;
         }
         catch (DbUpdateException ex)
         {

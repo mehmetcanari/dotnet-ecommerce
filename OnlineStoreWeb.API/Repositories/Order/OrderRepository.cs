@@ -54,6 +54,7 @@ public class OrderRepository : IOrderRepository
             {
                 UserId = createOrderRequest.UserId,
                 ShippingAddress = createOrderRequest.ShippingAddress,
+                PaymentMethod = createOrderRequest.PaymentMethod,
                 OrderItems = userOrderItems,
                 OrderDate = DateTime.UtcNow,
                 Status = Order.OrderStatus.Pending
