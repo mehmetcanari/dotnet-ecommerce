@@ -1,4 +1,4 @@
 public record GetOrderItemDto
 {
-    public int UserId {get;set;}
+    public required int UserId {get;set;}
 }

@@ -43,7 +43,23 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task AddOrderAsync(CreateOrderDto createOrderRequest)
+    public async Task<List<Order>> GetOrdersByUserIdAsync(int userId)
+    {
+        try
+        {
+            return await _context.Orders.Where(o => o.UserId == userId).ToListAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to fetch orders", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task AddOrderAsync(OrderCreateDto createOrderRequest)
     {
         try
         {
@@ -56,8 +72,7 @@ public class OrderRepository : IOrderRepository
                 ShippingAddress = createOrderRequest.ShippingAddress,
                 PaymentMethod = createOrderRequest.PaymentMethod,
                 OrderItems = userOrderItems,
-                OrderDate = DateTime.UtcNow,
-                Status = Order.OrderStatus.Pending
+                Status = OrderStatus.Pending
             };
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
@@ -65,6 +80,25 @@ public class OrderRepository : IOrderRepository
         catch (DbUpdateException ex)
         {
             throw new DbUpdateException("Failed to save order", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task UpdateOrderStatusAsync(int id, OrderStatus status)
+    {
+        try
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id)
+                ?? throw new Exception("Order not found");
+            order.UpdateStatus(status);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to update order status", ex);
         }
         catch (Exception ex)
         {
@@ -80,6 +114,28 @@ public class OrderRepository : IOrderRepository
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id)
                 ?? throw new Exception("Order not found");
 
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("Failed to delete order", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task DeleteOrderWithUserIdAsync(int userId)
+    {
+        try
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.UserId == userId);
+            if (order == null)
+            {
+                throw new Exception("Order not found");
+            }
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
         }

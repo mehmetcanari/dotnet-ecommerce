@@ -1,10 +1,10 @@
 public class Order
 {
     public int Id { get; set; }
-    public int UserId { get; set; }
+    public required int UserId { get; set; }
     public DateTime OrderDate = DateTime.UtcNow;
-    public string ShippingAddress { get; set; }
-    public string PaymentMethod { get; set; }
+    public required string ShippingAddress { get; set; }
+    public required string PaymentMethod { get; set; }
     public double TotalAmount 
     {
         get
@@ -20,6 +20,7 @@ public class Order
     {
         Status = newStatus;
     }
+}
 
     public enum OrderStatus
     {
@@ -28,4 +29,3 @@ public class Order
         Delivered,
         Canceled
     }
-}

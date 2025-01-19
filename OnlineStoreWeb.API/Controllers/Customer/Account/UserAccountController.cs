@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
-[Route("api/user")]
+[Route("api/account")]
 public class UserAccountController : ControllerBase
 {
     private readonly IAccountRepository _accountRepository;
@@ -38,7 +38,7 @@ public class UserAccountController : ControllerBase
         }
     }
 
-    [HttpPut("profile/{id}")]
+    [HttpPut("user/{id}")]
     public async Task<IActionResult> UpdateProfile(int id, AccountUpdateDto accountUpdateRequest)
     {
         try

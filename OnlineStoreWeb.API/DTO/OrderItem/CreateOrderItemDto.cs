@@ -1,6 +1,6 @@
 public record CreateOrderItemDto
 {
-    public int Quantity {get;set;}
-    public int ProductId {get;set;}
-    public int UserId {get;set;}
+    public required int Quantity {get;set;}
+    public required int ProductId {get;set;}
+    public required int UserId {get;set;}
 }

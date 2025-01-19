@@ -1,4 +1,4 @@
 public record ViewProductDto
 {
-    public int ProductId {get;set;}
+    public required int ProductId {get;set;}
 }
