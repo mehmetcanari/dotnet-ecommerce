@@ -9,11 +9,11 @@ public class AccountRepository : IAccountRepository
         _context = context;
     }
 
-    public async Task<List<Account>> GetAllAccountsAsync()
+    public async Task<List<Account>> Get()
     {
         try
         {
-            return await _context.Accounts.ToListAsync();
+            return await _context.Accounts.AsNoTracking().ToListAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -25,38 +25,11 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<Account?> GetAccountWithIdAsync(int id)
+    public async Task Add(Account userAccount)
     {
         try
         {
-            return await _context.Accounts.FirstOrDefaultAsync(u => u.Id == id);
-        }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to fetch account", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("An unexpected error occurred", ex);
-        }
-    }
-
-    public async Task AddAccountAsync(AccountRegisterDto createUserRequest)
-    {
-        try
-        {
-            Account account = new Account
-            {
-                FullName = createUserRequest.FullName,
-                Email = createUserRequest.Email,
-                Password = createUserRequest.Password,
-                Address = createUserRequest.Address,
-                PhoneNumber = createUserRequest.PhoneNumber,
-                DateOfBirth = createUserRequest.DateOfBirth,
-                UserCreated = DateTime.UtcNow,
-                UserUpdated = DateTime.UtcNow
-            };
-            await _context.Accounts.AddAsync(account);
+            await _context.Accounts.AddAsync(userAccount);
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
@@ -69,38 +42,23 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task UpdateAccountAsync(int id, AccountUpdateDto updateUserRequest)
+    public async Task Update(Account account)
     {
         try
         {
-            var account = await _context.Accounts.FirstOrDefaultAsync(u => u.Id == id)
-                ?? throw new Exception("User not found");
-
-            account.Email = updateUserRequest.Email;
-            account.Password = updateUserRequest.Password;
-            account.Address = updateUserRequest.Address;
-            account.PhoneNumber = updateUserRequest.PhoneNumber;
-            account.UserUpdated = DateTime.UtcNow;
-
+            _context.Accounts.Update(account);
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
             throw new DbUpdateException("Failed to update account", ex);
         }
-        catch (Exception ex)
-        {
-            throw new Exception("An unexpected error occurred", ex);
-        }
     }
 
-    public async Task DeleteAccountAsync(int id)
+    public async Task Delete(Account account)
     {
         try
         {
-            Account account = await _context.Accounts.FirstOrDefaultAsync(u => u.Id == id)
-                ?? throw new Exception("Account not found");
-
             _context.Accounts.Remove(account);
             await _context.SaveChangesAsync();
         }

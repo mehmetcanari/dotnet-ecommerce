@@ -18,7 +18,7 @@ public class AdminOrderItemController : ControllerBase
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.GetAllOrderItemsAsync();
+            List<OrderItem> orderItems = await _orderItemRepository.Get();
             return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
         catch (Exception ex)

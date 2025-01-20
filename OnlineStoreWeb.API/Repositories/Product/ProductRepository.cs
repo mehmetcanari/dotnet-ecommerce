@@ -10,11 +10,11 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public async Task<List<Product>> GetAllProductsAsync()
+    public async Task<List<Product>> Get()
     {
         try
         {
-            return await _context.Products.ToListAsync();
+            return await _context.Products.AsNoTracking().ToListAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -26,42 +26,10 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task<Product?> GetProductWithIdAsync(int id)
+    public async Task Add(Product product)
     {
         try
         {
-            Product product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id) 
-                ?? throw new Exception("Product not found");
-            if (product == null)
-                throw new Exception("Product not found");
-
-            return product;
-        }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to fetch product", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("An unexpected error occurred", ex);
-        }
-    }
-
-    public async Task AddProductAsync(CreateProductDto createProductRequest)
-    {
-        try
-        {
-            var product = new Product
-            {
-                Name = createProductRequest.Name,
-                Description = createProductRequest.Description,
-                Price = createProductRequest.Price,
-                ImageUrl = createProductRequest.ImageUrl,
-                StockQuantity = createProductRequest.StockQuantity,
-                ProductCreated = DateTime.UtcNow,
-                ProductUpdated = DateTime.UtcNow
-            };
-
             await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
         }
@@ -75,20 +43,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task UpdateProductAsync(int id, UpdateProductDto updateProductRequest)
+    public async Task Update(Product product)
     {
         try
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id)
-                ?? throw new Exception("Product not found");
-
-            product.Name = updateProductRequest.Name;
-            product.Description = updateProductRequest.Description;
-            product.Price = updateProductRequest.Price;
-            product.ImageUrl = updateProductRequest.ImageUrl;
-            product.StockQuantity = updateProductRequest.StockQuantity;
-            product.ProductUpdated = DateTime.UtcNow;
-
+            _context.Products.Update(product);
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
@@ -101,13 +60,10 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task DeleteProductAsync(int id)
+    public async Task Delete(Product product)
     {
         try
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id)
-                ?? throw new Exception("Product not found");
-
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }

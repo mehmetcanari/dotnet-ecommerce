@@ -6,12 +6,12 @@ namespace OnlineStoreWeb.API.Controllers.User.OrderItem;
 [Route("api/user/orderitems")]
 public class UserOrderItemController : ControllerBase
 {
-    private readonly IOrderItemRepository _orderItemRepository;
+    private readonly IOrderItemService _orderItemService;
     private readonly ILogger<UserOrderItemController> _logger;
 
-    public UserOrderItemController(IOrderItemRepository orderItemRepository, ILogger<UserOrderItemController> logger)
+    public UserOrderItemController(IOrderItemService orderItemService, ILogger<UserOrderItemController> logger)
     {
-        _orderItemRepository = orderItemRepository;
+        _orderItemService = orderItemService;
         _logger = logger;
     }
 
@@ -23,7 +23,7 @@ public class UserOrderItemController : ControllerBase
             if (orderItemCreateRequest == null)
                 return BadRequest(new { message = "Order item data is required" });
 
-            await _orderItemRepository.AddOrderItemAsync(orderItemCreateRequest);
+            await _orderItemService.AddOrderItemAsync(orderItemCreateRequest);
             return Created($"orderitems/{orderItemCreateRequest.ProductId}", new { message = "Order item created successfully" });
         }
         catch (Exception ex)
@@ -34,11 +34,14 @@ public class UserOrderItemController : ControllerBase
     }
 
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateOrderItem(int id, UpdateOrderItemDto updateOrderItemRequest)
+    public async Task<IActionResult> UpdateOrderItem(UpdateOrderItemDto updateOrderItemRequest)
     {
         try
         {
-            await _orderItemRepository.UpdateOrderItemAsync(id, updateOrderItemRequest);
+            if (updateOrderItemRequest == null)
+                return BadRequest(new { message = "Order item data is required" });
+
+            await _orderItemService.UpdateOrderItemAsync(updateOrderItemRequest);
             return Ok(new { message = "Order item updated successfully" });
         }
         catch (Exception ex)
@@ -53,7 +56,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            var orderItem = await _orderItemRepository.GetSpecifiedOrderItemsWithUserIdAsync(userId, orderItemId);
+            var orderItem = await _orderItemService.GetSpecifiedOrderItemsWithUserIdAsync(userId, orderItemId);
             return Ok(new { message = "Order item fetched successfully", data = orderItem });
         }
         catch (Exception ex)
@@ -68,7 +71,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            var orderItems = await _orderItemRepository.GetAllOrderItemsWithUserIdAsync(userId);
+            var orderItems = await _orderItemService.GetAllOrderItemsWithUserIdAsync(userId);
             return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
         catch (Exception ex)
@@ -83,7 +86,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            await _orderItemRepository.DeleteSpecifiedUserOrderItemAsync(userId, orderItemId);
+            await _orderItemService.DeleteSpecifiedUserOrderItemAsync(userId, orderItemId);
             return Ok(new { message = "Order item deleted successfully" });
         }
         catch (Exception ex)
@@ -98,7 +101,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            await _orderItemRepository.DeleteAllUserOrderItemsAsync(userId);
+            await _orderItemService.DeleteAllUserOrderItemsAsync(userId);
             return Ok(new { message = "All order items deleted successfully" });
         }
         catch (Exception ex)

@@ -6,12 +6,12 @@ namespace OnlineStoreWeb.API.Controllers.User;
 [Route("api/account")]
 public class UserAccountController : ControllerBase
 {
-    private readonly IAccountRepository _accountRepository;
+    private readonly IAccountService _accountService;
     private readonly ILogger<UserAccountController> _logger;
 
-    public UserAccountController(IAccountRepository accountRepository, ILogger<UserAccountController> logger)
+    public UserAccountController(IAccountService accountService, ILogger<UserAccountController> logger)
     {
-        _accountRepository = accountRepository;
+        _accountService = accountService;
         _logger = logger;
     }
 
@@ -23,7 +23,7 @@ public class UserAccountController : ControllerBase
             if (accountRegisterRequest == null)
                 return BadRequest(new { message = "User data is required" });
 
-            await _accountRepository.AddAccountAsync(accountRegisterRequest);
+            await _accountService.AddAccountAsync(accountRegisterRequest);
             return Created($"users", new { message = "User created successfully" });
         }
         catch (InvalidOperationException ex)
@@ -46,7 +46,7 @@ public class UserAccountController : ControllerBase
             if (accountUpdateRequest == null)
                 return BadRequest(new { message = "User update data is required" });
 
-            await _accountRepository.UpdateAccountAsync(id, accountUpdateRequest);
+            await _accountService.UpdateAccountAsync(id, accountUpdateRequest);
             return Ok(new { message = "User updated successfully" });
         }
         catch (Exception ex)

@@ -6,12 +6,12 @@ namespace OnlineStoreWeb.API.Controllers.Admin.Product;
 [Route("api/admin/products")]
 public class AdminProductController : ControllerBase
 {
-    private readonly IProductRepository _productRepository;
+    private readonly IProductService _productService;
     private readonly ILogger<AdminProductController> _logger;
 
-    public AdminProductController(IProductRepository productRepository, ILogger<AdminProductController> logger)
+    public AdminProductController(IProductService productService, ILogger<AdminProductController> logger)
     {
-        _productRepository = productRepository;
+        _productService = productService;
         _logger = logger;
     }
 
@@ -20,7 +20,7 @@ public class AdminProductController : ControllerBase
     {
         try
         {
-            var products = await _productRepository.GetAllProductsAsync();
+            var products = await _productService.GetAllProductsAsync();
             return Ok(products);
         }
         catch (Exception ex)
@@ -35,7 +35,7 @@ public class AdminProductController : ControllerBase
     {
         try
         {
-            var product = await _productRepository.GetProductWithIdAsync(id);
+            var product = await _productService.GetProductWithIdAsync(id);
             return Ok(product);
         }
         catch (Exception ex)
@@ -53,7 +53,7 @@ public class AdminProductController : ControllerBase
             if (productCreateRequest == null)
                 return BadRequest(new { message = "Product data is required" });
 
-            await _productRepository.AddProductAsync(productCreateRequest);
+            await _productService.AddProductAsync(productCreateRequest);
             return Created($"products/{productCreateRequest.Name}", new { message = "Product created successfully" });
         }
         catch (Exception ex)
@@ -68,7 +68,7 @@ public class AdminProductController : ControllerBase
     {
         try
         {
-            await _productRepository.UpdateProductAsync(id, productUpdateRequest);
+            await _productService.UpdateProductAsync(productUpdateRequest);
             return Ok(new { message = "Product updated successfully" });
         }
         catch (Exception ex)
@@ -83,7 +83,7 @@ public class AdminProductController : ControllerBase
     {
         try
         {
-            await _productRepository.DeleteProductAsync(id);
+            await _productService.DeleteProductAsync(id);
             return Ok(new { message = "Product deleted successfully" });
         }
         catch (Exception ex)

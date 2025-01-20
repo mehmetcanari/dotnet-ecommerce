@@ -6,12 +6,12 @@ namespace OnlineStoreWeb.API.Controllers.Admin.Order;
 [Route("api/admin/orders")]
 public class AdminOrderController : ControllerBase
 {
-    private readonly IOrderRepository _orderRepository;
+    private readonly IOrderService _orderService;
     private readonly ILogger<AdminOrderController> _logger;
 
-    public AdminOrderController(IOrderRepository orderRepository, ILogger<AdminOrderController> logger)
+    public AdminOrderController(IOrderService orderService, ILogger<AdminOrderController> logger)
     {
-        _orderRepository = orderRepository;
+        _orderService = orderService;
         _logger = logger;
     }
 
@@ -20,7 +20,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            var orders = await _orderRepository.GetAllOrdersAsync();
+            var orders = await _orderService.GetAllOrdersAsync();
             return Ok(new { message = "Orders fetched successfully", data = orders });
         }
         catch (Exception ex)
@@ -35,7 +35,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            var order = await _orderRepository.GetOrderWithIdAsync(id);
+            var order = await _orderService.GetOrderWithIdAsync(id);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
         catch (Exception ex)
@@ -50,7 +50,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            await _orderRepository.DeleteOrderAsync(id);
+            await _orderService.DeleteOrderAsync(id);
             return Ok(new { message = "Order deleted successfully" });
         }
         catch (Exception ex)
@@ -65,7 +65,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            await _orderRepository.UpdateOrderStatusAsync(id, orderStatus);
+            await _orderService.UpdateOrderStatusAsync(id, orderStatus);
             return Ok(new { message = "Order status updated successfully" });
         }
         catch (Exception ex)

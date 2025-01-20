@@ -6,12 +6,12 @@ namespace OnlineStoreWeb.API.Controllers.Admin.Account;
 [Route("api/admin/accounts")]
 public class AdminAccountController : ControllerBase
 {
-    private readonly IAccountRepository _accountRepository;
+    private readonly IAccountService _accountService;
     private readonly ILogger<AdminAccountController> _logger;
 
-    public AdminAccountController(IAccountRepository accountRepository, ILogger<AdminAccountController> logger)
+    public AdminAccountController(IAccountService accountService, ILogger<AdminAccountController> logger)
     {
-        _accountRepository = accountRepository;
+        _accountService = accountService;
         _logger = logger;
     }
 
@@ -20,7 +20,7 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            var accounts = await _accountRepository.GetAllAccountsAsync();
+            var accounts = await _accountService.GetAllAccountsAsync();
             return Ok(accounts);
         }
         catch (Exception ex)
@@ -35,7 +35,7 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            var account = await _accountRepository.GetAccountWithIdAsync(id);
+            var account = await _accountService.GetAccountWithIdAsync(id);
             return Ok(account);
         }
         catch (Exception ex)
@@ -50,7 +50,7 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            await _accountRepository.DeleteAccountAsync(id);
+            await _accountService.DeleteAccountAsync(id);
             return NoContent();
         }
         catch (Exception ex)

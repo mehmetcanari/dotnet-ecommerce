@@ -6,12 +6,12 @@ namespace OnlineStoreWeb.API.Controllers.Customer.Order;
 [Route("api/customer/orders")]
 public class UserOrderController : ControllerBase
 {
-    private readonly IOrderRepository _orderRepository;
+    private readonly IOrderService _orderService;
     private readonly ILogger<UserOrderController> _logger;
 
-    public UserOrderController(IOrderRepository orderRepository, ILogger<UserOrderController> logger)
+    public UserOrderController(IOrderService orderService, ILogger<UserOrderController> logger)
     {
-        _orderRepository = orderRepository;
+        _orderService = orderService;
         _logger = logger;
     }
 
@@ -20,7 +20,7 @@ public class UserOrderController : ControllerBase
     {
         try
         {
-            await _orderRepository.AddOrderAsync(orderCreateRequest);
+            await _orderService.AddOrderAsync(orderCreateRequest);
             return Created($"orders", new { message = "Order created successfully" });
         }
         catch (Exception ex)
@@ -35,7 +35,7 @@ public class UserOrderController : ControllerBase
     {
         try
         {
-            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+            var orders = await _orderService.GetOrdersByUserIdAsync(userId);
             return Ok(new { message = "Orders fetched successfully", orders });
         }
         catch (Exception ex)
@@ -50,7 +50,7 @@ public class UserOrderController : ControllerBase
     {
         try
         {
-            await _orderRepository.DeleteOrderWithUserIdAsync(userId);
+            await _orderService.DeleteOrderWithUserIdAsync(userId);
             return Ok(new { message = "Order deleted successfully" });
         }
         catch (Exception ex)

@@ -6,12 +6,12 @@ namespace OnlineStoreWeb.API.Controllers.Customer.Product;
 [Route("api/user/products")]
 public class UserProductController : ControllerBase
 {
-    private readonly IProductRepository _productRepository;
+    private readonly IProductService _productService;
     private readonly ILogger<UserProductController> _logger;
 
-    public UserProductController(IProductRepository productRepository, ILogger<UserProductController> logger)
+    public UserProductController(IProductService productService, ILogger<UserProductController> logger)
     {
-        _productRepository = productRepository;
+        _productService = productService;
         _logger = logger;
     }
 
@@ -20,7 +20,7 @@ public class UserProductController : ControllerBase
     {
         try
         {
-            var products = await _productRepository.GetAllProductsAsync();
+            var products = await _productService.GetAllProductsAsync();
             return Ok(new { message = "Products fetched successfully", data = products });
         }
         catch (Exception ex)
@@ -35,7 +35,7 @@ public class UserProductController : ControllerBase
     {
         try
         {
-            var product = await _productRepository.GetProductWithIdAsync(id);
+            var product = await _productService.GetProductWithIdAsync(id);
             return Ok(new { message = "Product fetched successfully", data = product });
         }
         catch (Exception ex)
