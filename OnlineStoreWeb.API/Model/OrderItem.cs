@@ -1,10 +1,10 @@
 public class OrderItem
 {
     public int Id {get; set;}
-    public int UserId {get;set;}
-    public int Quantity {get;set;}
-    public int ProductId {get;set;}
-    public double Price {get;set;}
+    public required int UserId {get;set;}
+    public required int Quantity {get;set;}
+    public required int ProductId {get;set;}
+    public required double Price {get;set;}
     public double TotalPrice 
     {
         get 
@@ -13,5 +13,5 @@ public class OrderItem
         }
     }
     public DateTime OrderItemCreated = DateTime.UtcNow;
-    public DateTime OrderItemUpdated { get; set; }
+    public required DateTime OrderItemUpdated { get; set; }
 }

@@ -5,8 +5,8 @@ public class Order
     public DateTime OrderDate { get; set; } = DateTime.UtcNow;
     public required string ShippingAddress { get; set; }
     public required string PaymentMethod { get; set; }
-    public OrderStatus Status { get; set; }
-    public List<OrderItem> OrderItems { get; set; }
+    public required OrderStatus Status { get; set; }
+    public required List<OrderItem> OrderItems { get; set; }
     
     public double TotalAmount 
     {

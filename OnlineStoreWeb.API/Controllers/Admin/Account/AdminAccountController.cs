@@ -7,12 +7,10 @@ namespace OnlineStoreWeb.API.Controllers.Admin.Account;
 public class AdminAccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
-    private readonly ILogger<AdminAccountController> _logger;
-
-    public AdminAccountController(IAccountService accountService, ILogger<AdminAccountController> logger)
+    
+    public AdminAccountController(IAccountService accountService)
     {
         _accountService = accountService;
-        _logger = logger;
     }
 
     [HttpGet]
@@ -25,8 +23,7 @@ public class AdminAccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
-            return StatusCode(500, "An unexpected error occurred while fetching accounts");
+            return StatusCode(500, "An unexpected error occurred while fetching accounts" + ex.Message);
         }
     }
 
@@ -40,12 +37,11 @@ public class AdminAccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching account: {Message}", ex.Message);
-            return StatusCode(500, "An unexpected error occurred while fetching the account");
+            return StatusCode(500, "An unexpected error occurred while fetching the account" + ex.Message);
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteAccount(int id)
     {
         try
@@ -55,8 +51,7 @@ public class AdminAccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
-            return StatusCode(500, "An unexpected error occurred while deleting the account");
+            return StatusCode(500, "An unexpected error occurred while deleting the account" + ex.Message);
         }
     }
 }

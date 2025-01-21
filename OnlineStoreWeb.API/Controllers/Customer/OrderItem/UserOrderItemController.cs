@@ -7,12 +7,10 @@ namespace OnlineStoreWeb.API.Controllers.User.OrderItem;
 public class UserOrderItemController : ControllerBase
 {
     private readonly IOrderItemService _orderItemService;
-    private readonly ILogger<UserOrderItemController> _logger;
 
-    public UserOrderItemController(IOrderItemService orderItemService, ILogger<UserOrderItemController> logger)
+    public UserOrderItemController(IOrderItemService orderItemService)
     {
         _orderItemService = orderItemService;
-        _logger = logger;
     }
 
     [HttpPost("create")]
@@ -20,15 +18,11 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            if (orderItemCreateRequest == null)
-                return BadRequest(new { message = "Order item data is required" });
-
             await _orderItemService.AddOrderItemAsync(orderItemCreateRequest);
             return Created($"orderitems/{orderItemCreateRequest.ProductId}", new { message = "Order item created successfully" });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while creating order item: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while creating the order item");
         }
     }
@@ -38,15 +32,11 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            if (updateOrderItemRequest == null)
-                return BadRequest(new { message = "Order item data is required" });
-
             await _orderItemService.UpdateOrderItemAsync(updateOrderItemRequest);
             return Ok(new { message = "Order item updated successfully" });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while updating order item: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while updating the order item");
         }
     }
@@ -59,9 +49,8 @@ public class UserOrderItemController : ControllerBase
             var orderItem = await _orderItemService.GetSpecifiedOrderItemsWithUserIdAsync(userId, orderItemId);
             return Ok(new { message = "Order item fetched successfully", data = orderItem });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching order item: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching the order item");
         }
     }
@@ -74,9 +63,8 @@ public class UserOrderItemController : ControllerBase
             var orderItems = await _orderItemService.GetAllOrderItemsWithUserIdAsync(userId);
             return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching order items: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching the order items");
         }
     }
@@ -89,9 +77,8 @@ public class UserOrderItemController : ControllerBase
             await _orderItemService.DeleteSpecifiedUserOrderItemAsync(userId, orderItemId);
             return Ok(new { message = "Order item deleted successfully" });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while deleting order item: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while deleting the order item");
         }
     }
@@ -104,9 +91,8 @@ public class UserOrderItemController : ControllerBase
             await _orderItemService.DeleteAllUserOrderItemsAsync(userId);
             return Ok(new { message = "All order items deleted successfully" });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while deleting all order items: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while deleting all order items");
         }
     }

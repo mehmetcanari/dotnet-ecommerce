@@ -1,10 +1,12 @@
 public class AccountService : IAccountService
 {
     private readonly IAccountRepository _accountRepository;
+    private readonly ILogger<AccountService> _logger;
 
-    public AccountService(IAccountRepository accountRepository)
+    public AccountService(IAccountRepository accountRepository, ILogger<AccountService> logger)
     {
         _accountRepository = accountRepository;
+        _logger = logger;
     }
 
     public async Task AddAccountAsync(AccountRegisterDto createUserDto)
@@ -14,6 +16,7 @@ public class AccountService : IAccountService
             List<Account> accounts = await _accountRepository.Get();
             if(accounts.Any(a => a.Email == createUserDto.Email)) //Duplicate email check
             {
+                _logger.LogError("Email already exists");
                 throw new Exception("Email already exists");
             }
 
@@ -33,6 +36,7 @@ public class AccountService : IAccountService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while adding account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -54,6 +58,7 @@ public class AccountService : IAccountService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while updating account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -67,6 +72,7 @@ public class AccountService : IAccountService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -81,6 +87,7 @@ public class AccountService : IAccountService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while fetching account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -95,6 +102,7 @@ public class AccountService : IAccountService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }

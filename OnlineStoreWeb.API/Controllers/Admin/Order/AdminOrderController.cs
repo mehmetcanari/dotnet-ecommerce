@@ -7,12 +7,10 @@ namespace OnlineStoreWeb.API.Controllers.Admin.Order;
 public class AdminOrderController : ControllerBase
 {
     private readonly IOrderService _orderService;
-    private readonly ILogger<AdminOrderController> _logger;
 
-    public AdminOrderController(IOrderService orderService, ILogger<AdminOrderController> logger)
+    public AdminOrderController(IOrderService orderService)
     {
         _orderService = orderService;
-        _logger = logger;
     }
 
     [HttpGet]
@@ -23,9 +21,8 @@ public class AdminOrderController : ControllerBase
             var orders = await _orderService.GetAllOrdersAsync();
             return Ok(new { message = "Orders fetched successfully", data = orders });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching orders: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching orders");
         }
     }
@@ -38,9 +35,8 @@ public class AdminOrderController : ControllerBase
             var order = await _orderService.GetOrderWithIdAsync(id);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching order: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching the order");
         }
     }
@@ -51,11 +47,10 @@ public class AdminOrderController : ControllerBase
         try
         {
             await _orderService.DeleteOrderAsync(id);
-            return Ok(new { message = "Order deleted successfully" });
+            return Ok(new { message = "Order deleted successfully with id: " + id });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while deleting the order");
         }
     }
@@ -66,11 +61,10 @@ public class AdminOrderController : ControllerBase
         try
         {
             await _orderService.UpdateOrderStatusAsync(id, orderStatus);
-            return Ok(new { message = "Order status updated successfully" });
+            return Ok(new { message = "Order status updated successfully with id: " + id });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while updating order status: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while updating the order status");
         }
     }

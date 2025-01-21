@@ -4,13 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/admin/orderitems")]
 public class AdminOrderItemController : ControllerBase
 {
-    private readonly IOrderItemRepository _orderItemRepository;
-    private readonly ILogger<AdminOrderItemController> _logger;
+    private readonly IOrderItemService _orderItemService;
 
-    public AdminOrderItemController(IOrderItemRepository orderItemRepository, ILogger<AdminOrderItemController> logger)
+    public AdminOrderItemController(IOrderItemService orderItemService)
     {
-        _orderItemRepository = orderItemRepository;
-        _logger = logger;
+        _orderItemService = orderItemService;
     }
 
     [HttpGet]
@@ -18,12 +16,11 @@ public class AdminOrderItemController : ControllerBase
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
+            List<OrderItem> orderItems = await _orderItemService.GetAllOrderItemsAsync();
             return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching order items: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching the order items");
         }
     }
@@ -33,29 +30,12 @@ public class AdminOrderItemController : ControllerBase
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.GetAllOrderItemsWithUserIdAsync(userId);
+            List<OrderItem> orderItems = await _orderItemService.GetAllOrderItemsWithUserIdAsync(userId);
             return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching order item: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching the order item");
         }
     }
-
-    [HttpDelete]
-    public async Task<IActionResult> DeleteAllOrderItems()
-    {
-        try
-        {
-            await _orderItemRepository.DeleteAllOrderItemsAsync();
-            return Ok(new { message = "All order items deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while deleting order items: {Message}", ex.Message);
-            return StatusCode(500, "An unexpected error occurred while deleting the order items");
-        }
-    }
-
 }

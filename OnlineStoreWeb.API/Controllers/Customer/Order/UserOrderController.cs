@@ -7,12 +7,10 @@ namespace OnlineStoreWeb.API.Controllers.Customer.Order;
 public class UserOrderController : ControllerBase
 {
     private readonly IOrderService _orderService;
-    private readonly ILogger<UserOrderController> _logger;
 
-    public UserOrderController(IOrderService orderService, ILogger<UserOrderController> logger)
+    public UserOrderController(IOrderService orderService)
     {
         _orderService = orderService;
-        _logger = logger;
     }
 
     [HttpPost]
@@ -23,9 +21,8 @@ public class UserOrderController : ControllerBase
             await _orderService.AddOrderAsync(orderCreateRequest);
             return Created($"orders", new { message = "Order created successfully" });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while creating order: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while creating the order");
         }
     }
@@ -38,9 +35,8 @@ public class UserOrderController : ControllerBase
             var orders = await _orderService.GetOrdersByUserIdAsync(userId);
             return Ok(new { message = "Orders fetched successfully", orders });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching orders: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching orders");
         }
     }
@@ -53,9 +49,8 @@ public class UserOrderController : ControllerBase
             await _orderService.DeleteOrderWithUserIdAsync(userId);
             return Ok(new { message = "Order deleted successfully" });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while deleting the order");
         }
     }

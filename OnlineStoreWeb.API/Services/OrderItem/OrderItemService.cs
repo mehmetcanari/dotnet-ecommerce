@@ -2,11 +2,13 @@ public class OrderItemService : IOrderItemService
 {
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IProductRepository _productRepository;
+    private readonly ILogger<OrderItemService> _logger;
 
-    public OrderItemService(IOrderItemRepository orderItemRepository, IProductRepository productRepository)
+    public OrderItemService(IOrderItemRepository orderItemRepository, IProductRepository productRepository, ILogger<OrderItemService> logger)
     {
         _orderItemRepository = orderItemRepository;
         _productRepository = productRepository;
+        _logger = logger;
     }
 
     public async Task<List<OrderItem>> GetAllOrderItemsAsync()
@@ -18,6 +20,7 @@ public class OrderItemService : IOrderItemService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while fetching all order items");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -32,6 +35,7 @@ public class OrderItemService : IOrderItemService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while fetching all order items with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -49,6 +53,7 @@ public class OrderItemService : IOrderItemService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while fetching specified order items with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -81,6 +86,7 @@ public class OrderItemService : IOrderItemService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while adding order item: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -110,6 +116,7 @@ public class OrderItemService : IOrderItemService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while updating order item: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -126,6 +133,7 @@ public class OrderItemService : IOrderItemService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while deleting specified order item with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -143,6 +151,7 @@ public class OrderItemService : IOrderItemService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while deleting all order items with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -159,6 +168,7 @@ public class OrderItemService : IOrderItemService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while deleting all order items");
             throw new Exception("An unexpected error occurred", ex);
         }
     }

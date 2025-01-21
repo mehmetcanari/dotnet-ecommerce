@@ -7,12 +7,10 @@ namespace OnlineStoreWeb.API.Controllers.Customer.Product;
 public class UserProductController : ControllerBase
 {
     private readonly IProductService _productService;
-    private readonly ILogger<UserProductController> _logger;
 
-    public UserProductController(IProductService productService, ILogger<UserProductController> logger)
+    public UserProductController(IProductService productService)
     {
         _productService = productService;
-        _logger = logger;
     }
 
     [HttpGet]
@@ -23,9 +21,8 @@ public class UserProductController : ControllerBase
             var products = await _productService.GetAllProductsAsync();
             return Ok(new { message = "Products fetched successfully", data = products });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching products: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching products");
         }
     }
@@ -38,9 +35,8 @@ public class UserProductController : ControllerBase
             var product = await _productService.GetProductWithIdAsync(id);
             return Ok(new { message = "Product fetched successfully", data = product });
         }
-        catch (Exception ex)
+        catch 
         {
-            _logger.LogError(ex, "Unexpected error while fetching product: {Message}", ex.Message);
             return StatusCode(500, "An unexpected error occurred while fetching the product");
         }
     }

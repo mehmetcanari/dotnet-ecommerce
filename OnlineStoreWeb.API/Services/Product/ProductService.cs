@@ -1,10 +1,12 @@
 public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
+    private readonly ILogger<ProductService> _logger;
 
-    public ProductService(IProductRepository productRepository)
+    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
     {
         _productRepository = productRepository;
+        _logger = logger;
     }
 
     public async Task<List<Product>> GetAllProductsAsync()
@@ -16,6 +18,7 @@ public class ProductService : IProductService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while fetching all products");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -30,6 +33,7 @@ public class ProductService : IProductService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -59,6 +63,7 @@ public class ProductService : IProductService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -81,6 +86,7 @@ public class ProductService : IProductService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -96,6 +102,7 @@ public class ProductService : IProductService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
