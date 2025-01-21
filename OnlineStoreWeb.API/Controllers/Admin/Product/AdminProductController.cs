@@ -23,11 +23,11 @@ public class AdminProductController(IProductService productService) : Controller
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetProductById(ViewProductDto viewProductDto)
+    public async Task<IActionResult> GetProductById(int id)
     {
         try
         {
-            var product = await productService.GetProductWithIdAsync(viewProductDto);
+            var product = await productService.GetProductWithIdAsync(id);
             return Ok(product);
         }
         catch
@@ -51,11 +51,11 @@ public class AdminProductController(IProductService productService) : Controller
     }
 
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateProduct(UpdateProductDto productUpdateRequest)
+    public async Task<IActionResult> UpdateProduct(int id, UpdateProductDto productUpdateRequest)
     {
         try
         {
-            await productService.UpdateProductAsync(productUpdateRequest);
+            await productService.UpdateProductAsync(id, productUpdateRequest);
             return Ok(new { message = "Product updated successfully" });
         }
         catch

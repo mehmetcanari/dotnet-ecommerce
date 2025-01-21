@@ -20,12 +20,12 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
         }
     }
 
-    public async Task<Model.Product> GetProductWithIdAsync(ViewProductDto viewProductDto)
+    public async Task<Model.Product> GetProductWithIdAsync(int requestId)
     {
         try
         {
             List<Model.Product> products = await productRepository.Get();
-            Model.Product product = products.FirstOrDefault(p => p.Id == viewProductDto.Id) ?? throw new Exception("Product not found");
+            Model.Product product = products.FirstOrDefault(p => p.Id == requestId) ?? throw new Exception("Product not found");
             return product;
         }
         catch (Exception ex)
@@ -65,12 +65,12 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
         }
     }
 
-    public async Task UpdateProductAsync(UpdateProductDto updateProductRequest)
+    public async Task UpdateProductAsync(int id, UpdateProductDto updateProductRequest)
     {
         try
         {
             List<Model.Product> products = await productRepository.Get();
-            Model.Product product = products.FirstOrDefault(p => p.Id == updateProductRequest.Id) ?? throw new Exception("Product not found");
+            Model.Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
 
             product.Name = updateProductRequest.Name;
             product.Description = updateProductRequest.Description;

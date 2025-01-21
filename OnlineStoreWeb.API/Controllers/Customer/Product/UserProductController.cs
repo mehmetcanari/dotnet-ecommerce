@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineStoreWeb.API.DTO.Product;
 using OnlineStoreWeb.API.Services.Product;
 
 namespace OnlineStoreWeb.API.Controllers.Customer.Product;
@@ -22,12 +21,12 @@ public class UserProductController(IProductService productService) : ControllerB
         }
     }
 
-    [HttpGet("{Id}")]
-    public async Task<IActionResult> GetProductById(ViewProductDto viewProductDto)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetProductById(int id)
     {
         try
         {
-            var product = await productService.GetProductWithIdAsync(viewProductDto);
+            var product = await productService.GetProductWithIdAsync(id);
             return Ok(new { message = "Product fetched successfully", data = product });
         }
         catch 

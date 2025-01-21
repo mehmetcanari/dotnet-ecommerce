@@ -5,8 +5,8 @@ namespace OnlineStoreWeb.API.Services.Product;
 public interface IProductService
 {
     Task<List<Model.Product>> GetAllProductsAsync();
-    Task<Model.Product> GetProductWithIdAsync(ViewProductDto viewProductDto);
+    Task<Model.Product> GetProductWithIdAsync(int requestID);
     Task AddProductAsync(CreateProductDto createProduct);
-    Task UpdateProductAsync(UpdateProductDto updateProduct);
+    Task UpdateProductAsync(int id, UpdateProductDto updateProduct);
     Task DeleteProductAsync(int id);
 }
