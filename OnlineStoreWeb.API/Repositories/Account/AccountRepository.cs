@@ -1,19 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using OnlineStoreWeb.API.Model;
 
-public class AccountRepository : IAccountRepository
+namespace OnlineStoreWeb.API.Repositories.Account;
+
+public class AccountRepository(StoreDbContext context) : IAccountRepository
 {
-    private readonly StoreDbContext _context;
-
-    public AccountRepository(StoreDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<List<Account>> Get()
+    public async Task<List<Model.Account>> Get()
     {
         try
         {
-            return await _context.Accounts.AsNoTracking().ToListAsync();
+            return await context.Accounts.AsNoTracking().ToListAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -25,12 +21,12 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Add(Account userAccount)
+    public async Task Add(Model.Account userAccount)
     {
         try
         {
-            await _context.Accounts.AddAsync(userAccount);
-            await _context.SaveChangesAsync();
+            await context.Accounts.AddAsync(userAccount);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -42,12 +38,12 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Update(Account account)
+    public async Task Update(Model.Account account)
     {
         try
         {
-            _context.Accounts.Update(account);
-            await _context.SaveChangesAsync();
+            context.Accounts.Update(account);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -55,12 +51,12 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Delete(Account account)
+    public async Task Delete(Model.Account account)
     {
         try
         {
-            _context.Accounts.Remove(account);
-            await _context.SaveChangesAsync();
+            context.Accounts.Remove(account);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {

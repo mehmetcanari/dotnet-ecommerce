@@ -1,21 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using OnlineStoreWeb.API.Model;
 
-public class OrderRepository : IOrderRepository
+namespace OnlineStoreWeb.API.Repositories.Order;
+
+public class OrderRepository(StoreDbContext context) : IOrderRepository
 {
-    private readonly StoreDbContext _context;
-    private readonly IOrderItemRepository _orderItemRepository;
-
-    public OrderRepository(StoreDbContext context, IOrderItemRepository orderItemRepository)
-    {
-        _context = context;
-        _orderItemRepository = orderItemRepository;
-    }
-
-    public async Task<List<Order>> Get()
+    public async Task<List<Model.Order>> Get()
     {
         try
         {
-            return await _context.Orders.ToListAsync();
+            return await context.Orders.ToListAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -27,13 +21,13 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task Add(Order order)
+    public async Task Add(Model.Order order)
     {
         try
         {
             
-            await _context.Orders.AddAsync(order);
-            await _context.SaveChangesAsync();
+            await context.Orders.AddAsync(order);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -45,12 +39,12 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task Update(Order order)
+    public async Task Update(Model.Order order)
     {
         try
         {
-            _context.Orders.Update(order);
-            await _context.SaveChangesAsync();
+            context.Orders.Update(order);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -62,12 +56,12 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task Delete(Order order)
+    public async Task Delete(Model.Order order)
     {
         try
         {
-            _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
+            context.Orders.Remove(order);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {

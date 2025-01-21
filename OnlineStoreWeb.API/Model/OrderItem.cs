@@ -1,7 +1,9 @@
+namespace OnlineStoreWeb.API.Model;
+
 public class OrderItem
 {
-    public int Id {get; set;}
-    public required int UserId {get;set;}
+    public int Id {get; init;}
+    public required int UserId {get;init;}
     public required int Quantity {get;set;}
     public required int ProductId {get;set;}
     public required double Price {get;set;}
@@ -9,7 +11,7 @@ public class OrderItem
     {
         get 
         {
-        return Price * Quantity;
+            return Price * Quantity;
         }
     }
     public DateTime OrderItemCreated = DateTime.UtcNow;

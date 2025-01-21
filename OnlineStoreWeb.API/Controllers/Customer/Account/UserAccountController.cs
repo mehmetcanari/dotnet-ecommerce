@@ -1,24 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.DTO.User;
+using OnlineStoreWeb.API.Services.Account;
 
-namespace OnlineStoreWeb.API.Controllers.User;
+namespace OnlineStoreWeb.API.Controllers.Customer.Account;
 
 [ApiController]
 [Route("api/account")]
-public class UserAccountController : ControllerBase
+public class UserAccountController(IAccountService accountService) : ControllerBase
 {
-    private readonly IAccountService _accountService;
-
-    public UserAccountController(IAccountService accountService)
-    {
-        _accountService = accountService;
-    }
-
     [HttpPost("register")]
     public async Task<IActionResult> Register(AccountRegisterDto accountRegisterRequest)
     {
         try
         {
-            await _accountService.AddAccountAsync(accountRegisterRequest);
+            await accountService.AddAccountAsync(accountRegisterRequest);
             return Created($"users", new { message = "User created successfully" });
         }
         catch 
@@ -32,7 +27,7 @@ public class UserAccountController : ControllerBase
     {
         try
         {
-            await _accountService.UpdateAccountAsync(id, accountUpdateRequest);
+            await accountService.UpdateAccountAsync(id, accountUpdateRequest);
             return Ok(new { message = "User updated successfully" });
         }
         catch 

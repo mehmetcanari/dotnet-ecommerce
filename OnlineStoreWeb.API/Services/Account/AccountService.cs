@@ -1,26 +1,23 @@
-public class AccountService : IAccountService
+using OnlineStoreWeb.API.DTO.User;
+using OnlineStoreWeb.API.Repositories.Account;
+
+namespace OnlineStoreWeb.API.Services.Account;
+
+public class AccountService(IAccountRepository accountRepository, ILogger<AccountService> logger)
+    : IAccountService
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly ILogger<AccountService> _logger;
-
-    public AccountService(IAccountRepository accountRepository, ILogger<AccountService> logger)
-    {
-        _accountRepository = accountRepository;
-        _logger = logger;
-    }
-
     public async Task AddAccountAsync(AccountRegisterDto createUserDto)
     {
         try
         {
-            List<Account> accounts = await _accountRepository.Get();
+            List<Model.Account> accounts = await accountRepository.Get();
             if(accounts.Any(a => a.Email == createUserDto.Email)) //Duplicate email check
             {
-                _logger.LogError("Email already exists");
+                logger.LogError("Email already exists");
                 throw new Exception("Email already exists");
             }
 
-            Account account = new Account
+            Model.Account account = new Model.Account
             {
                 FullName = createUserDto.FullName,
                 Email = createUserDto.Email,
@@ -32,21 +29,21 @@ public class AccountService : IAccountService
                 UserUpdated = DateTime.UtcNow
             };
 
-            await _accountRepository.Add(account);
+            await accountRepository.Add(account);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while adding account: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while adding account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
 
     public async Task UpdateAccountAsync(int id, AccountUpdateDto updateUserDto)
     {
-         try
+        try
         {
-            List<Account> accounts = await _accountRepository.Get();
-            Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            List<Model.Account> accounts = await accountRepository.Get();
+            Model.Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
 
             account.Email = updateUserDto.Email;
             account.Password = updateUserDto.Password;
@@ -54,40 +51,47 @@ public class AccountService : IAccountService
             account.PhoneNumber = updateUserDto.PhoneNumber;
             account.UserUpdated = DateTime.UtcNow;
 
-            await _accountRepository.Update(account);
+            await accountRepository.Update(account);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating account: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while updating account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
 
-    public async Task<List<Account>> GetAllAccountsAsync()
+    public async Task<List<Model.Account>> GetAllAccountsAsync()
     {
         try
         {
-            List<Account> accounts = await _accountRepository.Get();
+            List<Model.Account> accounts = await accountRepository.Get();
+            int accountCount = accounts.Count;
+            if(accountCount < 1)
+            {
+                logger.LogError("No accounts found");
+                throw new Exception("No accounts found");
+            }
+
             return accounts;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
 
-    public async Task<Account?> GetAccountWithIdAsync(int id)
+    public async Task<Model.Account> GetAccountWithIdAsync(int id)
     {
         try
         {
-            List<Account> accounts = await _accountRepository.Get();
-            Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            List<Model.Account> accounts = await accountRepository.Get();
+            Model.Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
             return account;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching account: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while fetching account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -96,13 +100,13 @@ public class AccountService : IAccountService
     {
         try
         {
-            List<Account> accounts = await _accountRepository.Get();
-            Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
-            await _accountRepository.Delete(account);
+            List<Model.Account> accounts = await accountRepository.Get();
+            Model.Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            await accountRepository.Delete(account);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }

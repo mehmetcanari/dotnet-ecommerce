@@ -1,20 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using OnlineStoreWeb.API.Model;
 
+namespace OnlineStoreWeb.API.Repositories.Product;
 
-public class ProductRepository : IProductRepository
+public class ProductRepository(StoreDbContext context) : IProductRepository
 {
-    private readonly StoreDbContext _context;
-
-    public ProductRepository(StoreDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<List<Product>> Get()
+    public async Task<List<Model.Product>> Get()
     {
         try
         {
-            return await _context.Products.AsNoTracking().ToListAsync();
+            return await context.Products.AsNoTracking().ToListAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -26,12 +21,12 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Add(Product product)
+    public async Task Add(Model.Product product)
     {
         try
         {
-            await _context.Products.AddAsync(product);
-            await _context.SaveChangesAsync();
+            await context.Products.AddAsync(product);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -43,12 +38,12 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Update(Product product)
+    public async Task Update(Model.Product product)
     {
         try
         {
-            _context.Products.Update(product);
-            await _context.SaveChangesAsync();
+            context.Products.Update(product);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -60,12 +55,12 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Delete(Product product)
+    public async Task Delete(Model.Product product)
     {
         try
         {
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            context.Products.Remove(product);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {

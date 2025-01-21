@@ -1,7 +1,9 @@
+namespace OnlineStoreWeb.API.Repositories.Order;
+
 public interface IOrderRepository
 {
-    Task<List<Order>> Get();
-    Task Add(Order order);
-    Task Delete(Order order);
-    Task Update(Order order);
+    Task<List<Model.Order>> Get();
+    Task Add(Model.Order order);
+    Task Delete(Model.Order order);
+    Task Update(Model.Order order);
 }

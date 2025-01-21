@@ -1,24 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.Services.Account;
 
 namespace OnlineStoreWeb.API.Controllers.Admin.Account;
 
 [ApiController]
 [Route("api/admin/accounts")]
-public class AdminAccountController : ControllerBase
+public class AdminAccountController(IAccountService accountService) : ControllerBase
 {
-    private readonly IAccountService _accountService;
-    
-    public AdminAccountController(IAccountService accountService)
-    {
-        _accountService = accountService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllAccounts()
     {
         try
         {
-            var accounts = await _accountService.GetAllAccountsAsync();
+            var accounts = await accountService.GetAllAccountsAsync();
             return Ok(accounts);
         }
         catch (Exception ex)
@@ -32,7 +26,7 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            var account = await _accountService.GetAccountWithIdAsync(id);
+            var account = await accountService.GetAccountWithIdAsync(id);
             return Ok(account);
         }
         catch (Exception ex)
@@ -46,7 +40,7 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            await _accountService.DeleteAccountAsync(id);
+            await accountService.DeleteAccountAsync(id);
             return NoContent();
         }
         catch (Exception ex)

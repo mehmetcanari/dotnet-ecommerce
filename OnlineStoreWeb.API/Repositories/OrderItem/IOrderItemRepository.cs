@@ -1,7 +1,9 @@
+namespace OnlineStoreWeb.API.Repositories.OrderItem;
+
 public interface IOrderItemRepository
 {
-    Task<List<OrderItem>> Get();
-    Task Add(OrderItem orderItem);
-    Task Update(OrderItem orderItem);
-    Task Delete(OrderItem orderItem);
+    Task<List<Model.OrderItem>> Get();
+    Task Add(Model.OrderItem orderItem);
+    Task Update(Model.OrderItem orderItem);
+    Task Delete(Model.OrderItem orderItem);
 }

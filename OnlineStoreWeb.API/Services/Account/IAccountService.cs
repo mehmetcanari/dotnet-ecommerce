@@ -1,8 +1,12 @@
+using OnlineStoreWeb.API.DTO.User;
+
+namespace OnlineStoreWeb.API.Services.Account;
+
 public interface IAccountService
 {
     Task AddAccountAsync(AccountRegisterDto createUserDto);
     Task UpdateAccountAsync(int id, AccountUpdateDto updateUserDto);
-    Task<List<Account>> GetAllAccountsAsync();
-    Task<Account?> GetAccountWithIdAsync(int id);
+    Task<List<Model.Account>> GetAllAccountsAsync();
+    Task<Model.Account> GetAccountWithIdAsync(int id);
     Task DeleteAccountAsync(int id);
 }

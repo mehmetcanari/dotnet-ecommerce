@@ -1,3 +1,5 @@
+namespace OnlineStoreWeb.API.DTO.Order;
+
 public record OrderCreateDto
 {
     public required int UserId {get;set;}   

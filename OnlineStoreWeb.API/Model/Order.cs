@@ -1,3 +1,5 @@
+namespace OnlineStoreWeb.API.Model;
+
 public class Order
 {
     public int Id { get; set; }
@@ -17,10 +19,10 @@ public class Order
     }
 }
 
-    public enum OrderStatus
-    {
-        Pending,
-        Shipped,
-        Delivered,
-        Canceled
-    }
+public enum OrderStatus
+{
+    Pending,
+    Shipped,
+    Delivered,
+    Canceled
+}

@@ -1,22 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.DTO.OrderItem;
+using OnlineStoreWeb.API.Services.OrderItem;
+
+namespace OnlineStoreWeb.API.Controllers.Admin.OrderItem;
 
 [ApiController]
 [Route("api/admin/orderitems")]
-public class AdminOrderItemController : ControllerBase
+public class AdminOrderItemController(IOrderItemService orderItemService) : ControllerBase
 {
-    private readonly IOrderItemService _orderItemService;
-
-    public AdminOrderItemController(IOrderItemService orderItemService)
-    {
-        _orderItemService = orderItemService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllOrderItems()
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemService.GetAllOrderItemsAsync();
+            List<Model.OrderItem> orderItems = await orderItemService.GetAllOrderItemsAsync();
             return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
         catch 
@@ -30,7 +27,7 @@ public class AdminOrderItemController : ControllerBase
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemService.GetAllOrderItemsWithUserIdAsync(userId);
+            List<Model.OrderItem> orderItems = await orderItemService.GetAllOrderItemsWithUserIdAsync(userId);
             return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
         catch 

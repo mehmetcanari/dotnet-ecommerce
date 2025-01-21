@@ -1,3 +1,5 @@
+namespace OnlineStoreWeb.API.DTO.OrderItem;
+
 public record CreateOrderItemDto
 {
     public required int Quantity {get;set;}

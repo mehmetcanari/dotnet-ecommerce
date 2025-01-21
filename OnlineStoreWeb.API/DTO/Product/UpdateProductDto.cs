@@ -1,3 +1,5 @@
+namespace OnlineStoreWeb.API.DTO.Product;
+
 public record UpdateProductDto
 {
     public int Id { get; set; }

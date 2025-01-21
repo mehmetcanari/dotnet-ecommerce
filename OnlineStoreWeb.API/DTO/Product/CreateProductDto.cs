@@ -1,3 +1,5 @@
+namespace OnlineStoreWeb.API.DTO.Product;
+
 public record CreateProductDto
 {
     public required string Name {get;set;}

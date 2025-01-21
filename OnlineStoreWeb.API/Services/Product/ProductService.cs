@@ -1,39 +1,36 @@
-public class ProductService : IProductService
+using OnlineStoreWeb.API.DTO.Product;
+using OnlineStoreWeb.API.Repositories.Product;
+
+namespace OnlineStoreWeb.API.Services.Product;
+
+public class ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
+    : IProductService
 {
-    private readonly IProductRepository _productRepository;
-    private readonly ILogger<ProductService> _logger;
-
-    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
-    {
-        _productRepository = productRepository;
-        _logger = logger;
-    }
-
-    public async Task<List<Product>> GetAllProductsAsync()
+    public async Task<List<Model.Product>> GetAllProductsAsync()
     {
         try
         {
-            List<Product> products = await _productRepository.Get();
+            List<Model.Product> products = await productRepository.Get();
             return products;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching all products");
+            logger.LogError(ex, "Unexpected error while fetching all products");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
 
-    public async Task<Product> GetProductWithIdAsync(int id)
+    public async Task<Model.Product> GetProductWithIdAsync(ViewProductDto viewProductDto)
     {
         try
         {
-            List<Product> products = await _productRepository.Get();
-            Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
+            List<Model.Product> products = await productRepository.Get();
+            Model.Product product = products.FirstOrDefault(p => p.Id == viewProductDto.Id) ?? throw new Exception("Product not found");
             return product;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -42,13 +39,13 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Product> products = await _productRepository.Get();
+            List<Model.Product> products = await productRepository.Get();
             if (products.Any(p => p.Name == createProductRequest.Name)) //Duplicate product name check
             {
                 throw new Exception("Product already exists in the database");
             }
 
-            Product product = new Product
+            Model.Product product = new Model.Product
             {
                 Name = createProductRequest.Name,
                 Description = createProductRequest.Description,
@@ -59,11 +56,11 @@ public class ProductService : IProductService
                 ProductUpdated = DateTime.UtcNow
             };
 
-            await _productRepository.Add(product);
+            await productRepository.Add(product);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -72,8 +69,8 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Product> products = await _productRepository.Get();
-            Product product = products.FirstOrDefault(p => p.Id == updateProductRequest.Id) ?? throw new Exception("Product not found");
+            List<Model.Product> products = await productRepository.Get();
+            Model.Product product = products.FirstOrDefault(p => p.Id == updateProductRequest.Id) ?? throw new Exception("Product not found");
 
             product.Name = updateProductRequest.Name;
             product.Description = updateProductRequest.Description;
@@ -82,11 +79,11 @@ public class ProductService : IProductService
             product.StockQuantity = updateProductRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
 
-            await _productRepository.Update(product);
+            await productRepository.Update(product);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -95,14 +92,14 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Product> products = await _productRepository.Get();
-            Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
+            List<Model.Product> products = await productRepository.Get();
+            Model.Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
 
-            await _productRepository.Delete(product);
+            await productRepository.Delete(product);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }

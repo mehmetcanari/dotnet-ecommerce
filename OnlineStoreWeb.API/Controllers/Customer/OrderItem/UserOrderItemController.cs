@@ -1,24 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.DTO.OrderItem;
+using OnlineStoreWeb.API.Services.OrderItem;
 
-namespace OnlineStoreWeb.API.Controllers.User.OrderItem;
+namespace OnlineStoreWeb.API.Controllers.Customer.OrderItem;
 
 [ApiController]
 [Route("api/user/orderitems")]
-public class UserOrderItemController : ControllerBase
+public class UserOrderItemController(IOrderItemService orderItemService) : ControllerBase
 {
-    private readonly IOrderItemService _orderItemService;
-
-    public UserOrderItemController(IOrderItemService orderItemService)
-    {
-        _orderItemService = orderItemService;
-    }
-
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrderItem(CreateOrderItemDto orderItemCreateRequest)
     {
         try
         {
-            await _orderItemService.AddOrderItemAsync(orderItemCreateRequest);
+            await orderItemService.AddOrderItemAsync(orderItemCreateRequest);
             return Created($"orderitems/{orderItemCreateRequest.ProductId}", new { message = "Order item created successfully" });
         }
         catch 
@@ -32,7 +27,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            await _orderItemService.UpdateOrderItemAsync(updateOrderItemRequest);
+            await orderItemService.UpdateOrderItemAsync(updateOrderItemRequest);
             return Ok(new { message = "Order item updated successfully" });
         }
         catch 
@@ -46,7 +41,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            var orderItem = await _orderItemService.GetSpecifiedOrderItemsWithUserIdAsync(userId, orderItemId);
+            var orderItem = await orderItemService.GetSpecifiedOrderItemsWithUserIdAsync(userId, orderItemId);
             return Ok(new { message = "Order item fetched successfully", data = orderItem });
         }
         catch 
@@ -60,7 +55,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            var orderItems = await _orderItemService.GetAllOrderItemsWithUserIdAsync(userId);
+            var orderItems = await orderItemService.GetAllOrderItemsWithUserIdAsync(userId);
             return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
         catch 
@@ -74,7 +69,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            await _orderItemService.DeleteSpecifiedUserOrderItemAsync(userId, orderItemId);
+            await orderItemService.DeleteSpecifiedUserOrderItemAsync(userId, orderItemId);
             return Ok(new { message = "Order item deleted successfully" });
         }
         catch 
@@ -88,7 +83,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            await _orderItemService.DeleteAllUserOrderItemsAsync(userId);
+            await orderItemService.DeleteAllUserOrderItemsAsync(userId);
             return Ok(new { message = "All order items deleted successfully" });
         }
         catch 

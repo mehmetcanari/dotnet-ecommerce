@@ -1,3 +1,5 @@
+namespace OnlineStoreWeb.API.DTO.User;
+
 public record AccountRegisterDto
 {
     public required string FullName { get; set; }

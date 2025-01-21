@@ -1,4 +1,6 @@
+namespace OnlineStoreWeb.API.DTO.Product;
+
 public record ViewProductDto
 {
-    public required int ProductId {get;set;}
+    public required int Id {get;set;}
 }

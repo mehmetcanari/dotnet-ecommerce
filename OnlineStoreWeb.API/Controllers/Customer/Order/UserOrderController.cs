@@ -1,25 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.DTO.Order;
+using OnlineStoreWeb.API.Services.Order;
 
 namespace OnlineStoreWeb.API.Controllers.Customer.Order;
 
 [ApiController]
 [Route("api/customer/orders")]
-public class UserOrderController : ControllerBase
+public class UserOrderController(IOrderService orderService) : ControllerBase
 {
-    private readonly IOrderService _orderService;
-
-    public UserOrderController(IOrderService orderService)
-    {
-        _orderService = orderService;
-    }
-
     [HttpPost]
     public async Task<IActionResult> CreateOrder(OrderCreateDto orderCreateRequest)
     {
         try
         {
-            await _orderService.AddOrderAsync(orderCreateRequest);
-            return Created($"orders", new { message = "Order created successfully" });
+            await orderService.AddOrderAsync(orderCreateRequest);
+            return Created($"orders", new { message = "Order created successfully"});
         }
         catch 
         {
@@ -32,7 +27,7 @@ public class UserOrderController : ControllerBase
     {
         try
         {
-            var orders = await _orderService.GetOrdersByUserIdAsync(userId);
+            var orders = await orderService.GetOrdersByUserIdAsync(userId);
             return Ok(new { message = "Orders fetched successfully", orders });
         }
         catch 
@@ -46,7 +41,7 @@ public class UserOrderController : ControllerBase
     {
         try
         {
-            await _orderService.DeleteOrderWithUserIdAsync(userId);
+            await orderService.DeleteOrderWithUserIdAsync(userId);
             return Ok(new { message = "Order deleted successfully" });
         }
         catch 

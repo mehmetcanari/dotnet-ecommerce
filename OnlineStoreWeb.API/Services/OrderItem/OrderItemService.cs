@@ -1,59 +1,58 @@
-public class OrderItemService : IOrderItemService
+using OnlineStoreWeb.API.DTO.OrderItem;
+using OnlineStoreWeb.API.Repositories.OrderItem;
+using OnlineStoreWeb.API.Repositories.Product;
+
+namespace OnlineStoreWeb.API.Services.OrderItem;
+
+public class OrderItemService(
+    IOrderItemRepository orderItemRepository,
+    IProductRepository productRepository,
+    ILogger<OrderItemService> logger)
+    : IOrderItemService
 {
-    private readonly IOrderItemRepository _orderItemRepository;
-    private readonly IProductRepository _productRepository;
-    private readonly ILogger<OrderItemService> _logger;
-
-    public OrderItemService(IOrderItemRepository orderItemRepository, IProductRepository productRepository, ILogger<OrderItemService> logger)
-    {
-        _orderItemRepository = orderItemRepository;
-        _productRepository = productRepository;
-        _logger = logger;
-    }
-
-    public async Task<List<OrderItem>> GetAllOrderItemsAsync()
+    public async Task<List<Model.OrderItem>> GetAllOrderItemsAsync()
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
+            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
             return orderItems;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching all order items");
+            logger.LogError(ex, "Unexpected error while fetching all order items");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
 
-    public async Task<List<OrderItem>> GetAllOrderItemsWithUserIdAsync(int userId)
+    public async Task<List<Model.OrderItem>> GetAllOrderItemsWithUserIdAsync(int userId)
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
-            List<OrderItem> userOrderItems = orderItems.Where(o => o.UserId == userId).ToList();
+            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
+            List<Model.OrderItem> userOrderItems = orderItems.Where(o => o.UserId == userId).ToList();
             return userOrderItems;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching all order items with user id: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while fetching all order items with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
 
-    public async Task<OrderItem> GetSpecifiedOrderItemsWithUserIdAsync(int userId, int orderItemId)
+    public async Task<Model.OrderItem> GetSpecifiedOrderItemsWithUserIdAsync(int userId, int orderItemId)
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
-            List<OrderItem> userOrderItems = orderItems.Where(o => o.UserId == userId).ToList();
+            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
+            List<Model.OrderItem> userOrderItems = orderItems.Where(o => o.UserId == userId).ToList();
 
-            OrderItem orderItem = userOrderItems.FirstOrDefault(o => o.Id == orderItemId)
-                ?? throw new Exception("OrderItem not found");
+            Model.OrderItem orderItem = userOrderItems.FirstOrDefault(o => o.Id == orderItemId)
+                                        ?? throw new Exception("OrderItem not found");
             return orderItem;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching specified order items with user id: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while fetching specified order items with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -62,18 +61,18 @@ public class OrderItemService : IOrderItemService
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
-            List<Product> products = await _productRepository.Get();
+            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
+            List<Model.Product> products = await productRepository.Get();
 
-            Product fetchedProduct = products.FirstOrDefault(p => p.Id == createOrderItemRequest.ProductId)
-                ?? throw new Exception("Product not found");
+            Model.Product fetchedProduct = products.FirstOrDefault(p => p.Id == createOrderItemRequest.ProductId)
+                                           ?? throw new Exception("Product not found");
 
             if(orderItems.Any(o => o.UserId == createOrderItemRequest.UserId && o.ProductId == createOrderItemRequest.ProductId)) //Duplicate order item check
             {
                 throw new Exception("OrderItem already exists");
             }
 
-            OrderItem orderItem = new OrderItem
+            Model.OrderItem orderItem = new Model.OrderItem
             {
                 Quantity = createOrderItemRequest.Quantity,
                 UserId = createOrderItemRequest.UserId,
@@ -82,11 +81,11 @@ public class OrderItemService : IOrderItemService
                 OrderItemUpdated = DateTime.UtcNow
             };
 
-            await _orderItemRepository.Add(orderItem);
+            await orderItemRepository.Add(orderItem);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while adding order item: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while adding order item: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -95,28 +94,28 @@ public class OrderItemService : IOrderItemService
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
-            List<Product> products = await _productRepository.Get();
+            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
+            List<Model.Product> products = await productRepository.Get();
 
-            Product fetchedProduct = products.FirstOrDefault(p => p.Id == updateOrderItemRequest.ProductId)
-                ?? throw new Exception("Product not found");
+            Model.Product fetchedProduct = products.FirstOrDefault(p => p.Id == updateOrderItemRequest.ProductId)
+                                           ?? throw new Exception("Product not found");
 
-            OrderItem orderItem = orderItems.FirstOrDefault(
-                o => o.Id == updateOrderItemRequest.Id 
-            && o.UserId == updateOrderItemRequest.UserId)
+            Model.OrderItem orderItem = orderItems.FirstOrDefault(
+                                            o => o.Id == updateOrderItemRequest.Id 
+                                                 && o.UserId == updateOrderItemRequest.UserId)
 
-                ?? throw new Exception("OrderItem not found");
+                                        ?? throw new Exception("OrderItem not found");
 
             orderItem.Quantity = updateOrderItemRequest.Quantity;
             orderItem.ProductId = updateOrderItemRequest.ProductId;
             orderItem.Price = fetchedProduct.Price;
             orderItem.OrderItemUpdated = DateTime.UtcNow;
 
-            await _orderItemRepository.Update(orderItem);
+            await orderItemRepository.Update(orderItem);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating order item: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while updating order item: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -125,15 +124,15 @@ public class OrderItemService : IOrderItemService
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
-            OrderItem orderItem = orderItems.FirstOrDefault(o => o.UserId == userId && o.Id == orderItemId)
-                ?? throw new Exception("OrderItem not found");
+            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
+            Model.OrderItem orderItem = orderItems.FirstOrDefault(o => o.UserId == userId && o.Id == orderItemId)
+                                        ?? throw new Exception("OrderItem not found");
 
-            await _orderItemRepository.Delete(orderItem);
+            await orderItemRepository.Delete(orderItem);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting specified order item with user id: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while deleting specified order item with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -142,16 +141,16 @@ public class OrderItemService : IOrderItemService
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
-            List<OrderItem> userOrderItems = orderItems.Where(o => o.UserId == userId).ToList();
-            foreach(OrderItem orderItem in userOrderItems)
+            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
+            List<Model.OrderItem> userOrderItems = orderItems.Where(o => o.UserId == userId).ToList();
+            foreach(Model.OrderItem orderItem in userOrderItems)
             {
-                await _orderItemRepository.Delete(orderItem);
+                await orderItemRepository.Delete(orderItem);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting all order items with user id: {Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error while deleting all order items with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -160,15 +159,15 @@ public class OrderItemService : IOrderItemService
     {
         try
         {
-            List<OrderItem> orderItems = await _orderItemRepository.Get();
-            foreach(OrderItem orderItem in orderItems)
+            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
+            foreach(Model.OrderItem orderItem in orderItems)
             {
-                await _orderItemRepository.Delete(orderItem);
+                await orderItemRepository.Delete(orderItem);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting all order items");
+            logger.LogError(ex, "Unexpected error while deleting all order items");
             throw new Exception("An unexpected error occurred", ex);
         }
     }

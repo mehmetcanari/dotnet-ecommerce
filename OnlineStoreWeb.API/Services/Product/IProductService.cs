@@ -1,7 +1,11 @@
+using OnlineStoreWeb.API.DTO.Product;
+
+namespace OnlineStoreWeb.API.Services.Product;
+
 public interface IProductService
 {
-    Task<List<Product>> GetAllProductsAsync();
-    Task<Product> GetProductWithIdAsync(int id);
+    Task<List<Model.Product>> GetAllProductsAsync();
+    Task<Model.Product> GetProductWithIdAsync(ViewProductDto viewProductDto);
     Task AddProductAsync(CreateProductDto createProduct);
     Task UpdateProductAsync(UpdateProductDto updateProduct);
     Task DeleteProductAsync(int id);

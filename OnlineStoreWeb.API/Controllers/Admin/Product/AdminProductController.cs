@@ -1,41 +1,36 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.DTO.Product;
+using OnlineStoreWeb.API.Services.Product;
 
 namespace OnlineStoreWeb.API.Controllers.Admin.Product;
 
 [ApiController]
 [Route("api/admin/products")]
-public class AdminProductController : ControllerBase
+public class AdminProductController(IProductService productService) : ControllerBase
 {
-    private readonly IProductService _productService;
-
-    public AdminProductController(IProductService productService)
-    {
-        _productService = productService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
         try
         {
-            var products = await _productService.GetAllProductsAsync();
+            var products = await productService.GetAllProductsAsync();
             return Ok(products);
         }
-        catch 
+        catch
         {
             return StatusCode(500, "An unexpected error occurred while fetching products");
         }
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetProductById(int id)
+    public async Task<IActionResult> GetProductById(ViewProductDto viewProductDto)
     {
         try
         {
-            var product = await _productService.GetProductWithIdAsync(id);
+            var product = await productService.GetProductWithIdAsync(viewProductDto);
             return Ok(product);
         }
-        catch 
+        catch
         {
             return StatusCode(500, "An unexpected error occurred while fetching the product");
         }
@@ -46,27 +41,24 @@ public class AdminProductController : ControllerBase
     {
         try
         {
-            if (productCreateRequest == null)
-                return BadRequest(new { message = "Product data is required" });
-
-            await _productService.AddProductAsync(productCreateRequest);
+            await productService.AddProductAsync(productCreateRequest);
             return Created($"products/{productCreateRequest.Name}", new { message = "Product created successfully" });
         }
-        catch 
+        catch
         {
             return StatusCode(500, "An unexpected error occurred while creating the product");
         }
     }
 
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateProduct(int id, UpdateProductDto productUpdateRequest)
+    public async Task<IActionResult> UpdateProduct(UpdateProductDto productUpdateRequest)
     {
         try
         {
-            await _productService.UpdateProductAsync(productUpdateRequest);
+            await productService.UpdateProductAsync(productUpdateRequest);
             return Ok(new { message = "Product updated successfully" });
         }
-        catch 
+        catch
         {
             return StatusCode(500, "An unexpected error occurred while updating the product");
         }
@@ -77,10 +69,10 @@ public class AdminProductController : ControllerBase
     {
         try
         {
-            await _productService.DeleteProductAsync(id);
+            await productService.DeleteProductAsync(id);
             return Ok(new { message = "Product deleted successfully" });
         }
-        catch 
+        catch
         {
             return StatusCode(500, "An unexpected error occurred while deleting the product");
         }

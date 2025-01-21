@@ -1,7 +1,9 @@
+namespace OnlineStoreWeb.API.Repositories.Account;
+
 public interface IAccountRepository
 {
-    Task<List<Account>> Get();
-    Task Add(Account userAccount);
-    Task Update(Account account);
-    Task Delete(Account account);
+    Task<List<Model.Account>> Get();
+    Task Add(Model.Account userAccount);
+    Task Update(Model.Account account);
+    Task Delete(Model.Account account);
 }

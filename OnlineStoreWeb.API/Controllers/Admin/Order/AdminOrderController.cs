@@ -1,24 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.Model;
+using OnlineStoreWeb.API.Services.Order;
 
 namespace OnlineStoreWeb.API.Controllers.Admin.Order;
 
 [ApiController]
 [Route("api/admin/orders")]
-public class AdminOrderController : ControllerBase
+public class AdminOrderController(IOrderService orderService) : ControllerBase
 {
-    private readonly IOrderService _orderService;
-
-    public AdminOrderController(IOrderService orderService)
-    {
-        _orderService = orderService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
     {
         try
         {
-            var orders = await _orderService.GetAllOrdersAsync();
+            var orders = await orderService.GetAllOrdersAsync();
             return Ok(new { message = "Orders fetched successfully", data = orders });
         }
         catch 
@@ -32,7 +27,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            var order = await _orderService.GetOrderWithIdAsync(id);
+            var order = await orderService.GetOrderWithIdAsync(id);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
         catch 
@@ -46,7 +41,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            await _orderService.DeleteOrderAsync(id);
+            await orderService.DeleteOrderAsync(id);
             return Ok(new { message = "Order deleted successfully with id: " + id });
         }
         catch 
@@ -60,7 +55,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            await _orderService.UpdateOrderStatusAsync(id, orderStatus);
+            await orderService.UpdateOrderStatusAsync(id, orderStatus);
             return Ok(new { message = "Order status updated successfully with id: " + id });
         }
         catch 
