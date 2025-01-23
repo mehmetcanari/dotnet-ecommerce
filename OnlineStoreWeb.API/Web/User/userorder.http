@@ -1,0 +1,25 @@
+﻿@baseUrl = http://localhost:5076/
+@route = api/user/orders
+
+###
+
+POST {{baseUrl}}{{route}}/create
+Content-Type: application/json
+
+{
+  "UserId": 1,
+  "ProductId": 1,
+  "Quantity": 1,
+  "ShippingAddress": "1234 Street Name, City, Country",
+  "BillingAddress": "1234 Billing Address, City, Country",
+  "PaymentMethod": 1
+}
+
+
+### GET ORDERS BY USER ID
+
+GET {{baseUrl}}{{route}}/1
+
+### DELETE ORDER BY USER ID
+
+DELETE {{baseUrl}}{{route}}/delete/1

@@ -1,13 +1,12 @@
 using OnlineStoreWeb.API.DTO.Order;
 using OnlineStoreWeb.API.Model;
+using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.Order;
-using OnlineStoreWeb.API.Repositories.OrderItem;
+using OnlineStoreWeb.API.Repositories.Product;
 
 namespace OnlineStoreWeb.API.Services.Order;
 
-public class OrderService(
-    IOrderRepository orderRepository,
-    IOrderItemRepository orderItemRepository,
+public class OrderService(IOrderRepository orderRepository,IAccountRepository accountRepository, IProductRepository productRepository, 
     ILogger<OrderService> logger)
     : IOrderService
 {
@@ -15,23 +14,26 @@ public class OrderService(
     {
         try
         {
-            List<Model.OrderItem> orderItems = await orderItemRepository.Get();
-            List<Model.OrderItem> orderItemsByUserId = orderItems.Where(o => o.UserId == createOrderDto.UserId).ToList();
+            List<Model.Product> products = await productRepository.Get();
+            Model.Product product = products.FirstOrDefault(p => p.Id == createOrderDto.ProductId) ??
+                                    throw new Exception("Product not found");
 
-            if(orderItemsByUserId.Count == 0)
-            {
-                logger.LogError("No order items found for the user");
-                throw new Exception("No order items found for the user");
-            }
-
+            List<Model.Account> accounts = await accountRepository.Get();
+            Model.Account account = accounts.FirstOrDefault(a => a.Id == createOrderDto.UserId) ??
+                                    throw new Exception("User not found");
+            
             Model.Order order = new Model.Order
             {
-                UserId = createOrderDto.UserId,
+                UserId = createOrderDto.UserId, 
                 ShippingAddress = createOrderDto.ShippingAddress,
+                BillingAddress = createOrderDto.BillingAddress, 
                 PaymentMethod = createOrderDto.PaymentMethod,
-                Status = OrderStatus.Pending,
-                OrderItems = orderItemsByUserId
+                ProductId = createOrderDto.ProductId,
+                Price = product.Price,
+                Quantity = createOrderDto.Quantity,
+                AccountName = account.FullName
             };
+            
             await orderRepository.Add(order);
         }
         catch (Exception ex)
@@ -41,32 +43,17 @@ public class OrderService(
         }
     }
 
-    public async Task DeleteOrderAsync(int id)
+    public async Task DeleteOrderAsync(int userId)
     {
         try
         {
             List<Model.Order> orders = await orderRepository.Get();
-            Model.Order order = orders.FirstOrDefault(o => o.Id == id) ?? throw new Exception("Order not found");
+            Model.Order order = orders.FirstOrDefault(o => o.Id == userId) ?? throw new Exception("Order not found");
             await orderRepository.Delete(order);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
-        }
-    }
-
-    public async Task DeleteOrderWithUserIdAsync(int userId)
-    {
-        try
-        {
-            List<Model.Order> orders = await orderRepository.Get();
-            Model.Order order = orders.FirstOrDefault(o => o.UserId == userId) ?? throw new Exception("Order not found");
-            await orderRepository.Delete(order);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error while deleting order with user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -81,21 +68,6 @@ public class OrderService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while fetching all orders: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
-        }
-    }
-
-    public async Task<List<Model.Order>> GetOrdersByUserIdAsync(int userId)
-    {
-        try
-        {
-            List<Model.Order> orders = await orderRepository.Get();
-            List<Model.Order> ordersByUserId = orders.Where(o => o.UserId == userId).ToList();
-            return ordersByUserId;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error while fetching orders by user id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -115,13 +87,13 @@ public class OrderService(
         }
     }
 
-    public async Task UpdateOrderStatusAsync(int id, OrderStatus status)
+    public async Task UpdateOrderStatusAsync(int id, UpdateOrderDto updateOrderDto)
     {
         try
         {
             List<Model.Order> orders = await orderRepository.Get();
             Model.Order order = orders.FirstOrDefault(o => o.Id == id) ?? throw new Exception("Order not found");
-            order.Status = status;
+            order.Status = updateOrderDto.Status;
             await orderRepository.Update(order);
         }
         catch (Exception ex)

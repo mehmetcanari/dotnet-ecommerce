@@ -8,6 +8,6 @@ public class Product
     public required double Price {get;set;}
     public required string? ImageUrl {get;set;}
     public required int StockQuantity {get;set;}
-    public DateTime ProductCreated { get; set; } = DateTime.UtcNow;
+    public DateTime ProductCreated { get; init; }
     public DateTime ProductUpdated { get; set; }
 }

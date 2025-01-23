@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.User;
 using OnlineStoreWeb.API.Services.Account;
 
-namespace OnlineStoreWeb.API.Controllers.Customer.Account;
+namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/account")]

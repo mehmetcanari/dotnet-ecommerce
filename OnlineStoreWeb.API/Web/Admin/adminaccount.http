@@ -1,0 +1,15 @@
+﻿@baseUrl = http://localhost:5076/
+@resource = api/admin/accounts
+
+###
+
+GET {{baseUrl}}{{resource}}
+
+###
+
+GET {{baseUrl}}{{resource}}/1
+
+###
+
+DELETE {{baseUrl}}{{resource}}/delete/1
+

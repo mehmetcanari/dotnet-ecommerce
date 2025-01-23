@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.Services.Account;
 
-namespace OnlineStoreWeb.API.Controllers.Admin.Account;
+namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/accounts")]

@@ -23,7 +23,7 @@ Content-Type: application/json
 
 ###
 
-PUT {{baseUrl}}/api/admin/products/update/2
+PUT {{baseUrl}}/api/admin/products/update/1
 Content-Type: application/json
 
 {

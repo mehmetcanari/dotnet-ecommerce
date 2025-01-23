@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Product;
 using OnlineStoreWeb.API.Services.Product;
 
-namespace OnlineStoreWeb.API.Controllers.Admin.Product;
+namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/products")]

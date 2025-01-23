@@ -1,0 +1,26 @@
+@baseUrl = http://localhost:5076
+
+###
+POST {{baseUrl}}/api/account/register
+Content-Type: application/json
+
+{
+    "fullName": "Mehmet Can Arı",
+    "email": "bsn.mehmetcanari@gmail.com",
+    "password": "123456789",
+    "address": "California, USA",
+    "phoneNumber": "987654321",
+    "dateOfBirth": "1999-02-11"
+}
+
+###
+PUT {{baseUrl}}/api/account/update/1
+Content-Type: application/json
+
+{
+  "fullName": "Mehmet Can Arı",
+  "email": "bsn.mehmetcanari@gmail.com",
+  "password": "12345678",
+  "address": "Istanbul, Turkey",
+  "phoneNumber": "1234567890"
+}

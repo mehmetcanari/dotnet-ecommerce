@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.Services.Product;
 
-namespace OnlineStoreWeb.API.Controllers.Customer.Product;
+namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/products")]

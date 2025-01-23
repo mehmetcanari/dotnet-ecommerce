@@ -1,0 +1,23 @@
+﻿@baseUrl = http://localhost:5076/
+@route = api/admin/orders
+
+### GET ALL ORDERS
+
+GET {{baseUrl}}{{route}}
+
+### GET ALL ORDERS BY ID
+
+GET {{baseUrl}}{{route}}/2
+
+### DELETE ORDER BY ID
+
+DELETE {{baseUrl}}{{route}}/delete/1
+
+### UPDATE ORDER
+
+PUT {{baseUrl}}{{route}}/update/1
+Content-Type: application/json
+
+{
+    "Status": 1
+}

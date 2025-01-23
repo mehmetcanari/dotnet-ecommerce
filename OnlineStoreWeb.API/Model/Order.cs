@@ -2,21 +2,18 @@ namespace OnlineStoreWeb.API.Model;
 
 public class Order
 {
-    public int Id { get; set; }
-    public required int UserId { get; set; }
-    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
-    public required string ShippingAddress { get; set; }
-    public required string PaymentMethod { get; set; }
-    public required OrderStatus Status { get; set; }
-    public required List<OrderItem> OrderItems { get; set; }
-    
-    public double TotalAmount 
-    {
-        get
-        {
-            return OrderItems.Sum(item => item.TotalPrice);
-        }
-    }
+    public int Id { get; init; } 
+    public int UserId { get; init; } 
+    public int ProductId { get; set; } 
+    public double Price { get; init; }
+    public int Quantity { get; init; } 
+    public double TotalPrice => Price * Quantity;
+    public DateTime OrderDate { get; private set; } = DateTime.UtcNow;
+    public string ShippingAddress { get; set; } 
+    public string BillingAddress { get; set; } 
+    public PaymentMethod PaymentMethod { get; set; }
+    public string AccountName { get; set; }
+    public OrderStatus Status { get; internal set; } = OrderStatus.Pending;
 }
 
 public enum OrderStatus
@@ -25,4 +22,11 @@ public enum OrderStatus
     Shipped,
     Delivered,
     Canceled
+}
+
+public enum PaymentMethod
+{
+    CreditCard,
+    DebitCard,
+    ApplePay,
 }

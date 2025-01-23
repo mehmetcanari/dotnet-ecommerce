@@ -2,13 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Order;
 using OnlineStoreWeb.API.Services.Order;
 
-namespace OnlineStoreWeb.API.Controllers.Customer.Order;
+namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
-[Route("api/customer/orders")]
+[Route("api/user/orders")]
 public class UserOrderController(IOrderService orderService) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("create")]
     public async Task<IActionResult> CreateOrder(OrderCreateDto orderCreateRequest)
     {
         try
@@ -21,27 +21,27 @@ public class UserOrderController(IOrderService orderService) : ControllerBase
             return StatusCode(500, "An unexpected error occurred while creating the order");
         }
     }
-
-    [HttpGet("userId")]
-    public async Task<IActionResult> GetOrdersByUserId(int userId)
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetOrderById(int id)
     {
         try
         {
-            var orders = await orderService.GetOrdersByUserIdAsync(userId);
-            return Ok(new { message = "Orders fetched successfully", orders });
+            var order = await orderService.GetOrderWithIdAsync(id);
+            return Ok(new { message = "Order fetched successfully", data = order });
         }
         catch 
         {
-            return StatusCode(500, "An unexpected error occurred while fetching orders");
+            return StatusCode(500, "An unexpected error occurred while fetching the order");
         }
     }
-
+    
     [HttpDelete("{userId}")]
     public async Task<IActionResult> DeleteOrder(int userId)
     {
         try
         {
-            await orderService.DeleteOrderWithUserIdAsync(userId);
+            await orderService.DeleteOrderAsync(userId);
             return Ok(new { message = "Order deleted successfully" });
         }
         catch 

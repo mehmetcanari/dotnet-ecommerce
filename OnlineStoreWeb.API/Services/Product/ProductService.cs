@@ -3,20 +3,24 @@ using OnlineStoreWeb.API.Repositories.Product;
 
 namespace OnlineStoreWeb.API.Services.Product;
 
-public class ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
-    : IProductService
+public class ProductService(IProductRepository productRepository, ILogger<ProductService> logger) : IProductService
 {
     public async Task<List<Model.Product>> GetAllProductsAsync()
     {
         try
         {
             List<Model.Product> products = await productRepository.Get();
+            if (products.Count <= 0)
+            {
+                throw new Exception("No products found.");
+            }
+            
             return products;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while fetching all products");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception(ex.Message);
         }
     }
 
@@ -31,7 +35,7 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception(ex.Message);
         }
     }
 
@@ -55,13 +59,13 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
                 ProductCreated = DateTime.UtcNow,
                 ProductUpdated = DateTime.UtcNow
             };
-
+            
             await productRepository.Add(product);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception(ex.Message);
         }
     }
 
@@ -84,7 +88,7 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception(ex.Message);
         }
     }
 
@@ -100,7 +104,7 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception(ex.Message);
         }
     }
 }

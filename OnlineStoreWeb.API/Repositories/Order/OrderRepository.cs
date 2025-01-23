@@ -25,17 +25,12 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
     {
         try
         {
-            
             await context.Orders.AddAsync(order);
             await context.SaveChangesAsync();
         }
-        catch (DbUpdateException ex)
+        catch (Exception exception)
         {
-            throw new DbUpdateException("Failed to save order", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception(exception.Message);
         }
     }
 

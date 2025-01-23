@@ -3,8 +3,7 @@ using OnlineStoreWeb.API.Repositories.Account;
 
 namespace OnlineStoreWeb.API.Services.Account;
 
-public class AccountService(IAccountRepository accountRepository, ILogger<AccountService> logger)
-    : IAccountService
+public class AccountService(IAccountRepository accountRepository, ILogger<AccountService> logger) : IAccountService
 {
     public async Task AddAccountAsync(AccountRegisterDto createUserDto)
     {
@@ -44,7 +43,14 @@ public class AccountService(IAccountRepository accountRepository, ILogger<Accoun
         {
             List<Model.Account> accounts = await accountRepository.Get();
             Model.Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
-
+            
+            if(accounts.Any(a => a.Email == updateUserDto.Email)) //Duplicate email check
+            {
+                logger.LogError("Email already exists in the system, try another email");
+                throw new Exception("Email already exists in the system, try another email");
+            }
+            
+            account.FullName = updateUserDto.FullName;
             account.Email = updateUserDto.Email;
             account.Password = updateUserDto.Password;
             account.Address = updateUserDto.Address;
@@ -56,7 +62,7 @@ public class AccountService(IAccountRepository accountRepository, ILogger<Accoun
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error while updating account: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception(ex.Message);
         }
     }
 

@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.DTO.Order;
 using OnlineStoreWeb.API.Model;
 using OnlineStoreWeb.API.Services.Order;
 
-namespace OnlineStoreWeb.API.Controllers.Admin.Order;
+namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/orders")]
@@ -50,12 +51,12 @@ public class AdminOrderController(IOrderService orderService) : ControllerBase
         }
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateOrderStatus(int id, OrderStatus orderStatus)
+    [HttpPut("update/{id}")]
+    public async Task<IActionResult> UpdateOrderStatus(int id, UpdateOrderDto updateOrderDto)
     {
         try
         {
-            await orderService.UpdateOrderStatusAsync(id, orderStatus);
+            await orderService.UpdateOrderStatusAsync(id, updateOrderDto);
             return Ok(new { message = "Order status updated successfully with id: " + id });
         }
         catch 
