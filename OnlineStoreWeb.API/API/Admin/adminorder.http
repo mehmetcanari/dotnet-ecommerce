@@ -13,7 +13,7 @@ GET {{baseUrl}}{{route}}/2
 
 DELETE {{baseUrl}}{{route}}/delete/1
 
-### UPDATE ORDER
+### UPDATE ORDER STATUS BY ID
 
 PUT {{baseUrl}}{{route}}/update/1
 Content-Type: application/json

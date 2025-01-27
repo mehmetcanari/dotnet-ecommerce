@@ -12,8 +12,8 @@ public class AccountService(IAccountRepository accountRepository, ILogger<Accoun
             List<Model.Account> accounts = await accountRepository.Get();
             if(accounts.Any(a => a.Email == createUserDto.Email)) //Duplicate email check
             {
-                logger.LogError("Email already exists");
-                throw new Exception("Email already exists");
+                logger.LogError("Email already exists in the system, try another email");
+                throw new Exception("Email already exists in the system, try another email");
             }
 
             Model.Account account = new Model.Account

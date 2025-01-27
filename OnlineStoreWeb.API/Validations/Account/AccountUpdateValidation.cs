@@ -1,0 +1,42 @@
+using FluentValidation;
+using OnlineStoreWeb.API.DTO.User;
+
+namespace OnlineStoreWeb.API.Validations.Account;
+
+public class AccountUpdateValidation : AbstractValidator<AccountUpdateDto>
+{
+    public AccountUpdateValidation()
+    {
+        RuleFor(x => x.FullName)
+            .Length(2, 50)
+            .NotEmpty()
+            .WithMessage("Full name is required");
+        
+        RuleFor(x => x.Email)
+            .EmailAddress()
+            .NotEmpty()
+            .WithMessage("Email is required");
+        
+        RuleFor(x => x.Password)
+            .Length(6, 50)
+            .NotEmpty()
+            .WithMessage("Password is required");
+        
+        RuleFor(x => x.Address)
+            .Length(2, 100)
+            .NotEmpty()
+            .WithMessage("Address is required");
+        
+        RuleFor(x => x.PhoneNumber)
+            .GreaterThan(0)
+            .NotEmpty()
+            .WithMessage("Phone number is required")
+            .Must(IsPhoneNumberValid)
+            .WithMessage("Phone number must be 10 digits");
+    }
+    
+    bool IsPhoneNumberValid(int phoneNumber)
+    {
+        return phoneNumber.ToString().Length == 10;
+    }
+}

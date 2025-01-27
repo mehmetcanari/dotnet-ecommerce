@@ -1,6 +1,6 @@
 namespace OnlineStoreWeb.API;
 
-public static class Startup
+public static class Program
 {
     public static void Main(string[] args)
     {
@@ -11,10 +11,10 @@ public static class Startup
 
         DependencyContainer dependencyContainer = new DependencyContainer();
         dependencyContainer.LoadDependencies(builder);
+        dependencyContainer.ValidationDependencies(builder);
 
         var app = builder.Build();
-
-        // app.UseHttpsRedirection(); // TODO: Enable HTTPS redirection, currently no need
+        
         app.UseAuthorization();
         app.MapControllers();
 

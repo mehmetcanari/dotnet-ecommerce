@@ -6,9 +6,11 @@ using OnlineStoreWeb.API.Repositories.Product;
 
 namespace OnlineStoreWeb.API.Services.Order;
 
-public class OrderService(IOrderRepository orderRepository,IAccountRepository accountRepository, IProductRepository productRepository, 
-    ILogger<OrderService> logger)
-    : IOrderService
+public class OrderService(
+    IOrderRepository orderRepository,
+    IAccountRepository accountRepository, 
+    IProductRepository productRepository, 
+    ILogger<OrderService> logger) : IOrderService
 {
     public async Task AddOrderAsync(OrderCreateDto createOrderDto)
     {
@@ -21,6 +23,11 @@ public class OrderService(IOrderRepository orderRepository,IAccountRepository ac
             List<Model.Account> accounts = await accountRepository.Get();
             Model.Account account = accounts.FirstOrDefault(a => a.Id == createOrderDto.UserId) ??
                                     throw new Exception("User not found");
+
+            if (createOrderDto.Quantity > product.StockQuantity)
+            {
+                throw new Exception("Quantity exceeds stock quantity");
+            }
             
             Model.Order order = new Model.Order
             {
@@ -87,13 +94,13 @@ public class OrderService(IOrderRepository orderRepository,IAccountRepository ac
         }
     }
 
-    public async Task UpdateOrderStatusAsync(int id, UpdateOrderDto updateOrderDto)
+    public async Task UpdateOrderStatusAsync(int id, OrderUpdateDto orderUpdateDto)
     {
         try
         {
             List<Model.Order> orders = await orderRepository.Get();
             Model.Order order = orders.FirstOrDefault(o => o.Id == id) ?? throw new Exception("Order not found");
-            order.Status = updateOrderDto.Status;
+            order.Status = orderUpdateDto.Status;
             await orderRepository.Update(order);
         }
         catch (Exception ex)

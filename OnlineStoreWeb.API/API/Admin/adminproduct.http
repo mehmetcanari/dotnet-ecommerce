@@ -1,0 +1,40 @@
+﻿@baseUrl = http://localhost:5076/
+@route = api/admin/products
+
+### GET ALL PRODUCTS
+
+GET {{baseUrl}}{{route}}
+
+### GET PRODUCT BY ID
+
+GET {{baseUrl}}{{route}}/1
+
+### CREATE PRODUCT
+
+POST {{baseUrl}}{{route}}/create
+Content-Type: application/json
+
+{
+  "Name": "PlayStation 5 Pro",
+  "Description": "A game console from Sony",
+  "Price": 499.99,
+  "ImageUrl": "exampleURL",
+  "StockQuantity": 50
+}
+
+### UPDATE PRODUCT BY ID
+
+PUT {{baseUrl}}{{route}}/update/1
+Content-Type: application/json
+
+{
+  "Name": "High-End Gaming PC",
+  "Description": "A gaming PC with high-end specs",
+  "Price": 2999.99,
+  "ImageUrl": "exampleURL",
+  "StockQuantity": 3
+}
+
+### DELETE PRODUCT BY ID
+
+DELETE {{baseUrl}}{{route}}/delete/1

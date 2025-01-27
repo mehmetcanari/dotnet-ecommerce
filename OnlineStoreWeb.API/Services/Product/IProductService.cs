@@ -6,7 +6,7 @@ public interface IProductService
 {
     Task<List<Model.Product>> GetAllProductsAsync();
     Task<Model.Product> GetProductWithIdAsync(int requestId);
-    Task AddProductAsync(CreateProductDto createProduct);
-    Task UpdateProductAsync(int id, UpdateProductDto updateProduct);
+    Task AddProductAsync(ProductCreateDto productCreate);
+    Task UpdateProductAsync(int id, ProductUpdateDto productUpdate);
     Task DeleteProductAsync(int id);
 }

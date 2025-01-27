@@ -2,7 +2,7 @@
 
 namespace OnlineStoreWeb.API.DTO.Order;
 
-public record UpdateOrderDto
+public record OrderUpdateDto
 {
     public OrderStatus Status { get; set; }
 }

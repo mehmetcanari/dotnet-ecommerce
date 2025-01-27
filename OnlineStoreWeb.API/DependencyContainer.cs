@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using OnlineStoreWeb.API.DTO.Order;
+using OnlineStoreWeb.API.DTO.Product;
+using OnlineStoreWeb.API.DTO.User;
 using OnlineStoreWeb.API.Model;
 using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.Order;
@@ -6,6 +10,9 @@ using OnlineStoreWeb.API.Repositories.Product;
 using OnlineStoreWeb.API.Services.Account;
 using OnlineStoreWeb.API.Services.Order;
 using OnlineStoreWeb.API.Services.Product;
+using OnlineStoreWeb.API.Validations.Account;
+using OnlineStoreWeb.API.Validations.Order;
+using OnlineStoreWeb.API.Validations.Product;
 
 namespace OnlineStoreWeb.API;
 
@@ -26,5 +33,18 @@ public class DependencyContainer
         // Database context
         builder.Services.AddDbContext<StoreDbContext>(options =>
             options.UseInMemoryDatabase("StoreDb"));
+    }
+    
+    public void ValidationDependencies(WebApplicationBuilder builder)
+    {
+        // Validators
+        builder.Services.AddScoped<IValidator<AccountRegisterDto>, AccountRegisterValidation>();
+        builder.Services.AddScoped<IValidator<AccountUpdateDto>, AccountUpdateValidation>();
+        
+        builder.Services.AddScoped<IValidator<ProductCreateDto>, ProductCreateValidation>();
+        builder.Services.AddScoped<IValidator<ProductUpdateDto>, ProductUpdateValidation>();
+        
+        builder.Services.AddScoped<IValidator<OrderCreateDto>, OrderCreateValidation>();
+        builder.Services.AddScoped<IValidator<OrderUpdateDto>, OrderUpdateValidation>();
     }
 }

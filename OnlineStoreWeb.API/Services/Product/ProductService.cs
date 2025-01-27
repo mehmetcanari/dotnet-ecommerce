@@ -39,23 +39,23 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
         }
     }
 
-    public async Task AddProductAsync(CreateProductDto createProductRequest)
+    public async Task AddProductAsync(ProductCreateDto productCreateRequest)
     {
         try
         {
             List<Model.Product> products = await productRepository.Get();
-            if (products.Any(p => p.Name == createProductRequest.Name)) //Duplicate product name check
+            if (products.Any(p => p.Name == productCreateRequest.Name)) //Duplicate product name check
             {
                 throw new Exception("Product already exists in the database");
             }
 
             Model.Product product = new Model.Product
             {
-                Name = createProductRequest.Name,
-                Description = createProductRequest.Description,
-                Price = createProductRequest.Price,
-                ImageUrl = createProductRequest.ImageUrl,
-                StockQuantity = createProductRequest.StockQuantity,
+                Name = productCreateRequest.Name,
+                Description = productCreateRequest.Description,
+                Price = productCreateRequest.Price,
+                ImageUrl = productCreateRequest.ImageUrl,
+                StockQuantity = productCreateRequest.StockQuantity,
                 ProductCreated = DateTime.UtcNow,
                 ProductUpdated = DateTime.UtcNow
             };
@@ -69,18 +69,18 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
         }
     }
 
-    public async Task UpdateProductAsync(int id, UpdateProductDto updateProductRequest)
+    public async Task UpdateProductAsync(int id, ProductUpdateDto productUpdateRequest)
     {
         try
         {
             List<Model.Product> products = await productRepository.Get();
             Model.Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
 
-            product.Name = updateProductRequest.Name;
-            product.Description = updateProductRequest.Description;
-            product.Price = updateProductRequest.Price;
-            product.ImageUrl = updateProductRequest.ImageUrl;
-            product.StockQuantity = updateProductRequest.StockQuantity;
+            product.Name = productUpdateRequest.Name;
+            product.Description = productUpdateRequest.Description;
+            product.Price = productUpdateRequest.Price;
+            product.ImageUrl = productUpdateRequest.ImageUrl;
+            product.StockQuantity = productUpdateRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
 
             await productRepository.Update(product);

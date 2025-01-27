@@ -1,11 +1,15 @@
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.DTO.Product;
 using OnlineStoreWeb.API.Services.Product;
 
 namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/products")]
-public class UserProductController(IProductService productService) : ControllerBase
+public class UserProductController(
+    IProductService productService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()

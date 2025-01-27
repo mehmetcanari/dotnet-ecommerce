@@ -1,3 +1,6 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Order;
 using OnlineStoreWeb.API.Model;
@@ -7,7 +10,9 @@ namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/orders")]
-public class AdminOrderController(IOrderService orderService) : ControllerBase
+public class AdminOrderController(
+    IOrderService orderService,
+    IValidator<OrderUpdateDto> orderUpdateValidator) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
@@ -52,11 +57,18 @@ public class AdminOrderController(IOrderService orderService) : ControllerBase
     }
 
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateOrderStatus(int id, UpdateOrderDto updateOrderDto)
+    public async Task<IActionResult> UpdateOrderStatus(int id, OrderUpdateDto orderUpdateDto)
     {
+        ValidationResult validationResult = await orderUpdateValidator.ValidateAsync(orderUpdateDto);
+        if (!validationResult.IsValid)
+        {
+            validationResult.AddToModelState(this.ModelState, null);
+            return BadRequest(this.ModelState);
+        }
+        
         try
         {
-            await orderService.UpdateOrderStatusAsync(id, updateOrderDto);
+            await orderService.UpdateOrderStatusAsync(id, orderUpdateDto);
             return Ok(new { message = "Order status updated successfully with id: " + id });
         }
         catch 

@@ -1,3 +1,6 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Order;
 using OnlineStoreWeb.API.Services.Order;
@@ -6,11 +9,20 @@ namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/orders")]
-public class UserOrderController(IOrderService orderService) : ControllerBase
+public class UserOrderController(
+    IOrderService orderService,
+    IValidator<OrderCreateDto> orderCreateValidator) : ControllerBase
 {
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder(OrderCreateDto orderCreateRequest)
     {
+        ValidationResult result = await orderCreateValidator.ValidateAsync(orderCreateRequest);
+        if (!result.IsValid)
+        {
+            result.AddToModelState(this.ModelState, null);
+            return BadRequest(this.ModelState);
+        }
+        
         try
         {
             await orderService.AddOrderAsync(orderCreateRequest);

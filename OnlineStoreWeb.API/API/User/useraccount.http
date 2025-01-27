@@ -1,20 +1,23 @@
-@baseUrl = http://localhost:5076
+@baseUrl = http://localhost:5076/
+@route = api/account
 
-###
-POST {{baseUrl}}/api/account/register
+### CREATE USER ACCOUNT
+
+POST {{baseUrl}}{{route}}/register
 Content-Type: application/json
 
 {
     "fullName": "Mehmet Can Arı",
-    "email": "bsn.mehmetcanari@gmail.com",
+    "email": "examplemail@gmail.com",
     "password": "123456789",
     "address": "California, USA",
-    "phoneNumber": "987654321",
-    "dateOfBirth": "1999-02-11"
+    "phoneNumber": "9876543210",
+    "dateOfBirth": "1999-03-24"
 }
 
-###
-PUT {{baseUrl}}/api/account/update/1
+### UPDATE ACCOUNT BY USER ID
+
+PUT {{baseUrl}}{{route}}/update/1
 Content-Type: application/json
 
 {

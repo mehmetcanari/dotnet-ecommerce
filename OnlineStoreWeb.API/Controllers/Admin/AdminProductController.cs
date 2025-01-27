@@ -1,3 +1,6 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Product;
 using OnlineStoreWeb.API.Services.Product;
@@ -6,7 +9,10 @@ namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/products")]
-public class AdminProductController(IProductService productService) : ControllerBase
+public class AdminProductController(
+    IProductService productService,
+    IValidator<ProductCreateDto> createProductValidator,
+    IValidator<ProductUpdateDto> updateProductValidator) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
@@ -37,8 +43,15 @@ public class AdminProductController(IProductService productService) : Controller
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreateProduct(CreateProductDto productCreateRequest)
+    public async Task<IActionResult> CreateProduct(ProductCreateDto productCreateRequest)
     {
+        ValidationResult result = await createProductValidator.ValidateAsync(productCreateRequest);
+        if (!result.IsValid)
+        {
+            result.AddToModelState(this.ModelState, null);
+            return BadRequest(this.ModelState);
+        }
+        
         try
         {
             await productService.AddProductAsync(productCreateRequest);
@@ -51,10 +64,18 @@ public class AdminProductController(IProductService productService) : Controller
     }
 
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateProduct(int id, UpdateProductDto productUpdateRequest)
+    public async Task<IActionResult> UpdateProduct(int id, ProductUpdateDto productUpdateRequest)
     {
+        ValidationResult result = await updateProductValidator.ValidateAsync(productUpdateRequest);
+        
         try
         {
+            if (!result.IsValid)
+            {
+                result.AddToModelState(this.ModelState, null);
+                return BadRequest(this.ModelState);
+            }
+            
             await productService.UpdateProductAsync(id, productUpdateRequest);
             return Ok(new { message = "Product updated successfully" });
         }
