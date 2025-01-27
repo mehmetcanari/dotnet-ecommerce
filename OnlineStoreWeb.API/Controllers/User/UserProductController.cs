@@ -8,8 +8,7 @@ namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/products")]
-public class UserProductController(
-    IProductService productService) : ControllerBase
+public class UserProductController(IProductService productService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()

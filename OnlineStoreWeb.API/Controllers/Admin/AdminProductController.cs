@@ -9,10 +9,7 @@ namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/products")]
-public class AdminProductController(
-    IProductService productService,
-    IValidator<ProductCreateDto> createProductValidator,
-    IValidator<ProductUpdateDto> updateProductValidator) : ControllerBase
+public class AdminProductController(IProductService productService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
@@ -45,11 +42,9 @@ public class AdminProductController(
     [HttpPost("create")]
     public async Task<IActionResult> CreateProduct(ProductCreateDto productCreateRequest)
     {
-        ValidationResult result = await createProductValidator.ValidateAsync(productCreateRequest);
-        if (!result.IsValid)
+        if (!ModelState.IsValid)
         {
-            result.AddToModelState(this.ModelState, null);
-            return BadRequest(this.ModelState);
+            return BadRequest(ModelState);
         }
         
         try
@@ -66,16 +61,13 @@ public class AdminProductController(
     [HttpPut("update/{id}")]
     public async Task<IActionResult> UpdateProduct(int id, ProductUpdateDto productUpdateRequest)
     {
-        ValidationResult result = await updateProductValidator.ValidateAsync(productUpdateRequest);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         
         try
         {
-            if (!result.IsValid)
-            {
-                result.AddToModelState(this.ModelState, null);
-                return BadRequest(this.ModelState);
-            }
-            
             await productService.UpdateProductAsync(id, productUpdateRequest);
             return Ok(new { message = "Product updated successfully" });
         }

@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using OnlineStoreWeb.API.DTO.Order;
 using OnlineStoreWeb.API.DTO.Product;
@@ -38,6 +39,8 @@ public class DependencyContainer
     public void ValidationDependencies(WebApplicationBuilder builder)
     {
         // Validators
+        builder.Services.AddFluentValidationAutoValidation();
+        
         builder.Services.AddScoped<IValidator<AccountRegisterDto>, AccountRegisterValidation>();
         builder.Services.AddScoped<IValidator<AccountUpdateDto>, AccountUpdateValidation>();
         

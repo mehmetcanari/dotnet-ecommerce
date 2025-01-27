@@ -9,20 +9,16 @@ namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/orders")]
-public class UserOrderController(
-    IOrderService orderService,
-    IValidator<OrderCreateDto> orderCreateValidator) : ControllerBase
+public class UserOrderController(IOrderService orderService) : ControllerBase
 {
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder(OrderCreateDto orderCreateRequest)
     {
-        ValidationResult result = await orderCreateValidator.ValidateAsync(orderCreateRequest);
-        if (!result.IsValid)
+        if(!ModelState.IsValid)
         {
-            result.AddToModelState(this.ModelState, null);
-            return BadRequest(this.ModelState);
+            return BadRequest(ModelState);
         }
-        
+            
         try
         {
             await orderService.AddOrderAsync(orderCreateRequest);

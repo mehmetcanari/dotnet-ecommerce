@@ -10,9 +10,7 @@ namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/orders")]
-public class AdminOrderController(
-    IOrderService orderService,
-    IValidator<OrderUpdateDto> orderUpdateValidator) : ControllerBase
+public class AdminOrderController(IOrderService orderService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
@@ -59,13 +57,10 @@ public class AdminOrderController(
     [HttpPut("update/{id}")]
     public async Task<IActionResult> UpdateOrderStatus(int id, OrderUpdateDto orderUpdateDto)
     {
-        ValidationResult validationResult = await orderUpdateValidator.ValidateAsync(orderUpdateDto);
-        if (!validationResult.IsValid)
+        if (!ModelState.IsValid)
         {
-            validationResult.AddToModelState(this.ModelState, null);
-            return BadRequest(this.ModelState);
+            return BadRequest(ModelState);
         }
-        
         try
         {
             await orderService.UpdateOrderStatusAsync(id, orderUpdateDto);

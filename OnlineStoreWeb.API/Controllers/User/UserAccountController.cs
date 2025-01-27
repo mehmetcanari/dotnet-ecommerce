@@ -10,19 +10,14 @@ namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/account")]
-public class UserAccountController(
-    IAccountService accountService, 
-    IValidator<AccountRegisterDto> registerValidator,
-    IValidator<AccountUpdateDto> updateValidator) : ControllerBase
+public class UserAccountController(IAccountService accountService) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> Register(AccountRegisterDto accountRegisterRequest)
     {
-        ValidationResult result = await registerValidator.ValidateAsync(accountRegisterRequest);
-        if (!result.IsValid)
+        if (!ModelState.IsValid)
         {
-            result.AddToModelState(this.ModelState, null);
-            return BadRequest(this.ModelState);
+            return BadRequest(ModelState);
         }
         
         try
@@ -39,16 +34,13 @@ public class UserAccountController(
     [HttpPut("update/{id}")]
     public async Task<IActionResult> UpdateProfile(int id, AccountUpdateDto accountUpdateRequest)
     {
-        ValidationResult result = await updateValidator.ValidateAsync(accountUpdateRequest);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         
         try
         {
-            if (!result.IsValid)
-            {
-                result.AddToModelState(this.ModelState, null);
-                return BadRequest(this.ModelState);
-            }
-            
             await accountService.UpdateAccountAsync(id, accountUpdateRequest);
             return Ok(new { message = "User updated successfully" });
         }
