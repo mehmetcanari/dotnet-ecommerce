@@ -1,8 +1,10 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineStoreWeb.API", "OnlineStoreWeb.API\OnlineStoreWeb.API.csproj", "{9E4FCDEB-0647-0AC4-2174-5536733FD4D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineStoreWeb.Tests", "OnlineStoreWeb.Tests\OnlineStoreWeb.Tests.csproj", "{AC13F284-FA55-4BCD-95B4-0BEDD840E3D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +16,10 @@ Global
 		{9E4FCDEB-0647-0AC4-2174-5536733FD4D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E4FCDEB-0647-0AC4-2174-5536733FD4D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E4FCDEB-0647-0AC4-2174-5536733FD4D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC13F284-FA55-4BCD-95B4-0BEDD840E3D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC13F284-FA55-4BCD-95B4-0BEDD840E3D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC13F284-FA55-4BCD-95B4-0BEDD840E3D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC13F284-FA55-4BCD-95B4-0BEDD840E3D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
