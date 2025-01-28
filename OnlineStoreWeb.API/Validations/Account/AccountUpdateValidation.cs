@@ -28,15 +28,9 @@ public class AccountUpdateValidation : AbstractValidator<AccountUpdateDto>
             .WithMessage("Address is required");
         
         RuleFor(x => x.PhoneNumber)
-            .GreaterThan(0)
             .NotEmpty()
             .WithMessage("Phone number is required")
-            .Must(IsPhoneNumberValid)
+            .Length(10,10)
             .WithMessage("Phone number must be 10 digits");
-    }
-    
-    bool IsPhoneNumberValid(int phoneNumber)
-    {
-        return phoneNumber.ToString().Length == 10;
     }
 }

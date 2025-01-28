@@ -1,10 +1,13 @@
 using OnlineStoreWeb.API.DTO.User;
 using OnlineStoreWeb.API.Repositories.Account;
+using OnlineStoreWeb.API.Services.Cryptography;
 
 namespace OnlineStoreWeb.API.Services.Account;
 
 public class AccountService(IAccountRepository accountRepository, ILogger<AccountService> logger) : IAccountService
 {
+    private readonly PasswordEncryptionProvider _passwordEncryptionProvider = new PasswordEncryptionProvider();
+    
     public async Task AddAccountAsync(AccountRegisterDto createUserDto)
     {
         try
@@ -20,7 +23,7 @@ public class AccountService(IAccountRepository accountRepository, ILogger<Accoun
             {
                 FullName = createUserDto.FullName,
                 Email = createUserDto.Email,
-                Password = createUserDto.Password,
+                PasswordHash = _passwordEncryptionProvider.HashPassword(createUserDto.Password),
                 Address = createUserDto.Address,
                 PhoneNumber = createUserDto.PhoneNumber,
                 DateOfBirth = createUserDto.DateOfBirth,
@@ -52,7 +55,7 @@ public class AccountService(IAccountRepository accountRepository, ILogger<Accoun
             
             account.FullName = updateUserDto.FullName;
             account.Email = updateUserDto.Email;
-            account.Password = updateUserDto.Password;
+            account.PasswordHash = _passwordEncryptionProvider.HashPassword(updateUserDto.Password);
             account.Address = updateUserDto.Address;
             account.PhoneNumber = updateUserDto.PhoneNumber;
             account.UserUpdated = DateTime.UtcNow;

@@ -13,6 +13,11 @@ public class UserProductController(IProductService productService) : ControllerB
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        
         try
         {
             var products = await productService.GetAllProductsAsync();

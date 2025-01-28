@@ -28,10 +28,9 @@ public class AccountRegisterValidation : AbstractValidator<AccountRegisterDto>
             .WithMessage("Address is required");
         
         RuleFor(x => x.PhoneNumber)
-            .GreaterThan(0)
             .NotEmpty()
             .WithMessage("Phone number is required")
-            .Must(IsPhoneNumberValid)
+            .Length(10,10)
             .WithMessage("Phone number must be 10 digits");
 
         RuleFor(x => x.DateOfBirth)
@@ -45,11 +44,6 @@ public class AccountRegisterValidation : AbstractValidator<AccountRegisterDto>
         bool IsAgeValid(DateTime dateOfBirth)
         {
             return dateOfBirth.AddYears(18) <= DateTime.Now;
-        }
-        
-        bool IsPhoneNumberValid(int phoneNumber)
-        {
-            return phoneNumber.ToString().Length == 10;
         }
     }
 }
