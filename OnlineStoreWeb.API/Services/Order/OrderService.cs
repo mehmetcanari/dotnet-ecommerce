@@ -1,5 +1,4 @@
 using OnlineStoreWeb.API.DTO.Order;
-using OnlineStoreWeb.API.Model;
 using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.Order;
 using OnlineStoreWeb.API.Repositories.Product;

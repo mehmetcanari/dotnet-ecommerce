@@ -4,15 +4,15 @@ public class Order
 {
     public int Id { get; init; } 
     public int UserId { get; init; } 
-    public int ProductId { get; set; } 
+    public int ProductId { get; init; } 
     public double Price { get; init; }
     public int Quantity { get; init; } 
     public double TotalPrice => Price * Quantity;
     public DateTime OrderDate { get; private set; } = DateTime.UtcNow;
-    public string ShippingAddress { get; set; } 
-    public string BillingAddress { get; set; } 
-    public PaymentMethod PaymentMethod { get; set; }
-    public string AccountName { get; set; }
+    public string ShippingAddress { get; init; } 
+    public string BillingAddress { get; init; } 
+    public PaymentMethod PaymentMethod { get; init; }
+    public string AccountName { get; init; }
     public OrderStatus Status { get; internal set; } = OrderStatus.Pending;
 }
 

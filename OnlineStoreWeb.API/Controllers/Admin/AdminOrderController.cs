@@ -1,9 +1,5 @@
-using FluentValidation;
-using FluentValidation.AspNetCore;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Order;
-using OnlineStoreWeb.API.Model;
 using OnlineStoreWeb.API.Services.Order;
 
 namespace OnlineStoreWeb.API.Controllers.Admin;

@@ -1,5 +1,4 @@
 using OnlineStoreWeb.API.DTO.Order;
-using OnlineStoreWeb.API.Model;
 
 namespace OnlineStoreWeb.API.Services.Order;
 

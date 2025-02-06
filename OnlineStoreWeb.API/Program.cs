@@ -1,25 +1,38 @@
-using FluentValidation.AspNetCore;
+using Microsoft.OpenApi.Models;
+using OnlineStoreWeb.API;
 
-namespace OnlineStoreWeb.API;
+var builder = WebApplication.CreateBuilder(args);
 
-public static class Program
+//#region Service Configuration
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
 {
-    public static void Main(string[] args)
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
-        var builder = WebApplication.CreateBuilder(args);
-        
-        builder.Services.AddControllers();
-        builder.Services.AddEndpointsApiExplorer();
-        
-        DependencyContainer dependencyContainer = new DependencyContainer();
-        dependencyContainer.LoadDependencies(builder);
-        dependencyContainer.ValidationDependencies(builder);
+        Title = "Online Store API",
+        Version = "v1",
+        Description = "A simple Online Store API for managing products"
+    });
+});
 
-        var app = builder.Build();
-        
-        app.UseAuthorization();
-        app.MapControllers();
+DependencyContainer dependencyContainer = new DependencyContainer();
+dependencyContainer.LoadDependencies(builder);
+dependencyContainer.ValidationDependencies(builder);
 
-        app.Run();
-    }
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Online Store API v1");
+        c.RoutePrefix = string.Empty;
+    });
 }
+
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
