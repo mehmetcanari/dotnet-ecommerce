@@ -21,9 +21,9 @@ public class UserAccountController(IAccountService accountService) : ControllerB
             await accountService.AddAccountAsync(accountRegisterRequest);
             return Created($"users", new { message = "User created successfully" });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while creating the user");
+            return BadRequest(exception.Message);
         }
     }
 
@@ -40,9 +40,28 @@ public class UserAccountController(IAccountService accountService) : ControllerB
             await accountService.UpdateAccountAsync(id, accountUpdateRequest);
             return Ok(new { message = "User updated successfully" });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while updating the user");
+            return BadRequest(exception.Message);
+        }
+    }
+
+    [HttpPatch("update/{id}")]
+    public async Task<IActionResult> PartialUpdateProfile(int id, AccountPatchDto accountPatchRequest)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            await accountService.PartialUpdateAccountAsync(id, accountPatchRequest);
+            return Ok(new { message = "User updated successfully" });
+        }
+        catch (Exception exception)
+        {
+            return BadRequest(exception.Message);
         }
     }
 } 

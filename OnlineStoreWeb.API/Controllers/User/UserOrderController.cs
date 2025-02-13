@@ -21,9 +21,9 @@ public class UserOrderController(IOrderService orderService) : ControllerBase
             await orderService.AddOrderAsync(orderCreateRequest);
             return Created($"orders", new { message = "Order created successfully"});
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while creating the order");
+            return BadRequest(exception.Message);
         }
     }
     
@@ -35,9 +35,9 @@ public class UserOrderController(IOrderService orderService) : ControllerBase
             var order = await orderService.GetOrderWithIdAsync(id);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching the order");
+            return BadRequest(exception.Message);
         }
     }
     
@@ -49,9 +49,9 @@ public class UserOrderController(IOrderService orderService) : ControllerBase
             await orderService.DeleteOrderAsync(userId);
             return Ok(new { message = "Order deleted successfully" });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while deleting the order");
+            return BadRequest(exception.Message);
         }
     }
 }

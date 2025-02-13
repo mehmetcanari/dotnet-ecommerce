@@ -27,3 +27,14 @@ Content-Type: application/json
   "address": "Istanbul, Turkey",
   "phoneNumber": "1234567890"
 }
+
+### UPDATE ACCOUNT PARTIAL BY USER ID
+
+PATCH {{baseUrl}}{{route}}/update/1
+Content-Type: application/json
+
+{
+  "email": "newexampleeemail@gmail.com",
+  "currentPassword": "123456789",
+  "newPassword": "12345678"
+}

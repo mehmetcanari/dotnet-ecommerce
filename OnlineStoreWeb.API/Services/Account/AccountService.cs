@@ -6,7 +6,7 @@ namespace OnlineStoreWeb.API.Services.Account;
 
 public class AccountService(IAccountRepository accountRepository, ILogger<AccountService> logger) : IAccountService
 {
-    private readonly PasswordEncryptionProvider _passwordEncryptionProvider = new PasswordEncryptionProvider();
+    private readonly PasswordEncryptionProvider _passwordEncryptionProvider = new();
     
     public async Task AddAccountAsync(AccountRegisterDto createUserDto)
     {
@@ -37,6 +37,38 @@ public class AccountService(IAccountRepository accountRepository, ILogger<Accoun
         {
             logger.LogError(ex, "Unexpected error while adding account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task PartialUpdateAccountAsync(int id, AccountPatchDto accountPatchDto)
+    {
+        try
+        {
+            List<Model.Account> accounts = await accountRepository.Get();
+            Model.Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            
+            if(accounts.Any(a => a.Email == accountPatchDto.Email)) //Duplicate email check
+            {
+                logger.LogError("Email already exists in the system, try another email");
+                throw new Exception("Email already exists in the system, try another email");
+            }
+            
+            if(_passwordEncryptionProvider.VerifyPassword(accountPatchDto.CurrentPassword, account.PasswordHash) == false)
+            {
+                logger.LogError("Current password is incorrect");
+                throw new Exception("Current password is incorrect");
+            }
+            
+            account.Email = accountPatchDto.Email;
+            account.PasswordHash = _passwordEncryptionProvider.HashPassword(accountPatchDto.NewPassword);
+            account.UserUpdated = DateTime.UtcNow;
+
+            await accountRepository.Update(account);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error while updating account: {Message}", ex.Message);
+            throw new Exception(ex.Message);
         }
     }
 

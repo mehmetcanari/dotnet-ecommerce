@@ -17,7 +17,7 @@ public class AdminAccountController(IAccountService accountService) : Controller
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching accounts" + ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 
@@ -31,7 +31,7 @@ public class AdminAccountController(IAccountService accountService) : Controller
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching the account" + ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 
@@ -45,7 +45,7 @@ public class AdminAccountController(IAccountService accountService) : Controller
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An unexpected error occurred while deleting the account" + ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 }

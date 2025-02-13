@@ -43,6 +43,7 @@ public class DependencyContainer
         
         builder.Services.AddScoped<IValidator<AccountRegisterDto>, AccountRegisterValidation>();
         builder.Services.AddScoped<IValidator<AccountUpdateDto>, AccountUpdateValidation>();
+        builder.Services.AddScoped<IValidator<AccountPatchDto>, AccountPartialUpdateValidation>();
         
         builder.Services.AddScoped<IValidator<ProductCreateDto>, ProductCreateValidation>();
         builder.Services.AddScoped<IValidator<ProductUpdateDto>, ProductUpdateValidation>();
