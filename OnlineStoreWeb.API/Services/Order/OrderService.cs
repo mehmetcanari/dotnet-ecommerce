@@ -5,21 +5,30 @@ using OnlineStoreWeb.API.Repositories.Product;
 
 namespace OnlineStoreWeb.API.Services.Order;
 
-public class OrderService(
-    IOrderRepository orderRepository,
-    IAccountRepository accountRepository, 
-    IProductRepository productRepository, 
-    ILogger<OrderService> logger) : IOrderService
+public class OrderService : IOrderService
 {
+    private readonly IOrderRepository _orderRepository;
+    private readonly IProductRepository _productRepository;
+    private readonly IAccountRepository _accountRepository;
+    private readonly ILogger<OrderService> _logger;
+    
+    public OrderService(IOrderRepository orderRepository, IProductRepository productRepository, IAccountRepository accountRepository, ILogger<OrderService> logger)
+    {
+        _orderRepository = orderRepository;
+        _productRepository = productRepository;
+        _accountRepository = accountRepository;
+        _logger = logger;
+    }
+    
     public async Task AddOrderAsync(OrderCreateDto createOrderDto)
     {
         try
         {
-            List<Model.Product> products = await productRepository.Get();
+            List<Model.Product> products = await _productRepository.Read();
             Model.Product product = products.FirstOrDefault(p => p.Id == createOrderDto.ProductId) ??
                                     throw new Exception("Product not found");
 
-            List<Model.Account> accounts = await accountRepository.Get();
+            List<Model.Account> accounts = await _accountRepository.Read();
             Model.Account account = accounts.FirstOrDefault(a => a.Id == createOrderDto.UserId) ??
                                     throw new Exception("User not found");
 
@@ -40,11 +49,11 @@ public class OrderService(
                 AccountName = account.FullName
             };
             
-            await orderRepository.Add(order);
+            await _orderRepository.Create(order);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -53,13 +62,13 @@ public class OrderService(
     {
         try
         {
-            List<Model.Order> orders = await orderRepository.Get();
+            List<Model.Order> orders = await _orderRepository.Read();
             Model.Order order = orders.FirstOrDefault(o => o.Id == userId) ?? throw new Exception("Order not found");
-            await orderRepository.Delete(order);
+            await _orderRepository.Delete(order);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -68,12 +77,12 @@ public class OrderService(
     {
         try
         {
-            List<Model.Order> orders = await orderRepository.Get();
+            List<Model.Order> orders = await _orderRepository.Read();
             return orders;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while fetching all orders: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while fetching all orders: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -82,13 +91,13 @@ public class OrderService(
     {
         try
         {
-            List<Model.Order> orders = await orderRepository.Get();
+            List<Model.Order> orders = await _orderRepository.Read();
             Model.Order order = orders.FirstOrDefault(o => o.Id == id) ?? throw new Exception("Order not found");
             return order;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -97,14 +106,14 @@ public class OrderService(
     {
         try
         {
-            List<Model.Order> orders = await orderRepository.Get();
+            List<Model.Order> orders = await _orderRepository.Read();
             Model.Order order = orders.FirstOrDefault(o => o.Id == id) ?? throw new Exception("Order not found");
             order.Status = orderUpdateDto.Status;
-            await orderRepository.Update(order);
+            await _orderRepository.Update(order);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while updating order status: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while updating order status: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
     }

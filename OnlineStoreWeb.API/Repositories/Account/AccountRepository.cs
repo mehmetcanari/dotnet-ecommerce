@@ -5,7 +5,7 @@ namespace OnlineStoreWeb.API.Repositories.Account;
 
 public class AccountRepository(StoreDbContext context) : IAccountRepository
 {
-    public async Task<List<Model.Account>> Get()
+    public async Task<List<Model.Account>> Read()
     {
         try
         {
@@ -21,7 +21,7 @@ public class AccountRepository(StoreDbContext context) : IAccountRepository
         }
     }
 
-    public async Task Add(Model.Account userAccount)
+    public async Task Create(Model.Account userAccount)
     {
         try
         {

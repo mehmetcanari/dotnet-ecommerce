@@ -6,14 +6,21 @@ namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/products")]
-public class AdminProductController(IProductService productService) : ControllerBase
+public class AdminProductController : ControllerBase
 {
+    private readonly IProductService _productService;
+    
+    public AdminProductController(IProductService productService)
+    {
+        _productService = productService;
+    }
+    
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
         try
         {
-            var products = await productService.GetAllProductsAsync();
+            var products = await _productService.GetAllProductsAsync();
             return Ok(products);
         }
         catch
@@ -27,7 +34,7 @@ public class AdminProductController(IProductService productService) : Controller
     {
         try
         {
-            var product = await productService.GetProductWithIdAsync(id);
+            var product = await _productService.GetProductWithIdAsync(id);
             return Ok(product);
         }
         catch
@@ -46,7 +53,7 @@ public class AdminProductController(IProductService productService) : Controller
         
         try
         {
-            await productService.AddProductAsync(productCreateRequest);
+            await _productService.AddProductAsync(productCreateRequest);
             return Created($"products/{productCreateRequest.Name}", new { message = "Product created successfully" });
         }
         catch
@@ -65,7 +72,7 @@ public class AdminProductController(IProductService productService) : Controller
         
         try
         {
-            await productService.UpdateProductAsync(id, productUpdateRequest);
+            await _productService.UpdateProductAsync(id, productUpdateRequest);
             return Ok(new { message = "Product updated successfully" });
         }
         catch
@@ -79,7 +86,7 @@ public class AdminProductController(IProductService productService) : Controller
     {
         try
         {
-            await productService.DeleteProductAsync(id);
+            await _productService.DeleteProductAsync(id);
             return Ok(new { message = "Product deleted successfully" });
         }
         catch

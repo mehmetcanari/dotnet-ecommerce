@@ -3,23 +3,32 @@ using OnlineStoreWeb.API.Repositories.Product;
 
 namespace OnlineStoreWeb.API.Services.Product;
 
-public class ProductService(IProductRepository productRepository, ILogger<ProductService> logger) : IProductService
+public class ProductService : IProductService
 {
+    private readonly IProductRepository _productRepository;
+    private readonly ILogger<ProductService> _logger;
+    
+    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
+    {
+        _productRepository = productRepository;
+        _logger = logger;
+    }
+    
     public async Task<List<Model.Product>> GetAllProductsAsync()
     {
         try
         {
-            List<Model.Product> products = await productRepository.Get();
+            List<Model.Product> products = await _productRepository.Read();
             if (products.Count <= 0)
             {
                 throw new Exception("No products found.");
             }
-            
+
             return products;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while fetching all products");
+            _logger.LogError(ex, "Unexpected error while fetching all products");
             throw new Exception(ex.Message);
         }
     }
@@ -28,13 +37,13 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
     {
         try
         {
-            List<Model.Product> products = await productRepository.Get();
+            List<Model.Product> products = await _productRepository.Read();
             Model.Product product = products.FirstOrDefault(p => p.Id == requestId) ?? throw new Exception("Product not found");
             return product;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
             throw new Exception(ex.Message);
         }
     }
@@ -43,7 +52,7 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
     {
         try
         {
-            List<Model.Product> products = await productRepository.Get();
+            List<Model.Product> products = await _productRepository.Read();
             if (products.Any(p => p.Name == productCreateRequest.Name)) //Duplicate product name check
             {
                 throw new Exception("Product already exists in the database");
@@ -60,11 +69,11 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
                 ProductUpdated = DateTime.UtcNow
             };
             
-            await productRepository.Add(product);
+            await _productRepository.Create(product);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
             throw new Exception(ex.Message);
         }
     }
@@ -73,7 +82,7 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
     {
         try
         {
-            List<Model.Product> products = await productRepository.Get();
+            List<Model.Product> products = await _productRepository.Read();
             Model.Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
 
             product.Name = productUpdateRequest.Name;
@@ -83,11 +92,11 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
             product.StockQuantity = productUpdateRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
 
-            await productRepository.Update(product);
+            await _productRepository.Update(product);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
             throw new Exception(ex.Message);
         }
     }
@@ -96,14 +105,14 @@ public class ProductService(IProductRepository productRepository, ILogger<Produc
     {
         try
         {
-            List<Model.Product> products = await productRepository.Get();
+            List<Model.Product> products = await _productRepository.Read();
             Model.Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
 
-            await productRepository.Delete(product);
+            await _productRepository.Delete(product);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
             throw new Exception(ex.Message);
         }
     }

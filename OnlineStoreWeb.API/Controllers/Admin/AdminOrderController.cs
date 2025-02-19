@@ -6,14 +6,21 @@ namespace OnlineStoreWeb.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/orders")]
-public class AdminOrderController(IOrderService orderService) : ControllerBase
+public class AdminOrderController : ControllerBase
 {
+    private readonly IOrderService _orderService;
+
+    public AdminOrderController(IOrderService orderService)
+    {
+        _orderService = orderService;
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
     {
         try
         {
-            var orders = await orderService.GetAllOrdersAsync();
+            var orders = await _orderService.GetAllOrdersAsync();
             return Ok(new { message = "Orders fetched successfully", data = orders });
         }
         catch 
@@ -27,7 +34,7 @@ public class AdminOrderController(IOrderService orderService) : ControllerBase
     {
         try
         {
-            var order = await orderService.GetOrderWithIdAsync(id);
+            var order = await _orderService.GetOrderWithIdAsync(id);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
         catch 
@@ -41,7 +48,7 @@ public class AdminOrderController(IOrderService orderService) : ControllerBase
     {
         try
         {
-            await orderService.DeleteOrderAsync(id);
+            await _orderService.DeleteOrderAsync(id);
             return Ok(new { message = "Order deleted successfully with id: " + id });
         }
         catch 
@@ -59,7 +66,7 @@ public class AdminOrderController(IOrderService orderService) : ControllerBase
         }
         try
         {
-            await orderService.UpdateOrderStatusAsync(id, orderUpdateDto);
+            await _orderService.UpdateOrderStatusAsync(id, orderUpdateDto);
             return Ok(new { message = "Order status updated successfully with id: " + id });
         }
         catch 

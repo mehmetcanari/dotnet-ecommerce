@@ -5,7 +5,7 @@ namespace OnlineStoreWeb.API.Repositories.Product;
 
 public class ProductRepository(StoreDbContext context) : IProductRepository
 {
-    public async Task<List<Model.Product>> Get()
+    public async Task<List<Model.Product>> Read()
     {
         try
         {
@@ -21,7 +21,7 @@ public class ProductRepository(StoreDbContext context) : IProductRepository
         }
     }
 
-    public async Task Add(Model.Product product)
+    public async Task Create(Model.Product product)
     {
         try
         {

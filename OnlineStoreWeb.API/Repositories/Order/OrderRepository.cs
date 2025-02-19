@@ -5,7 +5,7 @@ namespace OnlineStoreWeb.API.Repositories.Order;
 
 public class OrderRepository(StoreDbContext context) : IOrderRepository
 {
-    public async Task<List<Model.Order>> Get()
+    public async Task<List<Model.Order>> Read()
     {
         try
         {
@@ -21,7 +21,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
         }
     }
 
-    public async Task Add(Model.Order order)
+    public async Task Create(Model.Order order)
     {
         try
         {

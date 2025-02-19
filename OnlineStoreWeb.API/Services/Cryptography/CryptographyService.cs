@@ -2,9 +2,9 @@ using System.Security.Cryptography;
 
 namespace OnlineStoreWeb.API.Services.Cryptography;
 
-public class PasswordEncryptionProvider
+public static class CryptographyService
 {
-public string HashPassword(string password)
+public static string HashPassword(string password)
 {
     int iterations = 128000; 
     int hashSize = 32; 
@@ -31,7 +31,7 @@ public string HashPassword(string password)
     }
 }
 
-    public bool VerifyPassword(string enteredPassword, string storedHash)
+    public static bool TryVerifyPassword(string enteredPassword, string storedHash)
     {
         byte[] combined = Convert.FromBase64String(storedHash);
 

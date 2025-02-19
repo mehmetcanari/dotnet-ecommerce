@@ -6,8 +6,15 @@ namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/orders")]
-public class UserOrderController(IOrderService orderService) : ControllerBase
+public class UserOrderController : ControllerBase
 {
+    private readonly IOrderService _orderService;
+
+    public UserOrderController(IOrderService orderService)
+    {
+        _orderService = orderService;
+    }
+
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder(OrderCreateDto orderCreateRequest)
     {
@@ -18,7 +25,7 @@ public class UserOrderController(IOrderService orderService) : ControllerBase
             
         try
         {
-            await orderService.AddOrderAsync(orderCreateRequest);
+            await _orderService.AddOrderAsync(orderCreateRequest);
             return Created($"orders", new { message = "Order created successfully"});
         }
         catch 
@@ -32,7 +39,7 @@ public class UserOrderController(IOrderService orderService) : ControllerBase
     {
         try
         {
-            var order = await orderService.GetOrderWithIdAsync(id);
+            var order = await _orderService.GetOrderWithIdAsync(id);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
         catch 
@@ -46,7 +53,7 @@ public class UserOrderController(IOrderService orderService) : ControllerBase
     {
         try
         {
-            await orderService.DeleteOrderAsync(userId);
+            await _orderService.DeleteOrderAsync(userId);
             return Ok(new { message = "Order deleted successfully" });
         }
         catch 

@@ -1,12 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
+using OnlineStoreWeb.API.Repositories.Product;
 using OnlineStoreWeb.API.Services.Product;
 
 namespace OnlineStoreWeb.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/products")]
-public class UserProductController(IProductService productService) : ControllerBase
+public class UserProductController : ControllerBase
 {
+    private readonly IProductService _productService;
+
+    public UserProductController(IProductService productService)
+    {
+        _productService = productService;
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
@@ -17,7 +25,7 @@ public class UserProductController(IProductService productService) : ControllerB
         
         try
         {
-            var products = await productService.GetAllProductsAsync();
+            var products = await _productService.GetAllProductsAsync();
             return Ok(new { message = "Products fetched successfully", data = products });
         }
         catch 
@@ -31,7 +39,7 @@ public class UserProductController(IProductService productService) : ControllerB
     {
         try
         {
-            var product = await productService.GetProductWithIdAsync(id);
+            var product = await _productService.GetProductWithIdAsync(id);
             return Ok(new { message = "Product fetched successfully", data = product });
         }
         catch 
