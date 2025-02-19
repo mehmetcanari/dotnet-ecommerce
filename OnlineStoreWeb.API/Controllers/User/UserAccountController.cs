@@ -68,23 +68,4 @@ public class UserAccountController : ControllerBase
             return BadRequest(exception.Message);
         }
     }
-
-    [HttpPatch("update/{id}")]
-    public async Task<IActionResult> PartialUpdateProfile(int id, AccountPatchDto accountPatchRequest)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        try
-        {
-            await accountService.PartialUpdateAccountAsync(id, accountPatchRequest);
-            return Ok(new { message = "User updated successfully" });
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
-    }
 } 
