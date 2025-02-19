@@ -28,9 +28,9 @@ public class UserProductController : ControllerBase
             var products = await _productService.GetAllProductsAsync();
             return Ok(new { message = "Products fetched successfully", data = products });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching products");
+            return BadRequest(exception.Message);
         }
     }
 
@@ -42,9 +42,10 @@ public class UserProductController : ControllerBase
             var product = await _productService.GetProductWithIdAsync(id);
             return Ok(new { message = "Product fetched successfully", data = product });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching the product");
+            return BadRequest(exception.Message);
+            throw;
         }
     }
 }

@@ -23,9 +23,9 @@ public class AdminProductController : ControllerBase
             var products = await _productService.GetAllProductsAsync();
             return Ok(products);
         }
-        catch
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching products");
+            return BadRequest(exception.Message);
         }
     }
 
@@ -37,9 +37,9 @@ public class AdminProductController : ControllerBase
             var product = await _productService.GetProductWithIdAsync(id);
             return Ok(product);
         }
-        catch
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching the product");
+            return BadRequest(exception.Message);
         }
     }
 
@@ -56,9 +56,9 @@ public class AdminProductController : ControllerBase
             await _productService.AddProductAsync(productCreateRequest);
             return Created($"products/{productCreateRequest.Name}", new { message = "Product created successfully" });
         }
-        catch
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while creating the product");
+            return BadRequest(exception.Message);
         }
     }
 
@@ -75,9 +75,9 @@ public class AdminProductController : ControllerBase
             await _productService.UpdateProductAsync(id, productUpdateRequest);
             return Ok(new { message = "Product updated successfully" });
         }
-        catch
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while updating the product");
+            return BadRequest(exception.Message);
         }
     }
 
@@ -89,9 +89,9 @@ public class AdminProductController : ControllerBase
             await _productService.DeleteProductAsync(id);
             return Ok(new { message = "Product deleted successfully" });
         }
-        catch
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while deleting the product");
+            return BadRequest(exception.Message); 
         }
     }
 }

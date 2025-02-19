@@ -23,9 +23,9 @@ public class AdminOrderController : ControllerBase
             var orders = await _orderService.GetAllOrdersAsync();
             return Ok(new { message = "Orders fetched successfully", data = orders });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching orders");
+            return BadRequest( exception.Message);
         }
     }
 
@@ -37,9 +37,9 @@ public class AdminOrderController : ControllerBase
             var order = await _orderService.GetOrderWithIdAsync(id);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while fetching the order");
+            return BadRequest(exception.Message);
         }
     }
 
@@ -51,9 +51,9 @@ public class AdminOrderController : ControllerBase
             await _orderService.DeleteOrderAsync(id);
             return Ok(new { message = "Order deleted successfully with id: " + id });
         }
-        catch 
+        catch (Exception exception) 
         {
-            return StatusCode(500, "An unexpected error occurred while deleting the order");
+            return BadRequest(exception.Message);
         }
     }
 
@@ -69,9 +69,9 @@ public class AdminOrderController : ControllerBase
             await _orderService.UpdateOrderStatusAsync(id, orderUpdateDto);
             return Ok(new { message = "Order status updated successfully with id: " + id });
         }
-        catch 
+        catch (Exception exception)
         {
-            return StatusCode(500, "An unexpected error occurred while updating the order status");
+            return BadRequest( exception.Message);
         }
     }
 }
