@@ -1,39 +1,53 @@
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using OnlineStoreWeb.API;
+using OnlineStoreWeb.API.Model;
 
-var builder = WebApplication.CreateBuilder(args);
-
-//#region Service Configuration
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+namespace OnlineStoreWeb.API
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
+    internal static class Program
     {
-        Title = "Online Store API",
-        Version = "v1",
-        Description = "A simple Online Store API for managing products"
-    });
-});
+        private static IDependencyContainer? _dependencyContainer;
 
-DependencyContainer dependencyContainer = new DependencyContainer();
-dependencyContainer.LoadDependencies(builder);
-dependencyContainer.ValidationDependencies(builder);
+        static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+            _dependencyContainer = new DependencyContainer(builder);
 
-var app = builder.Build();
+            builder.Services.AddDbContext<StoreDbContext>(options =>
+                options.UseInMemoryDatabase("StoreDb"));
+            builder.Services.AddHttpLogging(o => { });
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Online Store API",
+                    Version = "v1",
+                    Description = "A simple Online Store API for managing products"
+                });
+            });
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Online Store API v1");
-        c.RoutePrefix = string.Empty;
-    });
+            _dependencyContainer.RegisterCoreDependencies();
+            _dependencyContainer.LoadValidationDependencies();
+
+            var app = builder.Build();
+            app.UseHttpLogging();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Online Store API v1");
+                    c.RoutePrefix = string.Empty;
+                });
+            }
+
+            app.UseAuthorization();
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
 }
-
-app.UseAuthorization();
-app.MapControllers();
-
-app.Run();

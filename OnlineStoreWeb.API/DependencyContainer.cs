@@ -1,10 +1,8 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.EntityFrameworkCore;
 using OnlineStoreWeb.API.DTO.Order;
 using OnlineStoreWeb.API.DTO.Product;
 using OnlineStoreWeb.API.DTO.User;
-using OnlineStoreWeb.API.Model;
 using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.Order;
 using OnlineStoreWeb.API.Repositories.Product;
@@ -17,38 +15,34 @@ using OnlineStoreWeb.API.Validations.Product;
 
 namespace OnlineStoreWeb.API;
 
-public class DependencyContainer
+public class DependencyContainer : IDependencyContainer
 {
-    public void LoadDependencies(WebApplicationBuilder builder)
-    {
-        // Repositories
-        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-        builder.Services.AddScoped<IProductRepository, ProductRepository>();
-        builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+    private readonly WebApplicationBuilder _builder;
 
-        // Services
-        builder.Services.AddScoped<IAccountService, AccountService>();
-        builder.Services.AddScoped<IOrderService, OrderService>();
-        builder.Services.AddScoped<IProductService, ProductService>();
-        
-        // Database context
-        builder.Services.AddDbContext<StoreDbContext>(options =>
-            options.UseInMemoryDatabase("StoreDb"));
+    public DependencyContainer(WebApplicationBuilder builder)
+    {
+        _builder = builder;
+    }
+
+    public void RegisterCoreDependencies()
+    {
+        _builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        _builder.Services.AddScoped<IProductRepository, ProductRepository>();
+        _builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+        _builder.Services.AddScoped<IAccountService, AccountService>();
+        _builder.Services.AddScoped<IOrderService, OrderService>();
+        _builder.Services.AddScoped<IProductService, ProductService>();
     }
     
-    public void ValidationDependencies(WebApplicationBuilder builder)
+    public void LoadValidationDependencies()
     {
-        // Validators
-        builder.Services.AddFluentValidationAutoValidation();
-        
-        builder.Services.AddScoped<IValidator<AccountRegisterDto>, AccountRegisterValidation>();
-        builder.Services.AddScoped<IValidator<AccountUpdateDto>, AccountUpdateValidation>();
-        builder.Services.AddScoped<IValidator<AccountPatchDto>, AccountPartialUpdateValidation>();
-        
-        builder.Services.AddScoped<IValidator<ProductCreateDto>, ProductCreateValidation>();
-        builder.Services.AddScoped<IValidator<ProductUpdateDto>, ProductUpdateValidation>();
-        
-        builder.Services.AddScoped<IValidator<OrderCreateDto>, OrderCreateValidation>();
-        builder.Services.AddScoped<IValidator<OrderUpdateDto>, OrderUpdateValidation>();
+       _builder.Services.AddFluentValidationAutoValidation();
+       _builder.Services.AddScoped<IValidator<AccountRegisterDto>, AccountRegisterValidation>();
+       _builder.Services.AddScoped<IValidator<AccountUpdateDto>, AccountUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<AccountPatchDto>, AccountPartialUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<ProductCreateDto>, ProductCreateValidation>();
+       _builder.Services.AddScoped<IValidator<ProductUpdateDto>, ProductUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<OrderCreateDto>, OrderCreateValidation>();
+       _builder.Services.AddScoped<IValidator<OrderUpdateDto>, OrderUpdateValidation>();
     }
 }

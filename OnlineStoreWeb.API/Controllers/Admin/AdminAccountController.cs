@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineStoreWeb.API.Model;
 using OnlineStoreWeb.API.Services.Account;
 
 namespace OnlineStoreWeb.API.Controllers.Admin;
