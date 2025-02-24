@@ -29,13 +29,13 @@ public class OrderCreateValidation : AbstractValidator<OrderCreateDto>
             .NotEmpty()
             .WithMessage("Shipping address is required")
             .Length(10, 100)
-            .WithMessage("Shipping address must not exceed 100 characters");
+            .WithMessage("Shipping address must between 10 and 100 characters");
         
         RuleFor(o => o.BillingAddress)
             .NotEmpty()
             .WithMessage("Billing address is required")
             .Length(10, 100)
-            .WithMessage("Billing address must not exceed 100 characters");
+            .WithMessage("Billing address must between 10 and 100 characters");
 
         RuleFor(o => o.PaymentMethod)
             .NotEmpty()

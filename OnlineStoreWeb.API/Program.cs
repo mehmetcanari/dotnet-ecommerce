@@ -15,7 +15,7 @@ namespace OnlineStoreWeb.API
 
             builder.Services.AddDbContext<StoreDbContext>(options =>
                 options.UseInMemoryDatabase("StoreDb"));
-            builder.Services.AddHttpLogging(o => { });
+            //builder.Services.AddHttpLogging(o => { });
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -32,7 +32,15 @@ namespace OnlineStoreWeb.API
             _dependencyContainer.LoadValidationDependencies();
 
             var app = builder.Build();
-            app.UseHttpLogging();
+            
+            app.Use(async (context, next) =>
+            {
+                Console.WriteLine($"Request: {context.Request.Method} {context.Request.Path}");
+                await next();
+                Console.WriteLine($"Response: {context.Response.StatusCode}");
+            });
+            
+            //app.UseHttpLogging();
 
             if (app.Environment.IsDevelopment())
             {
