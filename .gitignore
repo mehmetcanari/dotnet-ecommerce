@@ -1,40 +1,55 @@
-# User-specific files
+appsettings*.json
+appsettings.Local.json
+!appsettings.example.json
+
+secrets.json
+.env
+.local.env
+
 .idea/
 .vscode/
+.vs/
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+_ReSharper.Caches/
 
-# Windows image file caches
+bin/
+obj/
+artifacts/
+*.cache
+*.log
+*.tmp
+[Tt]emp/
+
+node_modules/
+packages/
+.nuget/
+package-lock.json
+
+TestResults/
+coverage/
+*.coverage
+
+.dockerignore
+docker-compose.override.yml
+docker-compose.debug.yml
+
+wwwroot/
+
 Thumbs.db
 ehthumbs.db
+Desktop.ini
 
-# Windows Installer files
 *.cab
 *.msi
 *.msm
 *.msp
-
-# Windows Installer files
 *.vspscc
 *.vssscc
 
-# .NET Core
-bin/
-obj/
-project.lock.json
-project.fragment.lock.json
-artifacts/
-
-# ASP.NET Scaffolding
-ScaffoldingReadMe.txt
-
-# NPM Packages
-node_modules/
-
-# Web/Node.js - Debug & Build folders
-wwwroot/
-
-# ASP.NET Core environment variables
-.env
+# PostgreSQL-specific
+*.bak
+*.dump
+/pgdata/

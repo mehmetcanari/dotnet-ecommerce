@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace OnlineStoreWeb.API.Model;
 
 public class Order

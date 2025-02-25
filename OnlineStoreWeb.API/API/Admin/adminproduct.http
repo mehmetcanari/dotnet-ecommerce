@@ -15,11 +15,10 @@ POST {{baseUrl}}{{route}}/create
 Content-Type: application/json
 
 {
-  "Name": "PlayStation 5 Pro",
-  "Description": "A game console from Sony",
-  "Price": 499.99,
-  "ImageUrl": "exampleURL",
-  "StockQuantity": 50
+  "Name": "Nintendo Switch",
+  "Description": "A gaming console",
+  "Price": 299.99,
+  "StockQuantity": 20
 }
 
 ### UPDATE PRODUCT BY ID

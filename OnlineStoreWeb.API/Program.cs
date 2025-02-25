@@ -14,7 +14,8 @@ namespace OnlineStoreWeb.API
             _dependencyContainer = new DependencyContainer(builder);
 
             builder.Services.AddDbContext<StoreDbContext>(options =>
-                options.UseInMemoryDatabase("StoreDb"));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            
             //builder.Services.AddHttpLogging(o => { });
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();

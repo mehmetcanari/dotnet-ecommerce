@@ -10,5 +10,5 @@ public class Account
     public required string PhoneNumber { get; set; }
     public required DateTime DateOfBirth { get; init; }
     public DateTime UserCreated { get; init; } 
-    public DateTime? UserUpdated { get; set; }
+    public DateTime UserUpdated { get; set; }
 }
