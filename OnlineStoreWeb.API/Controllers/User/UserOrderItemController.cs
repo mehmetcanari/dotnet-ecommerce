@@ -21,7 +21,7 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            IEnumerable<OrderItem> orderItems = await _orderItemService.GetAllOrderItemsAsync();
+            var orderItems = await _orderItemService.GetAllOrderItemsAsync();
             return Ok(orderItems);
         }
         catch (Exception exception)
@@ -33,6 +33,8 @@ public class UserOrderItemController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrderItem(CreateOrderItemDto orderItemCreateRequest)
     {
+        
+        //TODO validate the request
         // if(!ModelState.IsValid)
         // {
         //     return BadRequest(ModelState);
@@ -52,6 +54,7 @@ public class UserOrderItemController : ControllerBase
     [HttpPut("update")]
     public async Task<IActionResult> UpdateOrderItem(UpdateOrderItemDto orderItemUpdateRequest)
     {
+        //TODO validate the request
         // if(!ModelState.IsValid)
         // {
         //     return BadRequest(ModelState);

@@ -1,4 +1,6 @@
 using OnlineStoreWeb.API.DTO.Request.Order;
+using OnlineStoreWeb.API.DTO.Response.Order;
+using OnlineStoreWeb.API.DTO.Response.OrderItem;
 using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.Order;
 using OnlineStoreWeb.API.Repositories.OrderItem;
@@ -32,22 +34,20 @@ public class OrderService : IOrderService
             Model.Account userAccount = accounts.FirstOrDefault(a => a.AccountId == createOrderDto.AccountId) ??
                                         throw new Exception("User not found");
 
-            var userOrderItems = orderItems.Where(oi => oi.AccountId == userAccount.AccountId).ToList();
+            var userOrderItems = orderItems
+                .Where(oi => oi.AccountId == userAccount.AccountId)
+                .Select(item => new Model.OrderItem
+                {
+                    AccountId = item.AccountId,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    Price = item.Price
+                }).ToList();
 
             if (userOrderItems.Count == 0)
             {
                 throw new Exception("No items in cart");
             }
-
-            List<Model.OrderItem> newOrderItems = userOrderItems
-                .Select(oi => new Model.OrderItem
-                {
-                    AccountId = oi.AccountId,
-                    ProductId = oi.ProductId,
-                    Quantity = oi.Quantity,
-                    Price = oi.Price,
-                })
-                .ToList();
 
             Model.Order order = new Model.Order
             {
@@ -55,7 +55,7 @@ public class OrderService : IOrderService
                 ShippingAddress = createOrderDto.ShippingAddress,
                 BillingAddress = createOrderDto.BillingAddress,
                 PaymentMethod = createOrderDto.PaymentMethod,
-                OrderItems = newOrderItems
+                OrderItems = userOrderItems
             };
 
             await _orderRepository.Create(order);
@@ -66,7 +66,6 @@ public class OrderService : IOrderService
             throw new Exception("An unexpected error occurred", ex);
         }
     }
-
 
     public async Task DeleteOrderAsync(int userId)
     {
@@ -84,12 +83,28 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<List<Model.Order>> GetAllOrdersAsync()
+    public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
     {
         try
         {
             List<Model.Order> orders = await _orderRepository.Read();
-            return orders;
+            
+            return orders.Select(o => new OrderResponseDto
+            {
+                AccountId = o.AccountId,
+                OrderItems = o.OrderItems.Select(oi => new OrderItemResponseDto
+                {
+                    ProductId = oi.ProductId,
+                    Quantity = oi.Quantity,
+                    Price = oi.Price
+                }).ToList(),
+                TotalPrice = o.OrderItems.Sum(oi => oi.Price),
+                OrderDate = o.OrderDate,
+                ShippingAddress = o.ShippingAddress,
+                BillingAddress = o.BillingAddress,
+                PaymentMethod = o.PaymentMethod,
+                Status = o.Status
+            }).ToList();
         }
         catch (Exception ex)
         {
@@ -98,7 +113,7 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<Model.Order> GetOrderWithIdAsync(int id)
+    public async Task<OrderResponseDto> GetOrderWithIdAsync(int id)
     {
         try
         {
@@ -106,7 +121,24 @@ public class OrderService : IOrderService
             if (order == null)
                 throw new Exception("Order not found");
         
-            return order;
+            OrderResponseDto orderResponseDto = new()
+            {
+                AccountId = order.AccountId,
+                OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
+                {
+                    ProductId = oi.ProductId,
+                    Quantity = oi.Quantity,
+                    Price = oi.Price
+                }).ToList(),
+                TotalPrice = order.OrderItems.Sum(oi => oi.Price),
+                OrderDate = order.OrderDate,
+                ShippingAddress = order.ShippingAddress,
+                BillingAddress = order.BillingAddress,
+                PaymentMethod = order.PaymentMethod,
+                Status = order.Status
+            };
+            
+            return orderResponseDto;
         }
         catch (Exception ex)
         {

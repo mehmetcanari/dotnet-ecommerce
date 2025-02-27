@@ -1,4 +1,5 @@
 using OnlineStoreWeb.API.DTO.Request.Account;
+using OnlineStoreWeb.API.DTO.Response.Account;
 using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Services.Cryptography;
 
@@ -98,7 +99,7 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<List<Model.Account>> GetAllAccountsAsync()
+    public async Task<List<AccountResponseDto>> GetAllAccountsAsync()
     {
         try
         {
@@ -110,7 +111,15 @@ public class AccountService : IAccountService
                 throw new Exception("No accounts found");
             }
 
-            return accounts;
+            return accounts.Select(account => new AccountResponseDto
+                {
+                    FullName = account.FullName,
+                    Email = account.Email,
+                    Address = account.Address,
+                    PhoneNumber = account.PhoneNumber,
+                    DateOfBirth = account.DateOfBirth
+                })
+                .ToList();
         }
         catch (Exception ex)
         {
@@ -119,13 +128,23 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<Model.Account> GetAccountWithIdAsync(int id)
+    public async Task<AccountResponseDto> GetAccountWithIdAsync(int id)
     {
         try
         {
             List<Model.Account> accounts = await _accountRepository.Read();
             Model.Account account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
-            return account;
+            
+            AccountResponseDto responseAccount = new AccountResponseDto
+            {
+                FullName = account.FullName,
+                Email = account.Email,
+                Address = account.Address,
+                PhoneNumber = account.PhoneNumber,
+                DateOfBirth = account.DateOfBirth
+            };
+
+            return responseAccount;
         }
         catch (Exception ex)
         {

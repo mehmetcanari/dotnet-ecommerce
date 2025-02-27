@@ -1,4 +1,5 @@
 ﻿using OnlineStoreWeb.API.DTO.Request.OrderItem;
+using OnlineStoreWeb.API.DTO.Response.OrderItem;
 using OnlineStoreWeb.API.Repositories.OrderItem;
 using OnlineStoreWeb.API.Repositories.Product;
 
@@ -18,7 +19,7 @@ public class OrderItemService : IOrderItemService
         _productRepository = productRepository;
     }
 
-    public async Task<IEnumerable<Model.OrderItem>> GetAllOrderItemsAsync()
+    public async Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync()
     {
         try
         {
@@ -29,7 +30,13 @@ public class OrderItemService : IOrderItemService
                 throw new Exception("No order items found.");
             }
 
-            return items;
+            return items.Select(orderItem => new OrderItemResponseDto
+            {
+                AccountId = orderItem.AccountId,
+                Quantity = orderItem.Quantity,
+                Price = orderItem.Price,
+                ProductId = orderItem.ProductId,
+            }).ToList();
         }
         catch (Exception exception)
         {

@@ -1,4 +1,5 @@
 using OnlineStoreWeb.API.DTO.Request.Product;
+using OnlineStoreWeb.API.DTO.Response.Product;
 using OnlineStoreWeb.API.Repositories.Product;
 
 namespace OnlineStoreWeb.API.Services.Product;
@@ -14,17 +15,25 @@ public class ProductService : IProductService
         _logger = logger;
     }
     
-    public async Task<List<Model.Product?>> GetAllProductsAsync()
+    public async Task<List<ProductResponseDto>> GetAllProductsAsync()
     {
         try
         {
-            List<Model.Product?> products = await _productRepository.Read();
+            var products = await _productRepository.Read();
             if (products.Count <= 0)
             {
                 throw new Exception("No products found.");
             }
 
-            return products;
+            return products.Select(p => new ProductResponseDto
+            {
+                ProductName = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                DiscountRate = p.DiscountRate,
+                ImageUrl = p.ImageUrl,
+                StockQuantity = p.StockQuantity
+            }).ToList();
         }
         catch (Exception ex)
         {
@@ -33,13 +42,24 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<Model.Product> GetProductWithIdAsync(int requestId)
+    public async Task<ProductResponseDto> GetProductWithIdAsync(int requestId)
     {
         try
         {
-            List<Model.Product?> products = await _productRepository.Read();
-            Model.Product product = products.FirstOrDefault(p => p.ProductId == requestId) ?? throw new Exception("Product not found");
-            return product;
+            var products = await _productRepository.Read();
+            var product = products.FirstOrDefault(p => p.ProductId == requestId) ?? throw new Exception("Product not found");
+            
+            var productResponse = new ProductResponseDto
+            {
+                ProductName = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                DiscountRate = product.DiscountRate,
+                ImageUrl = product.ImageUrl,
+                StockQuantity = product.StockQuantity
+            };
+
+            return productResponse;
         }
         catch (Exception ex)
         {
@@ -52,13 +72,13 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Model.Product?> products = await _productRepository.Read();
+            var products = await _productRepository.Read();
             if (products.Any(p => p.Name == productCreateRequest.Name)) //Duplicate product name check
             {
                 throw new Exception("Product already exists in the database");
             }
 
-            Model.Product product = new Model.Product
+            var product = new Model.Product
             {
                 Name = productCreateRequest.Name,
                 Description = productCreateRequest.Description,
@@ -86,8 +106,8 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Model.Product?> products = await _productRepository.Read();
-            Model.Product? product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
+            var products = await _productRepository.Read();
+            var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
             product.Name = productUpdateRequest.Name;
             product.Description = productUpdateRequest.Description;
