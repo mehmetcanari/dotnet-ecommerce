@@ -1,5 +1,6 @@
 ﻿using OnlineStoreWeb.API.DTO.Request.OrderItem;
 using OnlineStoreWeb.API.DTO.Response.OrderItem;
+using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.OrderItem;
 using OnlineStoreWeb.API.Repositories.Product;
 
@@ -8,15 +9,17 @@ namespace OnlineStoreWeb.API.Services.OrderItem;
 public class OrderItemService : IOrderItemService
 {
     private readonly IOrderItemRepository _orderItemRepository;
+    private readonly IAccountRepository _accountRepository;
     private readonly IProductRepository _productRepository;
     private readonly ILogger<OrderItemService> _logger;
 
     public OrderItemService(IOrderItemRepository orderItemRepository, IProductRepository productRepository,
-        ILogger<OrderItemService> logger)
+        ILogger<OrderItemService> logger, IAccountRepository accountRepository)
     {
         _orderItemRepository = orderItemRepository;
         _logger = logger;
         _productRepository = productRepository;
+        _accountRepository = accountRepository;
     }
 
     public async Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync()
@@ -34,7 +37,7 @@ public class OrderItemService : IOrderItemService
             {
                 AccountId = orderItem.AccountId,
                 Quantity = orderItem.Quantity,
-                Price = orderItem.Price,
+                UnitPrice = orderItem.UnitPrice,
                 ProductId = orderItem.ProductId,
             }).ToList();
         }
@@ -50,12 +53,16 @@ public class OrderItemService : IOrderItemService
         try
         {
             var products = await _productRepository.Read();
+            var accounts = await _accountRepository.Read();
             Model.Product? product = products.FirstOrDefault(p => p.ProductId == createOrderItemDto.ProductId);
 
             if (product == null)
             {
                 throw new Exception("Product not found");
             }
+
+            if (accounts.FirstOrDefault(a => a.AccountId == createOrderItemDto.AccountId) == null)
+                throw new Exception("Account not found");
 
             if (createOrderItemDto.Quantity > product.StockQuantity)
             {
@@ -67,7 +74,7 @@ public class OrderItemService : IOrderItemService
                 AccountId = createOrderItemDto.AccountId,
                 Quantity = createOrderItemDto.Quantity,
                 ProductId = createOrderItemDto.ProductId,
-                Price = product.Price,
+                UnitPrice = product.Price,
             };
 
             await _orderItemRepository.Create(orderItem);
@@ -87,14 +94,16 @@ public class OrderItemService : IOrderItemService
     {
         try
         {
-            IEnumerable<Model.OrderItem> orderItems = await _orderItemRepository.Read();
-            Model.OrderItem orderItem =
-                orderItems.FirstOrDefault(p => p.OrderItemId == updateOrderItemDto.OrderItemId) ??
-                throw new Exception("Order item not found");
+            var products = await _productRepository.Read();
+            var orderItems = await _orderItemRepository.Read();
 
-            IEnumerable<Model.Product?> products = await _productRepository.Read();
-            Model.Product? product = products.FirstOrDefault(p => p.ProductId == updateOrderItemDto.ProductId) ??
-                                     throw new Exception("Product not found");
+            var orderItem = orderItems.FirstOrDefault(p =>
+                                p.OrderItemId == updateOrderItemDto.OrderItemId &&
+                                p.AccountId == updateOrderItemDto.AccountId) ??
+                            throw new Exception("Order item not found");
+
+            var product = products.FirstOrDefault(p => p.ProductId == updateOrderItemDto.ProductId) ??
+                          throw new Exception("Product not found");
 
             if (product.StockQuantity < updateOrderItemDto.Quantity)
             {
@@ -114,15 +123,18 @@ public class OrderItemService : IOrderItemService
         }
     }
 
-    public async Task DeleteOrderItemAsync(int id)
+    public async Task DeleteAllOrderItemsByAccountIdAsync(int id)
     {
         try
         {
-            IEnumerable<Model.OrderItem> orderItems = await _orderItemRepository.Read();
-            Model.OrderItem orderItem = orderItems.FirstOrDefault(p => p.OrderItemId == id) ??
-                                        throw new Exception("Order item not found");
+            var orderItems = await _orderItemRepository.Read();
+            var items = orderItems.Where(o => o.AccountId == id).ToList();
 
-            await _orderItemRepository.Delete(orderItem);
+            foreach (var item in items)
+            {
+                await _orderItemRepository.Delete(item);
+            }
+
             _logger.LogInformation("Order item deleted successfully");
         }
         catch (Exception exception)

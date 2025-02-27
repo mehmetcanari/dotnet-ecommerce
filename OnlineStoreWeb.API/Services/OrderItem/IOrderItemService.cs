@@ -8,5 +8,5 @@ public interface IOrderItemService
     Task CreateOrderItemAsync(CreateOrderItemDto createOrderItemDto);
     Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync();
     Task UpdateOrderItemAsync(UpdateOrderItemDto updateOrderItemDto);
-    Task DeleteOrderItemAsync(int orderItemId);
+    Task DeleteAllOrderItemsByAccountIdAsync(int orderItemId);
 }

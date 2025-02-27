@@ -3,6 +3,7 @@ using FluentValidation.AspNetCore;
 using OnlineStoreWeb.API.DTO.Request.Account;
 using OnlineStoreWeb.API.DTO.Request.Order;
 using OnlineStoreWeb.API.DTO.Request.Product;
+using OnlineStoreWeb.API.DTO.Request.OrderItem;
 using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.Order;
 using OnlineStoreWeb.API.Repositories.OrderItem;
@@ -13,6 +14,7 @@ using OnlineStoreWeb.API.Services.OrderItem;
 using OnlineStoreWeb.API.Services.Product;
 using OnlineStoreWeb.API.Validations.Account;
 using OnlineStoreWeb.API.Validations.Order;
+using OnlineStoreWeb.API.Validations.OrderItem;
 using OnlineStoreWeb.API.Validations.Product;
 
 namespace OnlineStoreWeb.API;
@@ -48,5 +50,7 @@ public class DependencyContainer : IDependencyContainer
        _builder.Services.AddScoped<IValidator<ProductUpdateDto>, ProductUpdateValidation>();
        _builder.Services.AddScoped<IValidator<OrderCreateDto>, OrderCreateValidation>();
        _builder.Services.AddScoped<IValidator<OrderUpdateDto>, OrderUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<CreateOrderItemDto>, OrderItemCreateValidation>();
+       _builder.Services.AddScoped<IValidator<UpdateOrderItemDto>, OrderItemUpdateValidation>();
     }
 }

@@ -33,12 +33,10 @@ public class UserOrderItemController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrderItem(CreateOrderItemDto orderItemCreateRequest)
     {
-        
-        //TODO validate the request
-        // if(!ModelState.IsValid)
-        // {
-        //     return BadRequest(ModelState);
-        // }
+        if(!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
             
         try
         {
@@ -54,11 +52,10 @@ public class UserOrderItemController : ControllerBase
     [HttpPut("update")]
     public async Task<IActionResult> UpdateOrderItem(UpdateOrderItemDto orderItemUpdateRequest)
     {
-        //TODO validate the request
-        // if(!ModelState.IsValid)
-        // {
-        //     return BadRequest(ModelState);
-        // }
+        if(!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         
         try
         {
@@ -71,12 +68,12 @@ public class UserOrderItemController : ControllerBase
         }
     }
     
-    [HttpDelete("delete/{orderItemId}")]
-    public async Task<IActionResult> DeleteOrderItem(int orderItemId)
+    [HttpDelete("delete/{accountId}")]
+    public async Task<IActionResult> DeleteOrderItem(int accountId)
     {
         try
         {
-            await _orderItemService.DeleteOrderItemAsync(orderItemId);
+            await _orderItemService.DeleteAllOrderItemsByAccountIdAsync(accountId);
             return Ok(new { message = "Order item deleted successfully"});
         }
         catch (Exception exception)

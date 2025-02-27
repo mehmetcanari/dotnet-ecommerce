@@ -6,13 +6,12 @@ namespace OnlineStoreWeb.API
 {
     internal static class Program
     {
-        private static IDependencyContainer? _dependencyContainer;
+        private static IDependencyContainer _dependencyContainer;
 
         static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
             _dependencyContainer = new DependencyContainer(builder);
-
             // builder.Services.AddDbContext<StoreDbContext>(options =>
             //     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
             

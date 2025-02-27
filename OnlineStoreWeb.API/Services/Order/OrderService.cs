@@ -5,22 +5,25 @@ using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.Order;
 using OnlineStoreWeb.API.Repositories.OrderItem;
 using OnlineStoreWeb.API.Repositories.Product;
+using OnlineStoreWeb.API.Services.OrderItem;
 
 namespace OnlineStoreWeb.API.Services.Order;
 
 public class OrderService : IOrderService
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly IOrderItemService _orderItemService;
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly ILogger<OrderService> _logger;
 
-    public OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository,
+    public OrderService(IOrderRepository orderRepository, IOrderItemService orderItemService,IOrderItemRepository orderItemRepository,
         IAccountRepository accountRepository, ILogger<OrderService> logger)
     {
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
         _orderItemRepository = orderItemRepository;
+        _orderItemService = orderItemService;
         _logger = logger;
     }
 
@@ -31,20 +34,20 @@ public class OrderService : IOrderService
             var orderItems = await _orderItemRepository.Read();
             var accounts = await _accountRepository.Read();
 
-            Model.Account userAccount = accounts.FirstOrDefault(a => a.AccountId == createOrderDto.AccountId) ??
-                                        throw new Exception("User not found");
+            var userAccount = accounts.FirstOrDefault(a => a.AccountId == createOrderDto.AccountId) ??
+                              throw new Exception("User not found");
+            var userOrderItems = orderItems.Where(oi => oi.AccountId == userAccount.AccountId).ToList();
 
-            var userOrderItems = orderItems
-                .Where(oi => oi.AccountId == userAccount.AccountId)
-                .Select(item => new Model.OrderItem
+            var newOrderItems = userOrderItems
+                .Select(cartItem => new Model.OrderItem
                 {
-                    AccountId = item.AccountId,
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    Price = item.Price
+                    AccountId = cartItem.AccountId,
+                    ProductId = cartItem.ProductId,
+                    Quantity = cartItem.Quantity,
+                    UnitPrice = cartItem.UnitPrice
                 }).ToList();
 
-            if (userOrderItems.Count == 0)
+            if (newOrderItems.Count == 0)
             {
                 throw new Exception("No items in cart");
             }
@@ -55,9 +58,10 @@ public class OrderService : IOrderService
                 ShippingAddress = createOrderDto.ShippingAddress,
                 BillingAddress = createOrderDto.BillingAddress,
                 PaymentMethod = createOrderDto.PaymentMethod,
-                OrderItems = userOrderItems
+                OrderItems = newOrderItems
             };
-
+            
+            await _orderItemService.DeleteAllOrderItemsByAccountIdAsync(userAccount.AccountId);
             await _orderRepository.Create(order);
         }
         catch (Exception ex)
@@ -71,9 +75,9 @@ public class OrderService : IOrderService
     {
         try
         {
-            List<Model.Order> orders = await _orderRepository.Read();
-            Model.Order order = orders.FirstOrDefault(o => o.OrderId == userId) ??
-                                throw new Exception("Order not found");
+            var orders = await _orderRepository.Read();
+            var order = orders.FirstOrDefault(o => o.OrderId == userId) ??
+                        throw new Exception("Order not found");
             await _orderRepository.Delete(order);
         }
         catch (Exception ex)
@@ -87,18 +91,19 @@ public class OrderService : IOrderService
     {
         try
         {
-            List<Model.Order> orders = await _orderRepository.Read();
+            var orders = await _orderRepository.Read();
             
             return orders.Select(o => new OrderResponseDto
             {
                 AccountId = o.AccountId,
                 OrderItems = o.OrderItems.Select(oi => new OrderItemResponseDto
                 {
+                    AccountId = oi.AccountId,
                     ProductId = oi.ProductId,
                     Quantity = oi.Quantity,
-                    Price = oi.Price
+                    UnitPrice = oi.UnitPrice,
+                    
                 }).ToList(),
-                TotalPrice = o.OrderItems.Sum(oi => oi.Price),
                 OrderDate = o.OrderDate,
                 ShippingAddress = o.ShippingAddress,
                 BillingAddress = o.BillingAddress,
@@ -118,6 +123,7 @@ public class OrderService : IOrderService
         try
         {
             var order = await _orderRepository.GetOrderById(id);
+            
             if (order == null)
                 throw new Exception("Order not found");
         
@@ -126,11 +132,11 @@ public class OrderService : IOrderService
                 AccountId = order.AccountId,
                 OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
                 {
+                    AccountId = oi.AccountId,
                     ProductId = oi.ProductId,
                     Quantity = oi.Quantity,
-                    Price = oi.Price
+                    UnitPrice = oi.UnitPrice
                 }).ToList(),
-                TotalPrice = order.OrderItems.Sum(oi => oi.Price),
                 OrderDate = order.OrderDate,
                 ShippingAddress = order.ShippingAddress,
                 BillingAddress = order.BillingAddress,
@@ -151,8 +157,8 @@ public class OrderService : IOrderService
     {
         try
         {
-            List<Model.Order> orders = await _orderRepository.Read();
-            Model.Order order = orders.FirstOrDefault(o => o.OrderId == id) ?? throw new Exception("Order not found");
+            var orders = await _orderRepository.Read();
+            var order = orders.FirstOrDefault(o => o.OrderId == id) ?? throw new Exception("Order not found");
             order.Status = orderUpdateDto.Status;
             await _orderRepository.Update(order);
         }

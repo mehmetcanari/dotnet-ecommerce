@@ -8,9 +8,24 @@ Content-Type: application/json
 {
   "AccountId": 1,
   "ProductId": 1,
-  "Quantity": 1
+  "Quantity": 2
+}
+
+### UPDATE ORDER ITEM
+PUT {{baseUrl}}{{route}}/update
+Content-Type: application/json
+
+{
+  "OrderItemId": 1,
+  "AccountId": 1,
+  "ProductId": 1,
+  "Quantity": 2
 }
 
 ### GET ORDER ITEMS BY USER ID
 
 GET {{baseUrl}}{{route}}
+
+### DELETE ALL ORDER ITEMS BY USER ID
+
+DELETE {{baseUrl}}{{route}}/delete/1
