@@ -9,7 +9,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
     {
         try
         {
-            return await context.Orders.ToListAsync();
+            return await context.Orders.AsNoTracking().ToListAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -67,4 +67,22 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
             throw new Exception("An unexpected error occurred", ex);
         }
     }
+
+    #region IQueryable
+
+    public async Task<Model.Order> GetOrderById(int id)
+    {
+        try
+        {
+            return await context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.OrderId == id) ?? throw new Exception("Order not found");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    #endregion
 }

@@ -1,5 +1,5 @@
 using FluentValidation;
-using OnlineStoreWeb.API.DTO.User;
+using OnlineStoreWeb.API.DTO.Request.Account;
 
 namespace OnlineStoreWeb.API.Validations.Account;
 

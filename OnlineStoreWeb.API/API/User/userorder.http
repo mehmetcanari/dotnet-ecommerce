@@ -7,9 +7,7 @@ POST {{baseUrl}}{{route}}/create
 Content-Type: application/json
 
 {
-  "UserId": 1,
-  "ProductId": 1,
-  "Quantity": 1,
+  "AccountId": 1,
   "ShippingAddress": "1234 Street Name, City, Country",
   "BillingAddress": "1234 Billing Address, City, Country",
   "PaymentMethod": 1

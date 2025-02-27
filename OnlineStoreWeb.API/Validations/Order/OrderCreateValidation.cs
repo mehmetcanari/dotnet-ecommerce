@@ -1,5 +1,5 @@
 using FluentValidation;
-using OnlineStoreWeb.API.DTO.Order;
+using OnlineStoreWeb.API.DTO.Request.Order;
 
 namespace OnlineStoreWeb.API.Validations.Order;
 
@@ -7,23 +7,11 @@ public class OrderCreateValidation : AbstractValidator<OrderCreateDto>
 {
     public OrderCreateValidation()
     {
-        RuleFor(o => o.UserId)
+        RuleFor(o => o.AccountId)
             .NotEmpty()
             .WithMessage("User ID is required")
             .GreaterThan(0)
             .WithMessage("User ID must be greater than 0");
-        
-        RuleFor(o => o.ProductId)
-            .NotEmpty()
-            .WithMessage("Product ID is required")
-            .GreaterThan(0)
-            .WithMessage("Product ID must be greater than 0");
-        
-        RuleFor(o => o.Quantity)
-            .NotEmpty()
-            .WithMessage("Quantity is required")
-            .GreaterThan(0)
-            .WithMessage("Quantity must be greater than 0");
         
         RuleFor(o => o.ShippingAddress)
             .NotEmpty()

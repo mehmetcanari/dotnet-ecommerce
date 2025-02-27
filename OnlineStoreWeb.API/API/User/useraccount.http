@@ -7,12 +7,12 @@ POST {{baseUrl}}{{route}}/register
 Content-Type: application/json
 
 {
-    "fullName": "John Doe",
-    "email": "johndoe@gmail.com",
-    "password": "john@123",
+    "fullName": "Mehmet Can ARI",
+    "email": "mehmetcanari@gmail.com",
+    "password": "examplePassword1234",
     "address": "Istanbul, Turkey",
     "phoneNumber": "7283748392",
-    "dateOfBirth": "1990-01-01"
+    "dateOfBirth": "1999-03-24"
 }
 
 ### UPDATE ACCOUNT BY USER ID

@@ -7,7 +7,7 @@ GET {{baseUrl}}{{route}}
 
 ### GET ALL ORDERS BY ID
 
-GET {{baseUrl}}{{route}}/2
+GET {{baseUrl}}{{route}}/1
 
 ### DELETE ORDER BY ID
 

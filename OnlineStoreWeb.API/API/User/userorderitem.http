@@ -1,0 +1,16 @@
+﻿@baseUrl = http://localhost:5076/
+@route = api/user/order-items
+
+### CREATE ORDER ITEM
+POST {{baseUrl}}{{route}}/create
+Content-Type: application/json
+
+{
+  "AccountId": 1,
+  "ProductId": 1,
+  "Quantity": 1
+}
+
+### GET ORDER ITEMS BY USER ID
+
+GET {{baseUrl}}{{route}}

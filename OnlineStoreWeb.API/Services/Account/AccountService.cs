@@ -1,4 +1,4 @@
-using OnlineStoreWeb.API.DTO.User;
+using OnlineStoreWeb.API.DTO.Request.Account;
 using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Services.Cryptography;
 
@@ -51,7 +51,7 @@ public class AccountService : IAccountService
         try
         {
             List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            Model.Account account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
             
             if(accounts.Any(a => a.Email == updateUserDto.Email)) //Duplicate email check
             {
@@ -124,7 +124,7 @@ public class AccountService : IAccountService
         try
         {
             List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            Model.Account account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
             return account;
         }
         catch (Exception ex)
@@ -139,7 +139,7 @@ public class AccountService : IAccountService
         try
         {
             List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            Model.Account account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
             await _accountRepository.Delete(account);
         }
         catch (Exception ex)

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineStoreWeb.API.DTO.User;
+using OnlineStoreWeb.API.DTO.Request.Account;
 using OnlineStoreWeb.API.Services.Account;
 
 namespace OnlineStoreWeb.API.Controllers.User;

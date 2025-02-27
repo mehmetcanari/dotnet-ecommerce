@@ -32,4 +32,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTO\Request\" />
+  </ItemGroup>
+
 </Project>

@@ -1,4 +1,4 @@
-using OnlineStoreWeb.API.DTO.Product;
+using OnlineStoreWeb.API.DTO.Request.Product;
 using OnlineStoreWeb.API.Repositories.Product;
 
 namespace OnlineStoreWeb.API.Services.Product;
@@ -14,11 +14,11 @@ public class ProductService : IProductService
         _logger = logger;
     }
     
-    public async Task<List<Model.Product>> GetAllProductsAsync()
+    public async Task<List<Model.Product?>> GetAllProductsAsync()
     {
         try
         {
-            List<Model.Product> products = await _productRepository.Read();
+            List<Model.Product?> products = await _productRepository.Read();
             if (products.Count <= 0)
             {
                 throw new Exception("No products found.");
@@ -37,8 +37,8 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Model.Product> products = await _productRepository.Read();
-            Model.Product product = products.FirstOrDefault(p => p.Id == requestId) ?? throw new Exception("Product not found");
+            List<Model.Product?> products = await _productRepository.Read();
+            Model.Product product = products.FirstOrDefault(p => p.ProductId == requestId) ?? throw new Exception("Product not found");
             return product;
         }
         catch (Exception ex)
@@ -52,7 +52,7 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Model.Product> products = await _productRepository.Read();
+            List<Model.Product?> products = await _productRepository.Read();
             if (products.Any(p => p.Name == productCreateRequest.Name)) //Duplicate product name check
             {
                 throw new Exception("Product already exists in the database");
@@ -63,11 +63,15 @@ public class ProductService : IProductService
                 Name = productCreateRequest.Name,
                 Description = productCreateRequest.Description,
                 Price = productCreateRequest.Price,
+                DiscountRate = productCreateRequest.DiscountRate,
                 ImageUrl = productCreateRequest.ImageUrl,
                 StockQuantity = productCreateRequest.StockQuantity,
                 ProductCreated = DateTime.UtcNow,
                 ProductUpdated = DateTime.UtcNow
             };
+            
+            if (product.DiscountRate > 0)
+                product.Price -= (product.Price * product.DiscountRate / 100); //Calculate discounted price
             
             await _productRepository.Create(product);
         }
@@ -82,15 +86,19 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Model.Product> products = await _productRepository.Read();
-            Model.Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
+            List<Model.Product?> products = await _productRepository.Read();
+            Model.Product? product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
             product.Name = productUpdateRequest.Name;
             product.Description = productUpdateRequest.Description;
             product.Price = productUpdateRequest.Price;
+            product.DiscountRate = productUpdateRequest.DiscountRate;
             product.ImageUrl = productUpdateRequest.ImageUrl;
             product.StockQuantity = productUpdateRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
+            
+            if (product.DiscountRate > 0)
+                product.Price -= (product.Price * product.DiscountRate / 100); //Calculate discounted price
 
             await _productRepository.Update(product);
         }
@@ -105,8 +113,8 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Model.Product> products = await _productRepository.Read();
-            Model.Product product = products.FirstOrDefault(p => p.Id == id) ?? throw new Exception("Product not found");
+            List<Model.Product?> products = await _productRepository.Read();
+            Model.Product? product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
             await _productRepository.Delete(product);
         }

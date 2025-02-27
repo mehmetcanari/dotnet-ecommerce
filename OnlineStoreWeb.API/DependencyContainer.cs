@@ -1,13 +1,15 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
-using OnlineStoreWeb.API.DTO.Order;
-using OnlineStoreWeb.API.DTO.Product;
-using OnlineStoreWeb.API.DTO.User;
+using OnlineStoreWeb.API.DTO.Request.Account;
+using OnlineStoreWeb.API.DTO.Request.Order;
+using OnlineStoreWeb.API.DTO.Request.Product;
 using OnlineStoreWeb.API.Repositories.Account;
 using OnlineStoreWeb.API.Repositories.Order;
+using OnlineStoreWeb.API.Repositories.OrderItem;
 using OnlineStoreWeb.API.Repositories.Product;
 using OnlineStoreWeb.API.Services.Account;
 using OnlineStoreWeb.API.Services.Order;
+using OnlineStoreWeb.API.Services.OrderItem;
 using OnlineStoreWeb.API.Services.Product;
 using OnlineStoreWeb.API.Validations.Account;
 using OnlineStoreWeb.API.Validations.Order;
@@ -32,6 +34,8 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<IAccountService, AccountService>();
         _builder.Services.AddScoped<IOrderService, OrderService>();
         _builder.Services.AddScoped<IProductService, ProductService>();
+        _builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+        _builder.Services.AddScoped<IOrderItemService, OrderItemService>();
     }
     
     public void LoadValidationDependencies()

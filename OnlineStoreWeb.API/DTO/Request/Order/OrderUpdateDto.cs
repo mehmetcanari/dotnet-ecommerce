@@ -1,6 +1,4 @@
-﻿using OnlineStoreWeb.API.Model;
-
-namespace OnlineStoreWeb.API.DTO.Order;
+﻿namespace OnlineStoreWeb.API.DTO.Request.Order;
 
 public record OrderUpdateDto
 {

@@ -1,4 +1,4 @@
-namespace OnlineStoreWeb.API.DTO.User;
+namespace OnlineStoreWeb.API.DTO.Request.Account;
 
 public record AccountPatchDto
 {

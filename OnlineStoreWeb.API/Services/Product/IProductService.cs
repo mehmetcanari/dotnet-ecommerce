@@ -1,4 +1,4 @@
-using OnlineStoreWeb.API.DTO.Product;
+using OnlineStoreWeb.API.DTO.Request.Product;
 
 namespace OnlineStoreWeb.API.Services.Product;
 

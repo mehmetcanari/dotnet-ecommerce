@@ -1,5 +1,5 @@
 using FluentValidation;
-using OnlineStoreWeb.API.DTO.Order;
+using OnlineStoreWeb.API.DTO.Request.Order;
 
 namespace OnlineStoreWeb.API.Validations.Order;
 

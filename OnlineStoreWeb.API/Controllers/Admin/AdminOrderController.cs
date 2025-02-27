@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineStoreWeb.API.DTO.Order;
+using OnlineStoreWeb.API.DTO.Request.Order;
 using OnlineStoreWeb.API.Services.Order;
 
 namespace OnlineStoreWeb.API.Controllers.Admin;
