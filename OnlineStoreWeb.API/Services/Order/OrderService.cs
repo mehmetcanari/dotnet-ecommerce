@@ -38,13 +38,14 @@ public class OrderService : IOrderService
                               throw new Exception("User not found");
             var userOrderItems = orderItems.Where(oi => oi.AccountId == userAccount.AccountId).ToList();
 
-            var newOrderItems = userOrderItems
+            List<Model.OrderItem> newOrderItems = userOrderItems
                 .Select(cartItem => new Model.OrderItem
                 {
                     AccountId = cartItem.AccountId,
                     ProductId = cartItem.ProductId,
                     Quantity = cartItem.Quantity,
-                    UnitPrice = cartItem.UnitPrice
+                    UnitPrice = cartItem.UnitPrice,
+                    ProductName = cartItem.ProductName
                 }).ToList();
 
             if (newOrderItems.Count == 0)
@@ -71,12 +72,12 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task DeleteOrderAsync(int userId)
+    public async Task DeleteOrderByAccountIdAsync(int accountId)
     {
         try
         {
             var orders = await _orderRepository.Read();
-            var order = orders.FirstOrDefault(o => o.OrderId == userId) ??
+            var order = orders.FirstOrDefault(o => o.AccountId == accountId) ??
                         throw new Exception("Order not found");
             await _orderRepository.Delete(order);
         }
@@ -102,6 +103,7 @@ public class OrderService : IOrderService
                     ProductId = oi.ProductId,
                     Quantity = oi.Quantity,
                     UnitPrice = oi.UnitPrice,
+                    ProductName = oi.ProductName
                     
                 }).ToList(),
                 OrderDate = o.OrderDate,
@@ -135,7 +137,8 @@ public class OrderService : IOrderService
                     AccountId = oi.AccountId,
                     ProductId = oi.ProductId,
                     Quantity = oi.Quantity,
-                    UnitPrice = oi.UnitPrice
+                    UnitPrice = oi.UnitPrice,
+                    ProductName = oi.ProductName
                 }).ToList(),
                 OrderDate = order.OrderDate,
                 ShippingAddress = order.ShippingAddress,

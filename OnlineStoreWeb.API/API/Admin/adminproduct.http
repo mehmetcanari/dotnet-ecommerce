@@ -15,11 +15,11 @@ POST {{baseUrl}}{{route}}/create
 Content-Type: application/json
 
 {
-  "Name": "Playstation 5",
-  "Description": "Gaming Console with 4K support",
-  "Price": 499.99,
-  "StockQuantity": 15,
-  "DiscountRate": 5
+  "Name": "Nintendo Switch",
+  "Description": "A gaming console that can be used as a handheld device or connected to a TV",
+  "Price": 299.99,
+  "StockQuantity": 10,
+  "DiscountRate": 0.1
 }
 
 ### UPDATE PRODUCT BY ID

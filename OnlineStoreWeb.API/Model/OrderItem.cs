@@ -9,6 +9,7 @@ namespace OnlineStoreWeb.API.Model
         public required decimal UnitPrice { get; set; }
         public required int ProductId { get; set; }
         public decimal TotalPrice => UnitPrice * Quantity;
+        public string ProductName { get; set; }
 
         // Navigation properties
         public int OrderId { get; set; }

@@ -54,7 +54,7 @@ public class UserOrderController : ControllerBase
     {
         try
         {
-            await _orderService.DeleteOrderAsync(userId);
+            await _orderService.DeleteOrderByAccountIdAsync(userId);
             return Ok(new { message = "Order deleted successfully" });
         }
         catch (Exception exception)

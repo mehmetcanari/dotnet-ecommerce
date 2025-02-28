@@ -39,6 +39,7 @@ public class OrderItemService : IOrderItemService
                 Quantity = orderItem.Quantity,
                 UnitPrice = orderItem.UnitPrice,
                 ProductId = orderItem.ProductId,
+                ProductName = orderItem.ProductName
             }).ToList();
         }
         catch (Exception exception)
@@ -54,7 +55,7 @@ public class OrderItemService : IOrderItemService
         {
             var products = await _productRepository.Read();
             var accounts = await _accountRepository.Read();
-            Model.Product? product = products.FirstOrDefault(p => p.ProductId == createOrderItemDto.ProductId);
+            var product = products.FirstOrDefault(p => p.ProductId == createOrderItemDto.ProductId);
 
             if (product == null)
             {
@@ -73,8 +74,9 @@ public class OrderItemService : IOrderItemService
             {
                 AccountId = createOrderItemDto.AccountId,
                 Quantity = createOrderItemDto.Quantity,
-                ProductId = createOrderItemDto.ProductId,
+                ProductId = product.ProductId,
                 UnitPrice = product.Price,
+                ProductName = product.Name
             };
 
             await _orderItemRepository.Create(orderItem);
@@ -112,6 +114,7 @@ public class OrderItemService : IOrderItemService
 
             orderItem.Quantity = updateOrderItemDto.Quantity;
             orderItem.ProductId = updateOrderItemDto.ProductId;
+            orderItem.ProductName = product.Name;
 
             await _orderItemRepository.Update(orderItem);
             _logger.LogInformation("Order item updated successfully");

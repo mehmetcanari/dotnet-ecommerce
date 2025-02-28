@@ -43,12 +43,12 @@ public class AdminOrderController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteOrder(int id)
     {
         try
         {
-            await _orderService.DeleteOrderAsync(id);
+            await _orderService.DeleteOrderByAccountIdAsync(id);
             return Ok(new { message = "Order deleted successfully with id: " + id });
         }
         catch (Exception exception) 

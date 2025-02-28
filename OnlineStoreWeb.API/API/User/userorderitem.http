@@ -8,7 +8,7 @@ Content-Type: application/json
 {
   "AccountId": 1,
   "ProductId": 1,
-  "Quantity": 2
+  "Quantity": 1
 }
 
 ### UPDATE ORDER ITEM
