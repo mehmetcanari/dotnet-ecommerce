@@ -66,7 +66,7 @@ public class AdminOrderController : ControllerBase
         }
         try
         {
-            await _orderService.UpdateOrderStatusAsync(id, orderUpdateDto);
+            await _orderService.UpdateOrderStatusByAccountIdAsync(id, orderUpdateDto);
             return Ok(new { message = "Order status updated successfully with id: " + id });
         }
         catch (Exception exception)

@@ -156,12 +156,12 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task UpdateOrderStatusAsync(int id, OrderUpdateDto orderUpdateDto)
+    public async Task UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateDto orderUpdateDto)
     {
         try
         {
             var orders = await _orderRepository.Read();
-            var order = orders.FirstOrDefault(o => o.OrderId == id) ?? throw new Exception("Order not found");
+            var order = orders.FirstOrDefault(o => o.AccountId == accountId) ?? throw new Exception("Order not found");
             order.Status = orderUpdateDto.Status;
             await _orderRepository.Update(order);
         }
