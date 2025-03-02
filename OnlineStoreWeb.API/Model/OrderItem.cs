@@ -12,7 +12,7 @@ namespace OnlineStoreWeb.API.Model
         public string ProductName { get; set; }
 
         // Navigation properties
-        public int OrderId { get; set; }
-        public Order Order { get; set; }
+        public int? OrderId { get; set; }
+        public Order? Order { get; set; }
     }
 }

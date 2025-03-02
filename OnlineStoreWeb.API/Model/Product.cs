@@ -13,6 +13,4 @@ public class Product
     public required int StockQuantity {get;set;}
     public DateTime ProductCreated { get; init; }
     public DateTime ProductUpdated { get; set; }
-    public int OrderItemId { get; set; }
-    public OrderItem OrderItem { get; set; }
 }

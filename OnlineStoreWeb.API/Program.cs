@@ -12,11 +12,11 @@ namespace OnlineStoreWeb.API
         {
             var builder = WebApplication.CreateBuilder(args);
             _dependencyContainer = new DependencyContainer(builder);
-            // builder.Services.AddDbContext<StoreDbContext>(options =>
-            //     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-            
             builder.Services.AddDbContext<StoreDbContext>(options =>
-                options.UseInMemoryDatabase("ECommerceDB"));
+                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            
+            /*builder.Services.AddDbContext<StoreDbContext>(options =>
+                options.UseInMemoryDatabase("ECommerceDB"));*/
             
             //builder.Services.AddHttpLogging(o => { });
             builder.Services.AddControllers();
