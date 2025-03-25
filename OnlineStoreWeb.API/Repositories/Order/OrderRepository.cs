@@ -9,16 +9,9 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
     {
         try
         {
-            try
-            {
-                return await context.Orders
-                    .Include(o => o.OrderItems)
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("An unexpected error occurred", ex);
-            }
+            return await context.Orders
+                .Include(o => o.OrderItems)
+                .ToListAsync();
         }
         catch (DbUpdateException ex)
         {

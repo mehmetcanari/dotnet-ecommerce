@@ -85,6 +85,7 @@ public class AccountService : IAccountService
             if(CryptographyService.TryVerifyPassword(accountLoginDto.Password, account.PasswordHash))
             {
                 _logger.LogInformation("User logged in successfully");
+                //Authentication successful
             }
             else
             {
