@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace OnlineStoreWeb.API.Model;
 
-public class StoreDbContext(DbContextOptions options) : DbContext(options)
+public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContext(options)
 {
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Product> Products => Set<Product>();

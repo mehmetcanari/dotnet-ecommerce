@@ -25,7 +25,7 @@ public class UserAccountController : ControllerBase
         
         try
         {
-            await _accountService.AddAccountAsync(accountRegisterRequest);
+            await _accountService.RegisterAccountAsync(accountRegisterRequest);
             return Created($"users", new { message = "User created successfully" });
         }
         catch (Exception exception)

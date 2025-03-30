@@ -15,7 +15,7 @@ public class AccountService : IAccountService
         _logger = logger;
     }
     
-    public async Task AddAccountAsync(AccountRegisterDto createUserDto)
+    public async Task RegisterAccountAsync(AccountRegisterDto createUserDto)
     {
         try
         {
@@ -47,6 +47,30 @@ public class AccountService : IAccountService
         }
     }
     
+    public async Task LoginAccountAsync(AccountLoginDto accountLoginDto)
+    {
+        try
+        {
+            List<Model.Account> accounts = await _accountRepository.Read();
+            Model.Account account = accounts.FirstOrDefault(a => a.Email == accountLoginDto.Email) ?? throw new Exception("User not found");
+            if(CryptographyService.TryVerifyPassword(accountLoginDto.Password, account.PasswordHash))
+            {
+                _logger.LogInformation("User logged in successfully");
+                //Authentication successful
+            }
+            else
+            {
+                _logger.LogError("Invalid password");
+                throw new Exception("Invalid password");
+            }
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Unexpected error while logging in account: {Message}", exception.Message);
+            throw new Exception("An unexpected error occurred", exception);
+        }
+    }
+    
     public async Task UpdateAccountAsync(int id, AccountUpdateDto updateUserDto)
     {
         try
@@ -73,30 +97,6 @@ public class AccountService : IAccountService
         {
             _logger.LogError(ex, "Unexpected error while updating account: {Message}", ex.Message);
             throw new Exception(ex.Message);
-        }
-    }
-
-    public async Task LoginAccountAsync(AccountLoginDto accountLoginDto)
-    {
-        try
-        {
-            List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.Email == accountLoginDto.Email) ?? throw new Exception("User not found");
-            if(CryptographyService.TryVerifyPassword(accountLoginDto.Password, account.PasswordHash))
-            {
-                _logger.LogInformation("User logged in successfully");
-                //Authentication successful
-            }
-            else
-            {
-                _logger.LogError("Invalid password");
-                throw new Exception("Invalid password");
-            }
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError(exception, "Unexpected error while logging in account: {Message}", exception.Message);
-            throw new Exception("An unexpected error occurred", exception);
         }
     }
 
@@ -167,5 +167,5 @@ public class AccountService : IAccountService
             _logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
-    }
+    } 
 }

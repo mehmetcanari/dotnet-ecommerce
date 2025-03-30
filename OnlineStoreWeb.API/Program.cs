@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OnlineStoreWeb.API.Model;
@@ -12,11 +14,24 @@ namespace OnlineStoreWeb.API
         {
             var builder = WebApplication.CreateBuilder(args);
             _dependencyContainer = new DependencyContainer(builder);
+
+            #region Database Configuration
+
             builder.Services.AddDbContext<StoreDbContext>(options =>
-                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
             
-            /*builder.Services.AddDbContext<StoreDbContext>(options =>
-                options.UseInMemoryDatabase("ECommerceDB"));*/
+            builder.Services.AddDbContext<IdentityDbContext>(options =>
+                options.UseInMemoryDatabase("IdentityDb"));
+            
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<IdentityDbContext>()
+                .AddDefaultTokenProviders();
+
+            #endregion
+
+            builder.Services.AddAuthentication();
+            builder.Services.AddAuthorizationBuilder();
+            
             
             //builder.Services.AddHttpLogging(o => { });
             builder.Services.AddControllers();
