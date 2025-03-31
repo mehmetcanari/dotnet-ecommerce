@@ -1,6 +1,11 @@
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OnlineStoreWeb.API.Model;
 
@@ -10,7 +15,7 @@ namespace OnlineStoreWeb.API
     {
         private static IDependencyContainer _dependencyContainer;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
             _dependencyContainer = new DependencyContainer(builder);
@@ -19,23 +24,49 @@ namespace OnlineStoreWeb.API
 
             builder.Services.AddDbContext<StoreDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-            
+
             builder.Services.AddDbContext<IdentityDbContext>(options =>
                 options.UseInMemoryDatabase("IdentityDb"));
-            
+
             builder.Services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<IdentityDbContext>()
                 .AddDefaultTokenProviders();
 
             #endregion
 
-            builder.Services.AddAuthentication();
-            builder.Services.AddAuthorizationBuilder();
-            
-            
-            //builder.Services.AddHttpLogging(o => { });
-            builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
+            #region JWT Authentication
+
+            var jwtSettings = builder.Configuration.GetSection("Jwt");
+            var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings["Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = jwtSettings["Audience"],
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
+            builder.Services.AddAuthorization();
+
+            #endregion
+
+            #region Swagger Configuration
+
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -44,21 +75,58 @@ namespace OnlineStoreWeb.API
                     Version = "v1",
                     Description = "A simple Online Store API for managing products"
                 });
+
+                // Add JWT Authentication to Swagger
+                var securitySchema = new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Description = "Enter JWT token as: Bearer {token}",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                };
+
+                c.AddSecurityDefinition("Bearer", securitySchema);
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { securitySchema, new[] { "Bearer" } }
+                });
             });
+
+            #endregion
+
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
 
             _dependencyContainer.RegisterCoreDependencies();
             _dependencyContainer.LoadValidationDependencies();
 
             var app = builder.Build();
-            
+
+            #region Initialize Roles
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                await InitializeRoles(services);
+            }
+
+            #endregion
+
+            #region Middleware Configuration
+
             app.Use(async (context, next) =>
             {
                 Console.WriteLine($"Request: {context.Request.Method} {context.Request.Path}");
                 await next();
                 Console.WriteLine($"Response: {context.Response.StatusCode}");
             });
-            
-            //app.UseHttpLogging();
 
             if (app.Environment.IsDevelopment())
             {
@@ -70,10 +138,29 @@ namespace OnlineStoreWeb.API
                 });
             }
 
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 
+            #endregion
+
             app.Run();
+        }
+
+        private static async Task InitializeRoles(IServiceProvider serviceProvider)
+        {
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            
+            string[] roleNames = { "Admin", "User" };
+            
+            foreach (var roleName in roleNames)
+            {
+                var roleExists = await roleManager.RoleExistsAsync(roleName);
+                if (!roleExists)
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
         }
     }
 }

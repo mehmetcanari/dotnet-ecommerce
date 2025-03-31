@@ -1,0 +1,26 @@
+@baseUrl = http://localhost:5076/
+@route = api/auth
+
+### CREATE USER ACCOUNT
+
+POST {{baseUrl}}{{route}}/register
+Content-Type: application/json
+
+{
+    "fullName": "Mehmet Can",
+    "email": "memo@gmail.com",
+    "password": "1example@PasswordMEMO@",
+    "address": "Istanbul, TR",
+    "phoneNumber": "1234567890",
+    "dateOfBirth": "1909-03-24"
+}
+
+### LOGIN USER ACCOUNT
+
+POST {{baseUrl}}{{route}}/login
+Content-Type: application/json
+
+{
+  "email": "memo@gmail.com",  
+  "password": "1example@PasswordMEMO@"
+}

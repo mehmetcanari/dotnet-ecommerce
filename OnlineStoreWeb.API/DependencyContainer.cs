@@ -44,6 +44,7 @@ public class DependencyContainer : IDependencyContainer
     {
        _builder.Services.AddFluentValidationAutoValidation();
        _builder.Services.AddScoped<IValidator<AccountRegisterDto>, AccountRegisterValidation>();
+       _builder.Services.AddScoped<IValidator<AccountLoginDto>, AccountLoginValidation>();
        _builder.Services.AddScoped<IValidator<AccountUpdateDto>, AccountUpdateValidation>();
        _builder.Services.AddScoped<IValidator<AccountPatchDto>, AccountPartialUpdateValidation>();
        _builder.Services.AddScoped<IValidator<ProductCreateDto>, ProductCreateValidation>();
