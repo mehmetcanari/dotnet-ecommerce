@@ -1,18 +1,24 @@
-﻿@baseUrl = http://localhost:5076/
-@route = api/admin/products
+﻿# @name Using development environment
+# @environment development
+
+@baseUrl = http://localhost:5076
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImp0aSI6IjNiNmFkMGJmLWQ3ZmQtNDY0Mi04ZWQxLWFiODIzOGU4YWYwZiIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc0MzQxNjM2OSwiZXhwIjoxNzQzNDIzNTY5LCJpYXQiOjE3NDM0MTYzNjksImlzcyI6Ik9ubGluZVN0b3JlV2ViQVBJIiwiYXVkIjoiT25saW5lU3RvcmVDbGllbnQifQ.HOz8t_vtBaNl82bp1M8pTHHUzNxmoEF-HJJHvEaHOw8
 
 ### GET ALL PRODUCTS
 
-GET {{baseUrl}}{{route}}
+GET {{baseUrl}}/api/admin/products
+Authorization: Bearer {{adminToken}}
 
 ### GET PRODUCT BY ID
 
-GET {{baseUrl}}{{route}}/1
+GET {{baseUrl}}/api/admin/products/1
+Authorization: Bearer {{adminToken}}
 
 ### CREATE PRODUCT
 
-POST {{baseUrl}}{{route}}/create
+POST {{baseUrl}}/api/admin/products/create
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
   "Name": "PlayStation 5",
@@ -24,8 +30,9 @@ Content-Type: application/json
 
 ### UPDATE PRODUCT BY ID
 
-PUT {{baseUrl}}{{route}}/update/1
+PUT {{baseUrl}}/api/admin/products/update/1
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
   "Name": "High-End Gaming PC",
@@ -37,4 +44,5 @@ Content-Type: application/json
 
 ### DELETE PRODUCT BY ID
 
-DELETE {{baseUrl}}{{route}}/delete/1
+DELETE {{baseUrl}}/api/admin/products/delete/1
+Authorization: Bearer {{adminToken}}

@@ -1,9 +1,11 @@
 ﻿@baseUrl = http://localhost:5076/
 @route = api/user/order-items
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW1vQGdtYWlsLmNvbSIsImp0aSI6ImNiMmQ3MDAwLTQ0OGYtNDg4ZS1hOTM1LTVmMjUzYjhlMmZkMCIsInJvbGUiOiJVc2VyIiwibmJmIjoxNzQzNDE2MzAxLCJleHAiOjE3NDM0MjM1MDEsImlhdCI6MTc0MzQxNjMwMSwiaXNzIjoiT25saW5lU3RvcmVXZWJBUEkiLCJhdWQiOiJPbmxpbmVTdG9yZUNsaWVudCJ9.JBbpQJLeXXTgLYe9kohcmrHcU6d4tZFKK6gnCr2x484
 
 ### CREATE ORDER ITEM
 POST {{baseUrl}}{{route}}/create
 Content-Type: application/json
+Authorization: Bearer {{userToken}}
 
 {
   "AccountId": 1,
@@ -14,6 +16,8 @@ Content-Type: application/json
 ### UPDATE ORDER ITEM
 PUT {{baseUrl}}{{route}}/update
 Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
 
 {
   "OrderItemId": 1,
@@ -25,7 +29,9 @@ Content-Type: application/json
 ### GET ORDER ITEMS BY USER ID
 
 GET {{baseUrl}}{{route}}
+Authorization: Bearer {{userToken}}
 
 ### DELETE ALL ORDER ITEMS BY USER ID
 
 DELETE {{baseUrl}}{{route}}/delete/1
+Authorization: Bearer {{userToken}}

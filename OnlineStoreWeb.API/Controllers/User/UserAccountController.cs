@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.Account;
 using OnlineStoreWeb.API.Services.Account;
@@ -15,9 +16,9 @@ public class UserAccountController : ControllerBase
         _accountService = accountService;
     }
     
-
+    [Authorize(Roles = "User")]
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateProfile(int id, AccountUpdateDto accountUpdateRequest)
+    public async Task<IActionResult> UpdateProfile([FromRoute] int id, [FromBody] AccountUpdateDto accountUpdateRequest)
     {
         if (!ModelState.IsValid)
         {

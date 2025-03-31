@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -30,7 +32,7 @@ namespace OnlineStoreWeb.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] AccountRegisterDto accountRegisterDto)
+        public async Task<IActionResult> CreateUser([FromBody] AccountRegisterDto accountRegisterDto)
         {
             try
             {
@@ -126,9 +128,65 @@ namespace OnlineStoreWeb.API.Controllers
             }
         }
 
+        [HttpPost("create-admin")]
+        public async Task<IActionResult> CreateAdmin([FromBody] AccountRegisterDto accountRegisterDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var existingUser = await _userManager.FindByEmailAsync(accountRegisterDto.Email);
+                if (existingUser != null)
+                {
+                    return BadRequest("Email is already in use.");
+                }
+
+                var user = new IdentityUser
+                {
+                    UserName = accountRegisterDto.Email,
+                    Email = accountRegisterDto.Email
+                };
+
+                var result = await _userManager.CreateAsync(user, accountRegisterDto.Password);
+                if (!result.Succeeded)
+                {
+                    _logger.LogError("Failed to create admin: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                    return BadRequest(result.Errors);
+                }
+
+                if (!await _roleManager.RoleExistsAsync("Admin"))
+                {
+                    var roleResult = await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                    if (!roleResult.Succeeded)
+                    {
+                        _logger.LogError("Failed to create admin role: {Errors}", string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                        return BadRequest("Error creating admin role.");
+                    }
+                }
+
+                var addRoleResult = await _userManager.AddToRoleAsync(user, "Admin");
+                if (!addRoleResult.Succeeded)
+                {
+                    _logger.LogError("Failed to add admin role to user: {Errors}", string.Join(", ", addRoleResult.Errors.Select(e => e.Description)));
+                    return BadRequest(addRoleResult.Errors);
+                }
+
+                _logger.LogInformation("Admin user {Email} created successfully", accountRegisterDto.Email);
+                return Ok(new { Message = "Admin user created successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during admin creation");
+                return StatusCode(500, "An unexpected error occurred");
+            }
+        }
+
         private string GenerateJwtToken(string email, IList<string> roles)
         {
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured"));
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, email),
@@ -152,6 +210,13 @@ namespace OnlineStoreWeb.API.Controllers
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Ok(new { Message = "Logged out successfully." });
         }
     }
 }

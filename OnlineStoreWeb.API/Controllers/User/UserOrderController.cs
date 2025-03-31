@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.Order;
 using OnlineStoreWeb.API.Services.Order;
@@ -15,8 +16,9 @@ public class UserOrderController : ControllerBase
         _orderService = orderService;
     }
 
+    [Authorize(Roles = "User")]
     [HttpPost("create")]
-    public async Task<IActionResult> CreateOrder(OrderCreateDto orderCreateRequest)
+    public async Task<IActionResult> CreateOrder([FromBody] OrderCreateDto orderCreateRequest)
     {
         if(!ModelState.IsValid)
         {
@@ -34,8 +36,9 @@ public class UserOrderController : ControllerBase
         }
     }
     
+    [Authorize(Roles = "User")]
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetOrderById(int id)
+    public async Task<IActionResult> GetOrderById([FromRoute] int id)
     {
         try
         {
@@ -48,9 +51,9 @@ public class UserOrderController : ControllerBase
         }
     }
         
-    
+    [Authorize(Roles = "User")]
     [HttpDelete("{userId}")]
-    public async Task<IActionResult> DeleteOrder(int userId)
+    public async Task<IActionResult> DeleteOrder([FromRoute] int userId)
     {
         try
         {

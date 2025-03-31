@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.Order;
 using OnlineStoreWeb.API.Services.Order;
@@ -15,6 +16,7 @@ public class AdminOrderController : ControllerBase
         _orderService = orderService;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
     {
@@ -29,8 +31,9 @@ public class AdminOrderController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetOrderById(int id)
+    public async Task<IActionResult> GetOrderById([FromRoute] int id)
     {
         try
         {
@@ -43,8 +46,9 @@ public class AdminOrderController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("delete/{id}")]
-    public async Task<IActionResult> DeleteOrder(int id)
+    public async Task<IActionResult> DeleteOrder([FromRoute] int id)
     {
         try
         {
@@ -57,8 +61,9 @@ public class AdminOrderController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateOrderStatus(int id, OrderUpdateDto orderUpdateDto)
+    public async Task<IActionResult> UpdateOrderStatus([FromRoute] int id, [FromBody] OrderUpdateDto orderUpdateDto)
     {
         if (!ModelState.IsValid)
         {

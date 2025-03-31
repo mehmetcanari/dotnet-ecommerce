@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.Repositories.Product;
 using OnlineStoreWeb.API.Services.Product;
@@ -15,6 +16,7 @@ public class UserProductController : ControllerBase
         _productService = productService;
     }
 
+    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
@@ -34,8 +36,9 @@ public class UserProductController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "User")]
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetProductById(int id)
+    public async Task<IActionResult> GetProductById([FromRoute] int id)
     {
         try
         {

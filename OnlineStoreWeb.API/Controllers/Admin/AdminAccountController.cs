@@ -15,6 +15,7 @@ public class AdminAccountController : ControllerBase
         _accountService = accountService;
     }
     
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllAccounts()
     {
@@ -29,8 +30,9 @@ public class AdminAccountController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetAccountById(int id)
+    public async Task<IActionResult> GetAccountById([FromRoute] int id)
     {
         try
         {
@@ -43,8 +45,9 @@ public class AdminAccountController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("delete/{id}")]
-    public async Task<IActionResult> DeleteAccount(int id)
+    public async Task<IActionResult> DeleteAccount([FromRoute] int id)
     {
         try
         {

@@ -1,23 +1,26 @@
 ﻿@baseUrl = http://localhost:5076/
 @route = api/admin/orders
-
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImp0aSI6IjNiNmFkMGJmLWQ3ZmQtNDY0Mi04ZWQxLWFiODIzOGU4YWYwZiIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc0MzQxNjM2OSwiZXhwIjoxNzQzNDIzNTY5LCJpYXQiOjE3NDM0MTYzNjksImlzcyI6Ik9ubGluZVN0b3JlV2ViQVBJIiwiYXVkIjoiT25saW5lU3RvcmVDbGllbnQifQ.HOz8t_vtBaNl82bp1M8pTHHUzNxmoEF-HJJHvEaHOw8
 ### GET ALL ORDERS
 
 GET {{baseUrl}}{{route}}
+Authorization: Bearer {{adminToken}}
 
-### GET ALL ORDERS BY ID
+### GET ORDER BY ID
 
 GET {{baseUrl}}{{route}}/1
+Authorization: Bearer {{adminToken}}
 
 ### DELETE ORDER BY ID
 
 DELETE {{baseUrl}}{{route}}/delete/1
+Authorization: Bearer {{adminToken}}
 
 ### UPDATE ORDER STATUS BY ID
 
 PUT {{baseUrl}}{{route}}/update/1
 Content-Type: application/json
-
+Authorization: Bearer {{adminToken}}
 {
     "Status": 1
 }

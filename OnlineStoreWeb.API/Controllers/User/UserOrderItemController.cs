@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.OrderItem;
 using OnlineStoreWeb.API.Model;
 using OnlineStoreWeb.API.Services.OrderItem;
@@ -16,6 +17,7 @@ public class UserOrderItemController : ControllerBase
         _orderItemService = orderItemService;
     }
     
+    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<IActionResult> GetAllOrderItems()
     {
@@ -30,8 +32,9 @@ public class UserOrderItemController : ControllerBase
         }
     }
     
+    [Authorize(Roles = "User")]
     [HttpPost("create")]
-    public async Task<IActionResult> CreateOrderItem(CreateOrderItemDto orderItemCreateRequest)
+    public async Task<IActionResult> CreateOrderItem([FromBody] CreateOrderItemDto orderItemCreateRequest)
     {
         if(!ModelState.IsValid)
         {
@@ -49,8 +52,9 @@ public class UserOrderItemController : ControllerBase
         }
     }
     
+    [Authorize(Roles = "User")]
     [HttpPut("update")]
-    public async Task<IActionResult> UpdateOrderItem(UpdateOrderItemDto orderItemUpdateRequest)
+    public async Task<IActionResult> UpdateOrderItem([FromBody] UpdateOrderItemDto orderItemUpdateRequest)
     {
         if(!ModelState.IsValid)
         {
@@ -68,8 +72,9 @@ public class UserOrderItemController : ControllerBase
         }
     }
     
+    [Authorize(Roles = "User")]
     [HttpDelete("delete/{accountId}")]
-    public async Task<IActionResult> DeleteOrderItem(int accountId)
+    public async Task<IActionResult> DeleteOrderItem([FromRoute] int accountId)
     {
         try
         {

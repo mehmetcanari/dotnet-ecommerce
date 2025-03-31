@@ -1,15 +1,20 @@
-﻿@baseUrl = http://localhost:5076/
-@resource = api/admin/accounts
+﻿# @name Using development environment
+# @environment development
+
+@baseUrl = http://localhost:5076
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImp0aSI6IjNiNmFkMGJmLWQ3ZmQtNDY0Mi04ZWQxLWFiODIzOGU4YWYwZiIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc0MzQxNjM2OSwiZXhwIjoxNzQzNDIzNTY5LCJpYXQiOjE3NDM0MTYzNjksImlzcyI6Ik9ubGluZVN0b3JlV2ViQVBJIiwiYXVkIjoiT25saW5lU3RvcmVDbGllbnQifQ.HOz8t_vtBaNl82bp1M8pTHHUzNxmoEF-HJJHvEaHOw8
 
 ### GET ALL ACCOUNTS
 
-GET {{baseUrl}}{{resource}}
+GET {{baseUrl}}/api/admin/accounts
+Authorization: Bearer {{adminToken}}
 
 ### GET ACCOUNT BY ID
 
-GET {{baseUrl}}{{resource}}/1
+GET {{baseUrl}}/api/admin/accounts/1
+Authorization: Bearer {{adminToken}}
 
 ### DELETE ACCOUNT BY ID
 
-DELETE {{baseUrl}}{{resource}}/delete/1
-
+DELETE {{baseUrl}}/api/admin/accounts/delete/1
+Authorization: Bearer {{adminToken}}

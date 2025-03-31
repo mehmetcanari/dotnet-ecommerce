@@ -1,0 +1,31 @@
+# @name Using development environment
+# @environment development
+
+@baseUrl = http://localhost:5076
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImp0aSI6IjNiNmFkMGJmLWQ3ZmQtNDY0Mi04ZWQxLWFiODIzOGU4YWYwZiIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc0MzQxNjM2OSwiZXhwIjoxNzQzNDIzNTY5LCJpYXQiOjE3NDM0MTYzNjksImlzcyI6Ik9ubGluZVN0b3JlV2ViQVBJIiwiYXVkIjoiT25saW5lU3RvcmVDbGllbnQifQ.HOz8t_vtBaNl82bp1M8pTHHUzNxmoEF-HJJHvEaHOw8
+
+### TEST 1: Admin Token ile User-Specific Sipariş İsteği
+# Admin'in belirli bir kullanıcının siparişlerine erişim yetkisi varsa başarılı olabilir
+
+GET {{baseUrl}}/api/user/orders/1
+Authorization: Bearer {{adminToken}}
+
+### TEST 2: Admin Token ile User-Specific Sepet Erişimi
+# Admin'in belirli bir kullanıcının sepetine erişim yetkisi olup olmadığını test eder
+
+GET {{baseUrl}}/api/user/order-items
+Authorization: Bearer {{adminToken}}
+
+### TEST 3: Admin Token ile User-Specific Sipariş Oluşturma
+# Bu genellikle engellenmelidir, çünkü admin başka bir kullanıcı adına sipariş oluşturmamalıdır
+
+POST {{baseUrl}}/api/user/orders/create
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "AccountId": 1,
+  "ShippingAddress": "Test Address",
+  "BillingAddress": "Test Billing",
+  "PaymentMethod": 1
+} 

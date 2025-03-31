@@ -1,12 +1,16 @@
-﻿@baseUrl = http://localhost:5076/
-@resource = api/user/products
+﻿# @name Using development environment
+# @environment development
 
-###
+@baseUrl = http://localhost:5076
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW1vQGdtYWlsLmNvbSIsImp0aSI6ImNiMmQ3MDAwLTQ0OGYtNDg4ZS1hOTM1LTVmMjUzYjhlMmZkMCIsInJvbGUiOiJVc2VyIiwibmJmIjoxNzQzNDE2MzAxLCJleHAiOjE3NDM0MjM1MDEsImlhdCI6MTc0MzQxNjMwMSwiaXNzIjoiT25saW5lU3RvcmVXZWJBUEkiLCJhdWQiOiJPbmxpbmVTdG9yZUNsaWVudCJ9.JBbpQJLeXXTgLYe9kohcmrHcU6d4tZFKK6gnCr2x484
 
-GET {{baseUrl}}{{resource}}
+### GET ALL PRODUCTS
 
-###
+GET {{baseUrl}}/api/user/products
+Authorization: Bearer {{userToken}}
 
-GET {{baseUrl}}{{resource}}/1
+### GET PRODUCT BY ID
 
+GET {{baseUrl}}/api/user/products/1
+Authorization: Bearer {{userToken}}
 

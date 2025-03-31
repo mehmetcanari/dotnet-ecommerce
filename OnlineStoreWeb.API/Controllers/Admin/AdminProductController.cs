@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.Product;
 using OnlineStoreWeb.API.Services.Product;
@@ -14,7 +15,8 @@ public class AdminProductController : ControllerBase
     {
         _productService = productService;
     }
-    
+
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
@@ -29,8 +31,9 @@ public class AdminProductController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetProductById(int id)
+    public async Task<IActionResult> GetProductById([FromRoute] int id)
     {
         try
         {
@@ -43,8 +46,9 @@ public class AdminProductController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("create")]
-    public async Task<IActionResult> CreateProduct(ProductCreateDto productCreateRequest)
+    public async Task<IActionResult> CreateProduct([FromBody] ProductCreateDto productCreateRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -62,8 +66,9 @@ public class AdminProductController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateProduct(int id, ProductUpdateDto productUpdateRequest)
+    public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromBody] ProductUpdateDto productUpdateRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -81,8 +86,9 @@ public class AdminProductController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("delete/{id}")]
-    public async Task<IActionResult> DeleteProduct(int id)
+    public async Task<IActionResult> DeleteProduct([FromRoute] int id)
     {
         try
         {
