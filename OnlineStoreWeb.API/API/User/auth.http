@@ -35,8 +35,8 @@ POST {{baseUrl}}/{{route}}/login
 Content-Type: application/json
 
 {
-  "email": "memo@gmail.com",  
-  "password": "1example@PasswordMEMO@"
+  "email": "MEHMET@gmail.com",  
+  "password": "1exdsadsample@PssordMEMO@"
 }
 
 ### LOGIN ADMIN ACCOUNT

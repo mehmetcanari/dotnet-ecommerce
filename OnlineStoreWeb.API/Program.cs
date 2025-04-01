@@ -57,15 +57,15 @@ namespace OnlineStoreWeb.API
             /* builder.Services.AddDbContext<StoreDbContext>(options =>
                 options.UseInMemoryDatabase("StoreDb")); */
 
-            builder.Services.AddDbContext<IdentityDbContext>(options =>
-                options.UseInMemoryDatabase("IdentityDb"));
+            builder.Services.AddDbContext<ApplicationIdentityDbContext>(options =>
+                options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")));
 
             //======================================================
             // IDENTITY CONFIGURATION
             // Set up ASP.NET Core Identity for authentication and authorization
             //======================================================
             builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-                .AddEntityFrameworkStores<IdentityDbContext>()
+                .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
                 .AddDefaultTokenProviders();
 
             #endregion
