@@ -7,9 +7,9 @@ POST {{baseUrl}}/{{route}}/create-user
 Content-Type: application/json
 
 {
-    "fullName": "Mehmet Can",
-    "email": "memo@gmail.com",
-    "password": "1example@PasswordMEMO@",
+    "fullName": "MEHMET",
+    "email": "MEHMET@gmail.com",
+    "password": "1exdsadsample@PssordMEMO@",
     "address": "Istanbul, TR",
     "phoneNumber": "1234567890",
     "dateOfBirth": "1909-03-24"

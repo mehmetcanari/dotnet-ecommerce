@@ -15,7 +15,7 @@ namespace OnlineStoreWeb.API
 {
     internal static class Program
     {
-        private static IDependencyContainer _dependencyContainer;
+        private static IDependencyContainer? _dependencyContainer;
 
         static async Task Main(string[] args)
         {
@@ -78,7 +78,8 @@ namespace OnlineStoreWeb.API
             // Uses the JWT_SECRET from environment variables for security
             //======================================================
             var jwtSettings = builder.Configuration.GetSection("Jwt");
-            var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+            var jwtKey = jwtSettings["Key"] ?? throw new Exception("JWT_SECRET is not set");
+            var key = Encoding.UTF8.GetBytes(jwtKey);
 
             builder.Services.AddAuthentication(options =>
             {

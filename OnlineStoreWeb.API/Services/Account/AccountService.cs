@@ -1,7 +1,6 @@
 using OnlineStoreWeb.API.DTO.Request.Account;
 using OnlineStoreWeb.API.DTO.Response.Account;
 using OnlineStoreWeb.API.Repositories.Account;
-using OnlineStoreWeb.API.Services.Cryptography;
 
 namespace OnlineStoreWeb.API.Services.Account;
 public class AccountService : IAccountService
@@ -15,7 +14,7 @@ public class AccountService : IAccountService
         _logger = logger;
     }
     
-    public async Task RegisterAccountAsync(AccountRegisterDto createUserDto)
+    public async Task RegisterAccountAsync(AccountRegisterDto createUserDto, string role)
     {
         try
         {
@@ -30,12 +29,12 @@ public class AccountService : IAccountService
             {
                 FullName = createUserDto.FullName,
                 Email = createUserDto.Email,
-                PasswordHash = CryptographyService.HashPassword(createUserDto.Password),
                 Address = createUserDto.Address,
                 PhoneNumber = createUserDto.PhoneNumber,
                 DateOfBirth = createUserDto.DateOfBirth.ToUniversalTime(),
                 UserCreated = DateTime.UtcNow,
-                UserUpdated = DateTime.UtcNow
+                UserUpdated = DateTime.UtcNow,
+                Role = role
             };
 
             await _accountRepository.Create(account);
@@ -44,30 +43,6 @@ public class AccountService : IAccountService
         {
             _logger.LogError(ex, "Unexpected error while adding account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
-        }
-    }
-    
-    public async Task LoginAccountAsync(AccountLoginDto accountLoginDto)
-    {
-        try
-        {
-            List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.Email == accountLoginDto.Email) ?? throw new Exception("User not found");
-            if(CryptographyService.TryVerifyPassword(accountLoginDto.Password, account.PasswordHash))
-            {
-                _logger.LogInformation("User logged in successfully");
-                //Authentication successful
-            }
-            else
-            {
-                _logger.LogError("Invalid password");
-                throw new Exception("Invalid password");
-            }
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError(exception, "Unexpected error while logging in account: {Message}", exception.Message);
-            throw new Exception("An unexpected error occurred", exception);
         }
     }
     
@@ -86,7 +61,6 @@ public class AccountService : IAccountService
             
             account.FullName = updateUserDto.FullName;
             account.Email = updateUserDto.Email;
-            account.PasswordHash = CryptographyService.HashPassword(updateUserDto.Password);
             account.Address = updateUserDto.Address;
             account.PhoneNumber = updateUserDto.PhoneNumber;
             account.UserUpdated = DateTime.UtcNow;
@@ -114,11 +88,13 @@ public class AccountService : IAccountService
 
             return accounts.Select(account => new AccountResponseDto
                 {
+                    AccountId = account.AccountId,
                     FullName = account.FullName,
                     Email = account.Email,
                     Address = account.Address,
                     PhoneNumber = account.PhoneNumber,
-                    DateOfBirth = account.DateOfBirth
+                    DateOfBirth = account.DateOfBirth,
+                    Role = account.Role
                 })
                 .ToList();
         }
@@ -138,11 +114,13 @@ public class AccountService : IAccountService
             
             AccountResponseDto responseAccount = new AccountResponseDto
             {
+                AccountId = account.AccountId,
                 FullName = account.FullName,
                 Email = account.Email,
                 Address = account.Address,
                 PhoneNumber = account.PhoneNumber,
-                DateOfBirth = account.DateOfBirth
+                DateOfBirth = account.DateOfBirth,
+                Role = account.Role
             };
 
             return responseAccount;
@@ -184,7 +162,8 @@ public class AccountService : IAccountService
                 Email = account.Email,
                 Address = account.Address,
                 PhoneNumber = account.PhoneNumber,
-                DateOfBirth = account.DateOfBirth
+                DateOfBirth = account.DateOfBirth,
+                Role = account.Role
             };
 
             return responseAccount;

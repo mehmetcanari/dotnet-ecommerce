@@ -12,7 +12,7 @@ using OnlineStoreWeb.API.Model;
 namespace OnlineStoreWeb.API.Migrations
 {
     [DbContext(typeof(StoreDbContext))]
-    [Migration("20250228145130_InitialCreate")]
+    [Migration("20250401112039_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -48,11 +48,11 @@ namespace OnlineStoreWeb.API.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PhoneNumber")
+                    b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("text");
 

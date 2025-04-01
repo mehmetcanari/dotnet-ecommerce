@@ -5,8 +5,7 @@ namespace OnlineStoreWeb.API.Services.Account;
 
 public interface IAccountService
 {
-    Task RegisterAccountAsync(AccountRegisterDto createUserDto);
-    Task LoginAccountAsync(AccountLoginDto accountLoginDto);
+    Task RegisterAccountAsync(AccountRegisterDto createUserDto, string role);
     Task UpdateAccountAsync(int id, AccountUpdateDto updateUserDto);
     Task<List<AccountResponseDto>> GetAllAccountsAsync();
     Task<AccountResponseDto> GetAccountWithIdAsync(int id);
