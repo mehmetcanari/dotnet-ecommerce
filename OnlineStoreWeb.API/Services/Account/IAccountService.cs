@@ -10,5 +10,6 @@ public interface IAccountService
     Task UpdateAccountAsync(int id, AccountUpdateDto updateUserDto);
     Task<List<AccountResponseDto>> GetAllAccountsAsync();
     Task<AccountResponseDto> GetAccountWithIdAsync(int id);
+    Task<AccountResponseDto> GetAccountByEmailAsync(string email);
     Task DeleteAccountAsync(int id);
 }

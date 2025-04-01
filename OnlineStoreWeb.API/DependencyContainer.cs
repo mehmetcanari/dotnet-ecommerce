@@ -12,6 +12,8 @@ using OnlineStoreWeb.API.Services.Account;
 using OnlineStoreWeb.API.Services.Order;
 using OnlineStoreWeb.API.Services.OrderItem;
 using OnlineStoreWeb.API.Services.Product;
+using OnlineStoreWeb.API.Services.Auth;
+using OnlineStoreWeb.API.Services.Token;
 using OnlineStoreWeb.API.Validations.Account;
 using OnlineStoreWeb.API.Validations.Order;
 using OnlineStoreWeb.API.Validations.OrderItem;
@@ -33,11 +35,17 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         _builder.Services.AddScoped<IProductRepository, ProductRepository>();
         _builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+        _builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+        
         _builder.Services.AddScoped<IAccountService, AccountService>();
         _builder.Services.AddScoped<IOrderService, OrderService>();
         _builder.Services.AddScoped<IProductService, ProductService>();
-        _builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         _builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+        
+        _builder.Services.AddScoped<IAuthService, AuthService>();
+        _builder.Services.AddScoped<ITokenService, TokenService>();
+        
+        _builder.Services.AddHttpContextAccessor();
     }
     
     public void LoadValidationDependencies()

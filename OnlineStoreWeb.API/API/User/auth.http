@@ -3,7 +3,7 @@
 
 ### CREATE USER ACCOUNT
 
-POST {{baseUrl}}/{{route}}/register
+POST {{baseUrl}}/{{route}}/create-user
 Content-Type: application/json
 
 {
@@ -39,9 +39,6 @@ Content-Type: application/json
   "password": "1example@PasswordMEMO@"
 }
 
-###
-@userToken = {{loginUser.response.body.token}}
-
 ### LOGIN ADMIN ACCOUNT
 # @name loginAdmin
 POST {{baseUrl}}/{{route}}/login
@@ -51,17 +48,4 @@ Content-Type: application/json
   "email": "admin@example.com",  
   "password": "AdminPassword123!"
 }
-
-###
-@adminToken = {{loginAdmin.response.body.token}}
-
-### LOGOUT
-
-POST {{baseUrl}}/{{route}}/logout
-Authorization: Bearer {{userToken}}
-
-###
-
-POST {{baseUrl}}/{{route}}/logout
-Authorization: Bearer {{adminToken}}
 

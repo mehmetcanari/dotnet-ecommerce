@@ -2,7 +2,7 @@
 # @environment development
 
 @baseUrl = http://localhost:5076
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImp0aSI6IjNiNmFkMGJmLWQ3ZmQtNDY0Mi04ZWQxLWFiODIzOGU4YWYwZiIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc0MzQxNjM2OSwiZXhwIjoxNzQzNDIzNTY5LCJpYXQiOjE3NDM0MTYzNjksImlzcyI6Ik9ubGluZVN0b3JlV2ViQVBJIiwiYXVkIjoiT25saW5lU3RvcmVDbGllbnQifQ.HOz8t_vtBaNl82bp1M8pTHHUzNxmoEF-HJJHvEaHOw8
+@adminToken = {{$dotenv ADMIN_TOKEN}}
 
 ### TEST 1: Admin Token ile User-Specific Sipariş İsteği
 # Admin'in belirli bir kullanıcının siparişlerine erişim yetkisi varsa başarılı olabilir

@@ -167,5 +167,32 @@ public class AccountService : IAccountService
             _logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
         }
-    } 
+    }
+
+    public async Task<AccountResponseDto> GetAccountByEmailAsync(string email)
+    {
+        try
+        {
+            List<Model.Account> accounts = await _accountRepository.Read();
+            Model.Account account = accounts.FirstOrDefault(a => a.Email == email) ?? 
+                throw new Exception($"User with email {email} not found");
+            
+            AccountResponseDto responseAccount = new AccountResponseDto
+            {
+                AccountId = account.AccountId,
+                FullName = account.FullName,
+                Email = account.Email,
+                Address = account.Address,
+                PhoneNumber = account.PhoneNumber,
+                DateOfBirth = account.DateOfBirth
+            };
+
+            return responseAccount;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while fetching account by email: {Message}", ex.Message);
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
 }
