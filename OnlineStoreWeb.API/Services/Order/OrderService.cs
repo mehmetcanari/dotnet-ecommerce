@@ -27,25 +27,25 @@ public class OrderService : IOrderService
         _logger = logger;
     }
 
-    public async Task AddOrderAsync(OrderCreateDto createOrderDto)
+    public async Task AddOrderAsync(OrderCreateDto createOrderDto, string email)
     {
         try
         {
             var orderItems = await _orderItemRepository.Read();
             var accounts = await _accountRepository.Read();
 
-            var userAccount = accounts.FirstOrDefault(a => a.AccountId == createOrderDto.AccountId) ??
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                               throw new Exception("User not found");
-            var userOrderItems = orderItems.Where(oi => oi.AccountId == userAccount.AccountId).ToList();
+            var userOrderItems = orderItems.Where(oi => oi.AccountId == tokenAccount.AccountId).ToList();
 
             List<Model.OrderItem> newOrderItems = userOrderItems
-                .Select(cartItem => new Model.OrderItem
+                .Select(orderItem => new Model.OrderItem
                 {
-                    AccountId = cartItem.AccountId,
-                    ProductId = cartItem.ProductId,
-                    Quantity = cartItem.Quantity,
-                    UnitPrice = cartItem.UnitPrice,
-                    ProductName = cartItem.ProductName
+                    AccountId = orderItem.AccountId,
+                    ProductId = orderItem.ProductId,
+                    Quantity = orderItem.Quantity,
+                    UnitPrice = orderItem.UnitPrice,
+                    ProductName = orderItem.ProductName
                 }).ToList();
 
             if (newOrderItems.Count == 0)
@@ -55,14 +55,14 @@ public class OrderService : IOrderService
 
             Model.Order order = new Model.Order
             {
-                AccountId = userAccount.AccountId,
+                AccountId = tokenAccount.AccountId,
                 ShippingAddress = createOrderDto.ShippingAddress,
                 BillingAddress = createOrderDto.BillingAddress,
                 PaymentMethod = createOrderDto.PaymentMethod,
                 OrderItems = newOrderItems
             };
             
-            await _orderItemService.DeleteAllOrderItemsByAccountIdAsync(userAccount.AccountId);
+            await _orderItemService.DeleteAllOrderItemsAsync(email);
             await _orderRepository.Create(order);
         }
         catch (Exception ex)
@@ -72,14 +72,34 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task DeleteOrderByAccountIdAsync(int accountId)
+    public async Task CancelOrderAsync(string email)
     {
         try
         {
             var orders = await _orderRepository.Read();
-            var order = orders.FirstOrDefault(o => o.AccountId == accountId) ??
+            var accounts = await _accountRepository.Read();
+            
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
+                        throw new Exception("Account not found");
+            var order = orders.FirstOrDefault(o => o.AccountId == tokenAccount.AccountId) ??
                         throw new Exception("Order not found");
             await _orderRepository.Delete(order);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task DeleteOrderByIdAsync(int id)
+    {
+        try
+        {
+            var orders = await _orderRepository.Read();
+            var orderToDelete = orders.FirstOrDefault(o => o.OrderId == id) ??
+                        throw new Exception("Order not found");
+            await _orderRepository.Delete(orderToDelete);
         }
         catch (Exception ex)
         {
@@ -120,16 +140,57 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<OrderResponseDto> GetOrderWithIdAsync(int id)
+    public async Task<OrderResponseDto> GetOrdersAsync(string email)
     {
         try
         {
-            var order = await _orderRepository.GetOrderById(id);
+            var orders = await _orderRepository.Read();
+            var accounts = await _accountRepository.Read();
+            
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
+                        throw new Exception("Account not found");
+            var order = orders.FirstOrDefault(o => o.AccountId == tokenAccount.AccountId) ??
+                        throw new Exception("Order not found");
             
             if (order == null)
                 throw new Exception("Order not found");
         
             OrderResponseDto orderResponseDto = new()
+            {
+                AccountId = order.AccountId,
+                OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
+                {
+                    AccountId = oi.AccountId,
+                    ProductId = oi.ProductId,
+                    Quantity = oi.Quantity,
+                    UnitPrice = oi.UnitPrice,
+                    ProductName = oi.ProductName
+                }).ToList(),
+                OrderDate = order.OrderDate,
+                ShippingAddress = order.ShippingAddress,
+                BillingAddress = order.BillingAddress,
+                PaymentMethod = order.PaymentMethod,
+                Status = order.Status
+            };
+            
+            return orderResponseDto;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+
+    public async Task<OrderResponseDto> GetOrderByIdAsync(int id)
+    {
+        try
+        {
+            var orders = await _orderRepository.Read();
+            var order = orders.FirstOrDefault(o => o.OrderId == id) ??
+                        throw new Exception("Order not found");
+            
+             OrderResponseDto orderResponseDto = new()
             {
                 AccountId = order.AccountId,
                 OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto

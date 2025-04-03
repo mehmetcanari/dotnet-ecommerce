@@ -7,12 +7,6 @@ public class OrderItemUpdateValidation : AbstractValidator<UpdateOrderItemDto>
 {
     public OrderItemUpdateValidation()
     {
-        RuleFor(x => x.AccountId)
-            .NotEmpty()
-            .WithMessage("Account Id is required.")
-            .GreaterThan(0)
-            .WithMessage("Account Id must be greater than 0.");
-        
         RuleFor(x => x.OrderItemId)
             .NotEmpty()
             .WithMessage("Order Item Id is required.")

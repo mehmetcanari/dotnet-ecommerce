@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.Order;
@@ -20,14 +21,22 @@ public class UserOrderController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateDto orderCreateRequest)
     {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Forbid("User identity not found");
+            }
+
+        var userEmail = userIdClaim.Value;
+
         if(!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-            
+
         try
         {
-            await _orderService.AddOrderAsync(orderCreateRequest);
+            await _orderService.AddOrderAsync(orderCreateRequest, userEmail);
             return Created($"orders", new { message = "Order created successfully"});
         }
         catch (Exception exception)
@@ -37,12 +46,20 @@ public class UserOrderController : ControllerBase
     }
     
     [Authorize(Roles = "User")]
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetOrderById([FromRoute] int id)
+    [HttpGet("myorders")]
+    public async Task<IActionResult> GetOrders()
     {
         try
         {
-            var order = await _orderService.GetOrderWithIdAsync(id);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Forbid("User identity not found");
+            }
+
+            var userEmail = userIdClaim.Value;
+
+            var order = await _orderService.GetOrdersAsync(userEmail);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
         catch (Exception exception)
@@ -52,12 +69,20 @@ public class UserOrderController : ControllerBase
     }
         
     [Authorize(Roles = "User")]
-    [HttpDelete("{userId}")]
-    public async Task<IActionResult> DeleteOrder([FromRoute] int userId)
+    [HttpDelete("cancel-order")]
+    public async Task<IActionResult> CancelOrder()
     {
         try
         {
-            await _orderService.DeleteOrderByAccountIdAsync(userId);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Forbid("User identity not found");
+            }
+
+            var userEmail = userIdClaim.Value;
+
+            await _orderService.CancelOrderAsync(userEmail);
             return Ok(new { message = "Order deleted successfully" });
         }
         catch (Exception exception)

@@ -21,11 +21,11 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "PlayStation 5",
-  "Description": "A gaming console with high-end specs",
+  "Name": "Xbox Series X",
+  "Description": "Xbox Series X is a gaming console that is the latest in the Xbox series",
   "Price": 499.99,
-  "StockQuantity": 250,
-  "DiscountRate": 0
+  "StockQuantity": 300,
+  "DiscountRate": 5
 }
 
 ### UPDATE PRODUCT BY ID

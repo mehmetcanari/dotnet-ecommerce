@@ -37,7 +37,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            var order = await _orderService.GetOrderWithIdAsync(id);
+            var order = await _orderService.GetOrderByIdAsync(id);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
         catch (Exception exception)
@@ -52,7 +52,7 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            await _orderService.DeleteOrderByAccountIdAsync(id);
+            await _orderService.DeleteOrderByIdAsync(id);
             return Ok(new { message = "Order deleted successfully with id: " + id });
         }
         catch (Exception exception) 

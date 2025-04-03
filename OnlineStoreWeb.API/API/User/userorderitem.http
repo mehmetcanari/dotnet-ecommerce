@@ -8,7 +8,6 @@ Content-Type: application/json
 Authorization: Bearer {{userToken}}
 
 {
-  "AccountId": 1,
   "ProductId": 1,
   "Quantity": 1
 }
@@ -20,17 +19,16 @@ Authorization: Bearer {{userToken}}
 
 {
   "OrderItemId": 1,
-  "AccountId": 1,
   "ProductId": 1,
   "Quantity": 2
 }
 
-### GET ORDER ITEMS BY USER ID
+### GET ORDER ITEMS BY USER EMAIL
 
 GET {{baseUrl}}{{route}}
 Authorization: Bearer {{userToken}}
 
-### DELETE ALL ORDER ITEMS BY USER ID
+### DELETE ALL ORDER ITEMS BY USER EMAIL
 
-DELETE {{baseUrl}}{{route}}/delete/1
+DELETE {{baseUrl}}{{route}}/delete
 Authorization: Bearer {{userToken}}

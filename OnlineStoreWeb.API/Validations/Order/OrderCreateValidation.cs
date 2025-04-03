@@ -6,13 +6,7 @@ namespace OnlineStoreWeb.API.Validations.Order;
 public class OrderCreateValidation : AbstractValidator<OrderCreateDto>
 {
     public OrderCreateValidation()
-    {
-        RuleFor(o => o.AccountId)
-            .NotEmpty()
-            .WithMessage("User ID is required")
-            .GreaterThan(0)
-            .WithMessage("User ID must be greater than 0");
-        
+    {   
         RuleFor(o => o.ShippingAddress)
             .NotEmpty()
             .WithMessage("Shipping address is required")

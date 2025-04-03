@@ -11,19 +11,18 @@ Content-Type: application/json
 Authorization: Bearer {{userToken}}
 
 {
-  "AccountId": 1,
   "ShippingAddress": "1234 Street Name, City, Country",
   "BillingAddress": "1234 Billing Address, City, Country",
   "PaymentMethod": 1
 }
 
 
-### GET ORDERS BY USER ID
+### GET ORDERS BY USER EMAIL
 
-GET {{baseUrl}}{{route}}/1
+GET {{baseUrl}}{{route}}/myorders
 Authorization: Bearer {{userToken}}
 
-### DELETE ORDER BY USER ID
+### DELETE ORDER BY USER EMAIL
 
-DELETE {{baseUrl}}{{route}}/delete/1
+DELETE {{baseUrl}}{{route}}/cancel-order
 Authorization: Bearer {{userToken}}

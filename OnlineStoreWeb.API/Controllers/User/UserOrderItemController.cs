@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.OrderItem;
-using OnlineStoreWeb.API.Model;
 using OnlineStoreWeb.API.Services.OrderItem;
 
 namespace OnlineStoreWeb.API.Controllers.User;
@@ -23,8 +23,15 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            var orderItems = await _orderItemService.GetAllOrderItemsAsync();
-            return Ok(orderItems);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Forbid("User identity not found");
+            }
+
+            var userEmail = userIdClaim.Value;
+            var orderItems = await _orderItemService.GetAllOrderItemsAsync(userEmail);
+            return Ok(new { message = "Order items fetched successfully", data = orderItems });
         }
         catch (Exception exception)
         {
@@ -36,6 +43,14 @@ public class UserOrderItemController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrderItem([FromBody] CreateOrderItemDto orderItemCreateRequest)
     {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Forbid("User identity not found");
+            }
+
+            var userEmail = userIdClaim.Value;
+
         if(!ModelState.IsValid)
         {
             return BadRequest(ModelState);
@@ -43,7 +58,7 @@ public class UserOrderItemController : ControllerBase
             
         try
         {
-            await _orderItemService.CreateOrderItemAsync(orderItemCreateRequest);
+            await _orderItemService.CreateOrderItemAsync(orderItemCreateRequest, userEmail);
             return Created($"order-items", new { message = "Order item created successfully"});
         }
         catch (Exception exception)
@@ -56,6 +71,14 @@ public class UserOrderItemController : ControllerBase
     [HttpPut("update")]
     public async Task<IActionResult> UpdateOrderItem([FromBody] UpdateOrderItemDto orderItemUpdateRequest)
     {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            return Forbid("User identity not found");
+        }
+
+        var userEmail = userIdClaim.Value;
+
         if(!ModelState.IsValid)
         {
             return BadRequest(ModelState);
@@ -63,7 +86,7 @@ public class UserOrderItemController : ControllerBase
         
         try
         {
-            await _orderItemService.UpdateOrderItemAsync(orderItemUpdateRequest);
+            await _orderItemService.UpdateOrderItemAsync(orderItemUpdateRequest, userEmail);
             return Ok(new { message = "Order item updated successfully"});
         }
         catch (Exception exception)
@@ -73,12 +96,20 @@ public class UserOrderItemController : ControllerBase
     }
     
     [Authorize(Roles = "User")]
-    [HttpDelete("delete/{accountId}")]
-    public async Task<IActionResult> DeleteOrderItem([FromRoute] int accountId)
+    [HttpDelete("delete")]
+    public async Task<IActionResult> DeleteAllOrderItems()
     {
         try
         {
-            await _orderItemService.DeleteAllOrderItemsByAccountIdAsync(accountId);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Forbid("User identity not found");
+            }
+
+            var userEmail = userIdClaim.Value;
+
+            await _orderItemService.DeleteAllOrderItemsAsync(userEmail);
             return Ok(new { message = "Order item deleted successfully"});
         }
         catch (Exception exception)

@@ -22,12 +22,15 @@ public class OrderItemService : IOrderItemService
         _accountRepository = accountRepository;
     }
 
-    public async Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync()
+    public async Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync(string email)
     {
         try
         {
-            IEnumerable<Model.OrderItem> orderItems = await _orderItemRepository.Read();
-            var items = orderItems.ToList();
+            var accounts = await _accountRepository.Read();
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
+                        throw new Exception("Account not found");
+            var orderItems = await _orderItemRepository.Read();
+            var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId).ToList();
             if (items.Count == 0)
             {
                 throw new Exception("No order items found.");
@@ -49,20 +52,19 @@ public class OrderItemService : IOrderItemService
         }
     }
 
-    public async Task CreateOrderItemAsync(CreateOrderItemDto createOrderItemDto)
+    public async Task CreateOrderItemAsync(CreateOrderItemDto createOrderItemDto, string email)
     {
         try
         {
             var products = await _productRepository.Read();
             var accounts = await _accountRepository.Read();
-            var product = products.FirstOrDefault(p => p.ProductId == createOrderItemDto.ProductId);
 
-            if (product == null)
-            {
-                throw new Exception("Product not found");
-            }
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
+                        throw new Exception("Account not found");
+            var product = products.FirstOrDefault(p => p.ProductId == createOrderItemDto.ProductId) ??
+                          throw new Exception("Product not found");
 
-            if (accounts.FirstOrDefault(a => a.AccountId == createOrderItemDto.AccountId) == null)
+            if (accounts.FirstOrDefault(a => a.AccountId == tokenAccount.AccountId) == null)
                 throw new Exception("Account not found");
 
             if (createOrderItemDto.Quantity > product.StockQuantity)
@@ -72,7 +74,7 @@ public class OrderItemService : IOrderItemService
 
             var orderItem = new Model.OrderItem
             {
-                AccountId = createOrderItemDto.AccountId,
+                AccountId = tokenAccount.AccountId,
                 Quantity = createOrderItemDto.Quantity,
                 ProductId = product.ProductId,
                 UnitPrice = product.Price,
@@ -92,16 +94,20 @@ public class OrderItemService : IOrderItemService
         }
     }
 
-    public async Task UpdateOrderItemAsync(UpdateOrderItemDto updateOrderItemDto)
+    public async Task UpdateOrderItemAsync(UpdateOrderItemDto updateOrderItemDto, string email)
     {
         try
         {
             var products = await _productRepository.Read();
             var orderItems = await _orderItemRepository.Read();
+            var accounts = await _accountRepository.Read();
+
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
+                        throw new Exception("Account not found");
 
             var orderItem = orderItems.FirstOrDefault(p =>
                                 p.OrderItemId == updateOrderItemDto.OrderItemId &&
-                                p.AccountId == updateOrderItemDto.AccountId) ??
+                                p.AccountId == tokenAccount.AccountId) ??
                             throw new Exception("Order item not found");
 
             var product = products.FirstOrDefault(p => p.ProductId == updateOrderItemDto.ProductId) ??
@@ -126,12 +132,15 @@ public class OrderItemService : IOrderItemService
         }
     }
 
-    public async Task DeleteAllOrderItemsByAccountIdAsync(int id)
+    public async Task DeleteAllOrderItemsAsync(string email)
     {
         try
         {
             var orderItems = await _orderItemRepository.Read();
-            var items = orderItems.Where(o => o.AccountId == id).ToList();
+            var accounts = await _accountRepository.Read();
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
+                        throw new Exception("Account not found");
+            var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId).ToList();
 
             foreach (var item in items)
             {
