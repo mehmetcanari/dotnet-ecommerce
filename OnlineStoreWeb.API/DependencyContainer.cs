@@ -36,12 +36,10 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<IProductRepository, ProductRepository>();
         _builder.Services.AddScoped<IAccountRepository, AccountRepository>();
         _builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-        
         _builder.Services.AddScoped<IAccountService, AccountService>();
         _builder.Services.AddScoped<IOrderService, OrderService>();
         _builder.Services.AddScoped<IProductService, ProductService>();
         _builder.Services.AddScoped<IOrderItemService, OrderItemService>();
-        
         _builder.Services.AddScoped<IAuthService, AuthService>();
         _builder.Services.AddScoped<ITokenService, TokenService>();
         

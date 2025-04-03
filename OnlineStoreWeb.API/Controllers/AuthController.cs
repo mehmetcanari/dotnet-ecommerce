@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.Account;
 using OnlineStoreWeb.API.Services.Auth;
@@ -77,21 +75,6 @@ namespace OnlineStoreWeb.API.Controllers
             {
                 _logger.LogError(ex, "Error during login for user: {Email}", accountLoginDto.Email);
                 return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
-        {
-            try
-            {
-                await _authService.LogoutAsync();
-                return Ok(new { Message = "Logged out successfully." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during logout");
-                return StatusCode(500, "An unexpected error occurred");
             }
         }
     }

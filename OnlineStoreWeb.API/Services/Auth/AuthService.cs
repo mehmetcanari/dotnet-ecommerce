@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using OnlineStoreWeb.API.DTO.Request.Account;
 using OnlineStoreWeb.API.Services.Account;
@@ -13,7 +11,6 @@ public class AuthService : IAuthService
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ITokenService _tokenService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -21,18 +18,16 @@ public class AuthService : IAuthService
         UserManager<IdentityUser> userManager,
         RoleManager<IdentityRole> roleManager,
         ITokenService tokenService,
-        IHttpContextAccessor httpContextAccessor,
         ILogger<AuthService> logger)
     {
         _accountService = accountService;
         _userManager = userManager;
         _roleManager = roleManager;
         _tokenService = tokenService;
-        _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
 
-    private async Task RegisterUserWithRoleAsync(AccountRegisterDto registerDto, string roleName)
+    private async Task RegisterUserWithRoleAsync(AccountRegisterDto registerDto, string role)
     {
         var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
         if (existingUser != null)
@@ -44,7 +39,8 @@ public class AuthService : IAuthService
         var user = new IdentityUser
         {
             UserName = registerDto.Email,
-            Email = registerDto.Email
+            Email = registerDto.Email,
+            PhoneNumber = registerDto.PhoneNumber,
         };
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -54,26 +50,26 @@ public class AuthService : IAuthService
             throw new Exception("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        if (!await _roleManager.RoleExistsAsync(roleName))
+        if (!await _roleManager.RoleExistsAsync(role))
         {
-            var roleResult = await _roleManager.CreateAsync(new IdentityRole(roleName));
+            var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
             if (!roleResult.Succeeded)
             {
                 _logger.LogError("Failed to create role: {Errors}", string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                throw new Exception($"Error creating {roleName} role.");
+                throw new Exception($"Error creating {role} role.");
             }
         }
 
-        var addRoleResult = await _userManager.AddToRoleAsync(user, roleName);
+        var addRoleResult = await _userManager.AddToRoleAsync(user, role);
         if (!addRoleResult.Succeeded)
         {
             _logger.LogError("Failed to add role to user: {Errors}", string.Join(", ", addRoleResult.Errors.Select(e => e.Description)));
             throw new Exception("Error assigning role to user.");
         }
 
-        _logger.LogInformation("User {Email} registered successfully with role {Role}", registerDto.Email, roleName);
+        _logger.LogInformation("User {Email} registered successfully with role {Role}", registerDto.Email, role);
 
-        await _accountService.RegisterAccountAsync(registerDto, roleName);
+        await _accountService.RegisterAccountAsync(registerDto, role);
     }
 
     public async Task<string> LoginAsync(AccountLoginDto loginDto)
@@ -109,13 +105,5 @@ public class AuthService : IAuthService
     public async Task RegisterAdminAsync(AccountRegisterDto registerDto)
     {
         await RegisterUserWithRoleAsync(registerDto, "Admin");
-    }
-
-    public async Task LogoutAsync()
-    {
-        if (_httpContextAccessor.HttpContext != null)
-        {
-            await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        }
     }
 } 

@@ -46,12 +46,12 @@ public class AccountService : IAccountService
         }
     }
     
-    public async Task UpdateAccountAsync(int id, AccountUpdateDto updateUserDto)
+    public async Task UpdateAccountAsync(string email, AccountUpdateDto updateUserDto)
     {
         try
         {
             List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
+            Model.Account account = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
             
             if(accounts.Any(a => a.Email == updateUserDto.Email)) //Duplicate email check
             {

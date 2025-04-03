@@ -8,5 +8,4 @@ public interface IAuthService
     Task<string> LoginAsync(AccountLoginDto loginDto);
     Task RegisterUserAsync(AccountRegisterDto registerDto);
     Task RegisterAdminAsync(AccountRegisterDto registerDto);
-    Task LogoutAsync();
 } 

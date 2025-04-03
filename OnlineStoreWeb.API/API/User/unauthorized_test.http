@@ -2,7 +2,7 @@
 # Bu dosya, user token'ı ile admin API'lerine erişim testlerini içerir
 
 @baseUrl = http://localhost:5076
-@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW1vQGdtYWlsLmNvbSIsImp0aSI6IjhmOWFjOWIwLTRlOGItNDYxNy04ZWUwLTgzNmJiMmYxZmRhZCIsInJvbGUiOiJVc2VyIiwibmJmIjoxNzQzNDQzNDIxLCJleHAiOjE3NDM0NTA2MjEsImlhdCI6MTc0MzQ0MzQyMSwiaXNzIjoiT25saW5lU3RvcmVXZWJBUEkiLCJhdWQiOiJPbmxpbmVTdG9yZUNsaWVudCJ9.yVNwUthWdeatlL4MPKzRnJofwV5pXv7MmiPawAJ3Snk
+@userToken = {{$dotenv USER_TOKEN}}
 
 ### TEST 1: User Token ile Admin Products API'sine Erişim
 # Beklenen sonuç: 401 Unauthorized veya 403 Forbidden
