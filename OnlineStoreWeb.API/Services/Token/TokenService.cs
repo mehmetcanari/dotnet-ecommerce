@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using OnlineStoreWeb.API.DTO.Response.Auth;
@@ -20,7 +19,7 @@ public class TokenService : ITokenService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<AuthResponse> GenerateAuthTokenAsync(string email, IList<string> roles)
+    public async Task<AuthResponseDto> GenerateAuthTokenAsync(string email, IList<string> roles)
     {
         try
         {
@@ -28,7 +27,7 @@ public class TokenService : ITokenService
             var refreshTokenString = await GenerateRefreshToken(email);
 
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(
-                Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS") ?? "30"));
+                Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS")));
 
             var cookieOptions = new CookieOptions
             {
@@ -42,15 +41,15 @@ public class TokenService : ITokenService
             };
 
             _httpContextAccessor.HttpContext?.Response.Cookies.Append(
-                "refreshToken", 
-                refreshTokenString, 
+                "refreshToken",
+                refreshTokenString,
                 cookieOptions);
 
-            return new AuthResponse
+            return new AuthResponseDto
             {
                 AccessToken = accessToken,
                 AccessTokenExpiration = DateTime.UtcNow.AddMinutes(
-                    Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES") ?? "30"))
+                    Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES"))),
             };
         }
         catch (Exception ex)
@@ -74,15 +73,15 @@ public class TokenService : ITokenService
         }
 
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? 
-            throw new InvalidOperationException("JWT Key is not configured")));
+            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ??
+                                   throw new InvalidOperationException("JWT Key is not configured")));
 
         var token = new JwtSecurityToken(
             issuer: Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"],
             audience: Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"],
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(
-                Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES") ?? "30")),
+                Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES"))),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
 
@@ -98,15 +97,15 @@ public class TokenService : ITokenService
         };
 
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? 
-            throw new InvalidOperationException("JWT Key is not configured")));
+            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ??
+                                   throw new InvalidOperationException("JWT Key is not configured")));
 
         var token = new JwtSecurityToken(
             issuer: Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"],
             audience: Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"],
             claims: claims,
             expires: DateTime.UtcNow.AddDays(
-                Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS") ?? "30")),
+                Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS"))),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
 
@@ -130,8 +129,8 @@ public class TokenService : ITokenService
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? 
-                    throw new InvalidOperationException("JWT Key is not configured"))),
+                    Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ??
+                                           throw new InvalidOperationException("JWT Key is not configured"))),
                 ValidateIssuer = true,
                 ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"],
                 ValidateAudience = true,
@@ -143,7 +142,7 @@ public class TokenService : ITokenService
             var tokenHandler = new JwtSecurityTokenHandler();
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
 
-            if (!(validatedToken is JwtSecurityToken jwtToken) || 
+            if (!(validatedToken is JwtSecurityToken jwtToken) ||
                 !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new SecurityTokenException("Invalid token algorithm");

@@ -1,6 +1,6 @@
 namespace OnlineStoreWeb.API.DTO.Request.Account;
 
-public record AccountUpdateDto
+public record AccountUpdateRequestDto
 {
     public required string FullName { get; set; }
     public required string Email { get; set; }

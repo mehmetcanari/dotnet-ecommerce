@@ -19,34 +19,34 @@ public class UserOrderController : ControllerBase
 
     [Authorize(Roles = "User")]
     [HttpPost("create")]
-    public async Task<IActionResult> CreateOrder([FromBody] OrderCreateDto orderCreateRequest)
+    public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto orderCreateRequestRequest)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return Forbid("User identity not found");
-            }
+        if (userIdClaim == null)
+        {
+            return Forbid("User identity not found");
+        }
 
         var userEmail = userIdClaim.Value;
 
-        if(!ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
         try
         {
-            await _orderService.AddOrderAsync(orderCreateRequest, userEmail);
-            return Created($"orders", new { message = "Order created successfully"});
+            await _orderService.AddOrderAsync(orderCreateRequestRequest, userEmail);
+            return Created($"orders", new { message = "Order created successfully" });
         }
         catch (Exception exception)
         {
             return BadRequest(exception.Message);
         }
     }
-    
+
     [Authorize(Roles = "User")]
-    [HttpGet("myorders")]
+    [HttpGet("orders")]
     public async Task<IActionResult> GetOrders()
     {
         try
@@ -67,7 +67,7 @@ public class UserOrderController : ControllerBase
             return BadRequest(exception.Message);
         }
     }
-        
+
     [Authorize(Roles = "User")]
     [HttpDelete("cancel-order")]
     public async Task<IActionResult> CancelOrder()

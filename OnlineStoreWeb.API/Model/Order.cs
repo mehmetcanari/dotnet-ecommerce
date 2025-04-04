@@ -1,8 +1,7 @@
 namespace OnlineStoreWeb.API.Model
 {
     public class Order
-    {
-        #region Public Properties
+    {   
         public int OrderId { get; init; }
         public int AccountId { get; init; }
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
@@ -12,7 +11,6 @@ namespace OnlineStoreWeb.API.Model
         public required string BillingAddress { get; init; }
         public PaymentMethod PaymentMethod { get; init; }
         public OrderStatus Status { get; internal set; } = OrderStatus.Pending;
-        #endregion
     }
 }
 

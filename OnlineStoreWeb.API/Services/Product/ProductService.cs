@@ -68,24 +68,24 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task AddProductAsync(ProductCreateDto productCreateRequest)
+    public async Task AddProductAsync(ProductCreateRequestDto productCreateRequestRequest)
     {
         try
         {
             var products = await _productRepository.Read();
-            if (products.Any(p => p.Name == productCreateRequest.Name)) //Duplicate product name check
+            if (products.Any(p => p.Name == productCreateRequestRequest.Name)) //Duplicate product name check
             {
                 throw new Exception("Product already exists in the database");
             }
 
             var product = new Model.Product
             {
-                Name = productCreateRequest.Name,
-                Description = productCreateRequest.Description,
-                Price = productCreateRequest.Price,
-                DiscountRate = productCreateRequest.DiscountRate,
-                ImageUrl = productCreateRequest.ImageUrl,
-                StockQuantity = productCreateRequest.StockQuantity,
+                Name = productCreateRequestRequest.Name,
+                Description = productCreateRequestRequest.Description,
+                Price = productCreateRequestRequest.Price,
+                DiscountRate = productCreateRequestRequest.DiscountRate,
+                ImageUrl = productCreateRequestRequest.ImageUrl,
+                StockQuantity = productCreateRequestRequest.StockQuantity,
                 ProductCreated = DateTime.UtcNow,
                 ProductUpdated = DateTime.UtcNow
             };
@@ -102,19 +102,19 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task UpdateProductAsync(int id, ProductUpdateDto productUpdateRequest)
+    public async Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequestRequest)
     {
         try
         {
             var products = await _productRepository.Read();
             var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
-            product.Name = productUpdateRequest.Name;
-            product.Description = productUpdateRequest.Description;
-            product.Price = productUpdateRequest.Price;
-            product.DiscountRate = productUpdateRequest.DiscountRate;
-            product.ImageUrl = productUpdateRequest.ImageUrl;
-            product.StockQuantity = productUpdateRequest.StockQuantity;
+            product.Name = productUpdateRequestRequest.Name;
+            product.Description = productUpdateRequestRequest.Description;
+            product.Price = productUpdateRequestRequest.Price;
+            product.DiscountRate = productUpdateRequestRequest.DiscountRate;
+            product.ImageUrl = productUpdateRequestRequest.ImageUrl;
+            product.StockQuantity = productUpdateRequestRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
             
             if (product.DiscountRate > 0)

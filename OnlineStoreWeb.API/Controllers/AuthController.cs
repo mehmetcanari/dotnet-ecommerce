@@ -19,7 +19,7 @@ namespace OnlineStoreWeb.API.Controllers
         }
 
         [HttpPost("create-admin")]
-        public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterDto accountRegisterDto)
+        public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace OnlineStoreWeb.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                await _authService.RegisterAdminAsync(accountRegisterDto);
+                await _authService.RegisterAdminAsync(accountRegisterRequestDto);
                 return Ok(new { Message = "Admin user created successfully." });
             }
             catch (Exception ex)
@@ -39,7 +39,7 @@ namespace OnlineStoreWeb.API.Controllers
         }
 
         [HttpPost("create-user")]
-        public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterDto accountRegisterDto)
+        public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace OnlineStoreWeb.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                await _authService.RegisterUserAsync(accountRegisterDto);
+                await _authService.RegisterUserAsync(accountRegisterRequestDto);
                 return Ok(new { Message = "User created successfully." });
             }
             catch (Exception ex)
@@ -59,7 +59,7 @@ namespace OnlineStoreWeb.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] AccountLoginDto accountLoginDto)
+        public async Task<IActionResult> Login([FromBody] AccountLoginRequestDto accountLoginRequestDto)
         {
             try
             {
@@ -68,12 +68,12 @@ namespace OnlineStoreWeb.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var authResponse = await _authService.LoginAsync(accountLoginDto);
+                var authResponse = await _authService.LoginAsync(accountLoginRequestDto);
                 return Ok(authResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during login for user: {Email}", accountLoginDto.Email);
+                _logger.LogError(ex, "Error during login for user: {Email}", accountLoginRequestDto.Email);
                 return BadRequest(ex.Message);
             }
         }

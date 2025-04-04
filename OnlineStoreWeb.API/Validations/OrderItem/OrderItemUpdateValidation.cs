@@ -3,7 +3,7 @@ using OnlineStoreWeb.API.DTO.Request.OrderItem;
 
 namespace OnlineStoreWeb.API.Validations.OrderItem;
 
-public class OrderItemUpdateValidation : AbstractValidator<UpdateOrderItemDto>
+public class OrderItemUpdateValidation : AbstractValidator<UpdateOrderItemRequestDto>
 {
     public OrderItemUpdateValidation()
     {

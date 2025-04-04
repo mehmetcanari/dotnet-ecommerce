@@ -49,15 +49,14 @@ public class DependencyContainer : IDependencyContainer
     public void LoadValidationDependencies()
     {
        _builder.Services.AddFluentValidationAutoValidation();
-       _builder.Services.AddScoped<IValidator<AccountRegisterDto>, AccountRegisterValidation>();
-       _builder.Services.AddScoped<IValidator<AccountLoginDto>, AccountLoginValidation>();
-       _builder.Services.AddScoped<IValidator<AccountUpdateDto>, AccountUpdateValidation>();
-       _builder.Services.AddScoped<IValidator<AccountPatchDto>, AccountPartialUpdateValidation>();
-       _builder.Services.AddScoped<IValidator<ProductCreateDto>, ProductCreateValidation>();
-       _builder.Services.AddScoped<IValidator<ProductUpdateDto>, ProductUpdateValidation>();
-       _builder.Services.AddScoped<IValidator<OrderCreateDto>, OrderCreateValidation>();
-       _builder.Services.AddScoped<IValidator<OrderUpdateDto>, OrderUpdateValidation>();
-       _builder.Services.AddScoped<IValidator<CreateOrderItemDto>, OrderItemCreateValidation>();
-       _builder.Services.AddScoped<IValidator<UpdateOrderItemDto>, OrderItemUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<AccountRegisterRequestDto>, AccountRegisterValidation>();
+       _builder.Services.AddScoped<IValidator<AccountLoginRequestDto>, AccountLoginValidation>();
+       _builder.Services.AddScoped<IValidator<AccountUpdateRequestDto>, AccountUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<ProductCreateRequestDto>, ProductCreateValidation>();
+       _builder.Services.AddScoped<IValidator<ProductUpdateRequestDto>, ProductUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<OrderCreateRequestDto>, OrderCreateValidation>();
+       _builder.Services.AddScoped<IValidator<OrderUpdateRequestDto>, OrderUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<CreateOrderItemRequestDto>, OrderItemCreateValidation>();
+       _builder.Services.AddScoped<IValidator<UpdateOrderItemRequestDto>, OrderItemUpdateValidation>();
     }
 }

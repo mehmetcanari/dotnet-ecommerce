@@ -21,7 +21,7 @@ public class UserAccountController : ControllerBase
     
     [Authorize(Roles = "User")]
     [HttpPut("update")]
-    public async Task<IActionResult> UpdateProfile([FromBody] AccountUpdateDto accountUpdateDto)
+    public async Task<IActionResult> UpdateProfile([FromBody] AccountUpdateRequestDto accountUpdateRequestDto)
     {
         if (!ModelState.IsValid)
         {
@@ -39,13 +39,8 @@ public class UserAccountController : ControllerBase
 
             var userEmail = userIdClaim.Value;
             var currentUser = await _accountService.GetAccountByEmailAsync(userEmail);
-            if (currentUser == null)
-            {
-                _logger.LogWarning("User account not found for email: {Email}", userEmail);
-                return NotFound("User account not found");
-            }
 
-            await _accountService.UpdateAccountAsync(currentUser.Email, accountUpdateDto);
+            await _accountService.UpdateAccountAsync(currentUser.Email, accountUpdateRequestDto);
             return Ok(new { message = "User updated successfully" });
         }
         catch (Exception exception)

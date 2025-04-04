@@ -48,7 +48,7 @@ public class AdminProductController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPost("create")]
-    public async Task<IActionResult> CreateProduct([FromBody] ProductCreateDto productCreateRequest)
+    public async Task<IActionResult> CreateProduct([FromBody] ProductCreateRequestDto productCreateRequestRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -57,8 +57,8 @@ public class AdminProductController : ControllerBase
         
         try
         {
-            await _productService.AddProductAsync(productCreateRequest);
-            return Created($"products/{productCreateRequest.Name}", new { message = "Product created successfully" });
+            await _productService.AddProductAsync(productCreateRequestRequest);
+            return Created($"products/{productCreateRequestRequest.Name}", new { message = "Product created successfully" });
         }
         catch (Exception exception)
         {
@@ -68,7 +68,7 @@ public class AdminProductController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromBody] ProductUpdateDto productUpdateRequest)
+    public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromBody] ProductUpdateRequestDto productUpdateRequestRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -77,7 +77,7 @@ public class AdminProductController : ControllerBase
         
         try
         {
-            await _productService.UpdateProductAsync(id, productUpdateRequest);
+            await _productService.UpdateProductAsync(id, productUpdateRequestRequest);
             return Ok(new { message = "Product updated successfully" });
         }
         catch (Exception exception)

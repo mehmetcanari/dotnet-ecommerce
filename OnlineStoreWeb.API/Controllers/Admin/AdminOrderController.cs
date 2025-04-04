@@ -63,7 +63,7 @@ public class AdminOrderController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateOrderStatus([FromRoute] int id, [FromBody] OrderUpdateDto orderUpdateDto)
+    public async Task<IActionResult> UpdateOrderStatus([FromRoute] int id, [FromBody] OrderUpdateRequestDto orderUpdateRequestDto)
     {
         if (!ModelState.IsValid)
         {
@@ -71,7 +71,7 @@ public class AdminOrderController : ControllerBase
         }
         try
         {
-            await _orderService.UpdateOrderStatusByAccountIdAsync(id, orderUpdateDto);
+            await _orderService.UpdateOrderStatusByAccountIdAsync(id, orderUpdateRequestDto);
             return Ok(new { message = "Order status updated successfully with id: " + id });
         }
         catch (Exception exception)

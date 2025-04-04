@@ -14,12 +14,12 @@ public class AccountService : IAccountService
         _logger = logger;
     }
     
-    public async Task RegisterAccountAsync(AccountRegisterDto createUserDto, string role)
+    public async Task RegisterAccountAsync(AccountRegisterRequestDto createUserRequestDto, string role)
     {
         try
         {
             List<Model.Account> accounts = await _accountRepository.Read();
-            if(accounts.Any(a => a.Email == createUserDto.Email)) //Duplicate email check
+            if(accounts.Any(a => a.Email == createUserRequestDto.Email)) //Duplicate email check
             {
                 _logger.LogError("Email already exists in the system, try another email");
                 throw new Exception("Email already exists in the system, try another email");
@@ -27,11 +27,11 @@ public class AccountService : IAccountService
 
             Model.Account account = new Model.Account
             {
-                FullName = createUserDto.FullName,
-                Email = createUserDto.Email,
-                Address = createUserDto.Address,
-                PhoneNumber = createUserDto.PhoneNumber,
-                DateOfBirth = createUserDto.DateOfBirth.ToUniversalTime(),
+                FullName = createUserRequestDto.FullName,
+                Email = createUserRequestDto.Email,
+                Address = createUserRequestDto.Address,
+                PhoneNumber = createUserRequestDto.PhoneNumber,
+                DateOfBirth = createUserRequestDto.DateOfBirth.ToUniversalTime(),
                 UserCreated = DateTime.UtcNow,
                 UserUpdated = DateTime.UtcNow,
                 Role = role
@@ -46,23 +46,23 @@ public class AccountService : IAccountService
         }
     }
     
-    public async Task UpdateAccountAsync(string email, AccountUpdateDto updateUserDto)
+    public async Task UpdateAccountAsync(string email, AccountUpdateRequestDto updateRequestUserDto)
     {
         try
         {
             List<Model.Account> accounts = await _accountRepository.Read();
             Model.Account account = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
             
-            if(accounts.Any(a => a.Email == updateUserDto.Email)) //Duplicate email check
+            if(accounts.Any(a => a.Email == updateRequestUserDto.Email)) //Duplicate email check
             {
                 _logger.LogError("Email already exists in the system, try another email");
                 throw new Exception("Email already exists in the system, try another email");
             }
             
-            account.FullName = updateUserDto.FullName;
-            account.Email = updateUserDto.Email;
-            account.Address = updateUserDto.Address;
-            account.PhoneNumber = updateUserDto.PhoneNumber;
+            account.FullName = updateRequestUserDto.FullName;
+            account.Email = updateRequestUserDto.Email;
+            account.Address = updateRequestUserDto.Address;
+            account.PhoneNumber = updateRequestUserDto.PhoneNumber;
             account.UserUpdated = DateTime.UtcNow;
 
             await _accountRepository.Update(account);

@@ -3,7 +3,7 @@ using OnlineStoreWeb.API.DTO.Request.Account;
 
 namespace OnlineStoreWeb.API.Validations.Account;
 
-public class AccountUpdateValidation : AbstractValidator<AccountUpdateDto>
+public class AccountUpdateValidation : AbstractValidator<AccountUpdateRequestDto>
 {
     public AccountUpdateValidation()
     {

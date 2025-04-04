@@ -13,13 +13,16 @@ public class OrderItemService : IOrderItemService
     private readonly IProductRepository _productRepository;
     private readonly ILogger<OrderItemService> _logger;
 
-    public OrderItemService(IOrderItemRepository orderItemRepository, IProductRepository productRepository,
-        ILogger<OrderItemService> logger, IAccountRepository accountRepository)
+    public OrderItemService(
+        IOrderItemRepository orderItemRepository, 
+        IProductRepository productRepository,
+        IAccountRepository accountRepository,
+        ILogger<OrderItemService> logger)
     {
         _orderItemRepository = orderItemRepository;
-        _logger = logger;
         _productRepository = productRepository;
         _accountRepository = accountRepository;
+        _logger = logger;
     }
 
     public async Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync(string email)
@@ -52,7 +55,7 @@ public class OrderItemService : IOrderItemService
         }
     }
 
-    public async Task CreateOrderItemAsync(CreateOrderItemDto createOrderItemDto, string email)
+    public async Task CreateOrderItemAsync(CreateOrderItemRequestDto createOrderItemRequestDto, string email)
     {
         try
         {
@@ -61,13 +64,13 @@ public class OrderItemService : IOrderItemService
 
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                         throw new Exception("Account not found");
-            var product = products.FirstOrDefault(p => p.ProductId == createOrderItemDto.ProductId) ??
+            var product = products.FirstOrDefault(p => p.ProductId == createOrderItemRequestDto.ProductId) ??
                           throw new Exception("Product not found");
 
             if (accounts.FirstOrDefault(a => a.AccountId == tokenAccount.AccountId) == null)
                 throw new Exception("Account not found");
 
-            if (createOrderItemDto.Quantity > product.StockQuantity)
+            if (createOrderItemRequestDto.Quantity > product.StockQuantity)
             {
                 throw new Exception("Not enough stock");
             }
@@ -75,7 +78,7 @@ public class OrderItemService : IOrderItemService
             var orderItem = new Model.OrderItem
             {
                 AccountId = tokenAccount.AccountId,
-                Quantity = createOrderItemDto.Quantity,
+                Quantity = createOrderItemRequestDto.Quantity,
                 ProductId = product.ProductId,
                 UnitPrice = product.Price,
                 ProductName = product.Name
@@ -84,7 +87,7 @@ public class OrderItemService : IOrderItemService
             await _orderItemRepository.Create(orderItem);
             _logger.LogInformation("Order item created successfully");
 
-            product.StockQuantity -= createOrderItemDto.Quantity;
+            product.StockQuantity -= createOrderItemRequestDto.Quantity;
             await _productRepository.Update(product);
         }
         catch (Exception exception)
@@ -94,7 +97,7 @@ public class OrderItemService : IOrderItemService
         }
     }
 
-    public async Task UpdateOrderItemAsync(UpdateOrderItemDto updateOrderItemDto, string email)
+    public async Task UpdateOrderItemAsync(UpdateOrderItemRequestDto updateOrderItemRequestDto, string email)
     {
         try
         {
@@ -106,20 +109,20 @@ public class OrderItemService : IOrderItemService
                         throw new Exception("Account not found");
 
             var orderItem = orderItems.FirstOrDefault(p =>
-                                p.OrderItemId == updateOrderItemDto.OrderItemId &&
+                                p.OrderItemId == updateOrderItemRequestDto.OrderItemId &&
                                 p.AccountId == tokenAccount.AccountId) ??
                             throw new Exception("Order item not found");
 
-            var product = products.FirstOrDefault(p => p.ProductId == updateOrderItemDto.ProductId) ??
+            var product = products.FirstOrDefault(p => p.ProductId == updateOrderItemRequestDto.ProductId) ??
                           throw new Exception("Product not found");
 
-            if (product.StockQuantity < updateOrderItemDto.Quantity)
+            if (product.StockQuantity < updateOrderItemRequestDto.Quantity)
             {
                 throw new Exception("Not enough stock");
             }
 
-            orderItem.Quantity = updateOrderItemDto.Quantity;
-            orderItem.ProductId = updateOrderItemDto.ProductId;
+            orderItem.Quantity = updateOrderItemRequestDto.Quantity;
+            orderItem.ProductId = updateOrderItemRequestDto.ProductId;
             orderItem.ProductName = product.Name;
 
             await _orderItemRepository.Update(orderItem);

@@ -1,6 +1,6 @@
 namespace OnlineStoreWeb.API.DTO.Request.Order;
 
-public record OrderCreateDto
+public record OrderCreateRequestDto
 {
     public required string ShippingAddress {get;set;}
     public required string BillingAddress {get;set;}

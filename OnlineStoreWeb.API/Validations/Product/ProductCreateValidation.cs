@@ -3,7 +3,7 @@ using OnlineStoreWeb.API.DTO.Request.Product;
 
 namespace OnlineStoreWeb.API.Validations.Product;
 
-public class ProductCreateValidation : AbstractValidator<ProductCreateDto>
+public class ProductCreateValidation : AbstractValidator<ProductCreateRequestDto>
 {
     public ProductCreateValidation()
     {

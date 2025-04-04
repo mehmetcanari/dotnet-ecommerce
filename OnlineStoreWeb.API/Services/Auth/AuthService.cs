@@ -29,26 +29,27 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    private async Task RegisterUserWithRoleAsync(AccountRegisterDto registerDto, string role)
+    private async Task RegisterUserWithRoleAsync(AccountRegisterRequestDto registerRequestDto, string role)
     {
-        var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
+        var existingUser = await _userManager.FindByEmailAsync(registerRequestDto.Email);
         if (existingUser != null)
         {
-            _logger.LogWarning("Registration failed - Email already exists: {Email}", registerDto.Email);
+            _logger.LogWarning("Registration failed - Email already exists: {Email}", registerRequestDto.Email);
             throw new Exception("Email is already in use.");
         }
 
         var user = new IdentityUser
         {
-            UserName = registerDto.Email,
-            Email = registerDto.Email,
-            PhoneNumber = registerDto.PhoneNumber,
+            UserName = registerRequestDto.Email,
+            Email = registerRequestDto.Email,
+            PhoneNumber = registerRequestDto.PhoneNumber,
         };
 
-        var result = await _userManager.CreateAsync(user, registerDto.Password);
+        var result = await _userManager.CreateAsync(user, registerRequestDto.Password);
         if (!result.Succeeded)
         {
-            _logger.LogError("Failed to create user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+            _logger.LogError("Failed to create user: {Errors}",
+                string.Join(", ", result.Errors.Select(e => e.Description)));
             throw new Exception("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
@@ -57,7 +58,8 @@ public class AuthService : IAuthService
             var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
             if (!roleResult.Succeeded)
             {
-                _logger.LogError("Failed to create role: {Errors}", string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                _logger.LogError("Failed to create role: {Errors}",
+                    string.Join(", ", roleResult.Errors.Select(e => e.Description)));
                 throw new Exception($"Error creating {role} role.");
             }
         }
@@ -65,75 +67,80 @@ public class AuthService : IAuthService
         var addRoleResult = await _userManager.AddToRoleAsync(user, role);
         if (!addRoleResult.Succeeded)
         {
-            _logger.LogError("Failed to add role to user: {Errors}", string.Join(", ", addRoleResult.Errors.Select(e => e.Description)));
+            _logger.LogError("Failed to add role to user: {Errors}",
+                string.Join(", ", addRoleResult.Errors.Select(e => e.Description)));
             throw new Exception("Error assigning role to user.");
         }
 
-        _logger.LogInformation("User {Email} registered successfully with role {Role}", registerDto.Email, role);
+        _logger.LogInformation("User {Email} registered successfully with role {Role}", registerRequestDto.Email, role);
 
-        await _accountService.RegisterAccountAsync(registerDto, role);
+        await _accountService.RegisterAccountAsync(registerRequestDto, role);
     }
 
-    public async Task<AuthResponse> LoginAsync(AccountLoginDto loginDto)
+    public async Task<AuthResponseDto> LoginAsync(AccountLoginRequestDto loginRequestDto)
     {
-        _logger.LogInformation("Login attempt for user: {Email}", loginDto.Email);
-        
-        var user = await _userManager.FindByEmailAsync(loginDto.Email);
+        _logger.LogInformation("Login attempt for user: {Email}", loginRequestDto.Email);
+
+        var user = await _userManager.FindByEmailAsync(loginRequestDto.Email);
         if (user == null)
         {
-            _logger.LogWarning("Login failed - User not found: {Email}", loginDto.Email);
+            _logger.LogWarning("Login failed - User not found: {Email}", loginRequestDto.Email);
             throw new Exception("Invalid email or password.");
         }
 
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, loginDto.Password);
+        var isPasswordValid = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
         if (!isPasswordValid)
         {
-            _logger.LogWarning("Login failed - Invalid password for user: {Email}", loginDto.Email);
+            _logger.LogWarning("Login failed - Invalid password for user: {Email}", loginRequestDto.Email);
             throw new Exception("Invalid email or password.");
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        AuthResponse authResponse = await _tokenService.GenerateAuthTokenAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
-        _logger.LogInformation("Login successful for user: {Email}", loginDto.Email);
-        return authResponse;
+        AuthResponseDto authResponseDto =
+            await _tokenService.GenerateAuthTokenAsync(
+                user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+        _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
+        return authResponseDto;
     }
 
-public async Task<AuthResponse> RefreshTokenAsync(string? refreshToken = null)
-{
-    try
+    public async Task<AuthResponseDto> RefreshTokenAsync(string? refreshToken = null)
     {
-        var principal = await _tokenService.GetPrincipalFromExpiredToken(refreshToken ?? throw new Exception("Refresh token not found"));
-        
-        var email = principal.FindFirst(ClaimTypes.Email)?.Value;
-        if (string.IsNullOrEmpty(email))
+        try
         {
-            throw new Exception("Email claim not found in token");
-        }
+            var principal =
+                await _tokenService.GetPrincipalFromExpiredToken(refreshToken ??
+                                                                 throw new Exception("Refresh token not found"));
 
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
+            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new Exception("Email claim not found in token");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return await _tokenService.GenerateAuthTokenAsync(email, roles);
+        }
+        catch (Exception ex)
         {
-            throw new Exception("User not found");
-        }
-
-        var roles = await _userManager.GetRolesAsync(user);
-
-        return await _tokenService.GenerateAuthTokenAsync(email, roles);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error refreshing token for user");
-        throw;
+            _logger.LogError(ex, "Error refreshing token for user");
+            throw;
         }
     }
 
-    public async Task RegisterUserAsync(AccountRegisterDto registerDto)
+    public async Task RegisterUserAsync(AccountRegisterRequestDto registerRequestDto)
     {
-        await RegisterUserWithRoleAsync(registerDto, "User");
+        await RegisterUserWithRoleAsync(registerRequestDto, "User");
     }
 
-    public async Task RegisterAdminAsync(AccountRegisterDto registerDto)
+    public async Task RegisterAdminAsync(AccountRegisterRequestDto registerRequestDto)
     {
-        await RegisterUserWithRoleAsync(registerDto, "Admin");
+        await RegisterUserWithRoleAsync(registerRequestDto, "Admin");
     }
-} 
+}

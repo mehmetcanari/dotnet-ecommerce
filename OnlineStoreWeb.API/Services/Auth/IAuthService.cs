@@ -6,8 +6,8 @@ namespace OnlineStoreWeb.API.Services.Auth;
 
 public interface IAuthService
 {
-    Task RegisterUserAsync(AccountRegisterDto registerDto);
-    Task RegisterAdminAsync(AccountRegisterDto registerDto);
-    Task<AuthResponse> LoginAsync(AccountLoginDto loginDto);
-    Task<AuthResponse> RefreshTokenAsync(string refreshToken);
+    Task RegisterUserAsync(AccountRegisterRequestDto registerRequestDto);
+    Task RegisterAdminAsync(AccountRegisterRequestDto registerRequestDto);
+    Task<AuthResponseDto> LoginAsync(AccountLoginRequestDto loginRequestDto);
+    Task<AuthResponseDto> RefreshTokenAsync(string refreshToken);
 } 

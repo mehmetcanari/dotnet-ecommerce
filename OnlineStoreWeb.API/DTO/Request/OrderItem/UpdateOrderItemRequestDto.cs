@@ -1,6 +1,6 @@
 ﻿namespace OnlineStoreWeb.API.DTO.Request.OrderItem;
 
-public record UpdateOrderItemDto
+public record UpdateOrderItemRequestDto
 {
     public required int OrderItemId { get; set; }
     public required int Quantity { get; set; }

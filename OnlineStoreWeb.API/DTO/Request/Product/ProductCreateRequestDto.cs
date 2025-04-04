@@ -1,6 +1,6 @@
 namespace OnlineStoreWeb.API.DTO.Request.Product;
 
-public record ProductCreateDto
+public record ProductCreateRequestDto
 {
     public required string Name {get;set;}
     public required string Description {get;set;}

@@ -3,7 +3,7 @@ using OnlineStoreWeb.API.DTO.Request.Account;
 
 namespace OnlineStoreWeb.API.Validations.Account;
 
-public class AccountLoginValidation : AbstractValidator<AccountLoginDto>
+public class AccountLoginValidation : AbstractValidator<AccountLoginRequestDto>
 {
     public AccountLoginValidation()
     {

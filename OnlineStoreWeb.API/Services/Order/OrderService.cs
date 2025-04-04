@@ -17,8 +17,12 @@ public class OrderService : IOrderService
     private readonly IAccountRepository _accountRepository;
     private readonly ILogger<OrderService> _logger;
 
-    public OrderService(IOrderRepository orderRepository, IOrderItemService orderItemService,IOrderItemRepository orderItemRepository,
-        IAccountRepository accountRepository, ILogger<OrderService> logger)
+    public OrderService(
+        IOrderRepository orderRepository, 
+        IOrderItemService orderItemService,
+        IOrderItemRepository orderItemRepository,
+        IAccountRepository accountRepository, 
+        ILogger<OrderService> logger)
     {
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
@@ -27,7 +31,7 @@ public class OrderService : IOrderService
         _logger = logger;
     }
 
-    public async Task AddOrderAsync(OrderCreateDto createOrderDto, string email)
+    public async Task AddOrderAsync(OrderCreateRequestDto createRequestOrderDto, string email)
     {
         try
         {
@@ -35,7 +39,7 @@ public class OrderService : IOrderService
             var accounts = await _accountRepository.Read();
 
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                              throw new Exception("User not found");
+                               throw new Exception("User not found");
             var userOrderItems = orderItems.Where(oi => oi.AccountId == tokenAccount.AccountId).ToList();
 
             List<Model.OrderItem> newOrderItems = userOrderItems
@@ -56,12 +60,12 @@ public class OrderService : IOrderService
             Model.Order order = new Model.Order
             {
                 AccountId = tokenAccount.AccountId,
-                ShippingAddress = createOrderDto.ShippingAddress,
-                BillingAddress = createOrderDto.BillingAddress,
-                PaymentMethod = createOrderDto.PaymentMethod,
+                ShippingAddress = createRequestOrderDto.ShippingAddress,
+                BillingAddress = createRequestOrderDto.BillingAddress,
+                PaymentMethod = createRequestOrderDto.PaymentMethod,
                 OrderItems = newOrderItems
             };
-            
+
             await _orderItemService.DeleteAllOrderItemsAsync(email);
             await _orderRepository.Create(order);
         }
@@ -78,9 +82,9 @@ public class OrderService : IOrderService
         {
             var orders = await _orderRepository.Read();
             var accounts = await _accountRepository.Read();
-            
+
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                        throw new Exception("Account not found");
+                               throw new Exception("Account not found");
             var order = orders.FirstOrDefault(o => o.AccountId == tokenAccount.AccountId) ??
                         throw new Exception("Order not found");
             await _orderRepository.Delete(order);
@@ -98,7 +102,7 @@ public class OrderService : IOrderService
         {
             var orders = await _orderRepository.Read();
             var orderToDelete = orders.FirstOrDefault(o => o.OrderId == id) ??
-                        throw new Exception("Order not found");
+                                throw new Exception("Order not found");
             await _orderRepository.Delete(orderToDelete);
         }
         catch (Exception ex)
@@ -113,7 +117,7 @@ public class OrderService : IOrderService
         try
         {
             var orders = await _orderRepository.Read();
-            
+
             return orders.Select(o => new OrderResponseDto
             {
                 AccountId = o.AccountId,
@@ -124,7 +128,6 @@ public class OrderService : IOrderService
                     Quantity = oi.Quantity,
                     UnitPrice = oi.UnitPrice,
                     ProductName = oi.ProductName
-                    
                 }).ToList(),
                 OrderDate = o.OrderDate,
                 ShippingAddress = o.ShippingAddress,
@@ -146,15 +149,15 @@ public class OrderService : IOrderService
         {
             var orders = await _orderRepository.Read();
             var accounts = await _accountRepository.Read();
-            
+
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                        throw new Exception("Account not found");
+                               throw new Exception("Account not found");
             var order = orders.FirstOrDefault(o => o.AccountId == tokenAccount.AccountId) ??
                         throw new Exception("Order not found");
-            
+
             if (order == null)
                 throw new Exception("Order not found");
-        
+
             OrderResponseDto orderResponseDto = new()
             {
                 AccountId = order.AccountId,
@@ -172,7 +175,7 @@ public class OrderService : IOrderService
                 PaymentMethod = order.PaymentMethod,
                 Status = order.Status
             };
-            
+
             return orderResponseDto;
         }
         catch (Exception ex)
@@ -189,8 +192,8 @@ public class OrderService : IOrderService
             var orders = await _orderRepository.Read();
             var order = orders.FirstOrDefault(o => o.OrderId == id) ??
                         throw new Exception("Order not found");
-            
-             OrderResponseDto orderResponseDto = new()
+
+            OrderResponseDto orderResponseDto = new()
             {
                 AccountId = order.AccountId,
                 OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
@@ -207,7 +210,7 @@ public class OrderService : IOrderService
                 PaymentMethod = order.PaymentMethod,
                 Status = order.Status
             };
-            
+
             return orderResponseDto;
         }
         catch (Exception ex)
@@ -217,13 +220,13 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateDto orderUpdateDto)
+    public async Task UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateRequestDto orderUpdateRequestDto)
     {
         try
         {
             var orders = await _orderRepository.Read();
             var order = orders.FirstOrDefault(o => o.AccountId == accountId) ?? throw new Exception("Order not found");
-            order.Status = orderUpdateDto.Status;
+            order.Status = orderUpdateRequestDto.Status;
             await _orderRepository.Update(order);
         }
         catch (Exception ex)
