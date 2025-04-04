@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace OnlineStoreWeb.API.Services.Cryptography;
+namespace OnlineStoreWeb.API.Utility;
 
 public static class CryptographyService
 {

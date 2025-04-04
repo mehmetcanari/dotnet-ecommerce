@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using OnlineStoreWeb.API.DTO.Request.Account;
+using OnlineStoreWeb.API.DTO.Response.Auth;
 using OnlineStoreWeb.API.Services.Account;
 using OnlineStoreWeb.API.Services.Token;
+using System.Security.Claims;
 
 namespace OnlineStoreWeb.API.Services.Auth;
 
@@ -72,7 +74,7 @@ public class AuthService : IAuthService
         await _accountService.RegisterAccountAsync(registerDto, role);
     }
 
-    public async Task<string> LoginAsync(AccountLoginDto loginDto)
+    public async Task<AuthResponse> LoginAsync(AccountLoginDto loginDto)
     {
         _logger.LogInformation("Login attempt for user: {Email}", loginDto.Email);
         
@@ -91,10 +93,38 @@ public class AuthService : IAuthService
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        var token = _tokenService.GenerateToken(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+        AuthResponse authResponse = await _tokenService.GenerateAuthTokenAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+        _logger.LogInformation("Login successful for user: {Email}", loginDto.Email);
+        return authResponse;
+    }
 
-        _logger.LogInformation("User {Email} logged in successfully", loginDto.Email);
-        return token;
+public async Task<AuthResponse> RefreshTokenAsync(string? refreshToken = null)
+{
+    try
+    {
+        var principal = await _tokenService.GetPrincipalFromExpiredToken(refreshToken ?? throw new Exception("Refresh token not found"));
+        
+        var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+        if (string.IsNullOrEmpty(email))
+        {
+            throw new Exception("Email claim not found in token");
+        }
+
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return await _tokenService.GenerateAuthTokenAsync(email, roles);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error refreshing token for user");
+        throw;
+        }
     }
 
     public async Task RegisterUserAsync(AccountRegisterDto registerDto)

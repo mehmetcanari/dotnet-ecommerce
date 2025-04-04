@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStoreWeb.API.DTO.Request.Account;
 using OnlineStoreWeb.API.Services.Auth;
@@ -67,13 +68,35 @@ namespace OnlineStoreWeb.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var token = await _authService.LoginAsync(accountLoginDto);
-                var expirationMinutes = Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES") ?? "120";
-                return Ok(new { token });
+                var authResponse = await _authService.LoginAsync(accountLoginDto);
+                return Ok(authResponse);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during login for user: {Email}", accountLoginDto.Email);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("refresh-token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshToken()
+        {
+            try
+            {
+                var refreshToken = Request.Cookies["refreshToken"];
+
+                if (string.IsNullOrEmpty(refreshToken))
+                {
+                    return BadRequest("Refresh token not found");
+                }
+
+                var authResponse = await _authService.RefreshTokenAsync(refreshToken);
+                return Ok(authResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during token refresh");
                 return BadRequest(ex.Message);
             }
         }

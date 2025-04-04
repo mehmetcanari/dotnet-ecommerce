@@ -153,6 +153,7 @@ namespace OnlineStoreWeb.API
             // CORE SERVICES REGISTRATION
             // Add controllers and register custom dependencies
             //======================================================
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 

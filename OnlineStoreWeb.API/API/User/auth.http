@@ -49,3 +49,6 @@ Content-Type: application/json
   "password": "AdminPassword123!"
 }
 
+### REFRESH TOKEN USER
+
+POST {{baseUrl}}/{{route}}/refresh-token
