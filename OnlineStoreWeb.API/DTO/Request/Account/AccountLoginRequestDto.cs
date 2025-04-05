@@ -1,7 +1,0 @@
-﻿namespace OnlineStoreWeb.API.DTO.Request.Account;
-
-public record AccountLoginRequestDto
-{
-    public required string Email { get; init; }
-    public required string Password { get; init; }
-}
