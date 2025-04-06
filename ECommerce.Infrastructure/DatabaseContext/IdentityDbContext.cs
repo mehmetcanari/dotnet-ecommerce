@@ -2,9 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using DotNetEnv;
 
-namespace ECommerce.API.Model;
+namespace ECommerce.Domain.Model.Context;
 
 public class ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) 
     : IdentityDbContext<IdentityUser>(options)

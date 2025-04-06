@@ -1,7 +1,7 @@
-using ECommerce.API.DTO.Request.Product;
-using ECommerce.API.DTO.Response.Product;
+using ECommerce.Application.DTO.Request.Product;
+using ECommerce.Application.DTO.Response.Product;
 
-namespace ECommerce.API.Services.Product;
+namespace ECommerce.Application.Services.Product;
 
 public interface IProductService
 {

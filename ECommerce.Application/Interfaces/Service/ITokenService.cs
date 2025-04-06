@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using ECommerce.API.DTO.Response.Auth;
+using ECommerce.Application.DTO.Response.Auth;
 
-namespace ECommerce.API.Services.Token;
+namespace ECommerce.Application.Services.Token;
 
 public interface ITokenService
 {

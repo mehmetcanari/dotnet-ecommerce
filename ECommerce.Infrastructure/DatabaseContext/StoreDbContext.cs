@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerce.API.Model;
+namespace ECommerce.Domain.Model.Context;
 
 public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContext(options)
 {

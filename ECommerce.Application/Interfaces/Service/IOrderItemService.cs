@@ -1,7 +1,7 @@
-﻿using ECommerce.API.DTO.Request.OrderItem;
-using ECommerce.API.DTO.Response.OrderItem;
+﻿using ECommerce.Application.DTO.Request.OrderItem;
+using ECommerce.Application.DTO.Response.OrderItem;
 
-namespace ECommerce.API.Services.OrderItem;
+namespace ECommerce.Application.Services.OrderItem;
 
 public interface IOrderItemService
 {

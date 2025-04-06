@@ -1,8 +1,7 @@
-using ECommerce.API.DTO.Request.Account;
-using ECommerce.API.DTO.Response.Auth;
-using Microsoft.AspNetCore.Identity;
+using ECommerce.Application.DTO.Request.Account;
+using ECommerce.Application.DTO.Response.Auth;
 
-namespace ECommerce.API.Services.Auth;
+namespace ECommerce.Application.Services.Auth;
 
 public interface IAuthService
 {

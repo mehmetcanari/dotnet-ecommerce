@@ -1,7 +1,7 @@
-using ECommerce.API.DTO.Request.Order;
-using ECommerce.API.DTO.Response.Order;
+using ECommerce.Application.DTO.Request.Order;
+using ECommerce.Application.DTO.Response.Order;
 
-namespace ECommerce.API.Services.Order;
+namespace ECommerce.Application.Services.Order;
 
 public interface IOrderService
 {
