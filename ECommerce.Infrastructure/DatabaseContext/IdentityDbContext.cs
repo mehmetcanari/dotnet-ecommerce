@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace ECommerce.Domain.Model.Context;
+namespace ECommerce.Infrastructure.DatabaseContext;
 
 public class ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) 
     : IdentityDbContext<IdentityUser>(options)

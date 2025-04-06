@@ -1,4 +1,4 @@
-﻿namespace ECommerce.API.DTO.Request.OrderItem;
+﻿namespace ECommerce.Application.DTO.Request.OrderItem;
 
 public record UpdateOrderItemRequestDto
 {

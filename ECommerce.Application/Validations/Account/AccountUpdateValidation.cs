@@ -1,7 +1,7 @@
-using ECommerce.API.DTO.Request.Account;
+using ECommerce.Application.DTO.Request.Account;
 using FluentValidation;
 
-namespace ECommerce.API.Validations.Account;
+namespace ECommerce.Application.Validations.Account;
 
 public class AccountUpdateValidation : AbstractValidator<AccountUpdateRequestDto>
 {

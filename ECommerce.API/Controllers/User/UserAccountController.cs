@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using ECommerce.API.DTO.Request.Account;
-using ECommerce.API.Services.Account;
+using ECommerce.Application.DTO.Request.Account;
+using ECommerce.Application.Interfaces.Service;
 
 namespace ECommerce.API.Controllers.User;
 

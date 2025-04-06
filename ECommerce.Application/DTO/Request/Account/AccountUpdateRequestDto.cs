@@ -1,4 +1,4 @@
-namespace ECommerce.API.DTO.Request.Account;
+namespace ECommerce.Application.DTO.Request.Account;
 
 public record AccountUpdateRequestDto
 {

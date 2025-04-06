@@ -1,8 +1,10 @@
-using ECommerce.API.DTO.Request.Account;
-using ECommerce.API.DTO.Response.Account;
-using ECommerce.API.Repositories.Account;
+using ECommerce.Application.DTO.Request.Account;
+using ECommerce.Application.DTO.Response.Account;
+using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Application.Interfaces.Service;
+using Microsoft.Extensions.Logging;
 
-namespace ECommerce.API.Services.Account;
+namespace ECommerce.Application.Services.Account;
 public class AccountService : IAccountService
 {
     private readonly IAccountRepository _accountRepository;
@@ -18,14 +20,14 @@ public class AccountService : IAccountService
     {
         try
         {
-            List<Model.Account> accounts = await _accountRepository.Read();
+            var accounts = await _accountRepository.Read();
             if(accounts.Any(a => a.Email == createUserRequestDto.Email)) //Duplicate email check
             {
                 _logger.LogError("Email already exists in the system, try another email");
                 throw new Exception("Email already exists in the system, try another email");
             }
 
-            Model.Account account = new Model.Account
+            var account = new Domain.Model.Account
             {
                 FullName = createUserRequestDto.FullName,
                 Email = createUserRequestDto.Email,
@@ -50,8 +52,8 @@ public class AccountService : IAccountService
     {
         try
         {
-            List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
+            var accounts = await _accountRepository.Read();
+            var account = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
             
             if(accounts.Any(a => a.Email == updateRequestUserDto.Email)) //Duplicate email check
             {
@@ -78,7 +80,7 @@ public class AccountService : IAccountService
     {
         try
         {
-            List<Model.Account> accounts = await _accountRepository.Read();
+            var accounts = await _accountRepository.Read();
             int accountCount = accounts.Count;
             if(accountCount < 1)
             {
@@ -109,10 +111,10 @@ public class AccountService : IAccountService
     {
         try
         {
-            List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
+            var accounts = await _accountRepository.Read();
+            var account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
             
-            AccountResponseDto responseAccount = new AccountResponseDto
+            var responseAccount = new AccountResponseDto
             {
                 AccountId = account.AccountId,
                 FullName = account.FullName,
@@ -136,8 +138,8 @@ public class AccountService : IAccountService
     {
         try
         {
-            List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
+            var accounts = await _accountRepository.Read();
+            var account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
             await _accountRepository.Delete(account);
         }
         catch (Exception ex)
@@ -151,11 +153,11 @@ public class AccountService : IAccountService
     {
         try
         {
-            List<Model.Account> accounts = await _accountRepository.Read();
-            Model.Account account = accounts.FirstOrDefault(a => a.Email == email) ?? 
-                throw new Exception($"User with email {email} not found");
+            var accounts = await _accountRepository.Read();
+            var account = accounts.FirstOrDefault(a => a.Email == email) ?? 
+                          throw new Exception($"User with email {email} not found");
             
-            AccountResponseDto responseAccount = new AccountResponseDto
+            var responseAccount = new AccountResponseDto
             {
                 AccountId = account.AccountId,
                 FullName = account.FullName,

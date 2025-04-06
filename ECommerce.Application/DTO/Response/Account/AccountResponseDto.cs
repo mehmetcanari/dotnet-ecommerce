@@ -1,4 +1,4 @@
-﻿namespace ECommerce.API.DTO.Response.Account;
+﻿namespace ECommerce.Application.DTO.Response.Account;
 
 public class AccountResponseDto
 {

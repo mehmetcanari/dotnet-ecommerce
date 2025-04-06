@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -7,7 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="Properties\launchSettings.json" />
+      <PackageReference Include="DotNetEnv" Version="3.1.1" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ECommerce.Application\ECommerce.Application.csproj" />
+      <ProjectReference Include="..\ECommerce.Domain\ECommerce.Domain.csproj" />
     </ItemGroup>
 
 </Project>

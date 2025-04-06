@@ -1,7 +1,7 @@
-using ECommerce.API.DTO.Request.Product;
+using ECommerce.Application.DTO.Request.Product;
 using FluentValidation;
 
-namespace ECommerce.API.Validations.Product;
+namespace ECommerce.Application.Validations.Product;
 
 public class ProductCreateValidation : AbstractValidator<ProductCreateRequestDto>
 {

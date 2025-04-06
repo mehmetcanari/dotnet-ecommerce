@@ -1,4 +1,4 @@
-﻿namespace ECommerce.API.DTO.Response.OrderItem;
+﻿namespace ECommerce.Application.DTO.Response.OrderItem;
 
 public class OrderItemResponseDto
 {

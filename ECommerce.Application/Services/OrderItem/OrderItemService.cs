@@ -1,10 +1,10 @@
-﻿using ECommerce.API.DTO.Request.OrderItem;
-using ECommerce.API.DTO.Response.OrderItem;
-using ECommerce.API.Repositories.Account;
-using ECommerce.API.Repositories.OrderItem;
-using ECommerce.API.Repositories.Product;
+﻿using ECommerce.Application.DTO.Request.OrderItem;
+using ECommerce.Application.DTO.Response.OrderItem;
+using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Application.Interfaces.Service;
+using Microsoft.Extensions.Logging;
 
-namespace ECommerce.API.Services.OrderItem;
+namespace ECommerce.Application.Services.OrderItem;
 
 public class OrderItemService : IOrderItemService
 {
@@ -75,7 +75,7 @@ public class OrderItemService : IOrderItemService
                 throw new Exception("Not enough stock");
             }
 
-            var orderItem = new Model.OrderItem
+            var orderItem = new Domain.Model.OrderItem
             {
                 AccountId = tokenAccount.AccountId,
                 Quantity = createOrderItemRequestDto.Quantity,

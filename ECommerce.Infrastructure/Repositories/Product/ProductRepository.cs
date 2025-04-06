@@ -1,11 +1,12 @@
-using ECommerce.API.Model;
+using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerce.API.Repositories.Product;
+namespace ECommerce.Infrastructure.Repositories.Product;
 
 public class ProductRepository(StoreDbContext context) : IProductRepository
 {
-    public async Task<List<Model.Product>> Read()
+    public async Task<List<Domain.Model.Product>> Read()
     {
         try
         {
@@ -21,7 +22,7 @@ public class ProductRepository(StoreDbContext context) : IProductRepository
         }
     }
 
-    public async Task Create(Model.Product product)
+    public async Task Create(Domain.Model.Product product)
     {
         try
         {
@@ -38,7 +39,7 @@ public class ProductRepository(StoreDbContext context) : IProductRepository
         }
     }
 
-    public async Task Update(Model.Product product)
+    public async Task Update(Domain.Model.Product product)
     {
         try
         {
@@ -55,7 +56,7 @@ public class ProductRepository(StoreDbContext context) : IProductRepository
         }
     }
 
-    public async Task Delete(Model.Product product)
+    public async Task Delete(Domain.Model.Product product)
     {
         try
         {

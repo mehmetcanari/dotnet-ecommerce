@@ -1,8 +1,10 @@
-using ECommerce.API.DTO.Request.Product;
-using ECommerce.API.DTO.Response.Product;
-using ECommerce.API.Repositories.Product;
+using ECommerce.Application.DTO.Request.Product;
+using ECommerce.Application.DTO.Response.Product;
+using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Application.Interfaces.Service;
+using Microsoft.Extensions.Logging;
 
-namespace ECommerce.API.Services.Product;
+namespace ECommerce.Application.Services.Product;
 
 public class ProductService : IProductService
 {
@@ -78,7 +80,7 @@ public class ProductService : IProductService
                 throw new Exception("Product already exists in the database");
             }
 
-            var product = new Model.Product
+            var product = new Domain.Model.Product
             {
                 Name = productCreateRequestRequest.Name,
                 Description = productCreateRequestRequest.Description,
@@ -133,8 +135,8 @@ public class ProductService : IProductService
     {
         try
         {
-            List<Model.Product?> products = await _productRepository.Read();
-            Model.Product? product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
+            var products = await _productRepository.Read();
+            var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
             await _productRepository.Delete(product);
         }

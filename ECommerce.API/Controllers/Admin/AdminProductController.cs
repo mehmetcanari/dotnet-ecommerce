@@ -1,5 +1,5 @@
-using ECommerce.API.DTO.Request.Product;
-using ECommerce.API.Services.Product;
+using ECommerce.Application.DTO.Request.Product;
+using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

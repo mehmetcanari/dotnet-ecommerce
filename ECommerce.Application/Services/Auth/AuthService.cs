@@ -1,11 +1,11 @@
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using ECommerce.API.DTO.Request.Account;
-using ECommerce.API.DTO.Response.Auth;
-using ECommerce.API.Services.Account;
-using ECommerce.API.Services.Token;
+using ECommerce.Application.DTO.Request.Account;
+using ECommerce.Application.DTO.Response.Auth;
+using ECommerce.Application.Interfaces.Service;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
-namespace ECommerce.API.Services.Auth;
+namespace ECommerce.Application.Services.Auth;
 
 public class AuthService : IAuthService
 {

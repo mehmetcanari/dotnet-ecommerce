@@ -1,7 +1,7 @@
-﻿using ECommerce.API.DTO.Request.OrderItem;
+﻿using ECommerce.Application.DTO.Request.OrderItem;
 using FluentValidation;
 
-namespace ECommerce.API.Validations.OrderItem;
+namespace ECommerce.Application.Validations.OrderItem;
 
 public class OrderItemCreateValidation : AbstractValidator<CreateOrderItemRequestDto>
 {

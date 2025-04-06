@@ -1,4 +1,4 @@
-namespace ECommerce.API.DTO.Request.Order;
+namespace ECommerce.Application.DTO.Request.Order;
 
 public record OrderCreateRequestDto
 {

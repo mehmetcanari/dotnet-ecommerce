@@ -1,7 +1,6 @@
-using ECommerce.API.Services.Product;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.API.Repositories.Product;
+using ECommerce.Application.Interfaces.Service;
 
 namespace ECommerce.API.Controllers.User;
 

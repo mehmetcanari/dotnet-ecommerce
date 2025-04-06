@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using ECommerce.API.DTO.Request.OrderItem;
-using ECommerce.API.Services.OrderItem;
+using ECommerce.Application.DTO.Request.OrderItem;
+using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

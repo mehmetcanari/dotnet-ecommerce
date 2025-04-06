@@ -1,10 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using ECommerce.API.DTO.Response.Auth;
+using ECommerce.Application.DTO.Response.Auth;
+using ECommerce.Application.Interfaces.Service;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace ECommerce.API.Services.Token;
+namespace ECommerce.Application.Services.Token;
 
 public class TokenService : ITokenService
 {

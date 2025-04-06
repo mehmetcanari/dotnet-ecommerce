@@ -1,6 +1,6 @@
-﻿using ECommerce.API.DTO.Response.OrderItem;
+﻿using ECommerce.Application.DTO.Response.OrderItem;
 
-namespace ECommerce.API.DTO.Response.Order;
+namespace ECommerce.Application.DTO.Response.Order;
 
 public class OrderResponseDto
 {

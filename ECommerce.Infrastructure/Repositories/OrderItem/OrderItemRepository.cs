@@ -1,11 +1,12 @@
-﻿using ECommerce.API.Model;
+﻿using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerce.API.Repositories.OrderItem;
+namespace ECommerce.Infrastructure.Repositories.OrderItem;
 
 public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepository
 {
-    public async Task Create(Model.OrderItem orderItem)
+    public async Task Create(Domain.Model.OrderItem orderItem)
     {
         try
         {
@@ -18,7 +19,7 @@ public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepositor
         }
     }
     
-    public async Task<IEnumerable<Model.OrderItem>> Read()
+    public async Task<IEnumerable<Domain.Model.OrderItem>> Read()
     {
         try
         {
@@ -30,7 +31,7 @@ public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepositor
         }
     }
 
-    public async Task Update(Model.OrderItem orderItem)
+    public async Task Update(Domain.Model.OrderItem orderItem)
     {
         try
         {
@@ -47,7 +48,7 @@ public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepositor
         }
     }
 
-    public async Task Delete(Model.OrderItem orderItem)
+    public async Task Delete(Domain.Model.OrderItem orderItem)
     {
         try
         {

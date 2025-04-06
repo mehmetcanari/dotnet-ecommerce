@@ -1,11 +1,12 @@
-using ECommerce.API.Model;
+using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerce.API.Repositories.Account;
+namespace ECommerce.Infrastructure.Repositories.Account;
 
 public class AccountRepository(StoreDbContext context) : IAccountRepository
 {
-    public async Task<List<Model.Account>> Read()
+    public async Task<List<Domain.Model.Account>> Read()
     {
         try
         {
@@ -21,7 +22,7 @@ public class AccountRepository(StoreDbContext context) : IAccountRepository
         }
     }
 
-    public async Task Create(Model.Account userAccount)
+    public async Task Create(Domain.Model.Account userAccount)
     {
         try
         {
@@ -38,7 +39,7 @@ public class AccountRepository(StoreDbContext context) : IAccountRepository
         }
     }
 
-    public async Task Update(Model.Account account)
+    public async Task Update(Domain.Model.Account account)
     {
         try
         {
@@ -51,7 +52,7 @@ public class AccountRepository(StoreDbContext context) : IAccountRepository
         }
     }
 
-    public async Task Delete(Model.Account account)
+    public async Task Delete(Domain.Model.Account account)
     {
         try
         {

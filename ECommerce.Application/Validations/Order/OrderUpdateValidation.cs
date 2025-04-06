@@ -1,7 +1,7 @@
-using ECommerce.API.DTO.Request.Order;
+using ECommerce.Application.DTO.Request.Order;
 using FluentValidation;
 
-namespace ECommerce.API.Validations.Order;
+namespace ECommerce.Application.Validations.Order;
 
 public class OrderUpdateValidation : AbstractValidator<OrderUpdateRequestDto>
 {

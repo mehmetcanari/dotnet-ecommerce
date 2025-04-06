@@ -1,9 +1,9 @@
-namespace ECommerce.API.Repositories.Product;
+namespace ECommerce.Application.Interfaces.Repository;
 
 public interface IProductRepository
 {
-    Task Create(Model.Product? product);
-    Task<List<Model.Product?>> Read();
-    Task Update(Model.Product? product);
-    Task Delete(Model.Product? product);
+    Task Create(Domain.Model.Product product);
+    Task<List<Domain.Model.Product>> Read();
+    Task Update(Domain.Model.Product product);
+    Task Delete(Domain.Model.Product product);
 }

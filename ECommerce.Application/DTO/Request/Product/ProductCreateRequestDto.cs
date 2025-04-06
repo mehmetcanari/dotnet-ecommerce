@@ -1,4 +1,4 @@
-namespace ECommerce.API.DTO.Request.Product;
+namespace ECommerce.Application.DTO.Request.Product;
 
 public record ProductCreateRequestDto
 {

@@ -1,9 +1,9 @@
-namespace ECommerce.API.Repositories.Account;
+namespace ECommerce.Application.Interfaces.Repository;
 
 public interface IAccountRepository
 {
-    Task Create(Model.Account userAccount);
-    Task<List<Model.Account>> Read();
-    Task Update(Model.Account account);
-    Task Delete(Model.Account account);
+    Task Create(Domain.Model.Account userAccount);
+    Task<List<Domain.Model.Account>> Read();
+    Task Update(Domain.Model.Account account);
+    Task Delete(Domain.Model.Account account);
 }

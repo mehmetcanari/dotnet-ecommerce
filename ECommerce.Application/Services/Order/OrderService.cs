@@ -1,13 +1,11 @@
-using ECommerce.API.DTO.Request.Order;
-using ECommerce.API.DTO.Response.Order;
-using ECommerce.API.DTO.Response.OrderItem;
-using ECommerce.API.Repositories.Account;
-using ECommerce.API.Repositories.Order;
-using ECommerce.API.Repositories.OrderItem;
-using ECommerce.API.Services.OrderItem;
-using ECommerce.API.Repositories.Product;
+using ECommerce.Application.DTO.Request.Order;
+using ECommerce.Application.DTO.Response.Order;
+using ECommerce.Application.DTO.Response.OrderItem;
+using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Application.Interfaces.Service;
+using Microsoft.Extensions.Logging;
 
-namespace ECommerce.API.Services.Order;
+namespace ECommerce.Application.Services.Order;
 
 public class OrderService : IOrderService
 {
@@ -42,8 +40,8 @@ public class OrderService : IOrderService
                                throw new Exception("User not found");
             var userOrderItems = orderItems.Where(oi => oi.AccountId == tokenAccount.AccountId).ToList();
 
-            List<Model.OrderItem> newOrderItems = userOrderItems
-                .Select(orderItem => new Model.OrderItem
+            List<Domain.Model.OrderItem> newOrderItems = userOrderItems
+                .Select(orderItem => new Domain.Model.OrderItem
                 {
                     AccountId = orderItem.AccountId,
                     ProductId = orderItem.ProductId,
@@ -57,7 +55,7 @@ public class OrderService : IOrderService
                 throw new Exception("No items in cart");
             }
 
-            Model.Order order = new Model.Order
+            var order = new Domain.Model.Order
             {
                 AccountId = tokenAccount.AccountId,
                 ShippingAddress = createRequestOrderDto.ShippingAddress,

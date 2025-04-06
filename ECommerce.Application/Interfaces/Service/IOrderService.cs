@@ -1,7 +1,7 @@
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Response.Order;
 
-namespace ECommerce.Application.Services.Order;
+namespace ECommerce.Application.Interfaces.Service;
 
 public interface IOrderService
 {

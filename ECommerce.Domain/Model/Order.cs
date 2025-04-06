@@ -1,4 +1,4 @@
-namespace ECommerce.API.Model
+namespace ECommerce.Domain.Model
 {
     public class Order
     {   
@@ -10,7 +10,7 @@ namespace ECommerce.API.Model
         public required string ShippingAddress { get; init; }
         public required string BillingAddress { get; init; }
         public PaymentMethod PaymentMethod { get; init; }
-        public OrderStatus Status { get; internal set; } = OrderStatus.Pending;
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
     }
 }
 

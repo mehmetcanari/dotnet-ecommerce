@@ -1,4 +1,4 @@
-namespace ECommerce.API.Model;
+namespace ECommerce.Domain.Model;
 
 public class Account
 {
