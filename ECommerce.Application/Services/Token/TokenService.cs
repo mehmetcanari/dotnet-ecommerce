@@ -28,7 +28,7 @@ public class TokenService : ITokenService
         try
         {
             var accessToken = await GenerateToken(email, roles);
-            var refreshTokenString = await GenerateRefreshToken(email);
+            var refreshToken = await GenerateRefreshToken(email);
 
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(
                 Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS")));
@@ -46,7 +46,7 @@ public class TokenService : ITokenService
 
             _httpContextAccessor.HttpContext?.Response.Cookies.Append(
                 "refreshToken",
-                refreshTokenString,
+                refreshToken,
                 cookieOptions);
 
             return new AuthResponseDto
@@ -94,7 +94,7 @@ public class TokenService : ITokenService
 
     public Task<string> GenerateRefreshToken(string email)
     {
-        var claims = new List<Claim>
+        /* var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
@@ -113,7 +113,9 @@ public class TokenService : ITokenService
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
 
-        return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
+        return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token)); */
+
+        //TODO: Implement refresh token generation with Model Entity
     }
 
     public Task<ClaimsPrincipal> GetPrincipalFromExpiredToken(string? token = null)

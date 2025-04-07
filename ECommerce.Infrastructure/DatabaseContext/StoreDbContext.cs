@@ -9,6 +9,7 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContex
     public DbSet<Product> Products => Set<Product>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Order> Orders => Set<Order>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
