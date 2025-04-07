@@ -18,6 +18,7 @@ using ECommerce.Infrastructure.Repositories.Account;
 using ECommerce.Infrastructure.Repositories.Order;
 using ECommerce.Infrastructure.Repositories.OrderItem;
 using ECommerce.Infrastructure.Repositories.Product;
+using ECommerce.Infrastructure.Repositories.Token;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -38,12 +39,14 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<IProductRepository, ProductRepository>();
         _builder.Services.AddScoped<IAccountRepository, AccountRepository>();
         _builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+        _builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         _builder.Services.AddScoped<IAccountService, AccountService>();
         _builder.Services.AddScoped<IOrderService, OrderService>();
         _builder.Services.AddScoped<IProductService, ProductService>();
         _builder.Services.AddScoped<IOrderItemService, OrderItemService>();
         _builder.Services.AddScoped<IAuthService, AuthService>();
-        _builder.Services.AddScoped<ITokenService, TokenService>();
+        _builder.Services.AddScoped<IAccessTokenService, AccessTokenService>();
+        _builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         
         _builder.Services.AddHttpContextAccessor();
     }

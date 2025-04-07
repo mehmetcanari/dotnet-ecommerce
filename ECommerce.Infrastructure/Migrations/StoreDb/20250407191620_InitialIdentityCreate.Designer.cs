@@ -9,23 +9,23 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ECommerce.API.Migrations
+namespace ECommerce.Infrastructure.Migrations.StoreDb
 {
     [DbContext(typeof(StoreDbContext))]
-    [Migration("20250401141604_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250407191620_InitialIdentityCreate")]
+    partial class InitialIdentityCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ECommerce.API.Model.Account", b =>
+            modelBuilder.Entity("ECommerce.Domain.Model.Account", b =>
                 {
                     b.Property<int>("AccountId")
                         .ValueGeneratedOnAdd()
@@ -67,7 +67,7 @@ namespace ECommerce.API.Migrations
                     b.ToTable("Accounts");
                 });
 
-            modelBuilder.Entity("ECommerce.API.Model.Order", b =>
+            modelBuilder.Entity("ECommerce.Domain.Model.Order", b =>
                 {
                     b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
@@ -100,7 +100,7 @@ namespace ECommerce.API.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("ECommerce.API.Model.OrderItem", b =>
+            modelBuilder.Entity("ECommerce.Domain.Model.OrderItem", b =>
                 {
                     b.Property<int>("OrderItemId")
                         .ValueGeneratedOnAdd()
@@ -134,7 +134,7 @@ namespace ECommerce.API.Migrations
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("ECommerce.API.Model.Product", b =>
+            modelBuilder.Entity("ECommerce.Domain.Model.Product", b =>
                 {
                     b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
@@ -173,9 +173,43 @@ namespace ECommerce.API.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("ECommerce.API.Model.OrderItem", b =>
+            modelBuilder.Entity("ECommerce.Domain.Model.RefreshToken", b =>
                 {
-                    b.HasOne("ECommerce.API.Model.Order", "Order")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReasonRevoked")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("Revoked")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("ECommerce.Domain.Model.OrderItem", b =>
+                {
+                    b.HasOne("ECommerce.Domain.Model.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -183,7 +217,7 @@ namespace ECommerce.API.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("ECommerce.API.Model.Order", b =>
+            modelBuilder.Entity("ECommerce.Domain.Model.Order", b =>
                 {
                     b.Navigation("OrderItems");
                 });

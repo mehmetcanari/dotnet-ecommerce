@@ -26,10 +26,19 @@ public class ApplicationIdentityDbContextFactory : IDesignTimeDbContextFactory<A
 {
     public ApplicationIdentityDbContext CreateDbContext(string[] args)
     {
-        DotNetEnv.Env.Load();
+        var projectDir = Directory.GetCurrentDirectory();
+        var apiDir = Path.Combine(projectDir, "..", "ECommerce.API");
+        DotNetEnv.Env.Load(Path.Combine(apiDir, ".env"));
         
+        var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException(
+                "DB_CONNECTION_STRING environment variable not found. Please ensure it is set in the .env file.");
+        }
+
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationIdentityDbContext>();
-        optionsBuilder.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"));
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new ApplicationIdentityDbContext(optionsBuilder.Options);
     }

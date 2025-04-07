@@ -91,7 +91,7 @@ namespace ECommerce.API.Controllers
                     return BadRequest("Refresh token not found");
                 }
 
-                var authResponse = await _authService.RefreshTokenAsync(refreshToken);
+                var authResponse = await _authService.GenerateAuthTokenAsync(refreshToken);
                 return Ok(authResponse);
             }
             catch (Exception ex)

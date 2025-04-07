@@ -31,12 +31,30 @@ namespace ECommerce.Infrastructure.Repositories.Token
             }
         }
 
-        public async Task<IEnumerable<RefreshToken>> GetUserTokensAsync(string userId)
+        public async Task<RefreshToken> GetUserTokenAsync(string email)
         {
             try
             {
                 return await _context.RefreshTokens
-                    .Where(rt => rt.UserId == userId)
+                    .FirstOrDefaultAsync(rt => rt.Email == email)
+                    ?? throw new Exception("Refresh token not found");
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new DbUpdateException("Failed to get user token", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An unexpected error occurred", ex);
+            }
+        }
+
+        public async Task<IEnumerable<RefreshToken>> GetUserTokensAsync(string email)
+        {
+            try
+            {
+                return await _context.RefreshTokens
+                    .Where(rt => rt.Email == email)
                     .ToListAsync();
             }
             catch (DbUpdateException ex)
@@ -84,11 +102,11 @@ namespace ECommerce.Infrastructure.Repositories.Token
             }
         }
 
-        public async Task RevokeAllUserTokensAsync(string userId)
+        public async Task RevokeAllUserTokensAsync(string email)
         {
             try
             {
-                var tokens = await GetUserTokensAsync(userId);
+                var tokens = await GetUserTokensAsync(email);
                 foreach (var token in tokens)
                 {
                     token.RevokeToken();

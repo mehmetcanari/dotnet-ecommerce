@@ -1,0 +1,125 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using ECommerce.Application.DTO.Response.Auth;
+using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+
+namespace ECommerce.Application.Services.Token;
+
+public class AccessTokenService : IAccessTokenService
+{
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<AccessTokenService> _logger;
+    private readonly IRefreshTokenService _refreshTokenService;
+
+    public AccessTokenService(IConfiguration configuration, ILogger<AccessTokenService> logger, IRefreshTokenService refreshTokenService)
+    {
+        _configuration = configuration;
+        _logger = logger;
+        _refreshTokenService = refreshTokenService;
+    }
+
+    public async Task<AccessToken> GenerateAccessTokenAsync(string email, IList<string> roles)
+    {
+        try
+        {
+            var accessTokenExpiry = Environment.GetEnvironmentVariable("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES");
+
+            AccessToken accessToken = new AccessToken
+            {
+                Token = GenerateAccessJwtToken(email, roles),
+                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(accessTokenExpiry))
+            };
+
+            return await Task.FromResult(accessToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating access token");
+            throw;
+        }
+    }
+
+    private string GenerateAccessJwtToken(string email, IList<string> roles)
+    {
+        var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey 
+        ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
+
+        var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
+        var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
+        var expirationMinutes = Environment.GetEnvironmentVariable("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES");
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("tokenType", "access")
+        };
+
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(expirationMinutes)),
+            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task<ClaimsPrincipal> GetPrincipalFromExpiredToken(string? token = null)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                token = await _refreshTokenService.GetRefreshTokenFromCookie();
+            }
+
+            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey 
+            ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
+            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
+            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
+
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateAudience = true,
+                ValidAudience = audience,
+                ValidateLifetime = false,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
+
+            if (!(validatedToken is JwtSecurityToken jwtToken) ||
+                !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new SecurityTokenException("Invalid token algorithm");
+            }
+
+            return await Task.FromResult(principal);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating refresh token");
+            throw new SecurityTokenException("Invalid refresh token", ex);
+        }
+    }
+}

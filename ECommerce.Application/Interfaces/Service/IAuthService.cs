@@ -8,5 +8,6 @@ public interface IAuthService
     Task RegisterUserAsync(AccountRegisterRequestDto registerRequestDto);
     Task RegisterAdminAsync(AccountRegisterRequestDto registerRequestDto);
     Task<AuthResponseDto> LoginAsync(AccountLoginRequestDto loginRequestDto);
-    Task<AuthResponseDto> RefreshTokenAsync(string refreshToken);
+    Task<AuthResponseDto> GenerateAuthTokenAsync(string? refreshToken = null);
+    Task<AuthResponseDto> RequestGenerateTokensAsync(string email, IList<string> roles);
 } 

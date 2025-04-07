@@ -2,6 +2,7 @@ using System.Security.Claims;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Auth;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -12,20 +13,23 @@ public class AuthService : IAuthService
     private readonly IAccountService _accountService;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly ITokenService _tokenService;
+    private readonly IAccessTokenService _accessTokenService;
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IAccountService accountService,
         UserManager<IdentityUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        ITokenService tokenService,
+        IAccessTokenService accessTokenService,
+        IRefreshTokenService refreshTokenService,
         ILogger<AuthService> logger)
     {
         _accountService = accountService;
         _userManager = userManager;
         _roleManager = roleManager;
-        _tokenService = tokenService;
+        _accessTokenService = accessTokenService;
+        _refreshTokenService = refreshTokenService;
         _logger = logger;
     }
 
@@ -97,18 +101,17 @@ public class AuthService : IAuthService
 
         var roles = await _userManager.GetRolesAsync(user);
         AuthResponseDto authResponseDto =
-            await _tokenService.GenerateAuthTokenAsync(
-                user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+            await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
         _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
         return authResponseDto;
     }
 
-    public async Task<AuthResponseDto> RefreshTokenAsync(string? refreshToken = null)
+    public async Task<AuthResponseDto> GenerateAuthTokenAsync(string? refreshToken = null)
     {
         try
         {
             var principal =
-                await _tokenService.GetPrincipalFromExpiredToken(refreshToken ??
+                await _accessTokenService.GetPrincipalFromExpiredToken(refreshToken ??
                                                                  throw new Exception("Refresh token not found"));
 
             var email = principal.FindFirst(ClaimTypes.Email)?.Value;
@@ -125,11 +128,33 @@ public class AuthService : IAuthService
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            return await _tokenService.GenerateAuthTokenAsync(email, roles);
+            return await RequestGenerateTokensAsync(email, roles);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error refreshing token for user");
+            throw;
+        }
+    }
+
+    public async Task<AuthResponseDto> RequestGenerateTokensAsync(string email, IList<string> roles)
+    {
+        try
+        {
+            AccessToken accessToken = await _accessTokenService.GenerateAccessTokenAsync(email, roles);
+            RefreshToken refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(email, roles);
+
+            _refreshTokenService.SetRefreshTokenCookie(refreshToken);
+
+            return new AuthResponseDto
+            {
+                AccessToken = accessToken.Token,
+                AccessTokenExpiration = accessToken.Expires,
+            };
+        }   
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating auth tokens");
             throw;
         }
     }
