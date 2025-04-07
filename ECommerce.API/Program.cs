@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using ECommerce.Infrastructure.DatabaseContext;
+using System.Threading.RateLimiting;
 
 namespace ECommerce.API
 {
@@ -22,11 +23,11 @@ namespace ECommerce.API
             // of sensitive information like DB credentials and JWT keys
             //======================================================
             Env.Load();
-            
+
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             var builder = WebApplication.CreateBuilder(args);
-            
+
             //======================================================
             // APPLY ENVIRONMENT VARIABLES
             // Override configuration values with environment variables
@@ -36,7 +37,7 @@ namespace ECommerce.API
             builder.Configuration["Jwt:Issuer"] = Environment.GetEnvironmentVariable("JWT_ISSUER");
             builder.Configuration["Jwt:Audience"] = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
             builder.Configuration["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-            
+
             _dependencyContainer = new DependencyContainer(builder);
 
             #region Database Configuration
@@ -46,7 +47,7 @@ namespace ECommerce.API
             // Configure the database contexts for the application
             // Currently using in-memory database for development
             //======================================================
-            
+
             // PostgreSQL configuration using environment variable directly
             builder.Services.AddDbContext<StoreDbContext>(options =>
                 options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")));
@@ -79,27 +80,27 @@ namespace ECommerce.API
             var key = Encoding.UTF8.GetBytes(jwtKey);
 
             builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = true,
-                ValidIssuer = jwtSettings["Issuer"],
-                ValidateAudience = true,
-                ValidAudience = jwtSettings["Audience"],
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero,
-                RoleClaimType = System.Security.Claims.ClaimTypes.Role
-                };
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtSettings["Issuer"],
+                        ValidateAudience = true,
+                        ValidAudience = jwtSettings["Audience"],
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero,
+                        RoleClaimType = System.Security.Claims.ClaimTypes.Role
+                    };
+                });
 
 
             builder.Services.AddAuthorization();
@@ -154,6 +155,38 @@ namespace ECommerce.API
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
+            //======================================================
+            // RATE LIMITING CONFIGURATION
+            // Configure rate limiting middleware
+            //======================================================
+
+            builder.Services.AddRateLimiter(options =>
+            {
+                // Global rate limiting policy
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: context.User.Identity?.Name ?? context.Request.Headers.Host.ToString(),
+                        factory: partition => new FixedWindowRateLimiterOptions
+                        {
+                            AutoReplenishment = true,
+                            PermitLimit = 100,
+                            Window = TimeSpan.FromMinutes(1)
+                        }));
+                
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    context.HttpContext.Response.Headers["Retry-After"] = "60";
+
+                    await context.HttpContext.Response.WriteAsJsonAsync(new
+                    {
+                        Status = 429,
+                        Message = "Too many requests. Please try again later.",
+                        RetryAfter = "60 seconds"
+                    }, cancellationToken);
+                };
+            });
+
             _dependencyContainer.RegisterCoreDependencies();
             _dependencyContainer.LoadValidationDependencies();
 
@@ -195,15 +228,15 @@ namespace ECommerce.API
                     c.RoutePrefix = string.Empty;
                 });
             }
-
-            // Enable authentication and authorization middleware
+            
+            app.UseRateLimiter();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 
             #endregion
 
-            app.Run();
+            await app.RunAsync();
         }
 
         //======================================================
