@@ -6,6 +6,7 @@ using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Application.Services.Account;
 using ECommerce.Application.Services.Auth;
+using ECommerce.Application.Services.Cache;
 using ECommerce.Application.Services.Order;
 using ECommerce.Application.Services.OrderItem;
 using ECommerce.Application.Services.Product;
@@ -21,6 +22,7 @@ using ECommerce.Infrastructure.Repositories.Product;
 using ECommerce.Infrastructure.Repositories.Token;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using StackExchange.Redis;
 
 namespace ECommerce.API;
 
@@ -35,6 +37,9 @@ public class DependencyContainer : IDependencyContainer
 
     public void RegisterCoreDependencies()
     {
+        _builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
+            ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost:6379"));
+        
         _builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         _builder.Services.AddScoped<IProductRepository, ProductRepository>();
         _builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -47,6 +52,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<IAuthService, AuthService>();
         _builder.Services.AddScoped<IAccessTokenService, AccessTokenService>();
         _builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        _builder.Services.AddScoped<ICacheService, RedisCacheService>();
         
         _builder.Services.AddHttpContextAccessor();
     }

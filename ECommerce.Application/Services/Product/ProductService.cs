@@ -3,31 +3,42 @@ using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Caching.Memory;
 namespace ECommerce.Application.Services.Product;
 
 public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly ILogger<ProductService> _logger;
-    
-    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
+    private readonly ICacheService _cacheService;
+    private const string AllProductsCacheKey = "products";
+    private const string ProductCacheKey = "product:{0}";
+
+    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger, ICacheService cacheService)
     {
         _productRepository = productRepository;
         _logger = logger;
+        _cacheService = cacheService;
     }
     
     public async Task<List<ProductResponseDto>> GetAllProductsAsync()
     {
         try
         {
+            var expirationTime = TimeSpan.FromMinutes(60);
+            var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(AllProductsCacheKey);
+            if (cachedProducts is { Count: > 0 })
+                return cachedProducts;
+
             var products = await _productRepository.Read();
-            if (products.Count <= 0)
+
+            if (products.Count == 0)
             {
-                throw new Exception("No products found.");
+                _logger.LogWarning("No products found in the database");
+                return [];
             }
 
-            return products.Select(p => new ProductResponseDto
+            var productResponseDtos = products.Select(p => new ProductResponseDto
             {
                 ProductName = p.Name,
                 Description = p.Description,
@@ -36,11 +47,14 @@ public class ProductService : IProductService
                 ImageUrl = p.ImageUrl,
                 StockQuantity = p.StockQuantity
             }).ToList();
+
+            await _cacheService.SetAsync(AllProductsCacheKey, productResponseDtos, expirationTime);
+            return productResponseDtos;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching all products");
-            throw new Exception(ex.Message);
+            throw;
         }
     }
 
@@ -48,6 +62,11 @@ public class ProductService : IProductService
     {
         try
         {
+            var expirationTime = TimeSpan.FromMinutes(60);
+            var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, requestId));
+            if (cachedProduct != null)
+                return cachedProduct;
+
             var products = await _productRepository.Read();
             var product = products.FirstOrDefault(p => p.ProductId == requestId) ?? throw new Exception("Product not found");
             
@@ -61,12 +80,13 @@ public class ProductService : IProductService
                 StockQuantity = product.StockQuantity
             };
 
+            await _cacheService.SetAsync(string.Format(ProductCacheKey, requestId), productResponse, expirationTime);
             return productResponse;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
-            throw new Exception(ex.Message);
+            throw;
         }
     }
 
@@ -93,9 +113,10 @@ public class ProductService : IProductService
             };
             
             if (product.DiscountRate > 0)
-                product.Price -= (product.Price * product.DiscountRate / 100); //Calculate discounted price
+                product.Price -= product.Price * product.DiscountRate / 100; //Calculate discounted price
             
             await _productRepository.Create(product);
+            await _cacheService.RemoveAsync(AllProductsCacheKey);
         }
         catch (Exception ex)
         {
@@ -120,9 +141,10 @@ public class ProductService : IProductService
             product.ProductUpdated = DateTime.UtcNow;
             
             if (product.DiscountRate > 0)
-                product.Price -= (product.Price * product.DiscountRate / 100); //Calculate discounted price
+                product.Price -= product.Price * product.DiscountRate / 100; //Calculate discounted price
 
             await _productRepository.Update(product);
+            await _cacheService.RemoveAsync(AllProductsCacheKey);
         }
         catch (Exception ex)
         {
@@ -139,6 +161,7 @@ public class ProductService : IProductService
             var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
             await _productRepository.Delete(product);
+            await _cacheService.RemoveAsync(AllProductsCacheKey);
         }
         catch (Exception ex)
         {

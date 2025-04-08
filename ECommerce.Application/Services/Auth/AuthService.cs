@@ -110,9 +110,7 @@ public class AuthService : IAuthService
     {
         try
         {
-            var principal =
-                await _accessTokenService.GetPrincipalFromExpiredToken(refreshToken ??
-                                                                 throw new Exception("Refresh token not found"));
+            var principal = await _accessTokenService.GetPrincipalFromExpiredToken(refreshToken ?? throw new Exception("Refresh token not found"));
 
             var email = principal.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(email))

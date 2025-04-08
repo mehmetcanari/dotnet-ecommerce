@@ -187,6 +187,15 @@ namespace ECommerce.API
                 };
             });
 
+            //======================================================
+            // REDIS CACHE CONFIGURATION
+            //======================================================
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
+                options.InstanceName = "ECommerce.API";
+            });
+
             _dependencyContainer.RegisterCoreDependencies();
             _dependencyContainer.LoadValidationDependencies();
 

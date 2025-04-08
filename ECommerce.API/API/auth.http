@@ -7,12 +7,12 @@ POST {{baseUrl}}/{{route}}/create-user
 Content-Type: application/json
 
 {
-    "fullName": "MEHMET",
-    "email": "MEHMET@gmail.com",
-    "password": "1exdsadsample@PssordMEMO@",
+    "fullName": "Mehmet Can Ari",
+    "email": "bsn.mehmetcan@gmail.com",
+    "password": "1examplePassword@MehmetCan",
     "address": "Istanbul, TR",
     "phoneNumber": "1234567890",
-    "dateOfBirth": "1909-03-24"
+    "dateOfBirth": "1999-03-24"
 }
 
 ### CREATE ADMIN ACCOUNT
@@ -21,10 +21,10 @@ POST {{baseUrl}}/{{route}}/create-admin
 Content-Type: application/json
 
 {
-    "fullName": "Admin User",
-    "email": "admin@example.com",
+    "fullName": "Admin",
+    "email": "admin@system.com",
     "password": "AdminPassword123!",
-    "address": "Ankara, TR",
+    "address": "Istanbul, TR",
     "phoneNumber": "9876543210",
     "dateOfBirth": "1980-01-01"
 }
@@ -35,8 +35,8 @@ POST {{baseUrl}}/{{route}}/login
 Content-Type: application/json
 
 {
-  "email": "MEHMET@gmail.com",  
-  "password": "1exdsadsample@PssordMEMO@"
+  "email": "bsn.mehmetcan@gmail.com",  
+  "password": "1examplePassword@MehmetCan"
 }
 
 ### LOGIN ADMIN ACCOUNT
@@ -45,7 +45,7 @@ POST {{baseUrl}}/{{route}}/login
 Content-Type: application/json
 
 {
-  "email": "admin@example.com",  
+  "email": "admin@system.com",  
   "password": "AdminPassword123!"
 }
 
