@@ -48,7 +48,8 @@ public class RefreshTokenService : IRefreshTokenService
                 await _refreshTokenRepository.RevokeAllUserTokensAsync(email, null);
             }
 
-            var refreshTokenExpiry = Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXPIRATION_DAYS");
+            var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
+            _logger.LogDebug($"Refresh token expiry from env: {refreshTokenExpiry}");
 
             var refreshToken = new RefreshToken
             {
@@ -108,7 +109,8 @@ public class RefreshTokenService : IRefreshTokenService
 
         var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
         var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
-        var refreshTokenExpiry = Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXPIRATION_DAYS");
+        var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
+        _logger.LogDebug($"JWT refresh token expiry from env: {refreshTokenExpiry}");
 
         var claims = new List<Claim>
         {
@@ -135,6 +137,11 @@ public class RefreshTokenService : IRefreshTokenService
 
     public void SetRefreshTokenCookie(RefreshToken refreshToken)
     {
+        _logger.LogDebug($"Setting refresh token cookie for user: {refreshToken.Email}");
+        _logger.LogDebug($"Refresh token expires at: {refreshToken.Expires}");
+        var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
+        _logger.LogDebug($"Cookie refresh token expiry from env: {refreshTokenExpiry}");
+
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
@@ -143,7 +150,7 @@ public class RefreshTokenService : IRefreshTokenService
                 "Development",
                 StringComparison.OrdinalIgnoreCase),
             SameSite = SameSiteMode.Strict,
-            Expires = refreshToken.Expires
+            Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry))
         };
 
         _httpContextAccessor.HttpContext?.Response.Cookies.Append(
@@ -157,13 +164,20 @@ public class RefreshTokenService : IRefreshTokenService
     public async Task<RefreshToken> GetRefreshTokenFromCookie()
     {
         var refreshToken = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
+        _logger.LogDebug($"Retrieved refresh token from cookie: {refreshToken}");
+        
         if (string.IsNullOrEmpty(refreshToken))
         {
             throw new Exception("Refresh token not found in cookie");
         }
-        
+
         var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
-        return token;
+        if (token != null)
+        {
+            return token;
+        }
+
+        throw new Exception("Refresh token not found in database");
     }
 }
 

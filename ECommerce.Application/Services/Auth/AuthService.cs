@@ -5,6 +5,8 @@ using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace ECommerce.Application.Services.Auth;
 
@@ -88,7 +90,12 @@ public class AuthService : IAuthService
     {
         _logger.LogInformation("Login attempt for user: {Email}", loginRequestDto.Email);
 
-        var user = await ValidateLoginProcess(loginRequestDto.Email, loginRequestDto.Password);
+        var (isValid, user) = await ValidateLoginProcess(loginRequestDto.Email, loginRequestDto.Password);
+        if (!isValid || user == null)
+        {
+            throw new Exception("Invalid email or password.");
+        }
+
         var roles = await _userManager.GetRolesAsync(user);
 
         AuthResponseDto authResponseDto = await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
@@ -96,13 +103,13 @@ public class AuthService : IAuthService
         return authResponseDto;
     }
 
-    public async Task<AuthResponseDto> GenerateAuthTokenAsync(RefreshToken cookieRefreshToken)
+    public async Task<AuthResponseDto> GenerateAuthTokenAsync(RefreshToken refreshToken)
     {
         try
         {
-            ClaimsPrincipal principal = await _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken.Token);
+            ClaimsPrincipal principal = await _tokenUserClaimsService.GetClaimsPrincipalFromToken(refreshToken);
 
-            var (email, roles) = await ValidateRefreshToken(principal, cookieRefreshToken);
+            var (email, roles) = await ValidateRefreshToken(principal);
 
             return await RequestGenerateTokensAsync(email, roles);
         }
@@ -111,6 +118,25 @@ public class AuthService : IAuthService
             _logger.LogError(ex, "Error refreshing token for user");
             throw;
         }
+    }
+
+    private async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal)
+    {
+        var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(email))
+        {
+            throw new Exception("Email claim not found in token");
+        }
+
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return (email, roles);
     }
 
     public async Task<AuthResponseDto> RequestGenerateTokensAsync(string email, IList<string> roles)
@@ -135,48 +161,23 @@ public class AuthService : IAuthService
         }
     }
 
-    private async Task<IdentityUser> ValidateLoginProcess(string email, string password)
+    private async Task<(bool, IdentityUser?)> ValidateLoginProcess(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
             _logger.LogWarning("Login failed - User not found: {Email}", email);
-            throw new Exception("Invalid email or password.");
+            return (false, user);
         }
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
         if (!isPasswordValid)
         {
             _logger.LogWarning("Login failed - Invalid password for user: {Email}", email);
-            throw new Exception("Invalid email or password.");
+            return (false, user);
         }
 
-        return user;
-    }
-
-    private async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal, RefreshToken cookieRefreshToken)
-    {
-        var email = principal.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email))
-            {
-                throw new Exception("Email claim not found in token");
-            }
-
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                throw new Exception("User not found");
-            }
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            if (cookieRefreshToken.IsExpired)
-            {
-                await _refreshTokenService.RevokeRefreshTokenAsync(cookieRefreshToken.Token, "Refresh token expired");
-                throw new Exception("User must login again, session expired");
-            }
-
-        return (email, roles);
+        return (true, user);
     }
 
     public async Task RegisterUserAsync(AccountRegisterRequestDto registerRequestDto)

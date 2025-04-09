@@ -22,6 +22,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("create-admin")]
+        [AllowAnonymous]
         public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
             try
@@ -42,6 +43,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("create-user")]
+        [AllowAnonymous]
         public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
             try
@@ -62,6 +64,7 @@ namespace ECommerce.API.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] AccountLoginRequestDto accountLoginRequestDto)
         {
             try

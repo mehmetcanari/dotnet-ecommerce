@@ -1,5 +1,7 @@
 @baseUrl = http://localhost:5076
 @route = api/auth
+@no-redirect = true
+@no-cookie-jar = false
 
 ### CREATE USER ACCOUNT
 
@@ -50,5 +52,4 @@ Content-Type: application/json
 }
 
 ### REFRESH TOKEN USER
-
 POST {{baseUrl}}/{{route}}/refresh-token

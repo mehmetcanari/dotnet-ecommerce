@@ -1,6 +1,9 @@
 using System.Security.Claims;
-
-public interface ITokenUserClaimsService
+using ECommerce.Domain.Model;
+namespace ECommerce.Application.Interfaces.Service
 {
-    public Task<ClaimsPrincipal> GetClaimsPrincipalFromToken(string token);
+    public interface ITokenUserClaimsService
+    {
+        public Task<ClaimsPrincipal> GetClaimsPrincipalFromToken(RefreshToken refreshToken);
+    }
 }

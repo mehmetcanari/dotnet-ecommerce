@@ -53,6 +53,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<IAccessTokenService, AccessTokenService>();
         _builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         _builder.Services.AddScoped<ICacheService, RedisCacheService>();
+        _builder.Services.AddScoped<ITokenUserClaimsService, TokenUserClaimsService>();
         
         _builder.Services.AddHttpContextAccessor();
     }

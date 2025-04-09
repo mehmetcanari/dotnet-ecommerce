@@ -1,59 +1,63 @@
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Model;
 
-public class TokenUserClaimsService : ITokenUserClaimsService
+namespace ECommerce.Application.Services.Token
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<TokenUserClaimsService> _logger;
-
-    public TokenUserClaimsService(IConfiguration configuration, ILogger<TokenUserClaimsService> logger)
+    public class TokenUserClaimsService : ITokenUserClaimsService
     {
-        _configuration = configuration;
-        _logger = logger;
-    }
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<TokenUserClaimsService> _logger;
 
-    public async Task<ClaimsPrincipal> GetClaimsPrincipalFromToken(string token)
-    {
-        try
+        public TokenUserClaimsService(IConfiguration configuration, ILogger<TokenUserClaimsService> logger)
         {
-            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey 
-            ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
-            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
-            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
-
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = key,
-                ValidateIssuer = true,
-                ValidIssuer = issuer,
-                ValidateAudience = true,
-                ValidAudience = audience,
-                ValidateLifetime = false,
-                ClockSkew = TimeSpan.Zero
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
-
-            if (!(validatedToken is JwtSecurityToken jwtToken) ||
-                !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new SecurityTokenException("Invalid token algorithm");
-            }
-
-            return await Task.FromResult(principal);
+            _configuration = configuration;
+            _logger = logger;
         }
-        catch (Exception ex)
+
+        public async Task<ClaimsPrincipal> GetClaimsPrincipalFromToken(RefreshToken refreshToken)
         {
-            _logger.LogError(ex, "Error validating refresh token");
-            throw new SecurityTokenException("Invalid refresh token", ex);
+            try
+            {
+                var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey 
+                ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
+                var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
+                var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
+
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = audience,
+                    ValidateLifetime = false,
+                    ClockSkew = TimeSpan.Zero
+                };
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var principal = tokenHandler.ValidateToken(refreshToken.Token, tokenValidationParameters, out var validatedToken);
+
+                if (!(validatedToken is JwtSecurityToken jwtToken) ||
+                    !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    throw new SecurityTokenException("Invalid token algorithm");
+                }
+
+                return await Task.FromResult(principal);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating refresh token");
+                throw new SecurityTokenException("Invalid refresh token", ex);
+            }
         }
     }
 }

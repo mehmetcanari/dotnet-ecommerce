@@ -72,7 +72,7 @@ namespace ECommerce.Infrastructure.Repositories.Token
             try
             {
                 return await _context.RefreshTokens
-                    .FirstOrDefaultAsync(rt => rt.Token == token)
+                    .FirstOrDefaultAsync(rt => rt.Token == token && rt.Expires > DateTime.UtcNow)
                     ?? throw new Exception("Refresh token not found");
             }
             catch (DbUpdateException ex)
