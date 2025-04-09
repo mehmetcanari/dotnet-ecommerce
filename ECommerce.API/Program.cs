@@ -223,9 +223,17 @@ namespace ECommerce.API
             //======================================================
             app.Use(async (context, next) =>
             {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
                 Console.WriteLine($"Request: {context.Request.Method} {context.Request.Path}");
+                
                 await next();
+
+                stopwatch.Stop();
+                var responseTime = stopwatch.ElapsedMilliseconds;
+
                 Console.WriteLine($"Response: {context.Response.StatusCode}");
+                Console.WriteLine($"Response Time: {responseTime} ms");
             });
 
             if (app.Environment.IsDevelopment())
