@@ -45,15 +45,10 @@ namespace ECommerce.API
             //======================================================
             // DATABASE SETUP
             // Configure the database contexts for the application
-            // Currently using in-memory database for development
             //======================================================
 
-            // PostgreSQL configuration using environment variable directly
             builder.Services.AddDbContext<StoreDbContext>(options =>
                 options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")));
-
-            /* builder.Services.AddDbContext<StoreDbContext>(options =>
-                options.UseInMemoryDatabase("StoreDb")); */
 
             builder.Services.AddDbContext<ApplicationIdentityDbContext>(options =>
                 options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")));

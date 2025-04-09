@@ -15,14 +15,16 @@ public class AuthService : IAuthService
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IAccessTokenService _accessTokenService;
     private readonly IRefreshTokenService _refreshTokenService;
-    private readonly ILogger<AuthService> _logger;
+    private readonly ITokenUserClaimsService _tokenUserClaimsService;
 
+    private readonly ILogger<AuthService> _logger;
     public AuthService(
         IAccountService accountService,
         UserManager<IdentityUser> userManager,
         RoleManager<IdentityRole> roleManager,
         IAccessTokenService accessTokenService,
         IRefreshTokenService refreshTokenService,
+        ITokenUserClaimsService tokenUserClaimsService,
         ILogger<AuthService> logger)
     {
         _accountService = accountService;
@@ -30,6 +32,7 @@ public class AuthService : IAuthService
         _roleManager = roleManager;
         _accessTokenService = accessTokenService;
         _refreshTokenService = refreshTokenService;
+        _tokenUserClaimsService = tokenUserClaimsService;
         _logger = logger;
     }
 
@@ -85,46 +88,21 @@ public class AuthService : IAuthService
     {
         _logger.LogInformation("Login attempt for user: {Email}", loginRequestDto.Email);
 
-        var user = await _userManager.FindByEmailAsync(loginRequestDto.Email);
-        if (user == null)
-        {
-            _logger.LogWarning("Login failed - User not found: {Email}", loginRequestDto.Email);
-            throw new Exception("Invalid email or password.");
-        }
-
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
-        if (!isPasswordValid)
-        {
-            _logger.LogWarning("Login failed - Invalid password for user: {Email}", loginRequestDto.Email);
-            throw new Exception("Invalid email or password.");
-        }
-
+        var user = await ValidateLoginProcess(loginRequestDto.Email, loginRequestDto.Password);
         var roles = await _userManager.GetRolesAsync(user);
-        AuthResponseDto authResponseDto =
-            await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+
+        AuthResponseDto authResponseDto = await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
         _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
         return authResponseDto;
     }
 
-    public async Task<AuthResponseDto> GenerateAuthTokenAsync(string? refreshToken = null)
+    public async Task<AuthResponseDto> GenerateAuthTokenAsync(RefreshToken cookieRefreshToken)
     {
         try
         {
-            var principal = await _accessTokenService.GetPrincipalFromExpiredToken(refreshToken ?? throw new Exception("Refresh token not found"));
+            ClaimsPrincipal principal = await _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken.Token);
 
-            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email))
-            {
-                throw new Exception("Email claim not found in token");
-            }
-
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                throw new Exception("User not found");
-            }
-
-            var roles = await _userManager.GetRolesAsync(user);
+            var (email, roles) = await ValidateRefreshToken(principal, cookieRefreshToken);
 
             return await RequestGenerateTokensAsync(email, roles);
         }
@@ -155,6 +133,50 @@ public class AuthService : IAuthService
             _logger.LogError(ex, "Error generating auth tokens");
             throw;
         }
+    }
+
+    private async Task<IdentityUser> ValidateLoginProcess(string email, string password)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            _logger.LogWarning("Login failed - User not found: {Email}", email);
+            throw new Exception("Invalid email or password.");
+        }
+
+        var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
+        if (!isPasswordValid)
+        {
+            _logger.LogWarning("Login failed - Invalid password for user: {Email}", email);
+            throw new Exception("Invalid email or password.");
+        }
+
+        return user;
+    }
+
+    private async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal, RefreshToken cookieRefreshToken)
+    {
+        var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new Exception("Email claim not found in token");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            if (cookieRefreshToken.IsExpired)
+            {
+                await _refreshTokenService.RevokeRefreshTokenAsync(cookieRefreshToken.Token, "Refresh token expired");
+                throw new Exception("User must login again, session expired");
+            }
+
+        return (email, roles);
     }
 
     public async Task RegisterUserAsync(AccountRegisterRequestDto registerRequestDto)

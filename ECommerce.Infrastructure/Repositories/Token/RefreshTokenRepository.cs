@@ -102,14 +102,14 @@ namespace ECommerce.Infrastructure.Repositories.Token
             }
         }
 
-        public async Task RevokeAllUserTokensAsync(string email)
+        public async Task RevokeAllUserTokensAsync(string email, string? reason = null)
         {
             try
             {
                 var tokens = await GetUserTokensAsync(email);
                 foreach (var token in tokens)
                 {
-                    token.RevokeToken();
+                    token.RevokeToken(reason);
                 }
                 await _context.SaveChangesAsync();
             }
@@ -123,12 +123,12 @@ namespace ECommerce.Infrastructure.Repositories.Token
             }
         }
 
-        public async Task RevokeAsync(string token)
+        public async Task RevokeAsync(string token, string? reason = null)
         {
             try
             {
                 var refreshToken = await GetByTokenAsync(token);
-                refreshToken.RevokeToken();
+                refreshToken.RevokeToken(reason);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)

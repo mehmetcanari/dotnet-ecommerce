@@ -45,7 +45,7 @@ public class RefreshTokenService : IRefreshTokenService
             IEnumerable<RefreshToken> userRefreshTokens = await _refreshTokenRepository.GetUserTokensAsync(email);
             if (userRefreshTokens.Any())
             {
-                await _refreshTokenRepository.RevokeAllUserTokensAsync(email);
+                await _refreshTokenRepository.RevokeAllUserTokensAsync(email, null);
             }
 
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXPIRATION_DAYS");
@@ -68,14 +68,14 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
-    public async Task<bool> RevokeAllUserTokensAsync(string email)
+    public async Task<bool> RevokeAllUserTokensAsync(string email, string? reason = null)
     {
         try
         {
             var tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
             foreach (var token in tokens)
             {
-                await _refreshTokenRepository.RevokeAsync(token.Token);
+                await _refreshTokenRepository.RevokeAsync(token.Token, reason);
             }
             return true;
         }
@@ -86,11 +86,11 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
-    public async Task<bool> RevokeRefreshTokenAsync(string token)
+    public async Task<bool> RevokeRefreshTokenAsync(string token, string? reason = null)
     {
         try
         {
-            await _refreshTokenRepository.RevokeAsync(token);
+            await _refreshTokenRepository.RevokeAsync(token, reason);
             return true;
         }
         catch (Exception ex)
@@ -154,14 +154,16 @@ public class RefreshTokenService : IRefreshTokenService
         _logger.LogInformation("Refresh token cookie set for user: {Email}", refreshToken.Email);
     }
 
-    public async Task<string> GetRefreshTokenFromCookie()
+    public async Task<RefreshToken> GetRefreshTokenFromCookie()
     {
         var refreshToken = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
         if (string.IsNullOrEmpty(refreshToken))
         {
             throw new Exception("Refresh token not found in cookie");
         }
-        return await Task.FromResult(refreshToken);
+        
+        var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+        return token;
     }
 }
 

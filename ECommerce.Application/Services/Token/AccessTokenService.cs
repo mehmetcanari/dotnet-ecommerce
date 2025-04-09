@@ -77,49 +77,4 @@ public class AccessTokenService : IAccessTokenService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
-    public async Task<ClaimsPrincipal> GetPrincipalFromExpiredToken(string? token = null)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(token))
-            {
-                token = await _refreshTokenService.GetRefreshTokenFromCookie();
-            }
-
-            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey 
-            ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
-            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
-            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
-
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = key,
-                ValidateIssuer = true,
-                ValidIssuer = issuer,
-                ValidateAudience = true,
-                ValidAudience = audience,
-                ValidateLifetime = false,
-                ClockSkew = TimeSpan.Zero
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
-
-            if (!(validatedToken is JwtSecurityToken jwtToken) ||
-                !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new SecurityTokenException("Invalid token algorithm");
-            }
-
-            return await Task.FromResult(principal);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error validating refresh token");
-            throw new SecurityTokenException("Invalid refresh token", ex);
-        }
-    }
 }

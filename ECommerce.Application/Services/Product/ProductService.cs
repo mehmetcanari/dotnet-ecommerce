@@ -28,7 +28,10 @@ public class ProductService : IProductService
             var expirationTime = TimeSpan.FromMinutes(60);
             var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(AllProductsCacheKey);
             if (cachedProducts is { Count: > 0 })
+            {
+                Console.WriteLine("Products found in cache, fetching from cache");
                 return cachedProducts;
+            }
 
             var products = await _productRepository.Read();
 

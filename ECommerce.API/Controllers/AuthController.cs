@@ -1,5 +1,6 @@
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +11,13 @@ namespace ECommerce.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IRefreshTokenService _refreshTokenService;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, IRefreshTokenService refreshTokenService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _refreshTokenService = refreshTokenService;
             _logger = logger;
         }
 
@@ -80,18 +83,13 @@ namespace ECommerce.API.Controllers
 
         [HttpPost("refresh-token")]
         [AllowAnonymous]
-        public async Task<IActionResult> RefreshToken()
+        public async Task<IActionResult> GetRefreshToken()
         {
             try
             {
-                var refreshToken = Request.Cookies["refreshToken"];
-
-                if (string.IsNullOrEmpty(refreshToken))
-                {
-                    return BadRequest("Refresh token not found");
-                }
-
+                var refreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
                 var authResponse = await _authService.GenerateAuthTokenAsync(refreshToken);
+
                 return Ok(authResponse);
             }
             catch (Exception ex)
