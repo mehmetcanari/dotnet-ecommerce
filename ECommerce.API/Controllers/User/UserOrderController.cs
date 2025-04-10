@@ -69,8 +69,8 @@ public class UserOrderController : ControllerBase
     }
 
     [Authorize(Roles = "User")]
-    [HttpDelete("cancel-order")]
-    public async Task<IActionResult> CancelOrder()
+    [HttpPut("cancel-order")]
+    public async Task<IActionResult> CancelOrder([FromBody] OrderCancelRequestDto orderCancelRequestDto)
     {
         try
         {
@@ -82,8 +82,8 @@ public class UserOrderController : ControllerBase
 
             var userEmail = userIdClaim.Value;
 
-            await _orderService.CancelOrderAsync(userEmail);
-            return Ok(new { message = "Order deleted successfully" });
+            await _orderService.CancelOrderAsync(userEmail, orderCancelRequestDto);
+            return Ok(new { message = "Order cancelled successfully" });
         }
         catch (Exception exception)
         {

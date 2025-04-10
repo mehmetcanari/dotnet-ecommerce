@@ -13,7 +13,7 @@ Authorization: Bearer {{userToken}}
 {
   "ShippingAddress": "1234 Street Name, City, Country",
   "BillingAddress": "1234 Billing Address, City, Country",
-  "PaymentMethod": 1
+  "PaymentMethod": 2
 }
 
 
@@ -22,7 +22,12 @@ Authorization: Bearer {{userToken}}
 GET {{baseUrl}}{{route}}/orders
 Authorization: Bearer {{userToken}}
 
-### DELETE ORDER BY USER EMAIL
+### CANCEL ORDER BY USER EMAIL
 
-DELETE {{baseUrl}}{{route}}/cancel-order
+PUT {{baseUrl}}{{route}}/cancel-order
+Content-Type: application/json
 Authorization: Bearer {{userToken}}
+
+{
+  "Status": 3
+}

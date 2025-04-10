@@ -20,7 +20,7 @@ public enum OrderStatus
     Pending,
     Shipped,
     Delivered,
-    Canceled
+    Cancelled
 }
 
 public enum PaymentMethod

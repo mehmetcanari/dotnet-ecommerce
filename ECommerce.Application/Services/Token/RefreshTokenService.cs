@@ -42,14 +42,8 @@ public class RefreshTokenService : IRefreshTokenService
     {
         try
         {
-            IEnumerable<RefreshToken> userRefreshTokens = await _refreshTokenRepository.GetUserTokensAsync(email);
-            if (userRefreshTokens.Any())
-            {
-                await RevokeUserTokensAsync(email, "User has fresh token");
-            }
-
+            await RevokeUserTokensAsync(email, "User has fresh token");
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
-            _logger.LogDebug($"Refresh token expiry from env: {refreshTokenExpiry}");
 
             var refreshToken = new RefreshToken
             {
@@ -69,22 +63,26 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
-    public async Task<bool> RevokeUserTokensAsync(string email, string reason)
+    public async Task RevokeUserTokensAsync(string email, string reason)
     {
         try
         {
             IEnumerable<RefreshToken> tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
-            IEnumerable<RefreshToken> activeTokens = tokens.Where(t => t.IsExpired == false && t.IsRevoked == false);
-            foreach (var token in activeTokens)
+            RefreshToken? activeToken = tokens.FirstOrDefault(t => t.IsExpired == false && t.IsRevoked == false);
+
+            if (activeToken != null)
             {
-                await _refreshTokenRepository.RevokeAsync(token, reason);
+                await _refreshTokenRepository.RevokeAsync(activeToken, reason);
             }
-            return true;
+            else
+            {
+                _logger.LogWarning("No active refresh token found for user: {Email}", email);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to revoke all user tokens");
-            throw new Exception("Failed to revoke all user tokens", ex);
+            _logger.LogError(ex, "Failed to revoke user tokens");
+            throw new Exception("Failed to revoke user tokens", ex);
         }
     }
 
@@ -124,11 +122,7 @@ public class RefreshTokenService : IRefreshTokenService
 
     public void SetRefreshTokenCookie(RefreshToken refreshToken)
     {
-        _logger.LogDebug($"Setting refresh token cookie for user: {refreshToken.Email}");
-        _logger.LogDebug($"Refresh token expires at: {refreshToken.Expires}");
         var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
-        _logger.LogDebug($"Cookie refresh token expiry from env: {refreshTokenExpiry}");
-
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
@@ -151,7 +145,6 @@ public class RefreshTokenService : IRefreshTokenService
     public async Task<RefreshToken> GetRefreshTokenFromCookie()
     {
         var refreshToken = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
-        _logger.LogDebug($"Retrieved refresh token from cookie: {refreshToken}");
         
         if (string.IsNullOrEmpty(refreshToken))
         {

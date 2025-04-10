@@ -8,7 +8,7 @@ Content-Type: application/json
 Authorization: Bearer {{userToken}}
 
 {
-  "ProductId": 1,
+  "ProductId": 2,
   "Quantity": 1
 }
 

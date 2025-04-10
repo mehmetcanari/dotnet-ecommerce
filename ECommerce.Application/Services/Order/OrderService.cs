@@ -74,18 +74,21 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task CancelOrderAsync(string email)
+    public async Task CancelOrderAsync(string email, OrderCancelRequestDto orderCancelRequestDto)
     {
         try
         {
             var orders = await _orderRepository.Read();
             var accounts = await _accountRepository.Read();
 
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                               throw new Exception("Account not found");
-            var order = orders.FirstOrDefault(o => o.AccountId == tokenAccount.AccountId) ??
-                        throw new Exception("Order not found");
-            await _orderRepository.Delete(order);
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("Account not found");
+            var order = orders.FirstOrDefault(o => o.AccountId == tokenAccount.AccountId) ?? throw new Exception("Order not found");
+
+            await UpdateOrderStatusByAccountIdAsync(tokenAccount.AccountId, 
+            new OrderUpdateRequestDto 
+            { 
+                Status = orderCancelRequestDto.Status 
+            });
         }
         catch (Exception ex)
         {

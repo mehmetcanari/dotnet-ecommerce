@@ -3,16 +3,19 @@ using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Account;
 public class AccountService : IAccountService
 {
     private readonly IAccountRepository _accountRepository;
+    private readonly UserManager<IdentityUser> _userManager;
     private readonly ILogger<AccountService> _logger;
     
-    public AccountService(IAccountRepository accountRepository, ILogger<AccountService> logger)
+    public AccountService(IAccountRepository accountRepository, UserManager<IdentityUser> userManager, ILogger<AccountService> logger)
     {
         _accountRepository = accountRepository;
+        _userManager = userManager;
         _logger = logger;
     }
     
@@ -45,34 +48,6 @@ public class AccountService : IAccountService
         {
             _logger.LogError(ex, "Unexpected error while adding account: {Message}", ex.Message);
             throw new Exception("An unexpected error occurred", ex);
-        }
-    }
-    
-    public async Task UpdateAccountAsync(string email, AccountUpdateRequestDto updateRequestUserDto)
-    {
-        try
-        {
-            var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
-            
-            if(accounts.Any(a => a.Email == updateRequestUserDto.Email)) //Duplicate email check
-            {
-                _logger.LogError("Email already exists in the system, try another email");
-                throw new Exception("Email already exists in the system, try another email");
-            }
-            
-            account.FullName = updateRequestUserDto.FullName;
-            account.Email = updateRequestUserDto.Email;
-            account.Address = updateRequestUserDto.Address;
-            account.PhoneNumber = updateRequestUserDto.PhoneNumber;
-            account.UserUpdated = DateTime.UtcNow;
-
-            await _accountRepository.Update(account);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while updating account: {Message}", ex.Message);
-            throw new Exception(ex.Message);
         }
     }
 
@@ -140,7 +115,15 @@ public class AccountService : IAccountService
         {
             var accounts = await _accountRepository.Read();
             var account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
+            var user = await _userManager.FindByEmailAsync(account.Email);
+            if (user == null)
+            {
+                _logger.LogError("User not found");
+                throw new Exception("User not found");
+            }
+            
             await _accountRepository.Delete(account);
+            await _userManager.DeleteAsync(user);
         }
         catch (Exception ex)
         {

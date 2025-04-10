@@ -9,7 +9,7 @@ public interface IOrderService
     Task<OrderResponseDto> GetOrdersAsync(string email);
     Task<OrderResponseDto> GetOrderByIdAsync(int id);
     Task AddOrderAsync(OrderCreateRequestDto createRequestOrderDto, string email);
-    Task CancelOrderAsync(string email);
+    Task CancelOrderAsync(string email, OrderCancelRequestDto orderCancelRequestDto);
     Task DeleteOrderByIdAsync(int id);
     Task UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateRequestDto orderUpdateRequestDto);
 }

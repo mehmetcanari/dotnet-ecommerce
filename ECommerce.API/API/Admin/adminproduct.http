@@ -21,11 +21,12 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "Xbox Series X",
-  "Description": "Xbox Series X is a gaming console that is the latest in the Xbox series",
+  "Name": "Playstation 5",
+  "Description": "Playstation 5 is a gaming console that is the latest in the Playstation series",
   "Price": 499.99,
   "StockQuantity": 300,
-  "DiscountRate": 5
+  "DiscountRate": 13,
+  "ImageUrl": "https://via.placeholder.com/150"
 }
 
 ### UPDATE PRODUCT BY ID
@@ -35,11 +36,12 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "High-End Gaming PC",
-  "Description": "A gaming PC with high-end specs",
-  "Price": 2999.99,
-  "ImageUrl": "exampleURL",
-  "StockQuantity": 3
+  "Name": "Xbox Series X",
+  "Description": "Xbox Series X is a gaming console that is the latest in the Xbox series",
+  "Price": 499.99,
+  "StockQuantity": 3,
+  "DiscountRate": 5,
+  "ImageUrl": "https://via.placeholder.com/150"
 }
 
 ### DELETE PRODUCT BY ID
