@@ -45,7 +45,7 @@ public class RefreshTokenService : IRefreshTokenService
             IEnumerable<RefreshToken> userRefreshTokens = await _refreshTokenRepository.GetUserTokensAsync(email);
             if (userRefreshTokens.Any())
             {
-                await _refreshTokenRepository.RevokeAllUserTokensAsync(email, null);
+                await RevokeUserTokensAsync(email, "User has fresh token");
             }
 
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
@@ -69,14 +69,15 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
-    public async Task<bool> RevokeAllUserTokensAsync(string email, string? reason = null)
+    public async Task<bool> RevokeUserTokensAsync(string email, string reason)
     {
         try
         {
-            var tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
-            foreach (var token in tokens)
+            IEnumerable<RefreshToken> tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
+            IEnumerable<RefreshToken> activeTokens = tokens.Where(t => t.IsExpired == false && t.IsRevoked == false);
+            foreach (var token in activeTokens)
             {
-                await _refreshTokenRepository.RevokeAsync(token.Token, reason);
+                await _refreshTokenRepository.RevokeAsync(token, reason);
             }
             return true;
         }
@@ -84,20 +85,6 @@ public class RefreshTokenService : IRefreshTokenService
         {
             _logger.LogError(ex, "Failed to revoke all user tokens");
             throw new Exception("Failed to revoke all user tokens", ex);
-        }
-    }
-
-    public async Task<bool> RevokeRefreshTokenAsync(string token, string? reason = null)
-    {
-        try
-        {
-            await _refreshTokenRepository.RevokeAsync(token, reason);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to revoke refresh token");
-            throw new Exception("Failed to revoke refresh token", ex);
         }
     }
 

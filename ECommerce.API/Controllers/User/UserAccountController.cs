@@ -34,7 +34,7 @@ public class UserAccountController : ControllerBase
             if (userIdClaim == null)
             {
                 _logger.LogWarning("User identity claim not found in token");
-                return Forbid("User identity not found");
+                return Unauthorized(new { message = "User identity not found" });
             }
 
             var userEmail = userIdClaim.Value;

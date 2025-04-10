@@ -1,3 +1,4 @@
+using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,10 +10,11 @@ namespace ECommerce.API.Controllers.Admin;
 public class AdminAccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
-    
-    public AdminAccountController(IAccountService accountService)
+    private readonly IRefreshTokenService _refreshTokenService;
+    public AdminAccountController(IAccountService accountService, IRefreshTokenService refreshTokenService)
     {
         _accountService = accountService;
+        _refreshTokenService = refreshTokenService;
     }
     
     [Authorize(Roles = "Admin")]
@@ -53,6 +55,21 @@ public class AdminAccountController : ControllerBase
         {
             await _accountService.DeleteAccountAsync(id);
             return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("revoke-token")]
+    public async Task<IActionResult> RevokeToken([FromBody] TokenRevokeRequestDto request)
+    {
+        try
+        {
+            await _refreshTokenService.RevokeUserTokensAsync(request.Email, "Admin revoked");
+            return Ok(new { message = "Tokens revoked successfully" });
         }
         catch (Exception ex)
         {

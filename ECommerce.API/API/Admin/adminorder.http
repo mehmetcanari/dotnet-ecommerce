@@ -21,6 +21,7 @@ Authorization: Bearer {{adminToken}}
 PUT {{baseUrl}}{{route}}/update/1
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
+
 {
     "Status": 1
 }

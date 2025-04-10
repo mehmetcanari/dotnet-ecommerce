@@ -3,7 +3,7 @@ using ECommerce.Application.DTO.Request.OrderItem;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using System.IdentityModel.Tokens.Jwt;
 namespace ECommerce.API.Controllers.User;
 
 [ApiController]
@@ -23,10 +23,10 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.Email);
             if (userIdClaim == null)
             {
-                return Forbid("User identity not found");
+                return Unauthorized(new { message = "User identity not found" });
             }
 
             var userEmail = userIdClaim.Value;
@@ -43,10 +43,10 @@ public class UserOrderItemController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrderItem([FromBody] CreateOrderItemRequestDto orderItemRequestCreateRequest)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        var userIdClaim = User.FindFirst(ClaimTypes.Email);
         if (userIdClaim == null)
         {
-            return Forbid("User identity not found");
+            return Unauthorized(new { message = "User identity not found" });
         }
 
         var userEmail = userIdClaim.Value;
@@ -71,10 +71,10 @@ public class UserOrderItemController : ControllerBase
     [HttpPut("update")]
     public async Task<IActionResult> UpdateOrderItem([FromBody] UpdateOrderItemRequestDto orderItemRequestUpdateRequest)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        var userIdClaim = User.FindFirst(ClaimTypes.Email);
         if (userIdClaim == null)
         {
-            return Forbid("User identity not found");
+            return Unauthorized(new { message = "User identity not found" });
         }
 
         var userEmail = userIdClaim.Value;
@@ -101,10 +101,10 @@ public class UserOrderItemController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.Email);
             if (userIdClaim == null)
             {
-                return Forbid("User identity not found");
+                return Unauthorized(new { message = "User identity not found" });
             }
 
             var userEmail = userIdClaim.Value;

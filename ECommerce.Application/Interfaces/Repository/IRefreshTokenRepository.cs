@@ -9,8 +9,7 @@ namespace ECommerce.Application.Interfaces.Repository
         Task<RefreshToken> GetUserTokenAsync(string email);
         Task CreateAsync(RefreshToken refreshToken);
         Task UpdateAsync(RefreshToken refreshToken);
-        Task RevokeAsync(string token, string? reason = null);
-        Task RevokeAllUserTokensAsync(string email, string? reason = null);
+        Task RevokeAsync(RefreshToken refreshToken, string? reason = null);
         Task CleanupExpiredTokensAsync();
     }
 }

@@ -120,25 +120,6 @@ public class AuthService : IAuthService
         }
     }
 
-    private async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal)
-    {
-        var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        if (string.IsNullOrEmpty(email))
-        {
-            throw new Exception("Email claim not found in token");
-        }
-
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-
-        var roles = await _userManager.GetRolesAsync(user);
-
-        return (email, roles);
-    }
-
     public async Task<AuthResponseDto> RequestGenerateTokensAsync(string email, IList<string> roles)
     {
         try
@@ -159,6 +140,25 @@ public class AuthService : IAuthService
             _logger.LogError(ex, "Error generating auth tokens");
             throw;
         }
+    }
+
+    private async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal)
+    {
+        var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(email))
+        {
+            throw new Exception("Email claim not found in token");
+        }
+
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return (email, roles);
     }
 
     private async Task<(bool, IdentityUser?)> ValidateLoginProcess(string email, string password)

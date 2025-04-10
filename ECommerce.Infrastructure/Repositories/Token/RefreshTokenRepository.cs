@@ -102,32 +102,10 @@ namespace ECommerce.Infrastructure.Repositories.Token
             }
         }
 
-        public async Task RevokeAllUserTokensAsync(string email, string? reason = null)
+        public async Task RevokeAsync(RefreshToken refreshToken, string? reason = null)
         {
             try
             {
-                var tokens = await GetUserTokensAsync(email);
-                foreach (var token in tokens)
-                {
-                    token.RevokeToken(reason);
-                }
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                throw new DbUpdateException("Failed to revoke all user tokens", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("An unexpected error occurred", ex);
-            }
-        }
-
-        public async Task RevokeAsync(string token, string? reason = null)
-        {
-            try
-            {
-                var refreshToken = await GetByTokenAsync(token);
                 refreshToken.RevokeToken(reason);
                 await _context.SaveChangesAsync();
             }

@@ -21,10 +21,10 @@ public class UserOrderController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto orderCreateRequestRequest)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        var userIdClaim = User.FindFirst(ClaimTypes.Email);
         if (userIdClaim == null)
         {
-            return Forbid("User identity not found");
+            return Unauthorized(new { message = "User identity not found" });
         }
 
         var userEmail = userIdClaim.Value;
@@ -51,10 +51,10 @@ public class UserOrderController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.Email);
             if (userIdClaim == null)
             {
-                return Forbid("User identity not found");
+                return Unauthorized(new { message = "User identity not found" });
             }
 
             var userEmail = userIdClaim.Value;
@@ -74,10 +74,10 @@ public class UserOrderController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.Email);
             if (userIdClaim == null)
             {
-                return Forbid("User identity not found");
+                return Unauthorized(new { message = "User identity not found" });
             }
 
             var userEmail = userIdClaim.Value;

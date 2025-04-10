@@ -18,3 +18,16 @@ Authorization: Bearer {{adminToken}}
 
 DELETE {{baseUrl}}/api/admin/accounts/delete/1
 Authorization: Bearer {{adminToken}}
+
+### REVOKE USER TOKEN
+
+POST {{baseUrl}}/api/admin/accounts/revoke-token
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "email": "bsn.mehmetcan@gmail.com"
+}
+
+
+
