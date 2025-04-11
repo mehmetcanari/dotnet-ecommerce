@@ -8,8 +8,8 @@ public class OrderResponseDto
     public ICollection<OrderItemResponseDto> OrderItems { get; set; } = new List<OrderItemResponseDto>();
     public decimal TotalPrice => OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity);
     public DateTime OrderDate { get; init; }
-    public string ShippingAddress { get; init; }
-    public string BillingAddress { get; init; }
-    public PaymentMethod PaymentMethod { get; init; }
-    public OrderStatus Status { get; init; }
+    public required string ShippingAddress { get; init; }
+    public required string BillingAddress { get; init; }
+    public required PaymentMethod PaymentMethod { get; init; }
+    public required OrderStatus Status { get; init; }
 }

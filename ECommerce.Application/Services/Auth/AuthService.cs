@@ -5,8 +5,8 @@ using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ECommerce.Application.Services.Auth;
 
@@ -163,6 +163,13 @@ public class AuthService : IAuthService
 
     private async Task<(bool, IdentityUser?)> ValidateLoginProcess(string email, string password)
     {
+        var account = await _accountService.GetAccountByEmailAsModel(email);
+        if (account == null)
+        {
+            _logger.LogWarning("Login failed - User not found: {Email}", email);
+            return (false, null);
+        }
+        
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
@@ -175,6 +182,12 @@ public class AuthService : IAuthService
         {
             _logger.LogWarning("Login failed - Invalid password for user: {Email}", email);
             return (false, user);
+        }
+
+        if (account.IsBanned)
+        {
+            _logger.LogWarning("Login failed - User is banned: {Email}", email);
+            throw new Exception("User is banned");
         }
 
         return (true, user);

@@ -27,7 +27,7 @@ public class UserProductController : ControllerBase
         try
         {
             var products = await _productService.GetAllProductsAsync();
-            return Ok(new { message = "Products fetched successfully", data = products });
+            return Ok(new { message = "All products fetched successfully", data = products });
         }
         catch (Exception exception)
         {
@@ -42,12 +42,11 @@ public class UserProductController : ControllerBase
         try
         {
             var product = await _productService.GetProductWithIdAsync(id);
-            return Ok(new { message = "Product fetched successfully", data = product });
+            return Ok(new { message = $"Product with id {id} fetched successfully", data = product });
         }
         catch (Exception exception)
         {
             return BadRequest(exception.Message);
-            throw;
         }
     }
 }

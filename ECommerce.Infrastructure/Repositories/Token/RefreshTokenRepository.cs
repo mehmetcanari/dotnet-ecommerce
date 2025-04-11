@@ -81,7 +81,7 @@ namespace ECommerce.Infrastructure.Repositories.Token
             }
             catch (Exception ex)
             {
-                throw new Exception("An unexpected error occurred", ex);
+                throw new Exception("Failed to get refresh token", ex);
             }
         }
 

@@ -29,5 +29,27 @@ Content-Type: application/json
     "email": "bsn.mehmetcan@gmail.com"
 }
 
+### BAN ACCOUNT
+
+POST {{baseUrl}}/api/admin/accounts/ban
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "email": "bsn.mehmetcan@gmail.com",
+    "until": "2025-07-11",
+    "reason": "Test"
+}
+
+### UNBAN ACCOUNT
+
+POST {{baseUrl}}/api/admin/accounts/unban
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "email": "bsn.mehmetcan@gmail.com"
+}
+
 
 

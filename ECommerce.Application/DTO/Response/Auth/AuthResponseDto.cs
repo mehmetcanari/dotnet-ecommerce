@@ -2,6 +2,6 @@ namespace ECommerce.Application.DTO.Response.Auth;
 
 public class AuthResponseDto
 {
-    public string AccessToken { get; set; } = string.Empty;
+    public required string AccessToken { get; set; }
     public DateTime AccessTokenExpiration { get; set; }
 }

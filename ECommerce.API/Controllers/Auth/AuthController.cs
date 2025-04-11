@@ -75,7 +75,7 @@ namespace ECommerce.API.Controllers
                 }
 
                 var authResponse = await _authService.LoginAsync(accountLoginRequestDto);
-                return Ok(authResponse);
+                return Ok(new { message = "Login successful", authResponse });
             }
             catch (Exception ex)
             {
@@ -93,7 +93,7 @@ namespace ECommerce.API.Controllers
                 var refreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
                 var authResponse = await _authService.GenerateAuthTokenAsync(refreshToken);
 
-                return Ok(authResponse);
+                return Ok(new { message = "Token refreshed successfully", authResponse });
             }
             catch (Exception ex)
             {

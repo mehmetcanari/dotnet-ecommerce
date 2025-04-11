@@ -70,7 +70,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw;
         }
     }
 
@@ -93,7 +93,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw;
         }
     }
 
@@ -109,7 +109,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("No order found to delete", ex);
         }
     }
 
@@ -118,6 +118,10 @@ public class OrderService : IOrderService
         try
         {
             var orders = await _orderRepository.Read();
+            if (orders.Count == 0)
+            {
+                throw new Exception("No orders found");
+            }
 
             return orders.Select(o => new OrderResponseDto
             {
@@ -140,7 +144,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching all orders: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("No orders found", ex);
         }
     }
 
@@ -182,7 +186,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw;
         }
     }
 
@@ -217,7 +221,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("No order found", ex);
         }
     }
 
@@ -233,7 +237,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while updating order status: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("No order found to update", ex);
         }
     }
 }

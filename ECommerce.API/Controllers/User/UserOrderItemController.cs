@@ -59,7 +59,7 @@ public class UserOrderItemController : ControllerBase
         try
         {
             await _orderItemService.CreateOrderItemAsync(orderItemRequestCreateRequest, userEmail);
-            return Created($"order-items", new { message = "Order item created successfully" });
+            return Created($"order-items", new { message = $"Order item with product id {orderItemRequestCreateRequest.ProductId} created successfully" });
         }
         catch (Exception exception)
         {
@@ -87,7 +87,7 @@ public class UserOrderItemController : ControllerBase
         try
         {
             await _orderItemService.UpdateOrderItemAsync(orderItemRequestUpdateRequest, userEmail);
-            return Ok(new { message = "Order item updated successfully" });
+            return Ok(new { message = $"Order item with product id {orderItemRequestUpdateRequest.ProductId} updated successfully" });
         }
         catch (Exception exception)
         {
@@ -110,7 +110,7 @@ public class UserOrderItemController : ControllerBase
             var userEmail = userIdClaim.Value;
 
             await _orderItemService.DeleteAllOrderItemsAsync(userEmail);
-            return Ok(new { message = "Order item deleted successfully" });
+            return Ok(new { message = "All order items deleted successfully" });
         }
         catch (Exception exception)
         {

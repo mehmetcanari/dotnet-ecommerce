@@ -9,12 +9,14 @@ namespace ECommerce.Application.Services.Account;
 public class AccountService : IAccountService
 {
     private readonly IAccountRepository _accountRepository;
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly ILogger<AccountService> _logger;
     
-    public AccountService(IAccountRepository accountRepository, UserManager<IdentityUser> userManager, ILogger<AccountService> logger)
+    public AccountService(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, UserManager<IdentityUser> userManager, ILogger<AccountService> logger)
     {
         _accountRepository = accountRepository;
+        _refreshTokenService = refreshTokenService;
         _userManager = userManager;
         _logger = logger;
     }
@@ -47,7 +49,7 @@ public class AccountService : IAccountService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while adding account: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw;
         }
     }
 
@@ -78,7 +80,22 @@ public class AccountService : IAccountService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw;
+        }
+    }
+
+    public async Task<Domain.Model.Account> GetAccountByEmailAsModel(string email)
+    {
+        try
+        {
+            var accounts = await _accountRepository.Read();
+            var account = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
+            return account;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
+            throw new Exception($"User with email {email} not found", ex);
         }
     }
 
@@ -105,7 +122,7 @@ public class AccountService : IAccountService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching account: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw;
         }
     }
 
@@ -128,7 +145,7 @@ public class AccountService : IAccountService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw;
         }
     }
 
@@ -156,7 +173,40 @@ public class AccountService : IAccountService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching account by email: {Message}", ex.Message);
-            throw new Exception("An unexpected error occurred", ex);
+            throw;
         }
     }
+
+    public async Task BanAccountAsync(string email, DateTime until, string reason)
+    {
+        try
+        {
+            var account = await GetAccountByEmailAsModel(email);
+            account.BanAccount(until, reason);
+            await _accountRepository.Update(account);
+            await _refreshTokenService.RevokeUserTokensAsync(email, "Account banned");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while banning account: {Message}", ex.Message);
+            throw;
+        }
+    }
+
+    public async Task UnbanAccountAsync(string email)
+    {
+        try
+        {
+            var account = await GetAccountByEmailAsModel(email);
+            account.UnbanAccount();
+            await _accountRepository.Update(account);
+            await _refreshTokenService.RevokeUserTokensAsync(email, "Account unbanned");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while unbanning account: {Message}", ex.Message);
+            throw;
+        }
+    }
+    
 }

@@ -3,7 +3,7 @@ using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Memory;
+
 namespace ECommerce.Application.Services.Product;
 
 public class ProductService : IProductService
@@ -38,7 +38,7 @@ public class ProductService : IProductService
             if (products.Count == 0)
             {
                 _logger.LogWarning("No products found in the database");
-                return [];
+                throw new Exception("No products found");
             }
 
             var productResponseDtos = products.Select(p => new ProductResponseDto
@@ -124,7 +124,7 @@ public class ProductService : IProductService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
-            throw new Exception(ex.Message);
+            throw;
         }
     }
 
@@ -152,7 +152,7 @@ public class ProductService : IProductService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
-            throw new Exception(ex.Message);
+            throw;
         }
     }
 
@@ -169,7 +169,7 @@ public class ProductService : IProductService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
-            throw new Exception(ex.Message);
+            throw;
         }
     }
 }

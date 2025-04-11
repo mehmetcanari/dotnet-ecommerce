@@ -51,7 +51,7 @@ public class OrderItemService : IOrderItemService
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while fetching all order items");
-            throw new Exception(exception.Message);
+            throw;
         }
     }
 
@@ -93,7 +93,7 @@ public class OrderItemService : IOrderItemService
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while creating order item");
-            throw new Exception(exception.Message);
+            throw;
         }
     }
 
@@ -131,7 +131,7 @@ public class OrderItemService : IOrderItemService
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while updating order item");
-            throw new Exception(exception.Message);
+            throw;
         }
     }
 
@@ -145,6 +145,11 @@ public class OrderItemService : IOrderItemService
                         throw new Exception("Account not found");
             var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId).ToList();
 
+            if (items.Count == 0)
+            {
+                throw new Exception("No order items found to delete");
+            }
+
             foreach (var item in items)
             {
                 await _orderItemRepository.Delete(item);
@@ -155,7 +160,7 @@ public class OrderItemService : IOrderItemService
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while deleting order item");
-            throw new Exception(exception.Message);
+            throw;
         }
     }
 }

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Infrastructure.Migrations.StoreDb
 {
     /// <inheritdoc />
-    public partial class InitialStoreDbContext : Migration
+    public partial class InitialStoreDbCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,7 +25,10 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                     PhoneNumber = table.Column<string>(type: "text", nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UserUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    UserUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    BannedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    BannedUntil = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    BanReason = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

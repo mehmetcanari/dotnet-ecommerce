@@ -1,3 +1,4 @@
+using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
@@ -24,7 +25,7 @@ public class AdminAccountController : ControllerBase
         try
         {
             var accounts = await _accountService.GetAllAccountsAsync();
-            return Ok(accounts);
+            return Ok(new { message = "All accounts fetched successfully", accounts });
         }
         catch (Exception ex)
         {
@@ -39,7 +40,7 @@ public class AdminAccountController : ControllerBase
         try
         {
             var account = await _accountService.GetAccountWithIdAsync(id);
-            return Ok(account);
+            return Ok(new { message = $"Account with id {id} fetched successfully", account });
         }
         catch (Exception ex)
         {
@@ -54,7 +55,7 @@ public class AdminAccountController : ControllerBase
         try
         {
             await _accountService.DeleteAccountAsync(id);
-            return NoContent();
+            return Ok(new { message = $"Account with id {id} deleted successfully" });
         }
         catch (Exception ex)
         {
@@ -69,7 +70,37 @@ public class AdminAccountController : ControllerBase
         try
         {
             await _refreshTokenService.RevokeUserTokensAsync(request.Email, "Admin revoked");
-            return Ok(new { message = "Tokens revoked successfully" });
+            return Ok(new { message = $"{request.Email} tokens revoked successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("ban")]
+    public async Task<IActionResult> BanAccount([FromBody] AccountBanRequestDto request)
+    {
+        try
+        {
+            await _accountService.BanAccountAsync(request.Email, request.Until, request.Reason);
+            return Ok(new { message = $"{request.Email} account banned successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("unban")]
+    public async Task<IActionResult> UnbanAccount([FromBody] AccountUnbanRequestDto request)
+    {
+        try
+        {
+            await _accountService.UnbanAccountAsync(request.Email);
+            return Ok(new { message = $"{request.Email} account unbanned successfully" });
         }
         catch (Exception ex)
         {
