@@ -6,7 +6,7 @@ namespace ECommerce.Application.Interfaces.Service;
 public interface IOrderService
 {
     Task<List<OrderResponseDto>> GetAllOrdersAsync();
-    Task<OrderResponseDto> GetOrdersAsync(string email);
+    Task<List<OrderResponseDto>> GetUserOrdersAsync(string email);
     Task<OrderResponseDto> GetOrderByIdAsync(int id);
     Task AddOrderAsync(OrderCreateRequestDto createRequestOrderDto, string email);
     Task CancelOrderAsync(string email, OrderCancelRequestDto orderCancelRequestDto);

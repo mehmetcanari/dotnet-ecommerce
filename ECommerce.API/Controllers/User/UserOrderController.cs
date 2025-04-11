@@ -28,6 +28,7 @@ public class UserOrderController : ControllerBase
         }
 
         var userEmail = userIdClaim.Value;
+        Console.WriteLine("User email: " + userEmail);
 
         if (!ModelState.IsValid)
         {
@@ -59,7 +60,7 @@ public class UserOrderController : ControllerBase
 
             var userEmail = userIdClaim.Value;
 
-            var order = await _orderService.GetOrdersAsync(userEmail);
+            var order = await _orderService.GetUserOrdersAsync(userEmail);
             return Ok(new { message = "Order fetched successfully", data = order });
         }
         catch (Exception exception)

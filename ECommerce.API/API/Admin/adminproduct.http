@@ -11,7 +11,7 @@ Authorization: Bearer {{adminToken}}
 
 ### GET PRODUCT BY ID
 
-GET {{baseUrl}}/api/admin/products/1
+GET {{baseUrl}}/api/admin/products/2
 Authorization: Bearer {{adminToken}}
 
 ### CREATE PRODUCT
@@ -24,8 +24,8 @@ Authorization: Bearer {{adminToken}}
   "Name": "Playstation 5",
   "Description": "Playstation 5 is a gaming console that is the latest in the Playstation series",
   "Price": 499.99,
-  "StockQuantity": 300,
-  "DiscountRate": 13,
+  "StockQuantity": 220,
+  "DiscountRate": 25,
   "ImageUrl": "https://via.placeholder.com/150"
 }
 
@@ -36,8 +36,8 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "Xbox Series X",
-  "Description": "Xbox Series X is a gaming console that is the latest in the Xbox series",
+  "Name": "Samsung S22",
+  "Description": "Samsung S22 is a smartphone that is the latest in the Samsung series",
   "Price": 499.99,
   "StockQuantity": 3,
   "DiscountRate": 5,

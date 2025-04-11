@@ -13,7 +13,7 @@ Authorization: Bearer {{userToken}}
 {
   "ShippingAddress": "1234 Street Name, City, Country",
   "BillingAddress": "1234 Billing Address, City, Country",
-  "PaymentMethod": 2
+  "PaymentMethod": 1
 }
 
 

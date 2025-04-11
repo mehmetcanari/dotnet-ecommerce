@@ -33,7 +33,7 @@ public class OrderItemService : IOrderItemService
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                         throw new Exception("Account not found");
             var orderItems = await _orderItemRepository.Read();
-            var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId).ToList();
+            var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId && o.IsOrdered == false).ToList();
             if (items.Count == 0)
             {
                 throw new Exception("No order items found.");
@@ -81,7 +81,8 @@ public class OrderItemService : IOrderItemService
                 Quantity = createOrderItemRequestDto.Quantity,
                 ProductId = product.ProductId,
                 UnitPrice = product.Price,
-                ProductName = product.Name
+                ProductName = product.Name,
+                IsOrdered = false
             };
 
             await _orderItemRepository.Create(orderItem);
@@ -143,23 +144,26 @@ public class OrderItemService : IOrderItemService
             var accounts = await _accountRepository.Read();
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                         throw new Exception("Account not found");
-            var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId).ToList();
+            var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId && o.IsOrdered == false).ToList();
 
             if (items.Count == 0)
             {
                 throw new Exception("No order items found to delete");
             }
 
+            _logger.LogInformation($"Attempting to delete {items.Count} order items");
+            
             foreach (var item in items)
             {
                 await _orderItemRepository.Delete(item);
+                _logger.LogInformation($"Deleted order item with ID: {item.OrderItemId}");
             }
 
-            _logger.LogInformation("Order item deleted successfully");
+            _logger.LogInformation("All order items deleted successfully");
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Unexpected error while deleting order item");
+            _logger.LogError(exception, "Unexpected error while deleting order items");
             throw;
         }
     }

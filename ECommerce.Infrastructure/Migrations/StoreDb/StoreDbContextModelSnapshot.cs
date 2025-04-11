@@ -117,6 +117,9 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                     b.Property<int>("AccountId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsOrdered")
+                        .HasColumnType("boolean");
+
                     b.Property<int?>("OrderId")
                         .HasColumnType("integer");
 

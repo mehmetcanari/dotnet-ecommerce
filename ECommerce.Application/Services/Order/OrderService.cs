@@ -38,7 +38,10 @@ public class OrderService : IOrderService
 
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                                throw new Exception("User not found");
-            var userOrderItems = orderItems.Where(oi => oi.AccountId == tokenAccount.AccountId).ToList();
+            var userOrderItems = orderItems
+                .Where(oi => !oi.IsOrdered)
+                .Where(oi => oi.AccountId == tokenAccount.AccountId)
+                .ToList();
 
             List<Domain.Model.OrderItem> newOrderItems = userOrderItems
                 .Select(orderItem => new Domain.Model.OrderItem
@@ -47,7 +50,8 @@ public class OrderService : IOrderService
                     ProductId = orderItem.ProductId,
                     Quantity = orderItem.Quantity,
                     UnitPrice = orderItem.UnitPrice,
-                    ProductName = orderItem.ProductName
+                    ProductName = orderItem.ProductName,
+                    IsOrdered = true
                 }).ToList();
 
             if (newOrderItems.Count == 0)
@@ -64,8 +68,8 @@ public class OrderService : IOrderService
                 OrderItems = newOrderItems
             };
 
-            await _orderItemService.DeleteAllOrderItemsAsync(email);
             await _orderRepository.Create(order);
+            await _orderItemService.DeleteAllOrderItemsAsync(email);
         }
         catch (Exception ex)
         {
@@ -148,7 +152,7 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<OrderResponseDto> GetOrdersAsync(string email)
+    public async Task<List<OrderResponseDto>> GetUserOrdersAsync(string email)
     {
         try
         {
@@ -157,13 +161,14 @@ public class OrderService : IOrderService
 
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                                throw new Exception("Account not found");
-            var order = orders.FirstOrDefault(o => o.AccountId == tokenAccount.AccountId) ??
-                        throw new Exception("Order not found");
+            
+            var userOrders = orders.Where(o => o.AccountId == tokenAccount.AccountId).ToList();
+            var orderedItems = userOrders.Where(o => o.OrderItems.Any(oi => oi.IsOrdered == true)).ToList();
+            
+            if (!orderedItems.Any())
+                throw new Exception("No orders found for this user");
 
-            if (order == null)
-                throw new Exception("Order not found");
-
-            OrderResponseDto orderResponseDto = new()
+            return orderedItems.Select(order => new OrderResponseDto
             {
                 AccountId = order.AccountId,
                 OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
@@ -179,13 +184,11 @@ public class OrderService : IOrderService
                 BillingAddress = order.BillingAddress,
                 PaymentMethod = order.PaymentMethod,
                 Status = order.Status
-            };
-
-            return orderResponseDto;
+            }).ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while fetching user orders: {Message}", ex.Message);
             throw;
         }
     }

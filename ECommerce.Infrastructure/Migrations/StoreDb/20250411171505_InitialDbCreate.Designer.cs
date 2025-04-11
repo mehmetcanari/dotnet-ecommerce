@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Infrastructure.Migrations.StoreDb
 {
     [DbContext(typeof(StoreDbContext))]
-    [Migration("20250411122223_InitialStoreDbCreate")]
-    partial class InitialStoreDbCreate
+    [Migration("20250411171505_InitialDbCreate")]
+    partial class InitialDbCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -119,6 +119,9 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
 
                     b.Property<int>("AccountId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsOrdered")
+                        .HasColumnType("boolean");
 
                     b.Property<int?>("OrderId")
                         .HasColumnType("integer");

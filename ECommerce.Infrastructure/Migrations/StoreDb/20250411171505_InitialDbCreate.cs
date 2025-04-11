@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Infrastructure.Migrations.StoreDb
 {
     /// <inheritdoc />
-    public partial class InitialStoreDbCreate : Migration
+    public partial class InitialDbCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -102,6 +102,7 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                     UnitPrice = table.Column<decimal>(type: "numeric", nullable: false),
                     ProductId = table.Column<int>(type: "integer", nullable: false),
                     ProductName = table.Column<string>(type: "text", nullable: false),
+                    IsOrdered = table.Column<bool>(type: "boolean", nullable: false),
                     OrderId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>

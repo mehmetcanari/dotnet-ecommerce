@@ -10,6 +10,7 @@ namespace ECommerce.Domain.Model
         public required int ProductId { get; set; }
         public decimal TotalPrice => UnitPrice * Quantity;
         public string ProductName { get; set; }
+        public bool IsOrdered { get; set; }
 
         // Navigation properties
         public int? OrderId { get; set; }

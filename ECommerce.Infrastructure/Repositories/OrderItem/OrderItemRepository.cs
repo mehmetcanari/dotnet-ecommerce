@@ -54,6 +54,7 @@ public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepositor
         {
             dbContext.OrderItems.Remove(orderItem);
             await dbContext.SaveChangesAsync();
+            Console.WriteLine("Order item deleted successfully");
         }
         catch (Exception exception)
         {
