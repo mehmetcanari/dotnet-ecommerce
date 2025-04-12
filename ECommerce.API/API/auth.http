@@ -9,9 +9,9 @@ POST {{baseUrl}}/{{route}}/create-user
 Content-Type: application/json
 
 {
-    "fullName": "Mehmet Can Ari",
-    "email": "bsn.mehmetcan@gmail.com",
-    "password": "1examplePassword@MehmetCan",
+    "fullName": "User",
+    "email": "user@system.com",
+    "password": "UserPassword123!",
     "address": "Istanbul, TR",
     "phoneNumber": "1234567890",
     "dateOfBirth": "1999-03-24"
@@ -37,8 +37,8 @@ POST {{baseUrl}}/{{route}}/login
 Content-Type: application/json
 
 {
-  "email": "bsn.mehmetcan@gmail.com",  
-  "password": "1examplePassword@MehmetCan"
+  "email": "user@system.com",  
+  "password": "UserPassword123!"
 }
 
 ### LOGIN ADMIN ACCOUNT
