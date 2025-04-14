@@ -1,0 +1,35 @@
+@baseUrl = http://localhost:5076
+@route = api/admin/categories
+@adminToken = {{$dotenv ADMIN_TOKEN}}
+
+### CREATE CATEGORY
+
+POST {{baseUrl}}/{{route}}/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Test Category",
+    "description": "Test Description"
+}
+
+### GET CATEGORY BY ID
+
+GET {{baseUrl}}/{{route}}/2
+Authorization: Bearer {{adminToken}}
+
+### UPDATE CATEGORY
+
+PUT {{baseUrl}}/{{route}}/update/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Updated Category",
+    "description": "Updated Description"
+}
+
+### DELETE CATEGORY
+
+DELETE {{baseUrl}}/{{route}}/delete/1
+Authorization: Bearer {{adminToken}}

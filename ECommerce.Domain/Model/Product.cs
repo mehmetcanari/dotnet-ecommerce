@@ -11,4 +11,8 @@ public class Product
     public required int StockQuantity {get;set;}
     public DateTime ProductCreated { get; init; }
     public DateTime ProductUpdated { get; set; }
+
+    //Navigation Properties
+    public int CategoryId { get; set; }
+    public Category Category { get; set; }
 }

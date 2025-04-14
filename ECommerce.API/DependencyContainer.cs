@@ -1,4 +1,5 @@
 ﻿using ECommerce.Application.DTO.Request.Account;
+using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Request.OrderItem;
 using ECommerce.Application.DTO.Request.Product;
@@ -39,12 +40,14 @@ public class DependencyContainer : IDependencyContainer
     {
         _builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
             ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost:6379"));
-        
+        // Repository
         _builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         _builder.Services.AddScoped<IProductRepository, ProductRepository>();
         _builder.Services.AddScoped<IAccountRepository, AccountRepository>();
         _builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         _builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        _builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+        // Service
         _builder.Services.AddScoped<IAccountService, AccountService>();
         _builder.Services.AddScoped<IOrderService, OrderService>();
         _builder.Services.AddScoped<IProductService, ProductService>();
@@ -54,6 +57,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         _builder.Services.AddScoped<ICacheService, RedisCacheService>();
         _builder.Services.AddScoped<ITokenUserClaimsService, TokenUserClaimsService>();
+        _builder.Services.AddScoped<ICategoryService, CategoryService>();
         
         _builder.Services.AddHttpContextAccessor();
     }
@@ -70,5 +74,8 @@ public class DependencyContainer : IDependencyContainer
        _builder.Services.AddScoped<IValidator<OrderUpdateRequestDto>, OrderUpdateValidation>();
        _builder.Services.AddScoped<IValidator<CreateOrderItemRequestDto>, OrderItemCreateValidation>();
        _builder.Services.AddScoped<IValidator<UpdateOrderItemRequestDto>, OrderItemUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<CreateCategoryRequestDto>, CategoryCreateValidation>();
+       _builder.Services.AddScoped<IValidator<UpdateCategoryRequestDto>, CategoryUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<DeleteCategoryRequestDto>, CategoryDeleteValidation>();
     }
 }
