@@ -9,13 +9,13 @@ Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-    "name": "Test Category",
-    "description": "Test Description"
+    "name": "Electronics",
+    "description": "Electronics category"
 }
 
 ### GET CATEGORY BY ID
 
-GET {{baseUrl}}/{{route}}/2
+GET {{baseUrl}}/{{route}}/3
 Authorization: Bearer {{adminToken}}
 
 ### UPDATE CATEGORY
@@ -25,11 +25,11 @@ Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-    "name": "Updated Category",
-    "description": "Updated Description"
+    "name": "Updated Electronics",
+    "description": "Updated Electronics category"
 }
 
 ### DELETE CATEGORY
 
-DELETE {{baseUrl}}/{{route}}/delete/1
+DELETE {{baseUrl}}/{{route}}/delete/2
 Authorization: Bearer {{adminToken}}

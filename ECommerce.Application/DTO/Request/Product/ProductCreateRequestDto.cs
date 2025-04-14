@@ -8,4 +8,5 @@ public record ProductCreateRequestDto
     public required decimal DiscountRate {get;set;}
     public string? ImageUrl {get;set;}
     public required int StockQuantity {get;set;}
+    public required int CategoryId {get;set;}
 }

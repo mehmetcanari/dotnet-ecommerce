@@ -1,4 +1,5 @@
 using ECommerce.Application.DTO.Request.Category;
+using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Domain.Model;
 using Microsoft.Extensions.Logging;
 
@@ -79,7 +80,7 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<Category> GetCategoryByIdAsync(int categoryId)
+    public async Task<CategoryResponseDto> GetCategoryByIdAsync(int categoryId)
     {
         try
         {
@@ -87,8 +88,25 @@ public class CategoryService : ICategoryService
             var category = categories.FirstOrDefault(c => c.CategoryId == categoryId) 
             ?? throw new Exception("Category not found");
 
+            var categoryResponseDto = new CategoryResponseDto
+            {
+                CategoryId = category.CategoryId,
+                Name = category.Name,
+                Description = category.Description,
+                Products = category.Products?.Select(p => new ProductResponseDto
+                {
+                    ProductName = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    DiscountRate = p.DiscountRate,
+                    ImageUrl = p.ImageUrl,
+                    StockQuantity = p.StockQuantity,
+                    CategoryId = p.CategoryId
+            }).ToList() ?? new List<ProductResponseDto>()
+        };
+
             _logger.LogInformation("Category retrieved successfully");
-            return category;
+            return categoryResponseDto;
         }
         catch (Exception ex)
         {

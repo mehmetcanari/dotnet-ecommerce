@@ -9,14 +9,16 @@ namespace ECommerce.Application.Services.Product;
 public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
+    private readonly ICategoryService _categoryService;
     private readonly ILogger<ProductService> _logger;
     private readonly ICacheService _cacheService;
     private const string AllProductsCacheKey = "products";
     private const string ProductCacheKey = "product:{0}";
 
-    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger, ICacheService cacheService)
+    public ProductService(IProductRepository productRepository, ICategoryService categoryService, ILogger<ProductService> logger, ICacheService cacheService)
     {
         _productRepository = productRepository;
+        _categoryService = categoryService;
         _logger = logger;
         _cacheService = cacheService;
     }
@@ -48,7 +50,8 @@ public class ProductService : IProductService
                 Price = p.Price,
                 DiscountRate = p.DiscountRate,
                 ImageUrl = p.ImageUrl,
-                StockQuantity = p.StockQuantity
+                StockQuantity = p.StockQuantity,
+                CategoryId = p.CategoryId
             }).ToList();
 
             await _cacheService.SetAsync(AllProductsCacheKey, productResponseDtos, expirationTime);
@@ -80,7 +83,8 @@ public class ProductService : IProductService
                 Price = product.Price,
                 DiscountRate = product.DiscountRate,
                 ImageUrl = product.ImageUrl,
-                StockQuantity = product.StockQuantity
+                StockQuantity = product.StockQuantity,
+                CategoryId = product.CategoryId
             };
 
             await _cacheService.SetAsync(string.Format(ProductCacheKey, requestId), productResponse, expirationTime);
@@ -93,33 +97,36 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task AddProductAsync(ProductCreateRequestDto productCreateRequestRequest)
+    public async Task AddProductAsync(ProductCreateRequestDto productCreateRequest)
     {
         try
         {
+            var category = await _categoryService.GetCategoryByIdAsync(productCreateRequest.CategoryId);
+
             var products = await _productRepository.Read();
-            if (products.Any(p => p.Name == productCreateRequestRequest.Name)) //Duplicate product name check
+            if (products.Any(p => p.Name == productCreateRequest.Name))
             {
                 throw new Exception("Product already exists in the database");
             }
 
             var product = new Domain.Model.Product
             {
-                Name = productCreateRequestRequest.Name,
-                Description = productCreateRequestRequest.Description,
-                Price = productCreateRequestRequest.Price,
-                DiscountRate = productCreateRequestRequest.DiscountRate,
-                ImageUrl = productCreateRequestRequest.ImageUrl,
-                StockQuantity = productCreateRequestRequest.StockQuantity,
+                Name = productCreateRequest.Name,
+                Description = productCreateRequest.Description,
+                Price = productCreateRequest.Price,
+                DiscountRate = productCreateRequest.DiscountRate,
+                ImageUrl = productCreateRequest.ImageUrl,
+                StockQuantity = productCreateRequest.StockQuantity,
                 ProductCreated = DateTime.UtcNow,
-                ProductUpdated = DateTime.UtcNow
+                ProductUpdated = DateTime.UtcNow,
+                CategoryId = category.CategoryId
             };
-            
+
             if (product.DiscountRate > 0)
-                product.Price -= product.Price * product.DiscountRate / 100; //Calculate discounted price
-            
-            await _productRepository.Create(product);
+                product.Price -= product.Price * product.DiscountRate / 100;
+
             await _cacheService.RemoveAsync(AllProductsCacheKey);
+            await _productRepository.Create(product);
         }
         catch (Exception ex)
         {
@@ -128,23 +135,25 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequestRequest)
+    public async Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest)
     {
         try
         {
+            var category = await _categoryService.GetCategoryByIdAsync(productUpdateRequest.CategoryId);
             var products = await _productRepository.Read();
             var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
-            product.Name = productUpdateRequestRequest.Name;
-            product.Description = productUpdateRequestRequest.Description;
-            product.Price = productUpdateRequestRequest.Price;
-            product.DiscountRate = productUpdateRequestRequest.DiscountRate;
-            product.ImageUrl = productUpdateRequestRequest.ImageUrl;
-            product.StockQuantity = productUpdateRequestRequest.StockQuantity;
+            product.Name = productUpdateRequest.Name;
+            product.Description = productUpdateRequest.Description;
+            product.Price = productUpdateRequest.Price;
+            product.DiscountRate = productUpdateRequest.DiscountRate;
+            product.ImageUrl = productUpdateRequest.ImageUrl;
+            product.StockQuantity = productUpdateRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
-            
+            product.CategoryId = category.CategoryId;
+
             if (product.DiscountRate > 0)
-                product.Price -= product.Price * product.DiscountRate / 100; //Calculate discounted price
+                product.Price -= product.Price * product.DiscountRate / 100;
 
             await _productRepository.Update(product);
             await _cacheService.RemoveAsync(AllProductsCacheKey);
