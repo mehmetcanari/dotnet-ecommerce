@@ -4,10 +4,12 @@ using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using Asp.Versioning;
 namespace ECommerce.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/order-items")]
+[ApiVersion("1.0")]
 public class UserOrderItemController : ControllerBase
 {
     private readonly IOrderItemService _orderItemService;

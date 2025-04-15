@@ -8,6 +8,9 @@ using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using ECommerce.Infrastructure.DatabaseContext;
 using System.Threading.RateLimiting;
+using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Asp.Versioning.ApiExplorer;
 
 namespace ECommerce.API
 {
@@ -149,6 +152,17 @@ namespace ECommerce.API
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddApiVersioning(options =>
+            {
+                options.DefaultApiVersion = new ApiVersion(1.0);
+                options.ReportApiVersions = true;
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ApiVersionReader = ApiVersionReader.Combine(
+                    new UrlSegmentApiVersionReader(),
+                    new HeaderApiVersionReader("X-Api-Version"));
+            });
+
+            builder.Services.AddMvc();
 
             //======================================================
             // RATE LIMITING CONFIGURATION

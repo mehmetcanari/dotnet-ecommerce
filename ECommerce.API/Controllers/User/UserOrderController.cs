@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Asp.Versioning;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ namespace ECommerce.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/orders")]
+[ApiVersion("1.0")]
 public class UserOrderController : ControllerBase
 {
     private readonly IOrderService _orderService;

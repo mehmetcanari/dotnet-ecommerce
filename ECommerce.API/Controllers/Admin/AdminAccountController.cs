@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Interfaces.Service;
@@ -5,9 +6,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Controllers.Admin;
-
 [ApiController]
 [Route("api/admin/accounts")]
+[ApiVersion("1.0")]
 public class AdminAccountController : ControllerBase
 {
     private readonly IAccountService _accountService;

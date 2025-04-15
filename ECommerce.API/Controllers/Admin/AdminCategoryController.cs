@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using ECommerce.Application.DTO.Request.Category;
 using Microsoft.AspNetCore.Authorization;
+using Asp.Versioning;
 
 [ApiController]
 [Route("api/admin/categories")]
+[ApiVersion("1.0")]
 public class AdminCategoryController : ControllerBase
 {
     private readonly ICategoryService _categoryService;

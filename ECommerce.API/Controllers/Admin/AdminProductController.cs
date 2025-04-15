@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ namespace ECommerce.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/products")]
+[ApiVersion("1.0")]
 public class AdminProductController : ControllerBase
 {
     private readonly IProductService _productService;

@@ -1,6 +1,6 @@
+using Asp.Versioning;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.Interfaces.Service;
-using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +8,7 @@ namespace ECommerce.API.Controllers
 {
     [Route("api/auth")]
     [ApiController]
+    [ApiVersion("1.0")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;

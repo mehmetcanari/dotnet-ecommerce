@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ECommerce.Application.Interfaces.Service;
+using Asp.Versioning;
 
 namespace ECommerce.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/products")]
+[ApiVersion("1.0")]
 public class UserProductController : ControllerBase
 {
     private readonly IProductService _productService;

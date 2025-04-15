@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.Interfaces.Service;
+using Asp.Versioning;
 
 namespace ECommerce.API.Controllers.Auth;
 
 [ApiController]
 [Route("api/account")]
+[ApiVersion("1.0")]
 public class AccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
