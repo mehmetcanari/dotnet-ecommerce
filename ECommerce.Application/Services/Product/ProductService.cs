@@ -2,7 +2,6 @@ using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
-using Microsoft.Extensions.Logging;
 
 namespace ECommerce.Application.Services.Product;
 
@@ -10,12 +9,12 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly ICategoryService _categoryService;
-    private readonly ILogger<ProductService> _logger;
+    private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
     private const string AllProductsCacheKey = "products";
     private const string ProductCacheKey = "product:{0}";
 
-    public ProductService(IProductRepository productRepository, ICategoryService categoryService, ILogger<ProductService> logger, ICacheService cacheService)
+    public ProductService(IProductRepository productRepository, ICategoryService categoryService, ILoggingService logger, ICacheService cacheService)
     {
         _productRepository = productRepository;
         _categoryService = categoryService;
@@ -31,7 +30,6 @@ public class ProductService : IProductService
             var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(AllProductsCacheKey);
             if (cachedProducts is { Count: > 0 })
             {
-                Console.WriteLine("Products found in cache, fetching from cache");
                 return cachedProducts;
             }
 
@@ -39,7 +37,6 @@ public class ProductService : IProductService
 
             if (products.Count == 0)
             {
-                _logger.LogWarning("No products found in the database");
                 throw new Exception("No products found");
             }
 
@@ -102,8 +99,8 @@ public class ProductService : IProductService
         try
         {
             var category = await _categoryService.GetCategoryByIdAsync(productCreateRequest.CategoryId);
-
             var products = await _productRepository.Read();
+
             if (products.Any(p => p.Name == productCreateRequest.Name))
             {
                 throw new Exception("Product already exists in the database");
@@ -127,6 +124,8 @@ public class ProductService : IProductService
 
             await _cacheService.RemoveAsync(AllProductsCacheKey);
             await _productRepository.Create(product);
+
+            _logger.LogInformation("Product created successfully: {Product}", product);
         }
         catch (Exception ex)
         {
@@ -157,6 +156,8 @@ public class ProductService : IProductService
 
             await _productRepository.Update(product);
             await _cacheService.RemoveAsync(AllProductsCacheKey);
+
+            _logger.LogInformation("Product updated successfully: {Product}", product);
         }
         catch (Exception ex)
         {
@@ -174,6 +175,8 @@ public class ProductService : IProductService
 
             await _productRepository.Delete(product);
             await _cacheService.RemoveAsync(AllProductsCacheKey);
+
+            _logger.LogInformation("Product deleted successfully: {Product}", product);
         }
         catch (Exception ex)
         {

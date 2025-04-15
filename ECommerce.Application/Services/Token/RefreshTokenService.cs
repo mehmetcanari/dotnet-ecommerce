@@ -3,7 +3,6 @@ using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -14,11 +13,11 @@ namespace ECommerce.Application.Services.Token;
 public class RefreshTokenService : IRefreshTokenService
 {
     private readonly IRefreshTokenRepository _refreshTokenRepository;
-    private readonly ILogger<RefreshTokenService> _logger;
+    private readonly ILoggingService _logger;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public RefreshTokenService(IRefreshTokenRepository refreshTokenRepository, ILogger<RefreshTokenService> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+    public RefreshTokenService(IRefreshTokenRepository refreshTokenRepository, ILoggingService logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _refreshTokenRepository = refreshTokenRepository;
         _logger = logger;
@@ -54,12 +53,13 @@ public class RefreshTokenService : IRefreshTokenService
             };
 
             await _refreshTokenRepository.CreateAsync(refreshToken);
+            _logger.LogInformation("Refresh token created successfully: {RefreshToken}", refreshToken);
             return refreshToken;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate refresh token");
-            throw new Exception("Failed to generate refresh token", ex);
+            throw;
         }
     }
 
@@ -68,96 +68,109 @@ public class RefreshTokenService : IRefreshTokenService
         try
         {
             IEnumerable<RefreshToken> tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
-            RefreshToken? activeToken = tokens.FirstOrDefault(t => t.IsExpired == false && t.IsRevoked == false);
-
-            if (activeToken != null)
-            {
-                await _refreshTokenRepository.RevokeAsync(activeToken, reason);
-            }
-            else
-            {
-                _logger.LogWarning("No active refresh token found for user: {Email}", email);
-            }
+            RefreshToken activeToken = tokens.FirstOrDefault(t => t.IsExpired == false && t.IsRevoked == false) ?? throw new Exception($"No active refresh token found for user: {email}");
+            
+            await _refreshTokenRepository.RevokeAsync(activeToken, reason);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to revoke user tokens");
-            throw new Exception("Failed to revoke user tokens", ex);
+            throw;
         }
     }
 
     private string GenerateRefreshJwtToken(string email, IList<string> roles)
     {
-        var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey 
-        ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
-
-        var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
-        var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
-        var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
-        _logger.LogDebug($"JWT refresh token expiry from env: {refreshTokenExpiry}");
-
-        var claims = new List<Claim>
+        try
         {
-            new Claim(JwtRegisteredClaimNames.Sub, email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("tokenType", "refresh")
-        };
-        
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
+            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
+            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
+            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
+            var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("tokenType", "refresh")
+            };
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var token = new JwtSecurityToken(
+                 issuer: issuer,
+                 audience: audience,
+                 claims: claims,
+                 expires: DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry)),
+                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+             );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-       var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry)),
-            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate refresh token");
+            throw;
+        }
     }
 
     public void SetRefreshTokenCookie(RefreshToken refreshToken)
     {
-        var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
-        var cookieOptions = new CookieOptions
+        try
         {
-            HttpOnly = true,
-            Secure = !string.Equals(
+            var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !string.Equals(
                 Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? _configuration["ASPNETCORE_ENVIRONMENT"],
                 "Development",
                 StringComparison.OrdinalIgnoreCase),
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry))
-        };
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry))
+            };
 
-        _httpContextAccessor.HttpContext?.Response.Cookies.Append(
-            "refreshToken",
-            refreshToken.Token,
-            cookieOptions);
+            _httpContextAccessor.HttpContext?.Response.Cookies.Append(
+                "refreshToken",
+                refreshToken.Token,
+                cookieOptions);
 
-        _logger.LogInformation("Refresh token cookie set for user: {Email}", refreshToken.Email);
+            _logger.LogInformation("Refresh token cookie set for user: {Email}", refreshToken.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to set refresh token cookie");
+            throw;
+        }
     }
 
     public async Task<RefreshToken> GetRefreshTokenFromCookie()
     {
-        var refreshToken = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
-        
-        if (string.IsNullOrEmpty(refreshToken))
+        try
         {
-            throw new Exception("Refresh token not found in cookie");
-        }
+            var refreshToken = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
 
-        var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
-        if (token != null)
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                throw new Exception("Refresh token not found in cookie");
+            }
+
+            var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+            if (token != null)
+            {
+                return token;
+            }
+
+            throw new Exception("Refresh token not found in database");
+        }
+        catch (Exception ex)
         {
-            return token;
+            _logger.LogError(ex, "Failed to get refresh token from cookie");
+            throw;
         }
-
-        throw new Exception("Refresh token not found in database");
     }
 }
 

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.Interfaces.Service;
 using Asp.Versioning;
 

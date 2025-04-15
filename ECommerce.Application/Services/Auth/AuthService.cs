@@ -4,9 +4,7 @@ using ECommerce.Application.DTO.Response.Auth;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ECommerce.Application.Services.Auth;
 
@@ -19,7 +17,7 @@ public class AuthService : IAuthService
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ITokenUserClaimsService _tokenUserClaimsService;
 
-    private readonly ILogger<AuthService> _logger;
+    private readonly ILoggingService _logger;
     public AuthService(
         IAccountService accountService,
         UserManager<IdentityUser> userManager,
@@ -27,7 +25,7 @@ public class AuthService : IAuthService
         IAccessTokenService accessTokenService,
         IRefreshTokenService refreshTokenService,
         ITokenUserClaimsService tokenUserClaimsService,
-        ILogger<AuthService> logger)
+        ILoggingService logger)
     {
         _accountService = accountService;
         _userManager = userManager;
@@ -40,67 +38,75 @@ public class AuthService : IAuthService
 
     private async Task RegisterUserWithRoleAsync(AccountRegisterRequestDto registerRequestDto, string role)
     {
-        var existingUser = await _userManager.FindByEmailAsync(registerRequestDto.Email);
-        if (existingUser != null)
+        try
         {
-            _logger.LogWarning("Registration failed - Email already exists: {Email}", registerRequestDto.Email);
-            throw new Exception("Email is already in use.");
-        }
-
-        var user = new IdentityUser
-        {
-            UserName = registerRequestDto.Email,
-            Email = registerRequestDto.Email,
-            PhoneNumber = registerRequestDto.PhoneNumber,
-        };
-
-        var result = await _userManager.CreateAsync(user, registerRequestDto.Password);
-        if (!result.Succeeded)
-        {
-            _logger.LogError("Failed to create user: {Errors}",
-                string.Join(", ", result.Errors.Select(e => e.Description)));
-            throw new Exception("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
-        }
-
-        if (!await _roleManager.RoleExistsAsync(role))
-        {
-            var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
-            if (!roleResult.Succeeded)
+            var existingUser = await _userManager.FindByEmailAsync(registerRequestDto.Email);
+            if (existingUser != null)
             {
-                _logger.LogError("Failed to create role: {Errors}",
-                    string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                throw new Exception($"Error creating {role} role.");
+                _logger.LogWarning("Registration failed - Email already exists: {Email}", registerRequestDto.Email);
+                throw new Exception("Email is already in use.");
             }
-        }
 
-        var addRoleResult = await _userManager.AddToRoleAsync(user, role);
-        if (!addRoleResult.Succeeded)
+            var user = new IdentityUser
+            {
+                UserName = registerRequestDto.Email,
+                Email = registerRequestDto.Email,
+                PhoneNumber = registerRequestDto.PhoneNumber,
+            };
+
+            var result = await _userManager.CreateAsync(user, registerRequestDto.Password);
+            if (!result.Succeeded)
+            {
+                throw new Exception("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            if (!await _roleManager.RoleExistsAsync(role))
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
+                if (!roleResult.Succeeded)
+                {
+                    throw new Exception($"Error creating {role} role.");
+                }
+            }
+
+            var addRoleResult = await _userManager.AddToRoleAsync(user, role);
+            if (!addRoleResult.Succeeded)
+            {
+                throw new Exception("Error assigning role to user.");
+            }
+
+            _logger.LogInformation("User {Email} registered successfully with role {Role}", registerRequestDto.Email, role);
+
+            await _accountService.RegisterAccountAsync(registerRequestDto, role);
+        }
+        catch (Exception ex)
         {
-            _logger.LogError("Failed to add role to user: {Errors}",
-                string.Join(", ", addRoleResult.Errors.Select(e => e.Description)));
-            throw new Exception("Error assigning role to user.");
+            _logger.LogError(ex, "Error registering user: {Message}", ex.Message);
+            throw;
         }
-
-        _logger.LogInformation("User {Email} registered successfully with role {Role}", registerRequestDto.Email, role);
-
-        await _accountService.RegisterAccountAsync(registerRequestDto, role);
     }
 
     public async Task<AuthResponseDto> LoginAsync(AccountLoginRequestDto loginRequestDto)
     {
-        _logger.LogInformation("Login attempt for user: {Email}", loginRequestDto.Email);
-
-        var (isValid, user) = await ValidateLoginProcess(loginRequestDto.Email, loginRequestDto.Password);
-        if (!isValid || user == null)
+        try
         {
-            throw new Exception("Invalid email or password.");
+            var (isValid, user) = await ValidateLoginProcess(loginRequestDto.Email, loginRequestDto.Password);
+            if (!isValid || user == null)
+            {
+                throw new Exception("Invalid email or password.");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            AuthResponseDto authResponseDto = await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+            _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
+            return authResponseDto;
         }
-
-        var roles = await _userManager.GetRolesAsync(user);
-
-        AuthResponseDto authResponseDto = await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
-        _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
-        return authResponseDto;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error logging in: {Message}", ex.Message);
+            throw;
+        }
     }
 
     public async Task<AuthResponseDto> GenerateAuthTokenAsync(RefreshToken refreshToken)
@@ -134,7 +140,7 @@ public class AuthService : IAuthService
                 AccessToken = accessToken.Token,
                 AccessTokenExpiration = accessToken.Expires,
             };
-        }   
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating auth tokens");
@@ -144,53 +150,69 @@ public class AuthService : IAuthService
 
     private async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal)
     {
-        var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        if (string.IsNullOrEmpty(email))
+        try
         {
-            throw new Exception("Email claim not found in token");
-        }
+            var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new Exception("Email claim not found in token");
+            }
 
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return (email, roles);
+        }
+        catch (Exception ex)
         {
-            throw new Exception("User not found");
+            _logger.LogError(ex, "Error validating refresh token");
+            throw;
         }
-
-        var roles = await _userManager.GetRolesAsync(user);
-
-        return (email, roles);
     }
 
     private async Task<(bool, IdentityUser?)> ValidateLoginProcess(string email, string password)
     {
-        var account = await _accountService.GetAccountByEmailAsModel(email);
-        if (account == null)
+        try
         {
-            _logger.LogWarning("Login failed - User not found: {Email}", email);
-            return (false, null);
-        }
-        
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            _logger.LogWarning("Login failed - User not found: {Email}", email);
-            return (false, user);
-        }
+            var account = await _accountService.GetAccountByEmailAsModel(email);
+            if (account == null)
+            {
+                _logger.LogWarning("Login failed - User not found: {Email}", email);
+                return (false, null);
+            }
 
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
-        if (!isPasswordValid)
-        {
-            _logger.LogWarning("Login failed - Invalid password for user: {Email}", email);
-            return (false, user);
-        }
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogWarning("Login failed - User not found: {Email}", email);
+                return (false, user);
+            }
 
-        if (account.IsBanned)
-        {
-            _logger.LogWarning("Login failed - User is banned: {Email}", email);
-            throw new Exception("User is banned");
-        }
+            var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
+            if (!isPasswordValid)
+            {
+                _logger.LogWarning("Login failed - Invalid password for user: {Email}", email);
+                return (false, user);
+            }
 
-        return (true, user);
+            if (account.IsBanned)
+            {
+                _logger.LogWarning("Login failed - User is banned: {Email}", email);
+                throw new Exception("User is banned");
+            }
+
+            return (true, user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating login process");
+            throw;
+        }
     }
 
     public async Task RegisterUserAsync(AccountRegisterRequestDto registerRequestDto)

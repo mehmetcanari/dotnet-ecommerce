@@ -13,14 +13,14 @@ public class OrderService : IOrderService
     private readonly IOrderItemService _orderItemService;
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IAccountRepository _accountRepository;
-    private readonly ILogger<OrderService> _logger;
+    private readonly ILoggingService _logger;
 
     public OrderService(
         IOrderRepository orderRepository, 
         IOrderItemService orderItemService,
         IOrderItemRepository orderItemRepository,
         IAccountRepository accountRepository, 
-        ILogger<OrderService> logger)
+        ILoggingService logger)
     {
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
@@ -36,8 +36,7 @@ public class OrderService : IOrderService
             var orderItems = await _orderItemRepository.Read();
             var accounts = await _accountRepository.Read();
 
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                               throw new Exception("User not found");
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
             var userOrderItems = orderItems
                 .Where(oi => !oi.IsOrdered)
                 .Where(oi => oi.AccountId == tokenAccount.AccountId)
@@ -93,6 +92,8 @@ public class OrderService : IOrderService
             { 
                 Status = orderCancelRequestDto.Status 
             });
+
+            _logger.LogInformation("Order cancelled successfully: {Order}", order);
         }
         catch (Exception ex)
         {
@@ -106,14 +107,15 @@ public class OrderService : IOrderService
         try
         {
             var orders = await _orderRepository.Read();
-            var orderToDelete = orders.FirstOrDefault(o => o.OrderId == id) ??
-                                throw new Exception("Order not found");
+            var orderToDelete = orders.FirstOrDefault(o => o.OrderId == id) ?? throw new Exception("Order not found");
             await _orderRepository.Delete(orderToDelete);
+
+            _logger.LogInformation("Order deleted successfully: {Order}", orderToDelete);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
-            throw new Exception("No order found to delete", ex);
+            throw;
         }
     }
 
@@ -148,7 +150,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching all orders: {Message}", ex.Message);
-            throw new Exception("No orders found", ex);
+            throw;
         }
     }
 
@@ -165,7 +167,7 @@ public class OrderService : IOrderService
             var userOrders = orders.Where(o => o.AccountId == tokenAccount.AccountId).ToList();
             var orderedItems = userOrders.Where(o => o.OrderItems.Any(oi => oi.IsOrdered == true)).ToList();
             
-            if (!orderedItems.Any())
+            if (orderedItems.Count == 0)
                 throw new Exception("No orders found for this user");
 
             return orderedItems.Select(order => new OrderResponseDto
@@ -224,7 +226,7 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
-            throw new Exception("No order found", ex);
+            throw;
         }
     }
 
@@ -236,11 +238,13 @@ public class OrderService : IOrderService
             var order = orders.FirstOrDefault(o => o.AccountId == accountId) ?? throw new Exception("Order not found");
             order.Status = orderUpdateRequestDto.Status;
             await _orderRepository.Update(order);
+
+            _logger.LogInformation("Order status updated successfully: {Order}", order);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while updating order status: {Message}", ex.Message);
-            throw new Exception("No order found to update", ex);
+            throw;
         }
     }
 }

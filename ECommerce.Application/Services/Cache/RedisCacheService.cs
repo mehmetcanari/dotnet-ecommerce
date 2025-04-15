@@ -8,9 +8,9 @@ namespace ECommerce.Application.Services.Cache;
 public class RedisCacheService : ICacheService
 {
     private readonly IDatabase _database;
-    private readonly ILogger<RedisCacheService> _logger;
+    private readonly ILoggingService _logger;
     
-    public RedisCacheService(IConnectionMultiplexer redis, ILogger<RedisCacheService> logger)
+    public RedisCacheService(IConnectionMultiplexer redis, ILoggingService logger)
     {
         _database = redis.GetDatabase();
         _logger = logger;
@@ -47,6 +47,7 @@ public class RedisCacheService : ICacheService
         {
             var serialized = JsonSerializer.Serialize(value);
             await _database.StringSetAsync(key, serialized, expiry);
+            _logger.LogInformation("Cache value set for key: {Key}", key);
         }
         catch (Exception ex)
         {
@@ -62,6 +63,7 @@ public class RedisCacheService : ICacheService
             if (await _database.KeyExistsAsync(key))
             {
                 await _database.KeyDeleteAsync(key);
+                _logger.LogInformation("Cache value removed for key: {Key}", key);
             }
         }
         catch (Exception ex)

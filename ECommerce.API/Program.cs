@@ -152,6 +152,7 @@ namespace ECommerce.API
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+            builder.AddSerilogConfiguration();
             builder.Services.AddApiVersioning(options =>
             {
                 options.DefaultApiVersion = new ApiVersion(1.0);

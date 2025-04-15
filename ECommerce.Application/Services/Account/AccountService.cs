@@ -2,7 +2,6 @@ using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Account;
@@ -11,24 +10,23 @@ public class AccountService : IAccountService
     private readonly IAccountRepository _accountRepository;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly ILogger<AccountService> _logger;
-    
-    public AccountService(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, UserManager<IdentityUser> userManager, ILogger<AccountService> logger)
+    private readonly ILoggingService _logger;
+
+    public AccountService(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, UserManager<IdentityUser> userManager, ILoggingService logger)
     {
         _accountRepository = accountRepository;
         _refreshTokenService = refreshTokenService;
         _userManager = userManager;
         _logger = logger;
     }
-    
+
     public async Task RegisterAccountAsync(AccountRegisterRequestDto createUserRequestDto, string role)
     {
         try
         {
             var accounts = await _accountRepository.Read();
-            if(accounts.Any(a => a.Email == createUserRequestDto.Email)) //Duplicate email check
+            if (accounts.Any(a => a.Email == createUserRequestDto.Email))
             {
-                _logger.LogError("Email already exists in the system, try another email");
                 throw new Exception("Email already exists in the system, try another email");
             }
 
@@ -44,6 +42,7 @@ public class AccountService : IAccountService
                 Role = role
             };
 
+            _logger.LogInformation("Account created successfully: {Account}", account);
             await _accountRepository.Create(account);
         }
         catch (Exception ex)
@@ -59,22 +58,21 @@ public class AccountService : IAccountService
         {
             var accounts = await _accountRepository.Read();
             int accountCount = accounts.Count;
-            if(accountCount < 1)
+            if (accountCount < 1)
             {
-                _logger.LogError("No accounts found");
                 throw new Exception("No accounts found");
             }
 
             return accounts.Select(account => new AccountResponseDto
-                {
-                    AccountId = account.AccountId,
-                    FullName = account.FullName,
-                    Email = account.Email,
-                    Address = account.Address,
-                    PhoneNumber = account.PhoneNumber,
-                    DateOfBirth = account.DateOfBirth,
-                    Role = account.Role
-                })
+            {
+                AccountId = account.AccountId,
+                FullName = account.FullName,
+                Email = account.Email,
+                Address = account.Address,
+                PhoneNumber = account.PhoneNumber,
+                DateOfBirth = account.DateOfBirth,
+                Role = account.Role
+            })
                 .ToList();
         }
         catch (Exception ex)
@@ -95,7 +93,7 @@ public class AccountService : IAccountService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
-            throw new Exception($"User with email {email} not found", ex);
+            throw;
         }
     }
 
@@ -105,7 +103,7 @@ public class AccountService : IAccountService
         {
             var accounts = await _accountRepository.Read();
             var account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
-            
+
             var responseAccount = new AccountResponseDto
             {
                 AccountId = account.AccountId,
@@ -132,13 +130,9 @@ public class AccountService : IAccountService
         {
             var accounts = await _accountRepository.Read();
             var account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
-            var user = await _userManager.FindByEmailAsync(account.Email);
-            if (user == null)
-            {
-                _logger.LogError("User not found");
-                throw new Exception("User not found");
-            }
+            var user = await _userManager.FindByEmailAsync(account.Email) ?? throw new Exception("User not found");
             
+            _logger.LogInformation("Account deleted successfully: {Account}", account);
             await _accountRepository.Delete(account);
             await _userManager.DeleteAsync(user);
         }
@@ -154,9 +148,9 @@ public class AccountService : IAccountService
         try
         {
             var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.Email == email) ?? 
+            var account = accounts.FirstOrDefault(a => a.Email == email) ??
                           throw new Exception($"User with email {email} not found");
-            
+
             var responseAccount = new AccountResponseDto
             {
                 AccountId = account.AccountId,
@@ -185,6 +179,7 @@ public class AccountService : IAccountService
             account.BanAccount(until, reason);
             await _accountRepository.Update(account);
             await _refreshTokenService.RevokeUserTokensAsync(email, "Account banned");
+            _logger.LogInformation("Account banned successfully: {Account}", account);
         }
         catch (Exception ex)
         {
@@ -201,6 +196,7 @@ public class AccountService : IAccountService
             account.UnbanAccount();
             await _accountRepository.Update(account);
             await _refreshTokenService.RevokeUserTokensAsync(email, "Account unbanned");
+            _logger.LogInformation("Account unbanned successfully: {Account}", account);
         }
         catch (Exception ex)
         {
@@ -208,5 +204,4 @@ public class AccountService : IAccountService
             throw;
         }
     }
-    
 }

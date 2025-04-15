@@ -2,7 +2,6 @@
 using ECommerce.Application.DTO.Response.OrderItem;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
-using Microsoft.Extensions.Logging;
 
 namespace ECommerce.Application.Services.OrderItem;
 
@@ -11,13 +10,13 @@ public class OrderItemService : IOrderItemService
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly IProductRepository _productRepository;
-    private readonly ILogger<OrderItemService> _logger;
+    private readonly ILoggingService _logger;
 
     public OrderItemService(
         IOrderItemRepository orderItemRepository, 
         IProductRepository productRepository,
         IAccountRepository accountRepository,
-        ILogger<OrderItemService> logger)
+        ILoggingService logger)
     {
         _orderItemRepository = orderItemRepository;
         _productRepository = productRepository;
@@ -62,18 +61,14 @@ public class OrderItemService : IOrderItemService
             var products = await _productRepository.Read();
             var accounts = await _accountRepository.Read();
 
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                        throw new Exception("Account not found");
-            var product = products.FirstOrDefault(p => p.ProductId == createOrderItemRequestDto.ProductId) ??
-                          throw new Exception("Product not found");
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("Account not found");
+            var product = products.FirstOrDefault(p => p.ProductId == createOrderItemRequestDto.ProductId) ?? throw new Exception("Product not found");
 
             if (accounts.FirstOrDefault(a => a.AccountId == tokenAccount.AccountId) == null)
                 throw new Exception("Account not found");
 
             if (createOrderItemRequestDto.Quantity > product.StockQuantity)
-            {
                 throw new Exception("Not enough stock");
-            }
 
             var orderItem = new Domain.Model.OrderItem
             {
@@ -86,10 +81,10 @@ public class OrderItemService : IOrderItemService
             };
 
             await _orderItemRepository.Create(orderItem);
-            _logger.LogInformation("Order item created successfully");
-
             product.StockQuantity -= createOrderItemRequestDto.Quantity;
             await _productRepository.Update(product);
+
+            _logger.LogInformation("Order item created successfully: {OrderItem}", orderItem);
         }
         catch (Exception exception)
         {
@@ -127,7 +122,7 @@ public class OrderItemService : IOrderItemService
             orderItem.ProductName = product.Name;
 
             await _orderItemRepository.Update(orderItem);
-            _logger.LogInformation("Order item updated successfully");
+            _logger.LogInformation("Order item updated successfully: {OrderItem}", orderItem);
         }
         catch (Exception exception)
         {
@@ -147,16 +142,11 @@ public class OrderItemService : IOrderItemService
             var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId && o.IsOrdered == false).ToList();
 
             if (items.Count == 0)
-            {
                 throw new Exception("No order items found to delete");
-            }
 
-            _logger.LogInformation($"Attempting to delete {items.Count} order items");
-            
             foreach (var item in items)
             {
                 await _orderItemRepository.Delete(item);
-                _logger.LogInformation($"Deleted order item with ID: {item.OrderItemId}");
             }
 
             _logger.LogInformation("All order items deleted successfully");
