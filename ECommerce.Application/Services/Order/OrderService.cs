@@ -10,7 +10,9 @@ public class OrderService : IOrderService
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IOrderItemService _orderItemService;
+    private readonly IProductService _productService;
     private readonly IOrderItemRepository _orderItemRepository;
+    private readonly IProductRepository _productRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
 
@@ -18,6 +20,8 @@ public class OrderService : IOrderService
         IOrderRepository orderRepository, 
         IOrderItemService orderItemService,
         IOrderItemRepository orderItemRepository,
+        IProductRepository productRepository,
+        IProductService productService,
         IAccountRepository accountRepository, 
         ILoggingService logger)
     {
@@ -25,6 +29,8 @@ public class OrderService : IOrderService
         _accountRepository = accountRepository;
         _orderItemRepository = orderItemRepository;
         _orderItemService = orderItemService;
+        _productRepository = productRepository;
+        _productService = productService;
         _logger = logger;
     }
 
@@ -68,6 +74,8 @@ public class OrderService : IOrderService
 
             await _orderRepository.Create(order);
             await _orderItemService.DeleteAllOrderItemsAsync(email);
+            await _productService.UpdateProductStockAsync(newOrderItems);
+            await _productService.ProductCacheInvalidateAsync();
         }
         catch (Exception ex)
         {

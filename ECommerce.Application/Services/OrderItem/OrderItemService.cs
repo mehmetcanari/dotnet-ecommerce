@@ -81,8 +81,6 @@ public class OrderItemService : IOrderItemService
             };
 
             await _orderItemRepository.Create(orderItem);
-            product.StockQuantity -= createOrderItemRequestDto.Quantity;
-            await _productRepository.Update(product);
 
             _logger.LogInformation("Order item created successfully: {OrderItem}", orderItem);
         }

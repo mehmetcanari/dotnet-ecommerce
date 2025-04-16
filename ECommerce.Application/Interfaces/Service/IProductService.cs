@@ -10,4 +10,6 @@ public interface IProductService
     Task AddProductAsync(ProductCreateRequestDto productCreateRequest);
     Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest);
     Task DeleteProductAsync(int id);
+    Task ProductCacheInvalidateAsync();
+    Task UpdateProductStockAsync(List<Domain.Model.OrderItem> orderItems);
 }

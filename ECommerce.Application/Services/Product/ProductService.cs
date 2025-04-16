@@ -2,6 +2,7 @@ using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Services.Product;
 
@@ -21,7 +22,20 @@ public class ProductService : IProductService
         _logger = logger;
         _cacheService = cacheService;
     }
-    
+
+    public async Task ProductCacheInvalidateAsync()
+    {   
+        try
+        {
+            await _cacheService.RemoveAsync(AllProductsCacheKey);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while invalidating cache: {Message}", ex.Message);
+            throw;
+        }
+    }
+
     public async Task<List<ProductResponseDto>> GetAllProductsAsync()
     {
         try
@@ -119,11 +133,10 @@ public class ProductService : IProductService
                 CategoryId = category.CategoryId
             };
 
-            if (product.DiscountRate > 0)
-                product.Price -= product.Price * product.DiscountRate / 100;
+            product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
-            await _cacheService.RemoveAsync(AllProductsCacheKey);
             await _productRepository.Create(product);
+            await ProductCacheInvalidateAsync();
 
             _logger.LogInformation("Product created successfully: {Product}", product);
         }
@@ -151,11 +164,10 @@ public class ProductService : IProductService
             product.ProductUpdated = DateTime.UtcNow;
             product.CategoryId = category.CategoryId;
 
-            if (product.DiscountRate > 0)
-                product.Price -= product.Price * product.DiscountRate / 100;
+            product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
             await _productRepository.Update(product);
-            await _cacheService.RemoveAsync(AllProductsCacheKey);
+            await ProductCacheInvalidateAsync();
 
             _logger.LogInformation("Product updated successfully: {Product}", product);
         }
@@ -174,13 +186,32 @@ public class ProductService : IProductService
             var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
             await _productRepository.Delete(product);
-            await _cacheService.RemoveAsync(AllProductsCacheKey);
+            await ProductCacheInvalidateAsync();
 
             _logger.LogInformation("Product deleted successfully: {Product}", product);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
+            throw;
+        }
+    }
+
+    public async Task UpdateProductStockAsync(List<Domain.Model.OrderItem> orderItems)
+    {
+        try
+        {
+            var products = await _productRepository.Read();
+            foreach (var orderItem in orderItems)
+            {
+                var product = products.FirstOrDefault(p => p.ProductId == orderItem.ProductId) ?? throw new Exception("Product not found");
+                product.StockQuantity -= orderItem.Quantity;
+                await _productRepository.Update(product);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while updating product stock: {Message}", ex.Message);
             throw;
         }
     }
