@@ -12,22 +12,6 @@ public class CentralLogService : ILoggingService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public void LogWarning(string message)
-    {
-        if (string.IsNullOrEmpty(message))
-            return;
-
-        _logger.Warning(message);
-    }
-
-    public void LogDebug(string message)
-    {
-        if (string.IsNullOrEmpty(message))
-            return;
-
-        _logger.Debug(message);
-    }
-
     public void LogInformation(string messageTemplate, params object[] propertyValues)
     {
         _logger.Information(messageTemplate, propertyValues);
@@ -41,5 +25,10 @@ public class CentralLogService : ILoggingService
     public void LogWarning(string messageTemplate, params object[] propertyValues)
     {
         _logger.Warning(messageTemplate, propertyValues);
+    }
+
+    public void LogDebug(string messageTemplate, params object[] propertyValues)
+    {
+        _logger.Debug(messageTemplate, propertyValues);
     }
 }
