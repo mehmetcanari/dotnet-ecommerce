@@ -3,7 +3,6 @@ using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.DTO.Response.OrderItem;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
-using Microsoft.Extensions.Logging;
 
 namespace ECommerce.Application.Services.Order;
 

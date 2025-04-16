@@ -1,8 +1,9 @@
-
-using Microsoft.AspNetCore.Mvc;
+using Asp.Versioning;
 using ECommerce.Application.DTO.Request.Category;
 using Microsoft.AspNetCore.Authorization;
-using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ECommerce.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/categories")]

@@ -21,9 +21,9 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "Dyson V11",
-  "Description": "Dyson V11 is a vacuum cleaner that is the latest in the Dyson series",
-  "Price": 1099.99,
+  "Name": "Xbox Series X",
+  "Description": "Xbox Series X is a gaming console that is the latest in the Xbox series",
+  "Price": 499.99,
   "StockQuantity": 100,
   "DiscountRate": 10,
   "ImageUrl": "https://via.placeholder.com/135",

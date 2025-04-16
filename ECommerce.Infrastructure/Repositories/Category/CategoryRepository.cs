@@ -1,14 +1,14 @@
+using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 public class CategoryRepository : ICategoryRepository
 {
     private readonly StoreDbContext _context;
-    private readonly ILogger<CategoryRepository> _logger;
+    private readonly ILoggingService _logger;
 
-    public CategoryRepository(StoreDbContext context, ILogger<CategoryRepository> logger)
+    public CategoryRepository(StoreDbContext context, ILoggingService logger)
     {
         _context = context;
         _logger = logger;

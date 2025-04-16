@@ -9,8 +9,8 @@ using DotNetEnv;
 using ECommerce.Infrastructure.DatabaseContext;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Asp.Versioning.ApiExplorer;
+using Serilog;
+using Serilog.Events;
 
 namespace ECommerce.API
 {
@@ -20,11 +20,6 @@ namespace ECommerce.API
 
         static async Task Main(string[] args)
         {
-            //======================================================
-            // ENVIRONMENT CONFIGURATION
-            // Load environment variables from .env file for secure storage
-            // of sensitive information like DB credentials and JWT keys
-            //======================================================
             Env.Load();
 
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -33,21 +28,20 @@ namespace ECommerce.API
 
             //======================================================
             // APPLY ENVIRONMENT VARIABLES
-            // Override configuration values with environment variables
-            // This ensures sensitive data isn't stored in appsettings.json
             //======================================================
             builder.Configuration["Jwt:Key"] = Environment.GetEnvironmentVariable("JWT_SECRET");
             builder.Configuration["Jwt:Issuer"] = Environment.GetEnvironmentVariable("JWT_ISSUER");
             builder.Configuration["Jwt:Audience"] = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
             builder.Configuration["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-
+            
             _dependencyContainer = new DependencyContainer(builder);
+            _dependencyContainer.RegisterCoreDependencies();
+            _dependencyContainer.LoadValidationDependencies();
 
             #region Database Configuration
 
             //======================================================
             // DATABASE SETUP
-            // Configure the database contexts for the application
             //======================================================
 
             builder.Services.AddDbContext<StoreDbContext>(options =>
@@ -58,7 +52,6 @@ namespace ECommerce.API
 
             //======================================================
             // IDENTITY CONFIGURATION
-            // Set up ASP.NET Core Identity for authentication and authorization
             //======================================================
             builder.Services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
@@ -70,8 +63,6 @@ namespace ECommerce.API
 
             //======================================================
             // JWT AUTHENTICATION SETUP
-            // Configure JWT-based authentication with token validation parameters
-            // Uses the JWT_SECRET from environment variables for security
             //======================================================
             var jwtSettings = builder.Configuration.GetSection("Jwt");
             var jwtKey = jwtSettings["Key"] ?? throw new Exception("JWT_SECRET is not set");
@@ -100,7 +91,6 @@ namespace ECommerce.API
                     };
                 });
 
-
             builder.Services.AddAuthorization();
 
             #endregion
@@ -109,7 +99,6 @@ namespace ECommerce.API
 
             //======================================================
             // SWAGGER/OPENAPI CONFIGURATION
-            // Set up Swagger documentation with JWT authentication support
             //======================================================
             builder.Services.AddSwaggerGen(c =>
             {
@@ -120,7 +109,6 @@ namespace ECommerce.API
                     Description = "A simple Online Store API for managing products"
                 });
 
-                // Add JWT Authentication to Swagger
                 var securitySchema = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -145,14 +133,26 @@ namespace ECommerce.API
 
             #endregion
 
+            #region Serilog Configuration
+
             //======================================================
-            // CORE SERVICES REGISTRATION
-            // Add controllers and register custom dependencies
+            // SERILOG IMPLEMENTATION
             //======================================================
-            builder.Services.AddHttpContextAccessor();
-            builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
-            builder.AddSerilogConfiguration();
+            builder.Host.UseSerilog((context, services, configuration) => configuration
+                .MinimumLevel.Debug()                           
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)  
+                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File("Logs/log-{Date}.txt", 
+                    rollingInterval: RollingInterval.Day,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .Enrich.FromLogContext()
+                .Enrich.WithProcessId()
+                .Enrich.WithEnvironmentUserName());
+
+            #endregion
+
+            #region API Versioning Configuration
+
             builder.Services.AddApiVersioning(options =>
             {
                 options.DefaultApiVersion = new ApiVersion(1.0);
@@ -163,16 +163,16 @@ namespace ECommerce.API
                     new HeaderApiVersionReader("X-Api-Version"));
             });
 
-            builder.Services.AddMvc();
+            #endregion
+
+            #region Rate Limiting Configuration
 
             //======================================================
             // RATE LIMITING CONFIGURATION
-            // Configure rate limiting middleware
             //======================================================
 
             builder.Services.AddRateLimiter(options =>
             {
-                // Global rate limiting policy
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                     RateLimitPartition.GetFixedWindowLimiter(
                         partitionKey: context.User.Identity?.Name ?? context.Request.Headers.Host.ToString(),
@@ -197,6 +197,9 @@ namespace ECommerce.API
                 };
             });
 
+            #endregion
+
+            #region Redis Configuration
             //======================================================
             // REDIS CACHE CONFIGURATION
             //======================================================
@@ -205,9 +208,11 @@ namespace ECommerce.API
                 options.Configuration = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
                 options.InstanceName = "ECommerce.API";
             });
+            #endregion
 
-            _dependencyContainer.RegisterCoreDependencies();
-            _dependencyContainer.LoadValidationDependencies();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
 
             var app = builder.Build();
 
@@ -215,7 +220,6 @@ namespace ECommerce.API
 
             //======================================================
             // ROLE INITIALIZATION
-            // Create default roles (Admin, User) if they don't exist
             //======================================================
             using (var scope = app.Services.CreateScope())
             {
@@ -225,26 +229,7 @@ namespace ECommerce.API
 
             #endregion
 
-            #region Middleware Configuration
-
-            //======================================================
-            // MIDDLEWARE CONFIGURATION
-            // Configure the HTTP request pipeline with logging, authentication, etc.
-            //======================================================
-            app.Use(async (context, next) =>
-            {
-                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-                Console.WriteLine($"Request: {context.Request.Method} {context.Request.Path}");
-                
-                await next();
-
-                stopwatch.Stop();
-                var responseTime = stopwatch.ElapsedMilliseconds;
-
-                Console.WriteLine($"Response: {context.Response.StatusCode}");
-                Console.WriteLine($"Response Time: {responseTime} ms");
-            });
+            #region App Configurations
 
             if (app.Environment.IsDevelopment())
             {
@@ -256,6 +241,7 @@ namespace ECommerce.API
                 });
             }
             
+            app.UseSerilogRequestLogging();
             app.UseRateLimiter();
             app.UseAuthentication();
             app.UseAuthorization();

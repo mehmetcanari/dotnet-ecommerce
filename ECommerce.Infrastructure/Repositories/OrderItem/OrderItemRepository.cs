@@ -1,20 +1,31 @@
 ﻿using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Application.Interfaces.Service;
 using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories.OrderItem;
 
-public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepository
+public class OrderItemRepository : IOrderItemRepository
 {
+    private readonly StoreDbContext _context;
+    private readonly ILoggingService _logger;
+
+    public OrderItemRepository(StoreDbContext context, ILoggingService logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
     public async Task Create(Domain.Model.OrderItem orderItem)
     {
         try
         {
-            await dbContext.OrderItems.AddAsync(orderItem);
-            await dbContext.SaveChangesAsync();
+            await _context.OrderItems.AddAsync(orderItem);
+            await _context.SaveChangesAsync();
         }
         catch (Exception exception)
         {
+            _logger.LogError(exception, "An unexpected error occurred");
             throw new Exception(exception.Message);
         }
     }
@@ -23,10 +34,11 @@ public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepositor
     {
         try
         {
-            return await dbContext.OrderItems.AsNoTracking().ToListAsync();
+            return await _context.OrderItems.AsNoTracking().ToListAsync();
         }
         catch (Exception exception)
         {
+            _logger.LogError(exception, "An unexpected error occurred");
             throw new Exception(exception.Message);
         }
     }
@@ -35,15 +47,17 @@ public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepositor
     {
         try
         {
-            dbContext.OrderItems.Update(orderItem);
-            await dbContext.SaveChangesAsync();
+            _context.OrderItems.Update(orderItem);
+            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException dbUpdateException)
         {
+            _logger.LogError(dbUpdateException, "Failed to update order item");
             throw new DbUpdateException("Failed to update order item", dbUpdateException);
         }
         catch (Exception exception)
         {
+            _logger.LogError(exception, "An unexpected error occurred");
             throw new Exception(exception.Message);
         }
     }
@@ -52,12 +66,12 @@ public class OrderItemRepository(StoreDbContext dbContext) : IOrderItemRepositor
     {
         try
         {
-            dbContext.OrderItems.Remove(orderItem);
-            await dbContext.SaveChangesAsync();
-            Console.WriteLine("Order item deleted successfully");
+            _context.OrderItems.Remove(orderItem);
+            await _context.SaveChangesAsync();
         }
         catch (Exception exception)
         {
+            _logger.LogError(exception, "An unexpected error occurred");
             throw new Exception(exception.Message);
         }
     }

@@ -1,23 +1,35 @@
 using ECommerce.Application.Interfaces.Repository;
+using ECommerce.Application.Interfaces.Service;
 using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories.Product;
 
-public class ProductRepository(StoreDbContext context) : IProductRepository
+public class ProductRepository : IProductRepository
 {
+    private readonly StoreDbContext _context;
+    private readonly ILoggingService _logger;
+
+    public ProductRepository(StoreDbContext context, ILoggingService logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
     public async Task<List<Domain.Model.Product>> Read()
     {
         try
         {
-            return await context.Products.AsNoTracking().ToListAsync();
+            return await _context.Products.AsNoTracking().ToListAsync();
         }
         catch (DbUpdateException ex)
         {
+            _logger.LogError(ex, "Failed to fetch products");
             throw new DbUpdateException("Failed to fetch products", ex);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -26,15 +38,17 @@ public class ProductRepository(StoreDbContext context) : IProductRepository
     {
         try
         {
-            await context.Products.AddAsync(product);
-            await context.SaveChangesAsync();
+            await _context.Products.AddAsync(product);
+            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
+            _logger.LogError(ex, "Failed to save product");
             throw new DbUpdateException("Failed to save product", ex);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -43,15 +57,17 @@ public class ProductRepository(StoreDbContext context) : IProductRepository
     {
         try
         {
-            context.Products.Update(product);
-            await context.SaveChangesAsync();
+            _context.Products.Update(product);
+            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
+            _logger.LogError(ex, "Failed to update product");
             throw new DbUpdateException("Failed to update product", ex);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -60,15 +76,17 @@ public class ProductRepository(StoreDbContext context) : IProductRepository
     {
         try
         {
-            context.Products.Remove(product);
-            await context.SaveChangesAsync();
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
+            _logger.LogError(ex, "Failed to delete product");
             throw new DbUpdateException("Failed to delete product", ex);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }

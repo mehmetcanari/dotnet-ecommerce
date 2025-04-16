@@ -24,6 +24,7 @@ using ECommerce.Infrastructure.Repositories.Product;
 using ECommerce.Infrastructure.Repositories.Token;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Serilog;
 using StackExchange.Redis;
 
 namespace ECommerce.API;
@@ -50,6 +51,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         _builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
         // Service
+        _builder.Services.AddSingleton(Log.Logger);
         _builder.Services.AddScoped<IAccountService, AccountService>();
         _builder.Services.AddScoped<IOrderService, OrderService>();
         _builder.Services.AddScoped<IProductService, ProductService>();
@@ -62,7 +64,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<ICategoryService, CategoryService>();
 
         //Utility
-        _builder.Services.AddScoped<ILoggingService, SerilogService>();
+        _builder.Services.AddScoped<ILoggingService, CentralLogService>();
         _builder.Services.AddHttpContextAccessor();
     }
     

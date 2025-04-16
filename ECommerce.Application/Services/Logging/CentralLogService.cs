@@ -1,5 +1,6 @@
-using Serilog;
+using ILogger = Serilog.ILogger;
 using ECommerce.Application.Interfaces.Service;
+
 namespace ECommerce.Application.Services.Logging;
 
 public class CentralLogService : ILoggingService
