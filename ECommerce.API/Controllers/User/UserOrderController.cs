@@ -49,7 +49,7 @@ public class UserOrderController : ControllerBase
     }
 
     [Authorize(Roles = "User")]
-    [HttpGet("orders")]
+    [HttpGet]
     public async Task<IActionResult> GetOrders()
     {
         try

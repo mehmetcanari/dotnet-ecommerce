@@ -142,7 +142,7 @@ namespace ECommerce.API
                 .MinimumLevel.Debug()                           
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)  
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-                .WriteTo.File("Logs/log-{Date}.txt", 
+                .WriteTo.File("Logs/log-{Date}.log", 
                     rollingInterval: RollingInterval.Day,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .Enrich.FromLogContext()

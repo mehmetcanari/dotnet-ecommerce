@@ -82,7 +82,9 @@ public class ProductService : IProductService
             var expirationTime = TimeSpan.FromMinutes(60);
             var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, requestId));
             if (cachedProduct != null)
+            {
                 return cachedProduct;
+            }
 
             var products = await _productRepository.Read();
             var product = products.FirstOrDefault(p => p.ProductId == requestId) ?? throw new Exception("Product not found");
@@ -137,7 +139,7 @@ public class ProductService : IProductService
 
             await _productRepository.Create(product);
             await ProductCacheInvalidateAsync();
-
+            await _categoryService.CategoryCacheInvalidateAsync();
             _logger.LogInformation("Product created successfully: {Product}", product);
         }
         catch (Exception ex)

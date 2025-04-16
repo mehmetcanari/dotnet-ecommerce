@@ -21,8 +21,8 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "Xbox Series X",
-  "Description": "Xbox Series X is a gaming console that is the latest in the Xbox series",
+  "Name": "Macbook Pro",
+  "Description": "Macbook Pro is a laptop that is the latest in the Apple series",
   "Price": 499.99,
   "StockQuantity": 100,
   "DiscountRate": 10,

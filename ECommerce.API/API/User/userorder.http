@@ -19,7 +19,7 @@ Authorization: Bearer {{userToken}}
 
 ### GET ORDERS BY USER EMAIL
 
-GET {{baseUrl}}{{route}}/orders
+GET {{baseUrl}}{{route}}
 Authorization: Bearer {{userToken}}
 
 ### CANCEL ORDER BY USER EMAIL

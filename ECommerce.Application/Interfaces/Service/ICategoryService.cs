@@ -7,4 +7,5 @@ public interface ICategoryService
     Task<Category> DeleteCategoryAsync(int categoryId);
     Task<CategoryResponseDto> GetCategoryByIdAsync(int categoryId);
     Task<Category> UpdateCategoryAsync(int categoryId, UpdateCategoryRequestDto request);
+    Task CategoryCacheInvalidateAsync();
 }

@@ -1,5 +1,6 @@
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Response.Product;
+using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.Extensions.Logging;
 
@@ -7,11 +8,13 @@ public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly ILogger<CategoryService> _logger;
-
-    public CategoryService(ICategoryRepository categoryRepository, ILogger<CategoryService> logger)
+    private readonly ICacheService _cacheService;
+    private const string CategoryCacheKey = "category:{0}";
+    public CategoryService(ICategoryRepository categoryRepository, ILogger<CategoryService> logger, ICacheService cacheService)
     {
         _categoryRepository = categoryRepository;
         _logger = logger;
+        _cacheService = cacheService;
     }
 
     public async Task<Category> CreateCategoryAsync(CreateCategoryRequestDto request)
@@ -31,7 +34,9 @@ public class CategoryService : ICategoryService
             };
 
             _logger.LogInformation("Category created successfully");
-            return await _categoryRepository.Create(category);
+            await _categoryRepository.Create(category);
+            await CategoryCacheInvalidateAsync();
+            return category;
         }
         catch (Exception ex)
         {
@@ -49,7 +54,9 @@ public class CategoryService : ICategoryService
             ?? throw new Exception("Category not found");
 
             _logger.LogInformation("Category deleted successfully");
-            return await _categoryRepository.Delete(categoryId);
+            await _categoryRepository.Delete(categoryId);
+            await CategoryCacheInvalidateAsync();
+            return category;
         }
         catch (Exception ex)
         {
@@ -71,7 +78,9 @@ public class CategoryService : ICategoryService
             category.UpdatedAt = DateTime.UtcNow;
 
             _logger.LogInformation("Category updated successfully");
-            return await _categoryRepository.Update(category);
+            await _categoryRepository.Update(category);
+            await CategoryCacheInvalidateAsync();
+            return category;
         }
         catch (Exception ex)
         {
@@ -84,11 +93,18 @@ public class CategoryService : ICategoryService
     {
         try
         {
+            var expirationTime = TimeSpan.FromMinutes(60);
+            var cachedCategory = await _cacheService.GetAsync<CategoryResponseDto>(string.Format(CategoryCacheKey, categoryId));
+            if (cachedCategory != null)
+            {
+                return cachedCategory;
+            }
+
             var categories = await _categoryRepository.Read();
             var category = categories.FirstOrDefault(c => c.CategoryId == categoryId) 
             ?? throw new Exception("Category not found");
 
-            var categoryResponseDto = new CategoryResponseDto
+            CategoryResponseDto categoryResponseDto = new CategoryResponseDto
             {
                 CategoryId = category.CategoryId,
                 Name = category.Name,
@@ -102,8 +118,10 @@ public class CategoryService : ICategoryService
                     ImageUrl = p.ImageUrl,
                     StockQuantity = p.StockQuantity,
                     CategoryId = p.CategoryId
-            }).ToList() ?? new List<ProductResponseDto>()
-        };
+            })
+            .ToList() ?? new List<ProductResponseDto>()};
+
+            await _cacheService.SetAsync(string.Format(CategoryCacheKey, categoryId), categoryResponseDto, expirationTime);
 
             _logger.LogInformation("Category retrieved successfully");
             return categoryResponseDto;
@@ -111,6 +129,23 @@ public class CategoryService : ICategoryService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting category by id");
+            throw;
+        }
+    }
+
+    public async Task CategoryCacheInvalidateAsync()
+    {   
+        try
+        {
+            var categories = await _categoryRepository.Read();
+            foreach (var category in categories)
+            {
+                await _cacheService.RemoveAsync(string.Format(CategoryCacheKey, category.CategoryId));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error invalidating category cache");
             throw;
         }
     }
