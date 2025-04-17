@@ -11,7 +11,7 @@ Authorization: Bearer {{adminToken}}
 
 ### GET PRODUCT BY ID
 
-GET {{baseUrl}}/api/admin/products/2
+GET {{baseUrl}}/api/admin/products/1
 Authorization: Bearer {{adminToken}}
 
 ### CREATE PRODUCT
@@ -23,11 +23,11 @@ Authorization: Bearer {{adminToken}}
 {
   "Name": "Macbook Pro",
   "Description": "Macbook Pro is a laptop that is the latest in the Apple series",
-  "Price": 499.99,
-  "StockQuantity": 100,
-  "DiscountRate": 10,
+  "Price": 1299.99,
+  "StockQuantity": 10,
+  "DiscountRate": 0,
   "ImageUrl": "https://via.placeholder.com/135",
-  "CategoryId": 3
+  "CategoryId": 1
 }
 
 ### UPDATE PRODUCT BY ID
@@ -37,16 +37,16 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "Samsung S22",
-  "Description": "Samsung S22 is a smartphone that is the latest in the Samsung series",
-  "Price": 499.99,
-  "StockQuantity": 3,
-  "DiscountRate": 5,
-  "ImageUrl": "https://via.placeholder.com/150",
+  "Name": "Macbook Pro",
+  "Description": "Macbook Pro is a laptop that is the latest in the Apple series",
+  "Price": 1299.99,
+  "StockQuantity": 10,
+  "DiscountRate": 25,
+  "ImageUrl": "https://via.placeholder.com/135",
   "CategoryId": 1
 }
 
 ### DELETE PRODUCT BY ID
 
-DELETE {{baseUrl}}/api/admin/products/delete/2
+DELETE {{baseUrl}}/api/admin/products/delete/1
 Authorization: Bearer {{adminToken}}

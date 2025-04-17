@@ -2,6 +2,7 @@
 using ECommerce.Application.DTO.Response.OrderItem;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ECommerce.Application.Services.OrderItem;
 
@@ -118,6 +119,8 @@ public class OrderItemService : IOrderItemService
             orderItem.Quantity = updateOrderItemRequestDto.Quantity;
             orderItem.ProductId = updateOrderItemRequestDto.ProductId;
             orderItem.ProductName = product.Name;
+            orderItem.UnitPrice = product.Price;
+            orderItem.IsOrdered = false;
 
             await _orderItemRepository.Update(orderItem);
             _logger.LogInformation("Order item updated successfully: {OrderItem}", orderItem);
@@ -152,6 +155,26 @@ public class OrderItemService : IOrderItemService
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while deleting order items");
+            throw;
+        }
+    }
+
+    public async Task ClearOrderItemsIncludeProductAsync(Domain.Model.Product updatedProduct)
+    {
+        try
+        {
+            var orderItems = await _orderItemRepository.Read();
+            var accountCartItems = orderItems.Where(o => o.IsOrdered == false).ToList();
+
+            var orderItem = accountCartItems.FirstOrDefault(i => i.ProductId == updatedProduct.ProductId);
+            if (orderItem != null)
+            {
+                await _orderItemRepository.Delete(orderItem);
+            }
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Unexpected error while clearing order items include product");
             throw;
         }
     }

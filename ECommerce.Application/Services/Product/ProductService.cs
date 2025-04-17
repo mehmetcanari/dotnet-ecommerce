@@ -9,16 +9,18 @@ namespace ECommerce.Application.Services.Product;
 public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
+    private readonly IOrderItemService _orderItemService;
     private readonly ICategoryService _categoryService;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
     private const string AllProductsCacheKey = "products";
     private const string ProductCacheKey = "product:{0}";
 
-    public ProductService(IProductRepository productRepository, ICategoryService categoryService, ILoggingService logger, ICacheService cacheService)
+    public ProductService(IProductRepository productRepository, ICategoryService categoryService, IOrderItemService orderItemService, ILoggingService logger, ICacheService cacheService)
     {
         _productRepository = productRepository;
         _categoryService = categoryService;
+        _orderItemService = orderItemService;
         _logger = logger;
         _cacheService = cacheService;
     }
@@ -165,11 +167,13 @@ public class ProductService : IProductService
             product.StockQuantity = productUpdateRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
             product.CategoryId = category.CategoryId;
-
             product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
             await _productRepository.Update(product);
+            await _orderItemService.ClearOrderItemsIncludeProductAsync(product);
+            
             await ProductCacheInvalidateAsync();
+            await _categoryService.CategoryCacheInvalidateAsync();
 
             _logger.LogInformation("Product updated successfully: {Product}", product);
         }
@@ -189,7 +193,7 @@ public class ProductService : IProductService
 
             await _productRepository.Delete(product);
             await ProductCacheInvalidateAsync();
-
+            await _categoryService.CategoryCacheInvalidateAsync();
             _logger.LogInformation("Product deleted successfully: {Product}", product);
         }
         catch (Exception ex)

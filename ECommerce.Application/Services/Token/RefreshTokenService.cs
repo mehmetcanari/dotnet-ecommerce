@@ -68,9 +68,15 @@ public class RefreshTokenService : IRefreshTokenService
         try
         {
             IEnumerable<RefreshToken> tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
-            RefreshToken activeToken = tokens.FirstOrDefault(t => t.IsExpired == false && t.IsRevoked == false) ?? throw new Exception($"No active refresh token found for user: {email}");
-            
-            await _refreshTokenRepository.RevokeAsync(activeToken, reason);
+            RefreshToken? activeToken = tokens.FirstOrDefault(t => t.IsExpired == false && t.IsRevoked == false);
+            if (activeToken != null)
+            {
+                await _refreshTokenRepository.RevokeAsync(activeToken, reason);
+            }
+            else
+            {
+                _logger.LogInformation("User logged in for the first time: {Email}", email);
+            }
         }
         catch (Exception ex)
         {

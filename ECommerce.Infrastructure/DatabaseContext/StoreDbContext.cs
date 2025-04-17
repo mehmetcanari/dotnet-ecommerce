@@ -14,6 +14,7 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContex
     public DbSet<Category> Categories => Set<Category>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        #region Order
         modelBuilder.Entity<Order>(entity =>
         {
             entity.HasMany(o => o.OrderItems)
@@ -29,7 +30,9 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContex
                 .HasForeignKey(oi => oi.OrderId)
                 .IsRequired(false); 
         });
+        #endregion
 
+        #region Category
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasMany(c => c.Products)
@@ -43,6 +46,7 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContex
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId);
         });
+        #endregion
     }
 }
 

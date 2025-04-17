@@ -9,4 +9,5 @@ public interface IOrderItemService
     Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync(string email);
     Task UpdateOrderItemAsync(UpdateOrderItemRequestDto updateOrderItemRequestDto, string email);
     Task DeleteAllOrderItemsAsync(string email);
+    Task ClearOrderItemsIncludeProductAsync(Domain.Model.Product updatedProduct);
 }

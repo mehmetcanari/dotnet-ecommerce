@@ -4,5 +4,5 @@
 
 ### GET CATEGORY BY ID
 
-GET {{baseUrl}}/{{route}}/3
+GET {{baseUrl}}/{{route}}/1
 Authorization: Bearer {{userToken}}
