@@ -85,14 +85,32 @@ namespace ECommerce.API.Controllers
             }
         }
 
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {   
+            try
+            {
+                var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
+                await _refreshTokenService.RevokeUserTokensAsync(cookieRefreshToken.Email, "Logout");
+                _refreshTokenService.DeleteRefreshTokenCookie();
+                return Ok(new { message = "Logout successful" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during logout");
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("refresh-token")]
         [AllowAnonymous]
         public async Task<IActionResult> GetRefreshToken()
         {
             try
             {
-                var refreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
-                var authResponse = await _authService.GenerateAuthTokenAsync(refreshToken);
+                var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
+                var authResponse = await _authService.GenerateAuthTokenAsync(cookieRefreshToken);
 
                 return Ok(new { message = "Token refreshed successfully", authResponse });
             }

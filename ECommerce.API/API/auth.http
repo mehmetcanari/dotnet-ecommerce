@@ -2,6 +2,8 @@
 @route = api/auth
 @no-redirect = true
 @no-cookie-jar = false
+@accessToken = {{loginUser.response.body.$.authResponse.accessToken}}
+
 
 ### CREATE USER ACCOUNT
 
@@ -50,6 +52,10 @@ Content-Type: application/json
   "email": "admin@system.com",  
   "password": "AdminPassword123!"
 }
+
+### LOGOUT USER
+POST {{baseUrl}}/{{route}}/logout
+Authorization: Bearer {{accessToken}}
 
 ### REFRESH TOKEN USER
 POST {{baseUrl}}/{{route}}/refresh-token

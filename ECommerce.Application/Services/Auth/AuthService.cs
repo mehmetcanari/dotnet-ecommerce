@@ -109,13 +109,13 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<AuthResponseDto> GenerateAuthTokenAsync(RefreshToken refreshToken)
+    public async Task<AuthResponseDto> GenerateAuthTokenAsync(RefreshToken cookieRefreshToken)
     {
         try
         {
-            ClaimsPrincipal principal = await _tokenUserClaimsService.GetClaimsPrincipalFromToken(refreshToken);
+            ClaimsPrincipal identifier = await _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken);
 
-            var (email, roles) = await ValidateRefreshToken(principal);
+            var (email, roles) = await ValidateRefreshToken(identifier);
 
             return await RequestGenerateTokensAsync(email, roles);
         }

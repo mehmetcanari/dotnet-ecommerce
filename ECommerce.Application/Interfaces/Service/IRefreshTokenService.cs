@@ -9,4 +9,5 @@ public interface IRefreshTokenService
     Task CleanupExpiredTokensAsync();
     void SetRefreshTokenCookie(RefreshToken refreshToken);
     Task<RefreshToken> GetRefreshTokenFromCookie();
+    void DeleteRefreshTokenCookie();
 }

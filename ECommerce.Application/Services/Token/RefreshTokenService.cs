@@ -149,6 +149,20 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
+    public void DeleteRefreshTokenCookie()
+    {
+        try
+        {
+            _httpContextAccessor.HttpContext?.Response.Cookies.Delete("refreshToken");
+            _logger.LogInformation("Refresh token cookie deleted");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete refresh token cookie");
+            throw;
+        }
+    }
+
     public async Task<RefreshToken> GetRefreshTokenFromCookie()
     {
         try
@@ -157,7 +171,7 @@ public class RefreshTokenService : IRefreshTokenService
 
             if (string.IsNullOrEmpty(refreshToken))
             {
-                throw new Exception("Refresh token not found in cookie");
+                throw new Exception("User is not logged in");
             }
 
             var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
