@@ -16,8 +16,8 @@ public class AuthService : IAuthService
     private readonly IAccessTokenService _accessTokenService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ITokenUserClaimsService _tokenUserClaimsService;
-
     private readonly ILoggingService _logger;
+    
     public AuthService(
         IAccountService accountService,
         UserManager<IdentityUser> userManager,

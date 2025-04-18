@@ -11,24 +11,37 @@ public class OrderItemService : IOrderItemService
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly IProductRepository _productRepository;
+    private readonly ICacheService _cacheService;
     private readonly ILoggingService _logger;
+    private const string GetAllOrderItemsCacheKey = "GetAllOrderItems";
 
     public OrderItemService(
         IOrderItemRepository orderItemRepository, 
         IProductRepository productRepository,
         IAccountRepository accountRepository,
-        ILoggingService logger)
+        ILoggingService logger,
+        ICacheService cacheService)
     {
         _orderItemRepository = orderItemRepository;
         _productRepository = productRepository;
         _accountRepository = accountRepository;
         _logger = logger;
+        _cacheService = cacheService;
     }
 
     public async Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync(string email)
     {
         try
         {
+            var cacheKey = GetAllOrderItemsCacheKey;
+            TimeSpan cacheDuration = TimeSpan.FromMinutes(10);
+            var cachedItems = await _cacheService.GetAsync<List<OrderItemResponseDto>>(cacheKey);
+            if (cachedItems != null)
+            {
+                _logger.LogInformation("Order items fetched from cache");
+                return cachedItems;
+            }
+
             var accounts = await _accountRepository.Read();
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                         throw new Exception("Account not found");
@@ -39,7 +52,7 @@ public class OrderItemService : IOrderItemService
                 throw new Exception("No order items found.");
             }
 
-            return items.Select(orderItem => new OrderItemResponseDto
+            List<OrderItemResponseDto> responseItems = items.Select(orderItem => new OrderItemResponseDto
             {
                 AccountId = orderItem.AccountId,
                 Quantity = orderItem.Quantity,
@@ -47,6 +60,10 @@ public class OrderItemService : IOrderItemService
                 ProductId = orderItem.ProductId,
                 ProductName = orderItem.ProductName
             }).ToList();
+
+            await _cacheService.SetAsync(cacheKey, responseItems, cacheDuration);
+
+            return responseItems;
         }
         catch (Exception exception)
         {
@@ -82,6 +99,7 @@ public class OrderItemService : IOrderItemService
             };
 
             await _orderItemRepository.Create(orderItem);
+            await ClearOrderItemsCacheAsync();
 
             _logger.LogInformation("Order item created successfully: {OrderItem}", orderItem);
         }
@@ -108,21 +126,23 @@ public class OrderItemService : IOrderItemService
                                 p.AccountId == tokenAccount.AccountId) ??
                             throw new Exception("Order item not found");
 
-            var product = products.FirstOrDefault(p => p.ProductId == updateOrderItemRequestDto.ProductId) ??
+            var updatedProduct = products.FirstOrDefault(p => p.ProductId == updateOrderItemRequestDto.ProductId) ??
                           throw new Exception("Product not found");
 
-            if (product.StockQuantity < updateOrderItemRequestDto.Quantity)
+            if (updatedProduct.StockQuantity < updateOrderItemRequestDto.Quantity)
             {
                 throw new Exception("Not enough stock");
             }
 
             orderItem.Quantity = updateOrderItemRequestDto.Quantity;
             orderItem.ProductId = updateOrderItemRequestDto.ProductId;
-            orderItem.ProductName = product.Name;
-            orderItem.UnitPrice = product.Price;
+            orderItem.ProductName = updatedProduct.Name;
+            orderItem.UnitPrice = updatedProduct.Price;
             orderItem.IsOrdered = false;
 
             await _orderItemRepository.Update(orderItem);
+            await ClearOrderItemsCacheAsync();
+
             _logger.LogInformation("Order item updated successfully: {OrderItem}", orderItem);
         }
         catch (Exception exception)
@@ -150,6 +170,8 @@ public class OrderItemService : IOrderItemService
                 await _orderItemRepository.Delete(item);
             }
 
+            await ClearOrderItemsCacheAsync();
+
             _logger.LogInformation("All order items deleted successfully");
         }
         catch (Exception exception)
@@ -171,11 +193,18 @@ public class OrderItemService : IOrderItemService
             {
                 await _orderItemRepository.Delete(orderItem);
             }
+
+            await ClearOrderItemsCacheAsync();
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while clearing order items include product");
             throw;
         }
+    }
+
+    public async Task ClearOrderItemsCacheAsync()
+    {
+        await _cacheService.RemoveAsync(GetAllOrderItemsCacheKey);
     }
 }
