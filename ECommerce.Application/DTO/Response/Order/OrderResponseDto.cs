@@ -2,7 +2,7 @@
 
 namespace ECommerce.Application.DTO.Response.Order;
 
-public class OrderResponseDto
+public record OrderResponseDto
 {
     public int AccountId { get; init; }
     public ICollection<OrderItemResponseDto> OrderItems { get; set; } = new List<OrderItemResponseDto>();

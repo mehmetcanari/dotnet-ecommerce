@@ -1,6 +1,6 @@
 ﻿namespace ECommerce.Application.DTO.Response.Account;
 
-public class AccountResponseDto
+public record AccountResponseDto
 {
     public int AccountId { get; set; }
     public required string Role { get; set; }

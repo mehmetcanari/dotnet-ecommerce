@@ -1,6 +1,6 @@
 ﻿namespace ECommerce.Application.DTO.Response.Product;
 
-public class ProductResponseDto
+public record ProductResponseDto
 {
     public required string ProductName { get; set; }
     public required string Description { get; set; }

@@ -1,6 +1,6 @@
 ﻿namespace ECommerce.Application.DTO.Response.OrderItem;
 
-public class OrderItemResponseDto
+public record OrderItemResponseDto
 {
     public int AccountId { get; set; }
     public int Quantity { get; set; }
