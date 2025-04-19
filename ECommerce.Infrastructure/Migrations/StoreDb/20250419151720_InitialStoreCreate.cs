@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Infrastructure.Migrations.StoreDb
 {
     /// <inheritdoc />
-    public partial class InitialStoreDb : Migration
+    public partial class InitialStoreCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
