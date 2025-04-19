@@ -91,20 +91,29 @@ public class OrderService : IOrderService
             var orders = await _orderRepository.Read();
             var accounts = await _accountRepository.Read();
 
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("Account not found");
-            var order = orders.FirstOrDefault(o => o.AccountId == tokenAccount.AccountId) ?? throw new Exception("Order not found");
+            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
+                throw new Exception("Account not found");
 
-            await UpdateOrderStatusByAccountIdAsync(tokenAccount.AccountId, 
-            new OrderUpdateRequestDto 
-            { 
-                Status = OrderStatus.Cancelled 
-            });
+            var pendingOrders = orders
+                .Where(o => o.AccountId == tokenAccount.AccountId && o.Status == OrderStatus.Pending)
+                .ToList();
 
-            _logger.LogInformation("Order cancelled successfully: {Order}", order);
+            if (!pendingOrders.Any())
+            {
+                throw new Exception("No pending orders found");
+            }
+
+            foreach (var order in pendingOrders)
+            {
+                order.Status = OrderStatus.Cancelled;
+                await _orderRepository.Update(order);
+            }
+
+            _logger.LogInformation("Orders cancelled successfully. Count: {Count}", pendingOrders.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
+            _logger.LogError(ex, "Unexpected error while cancelling orders: {Message}", ex.Message);
             throw;
         }
     }

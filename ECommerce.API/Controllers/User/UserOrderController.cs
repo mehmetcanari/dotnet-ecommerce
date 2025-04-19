@@ -72,7 +72,7 @@ public class UserOrderController : ControllerBase
     }
 
     [Authorize(Roles = "User")]
-    [HttpPut("cancel-order")]
+    [HttpPost("cancel")]
     public async Task<IActionResult> CancelOrder()
     {
         try

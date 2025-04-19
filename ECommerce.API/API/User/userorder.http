@@ -4,7 +4,9 @@
 @baseUrl = http://localhost:5076/
 @route = api/user/orders
 @userToken = {{$dotenv USER_TOKEN}}
-###
+
+
+### CREATE ORDER
 
 POST {{baseUrl}}{{route}}/create
 Content-Type: application/json
@@ -16,18 +18,15 @@ Authorization: Bearer {{userToken}}
   "PaymentMethod": 1
 }
 
+### CANCEL ORDER
 
-### GET ORDERS BY USER EMAIL
+POST {{baseUrl}}{{route}}/cancel
+Authorization: Bearer {{userToken}}
+
+
+### GET ORDERS
 
 GET {{baseUrl}}{{route}}
 Authorization: Bearer {{userToken}}
 
-### CANCEL ORDER BY USER EMAIL
 
-PUT {{baseUrl}}{{route}}/cancel-order
-Content-Type: application/json
-Authorization: Bearer {{userToken}}
-
-{
-  "Status": 3
-}
