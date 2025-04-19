@@ -84,7 +84,7 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task CancelOrderAsync(string email, OrderCancelRequestDto orderCancelRequestDto)
+    public async Task CancelOrderAsync(string email)
     {
         try
         {
@@ -97,7 +97,7 @@ public class OrderService : IOrderService
             await UpdateOrderStatusByAccountIdAsync(tokenAccount.AccountId, 
             new OrderUpdateRequestDto 
             { 
-                Status = orderCancelRequestDto.Status 
+                Status = OrderStatus.Cancelled 
             });
 
             _logger.LogInformation("Order cancelled successfully: {Order}", order);
