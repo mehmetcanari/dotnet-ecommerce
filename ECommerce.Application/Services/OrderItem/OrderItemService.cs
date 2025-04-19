@@ -2,7 +2,6 @@
 using ECommerce.Application.DTO.Response.OrderItem;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ECommerce.Application.Services.OrderItem;
 
@@ -81,9 +80,6 @@ public class OrderItemService : IOrderItemService
 
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("Account not found");
             var product = products.FirstOrDefault(p => p.ProductId == createOrderItemRequestDto.ProductId) ?? throw new Exception("Product not found");
-
-            if (accounts.FirstOrDefault(a => a.AccountId == tokenAccount.AccountId) == null)
-                throw new Exception("Account not found");
 
             if (createOrderItemRequestDto.Quantity > product.StockQuantity)
                 throw new Exception("Not enough stock");

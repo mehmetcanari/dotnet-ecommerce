@@ -9,16 +9,20 @@ public class Account
     public required string Address { get; set; }
     public required string PhoneNumber { get; set; }
     public required DateTime DateOfBirth { get; init; }
-    public DateTime UserCreated { get; init; } 
+    public DateTime UserCreated { get; init; } = DateTime.UtcNow;
     public DateTime UserUpdated { get; set; }
-    public bool IsBanned { 
+    public bool IsBanned 
+    { 
         get 
         {
             if (BannedAt.HasValue && BannedUntil.HasValue)
             {
                 return BannedAt.Value < DateTime.UtcNow && BannedUntil.Value > DateTime.UtcNow;
             }
-            return false;
+            else
+            {
+                return false;
+            }
         }
     }
     public DateTime? BannedAt { get; set; }
