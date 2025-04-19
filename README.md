@@ -1,20 +1,21 @@
 # E-Commerce API
-
-![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Latest-336791?style=for-the-badge&logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-Latest-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![Swagger](https://img.shields.io/badge/Swagger-Latest-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
-
 ## 📋 Sunum
 E-Commerce API, modern bir e-ticaret platformu için geliştirilmiş, temiz mimari (Clean Architecture) ve SOLID prensiplerine uygun bir RESTful API'dir. Bu API, ürün yönetimi, kullanıcı kayıt ve giriş işlemleri, ödeme işlemleri gibi temel e-ticaret işlevlerini destekler.
 
 ## 🚀 Özellikler
-- 📦 **Ürün yönetimi** (ekleme, listeleme, güncelleme, silme)
-- 🔐 **Kullanıcı kayıt ve kimlik doğrulama**
-- 💳 **Ödeme işlemleri entegrasyonu** (Iyzico entegre edilecek. Devam etmekte.)
-- ⚡ **Redis tabanlı önbellekleme**
-- 🔒 **JWT tabanlı güvenlik ve yetkilendirme**
-- 📚 **Kapsamlı API dokümantasyonu**
+📦 Ürün yönetimi (ekleme, listeleme, güncelleme, silme)
+
+🔐 Kullanıcı kayıt ve kimlik doğrulama
+
+💳 Ödeme işlemleri entegrasyonu (Iyzico entegre edilecek. Devam etmekte.)
+
+⚡ Redis tabanlı önbellekleme
+
+🔒 JWT tabanlı güvenlik ve yetkilendirme
+
+🧾 Serilog ile merkezi loglama altyapısı
+
+📚 Kapsamlı API dokümantasyonu
 
 ## 🛠️ Kullanılan Teknolojiler
 | Teknoloji | Açıklama |
@@ -24,6 +25,7 @@ E-Commerce API, modern bir e-ticaret platformu için geliştirilmiş, temiz mima
 | **Identity & JWT** | Kimlik doğrulama ve güvenlik için |
 | **Redis** | Performansı artırmak için cacheleme |
 | **Swagger** | API dokümantasyonu ve test arayüzü |
+| **Serilog** | Merkezi loglama altyapısı için kullanılır |
 | **PostgreSQL** | Kalıcı veri depolama için |
 
 ## 📐 Mimari Yapı
@@ -136,7 +138,7 @@ Authorization: Bearer {{adminToken}}
 **Geliştirme Aşamasında**  
 Proje aktif olarak geliştirilmeye devam etmektedir. Aşağıdaki özellikler yakın gelecekte eklenecektir:
 - [ ] Iyzico ödeme entegrasyonu
-- [ ] Serilog ile merkezi logging
+- [x] Serilog ile merkezi logging
 - [ ] Unit test eklenmesi
 - [ ] Dockerize ve CI/CD pipeline
 
@@ -154,4 +156,4 @@ Proje Sahibi - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)
 
 ---
 
-**Not:** Bu dokümantasyon API'nin 1.0 versiyonu için geçerlidir. Geliştirmeler devam ettikçe dokümantasyon güncellenecektir.
+**Not:** Geliştirmeler devam ettikçe dokümantasyon güncellenecektir.
