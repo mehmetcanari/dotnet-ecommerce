@@ -7,6 +7,7 @@ namespace ECommerce.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/products")]
+[Authorize(Roles = "User")]
 [ApiVersion("1.0")]
 public class UserProductController : ControllerBase
 {
@@ -17,7 +18,6 @@ public class UserProductController : ControllerBase
         _productService = productService;
     }
 
-    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
@@ -37,7 +37,6 @@ public class UserProductController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProductById([FromRoute] int id)
     {

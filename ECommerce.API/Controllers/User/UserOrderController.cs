@@ -9,6 +9,7 @@ namespace ECommerce.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/orders")]
+[Authorize(Roles = "User")]
 [ApiVersion("1.0")]
 public class UserOrderController : ControllerBase
 {
@@ -19,7 +20,6 @@ public class UserOrderController : ControllerBase
         _orderService = orderService;
     }
 
-    [Authorize(Roles = "User")]
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto orderCreateRequestRequest)
     {
@@ -48,7 +48,6 @@ public class UserOrderController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<IActionResult> GetOrders()
     {
@@ -71,7 +70,6 @@ public class UserOrderController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User")]
     [HttpPost("cancel")]
     public async Task<IActionResult> CancelOrder()
     {

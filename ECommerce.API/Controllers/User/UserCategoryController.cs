@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Asp.Versioning;
 
@@ -7,6 +6,7 @@ namespace ECommerce.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/categories")]
+[Authorize(Roles = "User")]
 [ApiVersion("1.0")]
 public class UserCategoryController : ControllerBase
 {
@@ -17,7 +17,6 @@ public class UserCategoryController : ControllerBase
         _categoryService = categoryService;
     }
 
-    [Authorize(Roles = "User")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCategoryById([FromRoute] int id)
     {

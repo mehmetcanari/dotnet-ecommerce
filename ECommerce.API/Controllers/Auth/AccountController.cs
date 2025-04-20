@@ -8,6 +8,7 @@ namespace ECommerce.API.Controllers.Auth;
 
 [ApiController]
 [Route("api/account")]
+[Authorize(Roles = "User, Admin")]
 [ApiVersion("1.0")]
 public class AccountController : ControllerBase
 {
@@ -20,7 +21,6 @@ public class AccountController : ControllerBase
         _logger = logger;
     }
 
-    [Authorize(Roles = "User, Admin")]
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {

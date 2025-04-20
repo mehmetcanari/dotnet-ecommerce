@@ -7,6 +7,7 @@ namespace ECommerce.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/categories")]
+[Authorize(Roles = "Admin")]
 [ApiVersion("1.0")]
 public class AdminCategoryController : ControllerBase
 {
@@ -17,7 +18,6 @@ public class AdminCategoryController : ControllerBase
         _categoryService = categoryService;
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPost("create")]
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequestDto request)
     {
@@ -36,7 +36,6 @@ public class AdminCategoryController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteCategory([FromRoute] int id)
     {
@@ -51,7 +50,6 @@ public class AdminCategoryController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPut("update/{id}")]
     public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] UpdateCategoryRequestDto request)
     {
@@ -66,7 +64,6 @@ public class AdminCategoryController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCategoryById([FromRoute] int id)
     {

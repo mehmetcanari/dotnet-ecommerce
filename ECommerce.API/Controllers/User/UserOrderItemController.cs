@@ -9,6 +9,7 @@ namespace ECommerce.API.Controllers.User;
 
 [ApiController]
 [Route("api/user/order-items")]
+[Authorize(Roles = "User")]
 [ApiVersion("1.0")]
 public class UserOrderItemController : ControllerBase
 {
@@ -19,7 +20,6 @@ public class UserOrderItemController : ControllerBase
         _orderItemService = orderItemService;
     }
 
-    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<IActionResult> GetAllOrderItems()
     {
@@ -41,7 +41,6 @@ public class UserOrderItemController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User")]
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrderItem([FromBody] CreateOrderItemRequestDto orderItemRequestCreateRequest)
     {
@@ -69,7 +68,6 @@ public class UserOrderItemController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User")]
     [HttpPut("update")]
     public async Task<IActionResult> UpdateOrderItem([FromBody] UpdateOrderItemRequestDto orderItemRequestUpdateRequest)
     {
@@ -97,7 +95,6 @@ public class UserOrderItemController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User")]
     [HttpDelete("delete")]
     public async Task<IActionResult> DeleteAllOrderItems()
     {

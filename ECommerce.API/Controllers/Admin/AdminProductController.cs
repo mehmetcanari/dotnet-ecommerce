@@ -8,6 +8,7 @@ namespace ECommerce.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/products")]
+[Authorize(Roles = "Admin")]
 [ApiVersion("1.0")]
 public class AdminProductController : ControllerBase
 {
@@ -18,7 +19,6 @@ public class AdminProductController : ControllerBase
         _productService = productService;
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
@@ -33,7 +33,6 @@ public class AdminProductController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProductById([FromRoute] int id)
     {
@@ -48,7 +47,6 @@ public class AdminProductController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPost("create")]
     public async Task<IActionResult> CreateProduct([FromBody] ProductCreateRequestDto productCreateRequestRequest)
     {
@@ -68,7 +66,6 @@ public class AdminProductController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPut("update/{id}")]
     public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromBody] ProductUpdateRequestDto productUpdateRequestRequest)
     {
@@ -88,7 +85,6 @@ public class AdminProductController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteProduct([FromRoute] int id)
     {

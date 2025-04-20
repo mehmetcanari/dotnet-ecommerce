@@ -8,6 +8,7 @@ namespace ECommerce.API.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/orders")]
+[Authorize(Roles = "Admin")]
 [ApiVersion("1.0")]
 public class AdminOrderController : ControllerBase
 {
@@ -18,7 +19,6 @@ public class AdminOrderController : ControllerBase
         _orderService = orderService;
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
     {
@@ -33,7 +33,6 @@ public class AdminOrderController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrderById([FromRoute] int id)
     {
@@ -48,7 +47,6 @@ public class AdminOrderController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteOrder([FromRoute] int id)
     {
@@ -63,7 +61,6 @@ public class AdminOrderController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPut("update/{id}")]
     public async Task<IActionResult> UpdateOrderStatus([FromRoute] int id, [FromBody] OrderUpdateRequestDto orderUpdateRequestDto)
     {

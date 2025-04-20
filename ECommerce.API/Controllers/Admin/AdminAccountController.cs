@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.API.Controllers.Admin;
 [ApiController]
 [Route("api/admin/accounts")]
+[Authorize(Roles = "Admin")]
 [ApiVersion("1.0")]
 public class AdminAccountController : ControllerBase
 {
@@ -19,7 +20,6 @@ public class AdminAccountController : ControllerBase
         _refreshTokenService = refreshTokenService;
     }
     
-    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllAccounts()
     {
@@ -34,7 +34,6 @@ public class AdminAccountController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetAccountById([FromRoute] int id)
     {
@@ -49,7 +48,6 @@ public class AdminAccountController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteAccount([FromRoute] int id)
     {
@@ -63,8 +61,7 @@ public class AdminAccountController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-
-    [Authorize(Roles = "Admin")]
+  
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] TokenRevokeRequestDto request)
     {
@@ -79,7 +76,6 @@ public class AdminAccountController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPost("ban")]
     public async Task<IActionResult> BanAccount([FromBody] AccountBanRequestDto request)
     {
@@ -94,7 +90,6 @@ public class AdminAccountController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPost("unban")]
     public async Task<IActionResult> UnbanAccount([FromBody] AccountUnbanRequestDto request)
     {
