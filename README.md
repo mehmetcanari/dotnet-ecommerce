@@ -1,73 +1,73 @@
 # E-Commerce API
-## 📋 Sunum
-E-Commerce API, modern bir e-ticaret platformu için geliştirilmiş, temiz mimari (Clean Architecture) ve SOLID prensiplerine uygun bir RESTful API'dir. Bu API, ürün yönetimi, kullanıcı kayıt ve giriş işlemleri, ödeme işlemleri gibi temel e-ticaret işlevlerini destekler.
+## 📋 Overview
+E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhering to Clean Architecture and SOLID principles. This API supports core e-commerce functionalities such as product management, user registration and authentication, and payment processing.
 
-## 🚀 Özellikler
-📦 Ürün yönetimi (ekleme, listeleme, güncelleme, silme)
+## 🚀 Features
+📦 Product management (create, list, update, delete)
 
-🔐 Kullanıcı kayıt ve kimlik doğrulama
+🔐 User registration and authentication
 
-💳 Ödeme işlemleri entegrasyonu (Iyzico entegre edilecek. Devam etmekte.)
+💳 Payment processing integration (Iyzico integration in progress)
 
-⚡ Redis tabanlı önbellekleme
+⚡ Redis-based caching
 
-🔒 JWT tabanlı güvenlik ve yetkilendirme
+🔒 JWT-based security and authorization
 
-🧾 Serilog ile merkezi loglama altyapısı
+🧾 Centralized logging infrastructure with Serilog
 
-📚 Kapsamlı API dokümantasyonu
+📚 Comprehensive API documentation
 
-## 🛠️ Kullanılan Teknolojiler
-| Teknoloji | Açıklama |
+## 🛠️ Technologies Used
+| Technology | Description |
 |-----------|----------|
-| **.NET 9** | API'nin temel platformu |
-| **FluentValidation** | Veri doğrulama için kullanılır |
-| **Identity & JWT** | Kimlik doğrulama ve güvenlik için |
-| **Redis** | Performansı artırmak için cacheleme |
-| **Swagger** | API dokümantasyonu ve test arayüzü |
-| **Serilog** | Merkezi loglama altyapısı için kullanılır |
-| **PostgreSQL** | Kalıcı veri depolama için |
+| **.NET 9** | Core platform for the API |
+| **FluentValidation** | Used for data validation |
+| **Identity & JWT** | For authentication and security |
+| **Redis** | Caching to improve performance |
+| **Swagger** | API documentation and testing interface |
+| **Serilog** | Used for centralized logging infrastructure |
+| **PostgreSQL** | For persistent data storage |
 
-## 📐 Mimari Yapı
-Bu proje N-Tier Mimari ve Clean Architecture kullanılarak geliştirilmiştir. İş mantığı, veri erişimi ve sunum katmanları ayrılmıştır. SOLID, KISS ve DRY prensiplerine uygun şekilde tasarlanmış olup, kodun yeniden kullanılabilirliği ve bakımı kolaydır.
+## 📐 Architecture
+This project is developed using N-Tier Architecture and Clean Architecture. Business logic, data access, and presentation layers are separated. It is designed in accordance with SOLID, KISS, and DRY principles, making the code reusable and easy to maintain.
 ```
 📁 Solution
-  ├── 📁 API/                # Sunum Katmanı (Web API)
+  ├── 📁 API/                # Presentation Layer (Web API)
   │   ├── Controllers
   │   ├── API
   │   ├── DI Container
   │   └── Program.cs
   │
-  ├── 📁 Application/        # İş Mantığı Katmanı
+  ├── 📁 Application/        # Business Logic Layer
   │   ├── DTOs
   │   ├── Interfaces
   │   ├── Services
   │   └── Validations
   │
-  ├── 📁 Domain/             # Domain ve Entitiler
+  ├── 📁 Domain/             # Domain and Entities
   │   ├── Entities
   │
-  └── 📁 Infrastructure/     # Altyapı Katmanı
+  └── 📁 Infrastructure/     # Infrastructure Layer
       ├── DB Context
       ├── Repositories
       ├── Migrations
 ```
 
-## 🔧 Kurulum
+## 🔧 Installation
 ```bash
-# Repoyu klonlayın
+# Clone the repository
 git clone https://github.com/mehmetcanari/dotnet-ecommerce-demo.git
-# Klasöre girin
+# Enter the directory
 cd dotnet-ecommerce-demo
-# Bağımlılıkları yükleyin
+# Install dependencies
 dotnet restore
-# Uygulamayı çalıştırın
+# Run the application
 cd ECommerce.API
-dotnet run 
+dotnet watch run 
 ```
 
-## 🔑 Ortam Değişkenleri
-Projeyi çalıştırmadan önce aşağıdaki ortam değişkenlerini ayarlayın:
+## 🔑 Environment Variables
+Set the following environment variables before running the project:
 ```
 ASPNETCORE_ENVIRONMENT=Development
 ASPNETCORE_URLS=http://localhost:5076
@@ -78,16 +78,16 @@ JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
 DB_CONNECTION_STRING=Server=your_server;Database=ecommerce;Username=your_username;Password=your_password
 REDIS_CONNECTION=localhost:6379
-# Kimlik doğrulama sonrası alınan tokenlar
+# Tokens obtained after authentication
 ADMIN_TOKEN=
 USER_TOKEN=
 ```
-> **Not:** Auth endpoint'lerinden admin veya kullanıcı için token aldığınızda, bu token değerlerini `ADMIN_TOKEN` ve `USER_TOKEN` değişkenlerine yapıştırın.
+> **Note:** After obtaining tokens for admin or user from the auth endpoints, paste these token values into the `ADMIN_TOKEN` and `USER_TOKEN` variables.
 
-## 🌟 Temel API Kullanımı
-### Kimlik Doğrulama Endpoint'leri
+## 🌟 Basic API Usage
+### Authentication Endpoints
 ```http
-### Kullanıcı Kaydı
+### User Registration
 POST {{baseUrl}}/api/auth/create-user
 Content-Type: application/json
 
@@ -95,12 +95,12 @@ Content-Type: application/json
   "fullName": "John Doe",
   "email": "user@example.com",
   "password": "P@ssw0rd123",
-  "address": "İstanbul",
+  "address": "Istanbul",
   "phoneNumber": "5551234567",
   "dateOfBirth": "1990-01-01"
 }
 
-### Giriş Yap
+### Login
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
@@ -109,13 +109,13 @@ Content-Type: application/json
   "password": "P@ssw0rd123"
 }
 
-### Token Yenileme
+### Token Refresh
 POST {{baseUrl}}/{{route}}/refresh-token
 ```
 
-### Ürün Yönetimi (Admin)
+### Product Management (Admin)
 ```http
-### Yeni Ürün Ekleme
+### Add New Product
 POST {{baseUrl}}/api/admin/products/create
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
@@ -129,31 +129,24 @@ Authorization: Bearer {{adminToken}}
   "ImageUrl": "https://via.placeholder.com/150"
 }
 
-### Ürün Listeleme
+### List Products
 GET {{baseUrl}}/api/admin/products
 Authorization: Bearer {{adminToken}}
 ```
 
-## 🚧 Proje Durumu
-**Geliştirme Aşamasında**  
-Proje aktif olarak geliştirilmeye devam etmektedir. Aşağıdaki özellikler yakın gelecekte eklenecektir:
-- [ ] Iyzico ödeme entegrasyonu
-- [x] Serilog ile merkezi logging
-- [ ] Unit test eklenmesi
-- [ ] Dockerize ve CI/CD pipeline
+## 🚧 Project Status
+**In Development**  
+The project is being actively developed. The following features will be added in the near future:
+- [ ] Iyzico payment integration
+- [x] Centralized logging with Serilog
+- [ ] Addition of unit tests
+- [ ] Dockerization and CI/CD pipeline
 
-## 🤝 Katkıda Bulunma
-1. Projeyi fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add some amazing feature'`)
-4. Branch'inize push edin (`git push origin feature/amazing-feature`)
-5. Pull request açın
-
-## 📧 İletişim
-Proje Sahibi - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)
+## 📧 Contact
+Project Owner - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)
 
 [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mehmetcanari)
 
 ---
 
-**Not:** Geliştirmeler devam ettikçe dokümantasyon güncellenecektir.
+**Note:** Documentation will be updated as development progresses.
