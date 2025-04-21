@@ -12,6 +12,7 @@ public class OrderItemService : IOrderItemService
     private readonly IProductRepository _productRepository;
     private readonly ICacheService _cacheService;
     private readonly ILoggingService _logger;
+    private readonly IUnitOfWork _unitOfWork;
     private const string GetAllOrderItemsCacheKey = "GetAllOrderItems";
 
     public OrderItemService(
@@ -19,13 +20,15 @@ public class OrderItemService : IOrderItemService
         IProductRepository productRepository,
         IAccountRepository accountRepository,
         ILoggingService logger,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        IUnitOfWork unitOfWork)
     {
         _orderItemRepository = orderItemRepository;
         _productRepository = productRepository;
         _accountRepository = accountRepository;
         _logger = logger;
         _cacheService = cacheService;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<List<OrderItemResponseDto>> GetAllOrderItemsAsync(string email)
@@ -45,13 +48,14 @@ public class OrderItemService : IOrderItemService
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                         throw new Exception("Account not found");
             var orderItems = await _orderItemRepository.Read();
-            var items = orderItems.Where(o => o.AccountId == tokenAccount.AccountId && o.IsOrdered == false).ToList();
-            if (items.Count == 0)
+            var nonOrderedCartItems = orderItems.Where(o => o.AccountId == tokenAccount.AccountId && o.IsOrdered == false).ToList();
+            if (nonOrderedCartItems.Count == 0)
             {
                 throw new Exception("No order items found.");
             }
 
-            List<OrderItemResponseDto> responseItems = items.Select(orderItem => new OrderItemResponseDto
+            List<OrderItemResponseDto> clientResponseCartItems = nonOrderedCartItems
+            .Select(orderItem => new OrderItemResponseDto
             {
                 AccountId = orderItem.AccountId,
                 Quantity = orderItem.Quantity,
@@ -60,9 +64,9 @@ public class OrderItemService : IOrderItemService
                 ProductName = orderItem.ProductName
             }).ToList();
 
-            await _cacheService.SetAsync(cacheKey, responseItems, cacheDuration);
+            await _cacheService.SetAsync(cacheKey, clientResponseCartItems, cacheDuration);
 
-            return responseItems;
+            return clientResponseCartItems;
         }
         catch (Exception exception)
         {
@@ -96,6 +100,7 @@ public class OrderItemService : IOrderItemService
 
             await _orderItemRepository.Create(orderItem);
             await ClearOrderItemsCacheAsync();
+            await _unitOfWork.Commit();
 
             _logger.LogInformation("Order item created successfully: {OrderItem}", orderItem);
         }
@@ -136,8 +141,9 @@ public class OrderItemService : IOrderItemService
             orderItem.UnitPrice = updatedProduct.Price;
             orderItem.IsOrdered = false;
 
-            await _orderItemRepository.Update(orderItem);
+            _orderItemRepository.Update(orderItem);
             await ClearOrderItemsCacheAsync();
+            await _unitOfWork.Commit();
 
             _logger.LogInformation("Order item updated successfully: {OrderItem}", orderItem);
         }
@@ -163,10 +169,11 @@ public class OrderItemService : IOrderItemService
 
             foreach (var item in items)
             {
-                await _orderItemRepository.Delete(item);
+                _orderItemRepository.Delete(item);
             }
 
             await ClearOrderItemsCacheAsync();
+            await _unitOfWork.Commit();
 
             _logger.LogInformation("All order items deleted successfully");
         }
@@ -187,10 +194,12 @@ public class OrderItemService : IOrderItemService
             var orderItem = accountCartItems.FirstOrDefault(i => i.ProductId == updatedProduct.ProductId);
             if (orderItem != null)
             {
-                await _orderItemRepository.Delete(orderItem);
+                _orderItemRepository.Delete(orderItem);
             }
 
             await ClearOrderItemsCacheAsync();
+            await _unitOfWork.Commit();
+            _logger.LogInformation("Order items cleared successfully for product: {ProductId}", updatedProduct.ProductId);
         }
         catch (Exception exception)
         {

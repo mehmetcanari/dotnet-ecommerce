@@ -2,8 +2,9 @@ using ECommerce.Application.Interfaces.Repository;
 using Microsoft.EntityFrameworkCore;
 using ECommerce.Infrastructure.DatabaseContext;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Model;
 
-namespace ECommerce.Infrastructure.Repositories.Order;
+namespace ECommerce.Infrastructure.Repositories;
 
 public class OrderRepository : IOrderRepository
 {
@@ -16,13 +17,13 @@ public class OrderRepository : IOrderRepository
         _logger = logger;
     }
 
-    public async Task<List<Domain.Model.Order>> Read()
+    public async Task<List<Order>> Read()
     {
         try
         {
             return await _context.Orders
-                .Include(o => o.OrderItems)
                 .AsNoTracking()
+                .Include(o => o.OrderItems)
                 .ToListAsync();
         }
         catch (DbUpdateException ex)
@@ -37,12 +38,11 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task Create(Domain.Model.Order order)
+    public async Task Create(Order order)
     {
         try
         {
             await _context.Orders.AddAsync(order);
-            await _context.SaveChangesAsync();
         }
         catch (Exception exception)
         {
@@ -51,12 +51,11 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task Update(Domain.Model.Order order)
+    public void Update(Order order)
     {
         try
         {
             _context.Orders.Update(order);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -70,12 +69,11 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task Delete(Domain.Model.Order order)
+    public void Delete(Order order)
     {
         try
         {
             _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -89,15 +87,13 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    #region IQueryable
-
-    public async Task<Domain.Model.Order> GetOrderById(int id)
+    public async Task<Order> GetOrderById(int id)
     {
         try
         {
             return await _context.Orders
-                .Include(o => o.OrderItems)
                 .AsNoTracking()
+                .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.OrderId == id) ?? throw new Exception("Order not found");
         }
         catch (Exception ex)
@@ -106,6 +102,4 @@ public class OrderRepository : IOrderRepository
             throw new Exception("An unexpected error occurred", ex);
         }
     }
-
-    #endregion
 }

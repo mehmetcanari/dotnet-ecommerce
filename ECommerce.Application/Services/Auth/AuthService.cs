@@ -113,7 +113,7 @@ public class AuthService : IAuthService
     {
         try
         {
-            ClaimsPrincipal identifier = await _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken);
+            ClaimsPrincipal identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken);
 
             var (email, roles) = await ValidateRefreshToken(identifier);
 

@@ -19,7 +19,7 @@ namespace ECommerce.Application.Services.Token
             _logger = logger;
         }
 
-        public async Task<ClaimsPrincipal> GetClaimsPrincipalFromToken(RefreshToken refreshToken)
+        public ClaimsPrincipal GetClaimsPrincipalFromToken(RefreshToken refreshToken)
         {
             try
             {
@@ -50,7 +50,7 @@ namespace ECommerce.Application.Services.Token
                     throw new SecurityTokenException("Invalid token algorithm");
                 }
 
-                return await Task.FromResult(principal);
+                return principal;
             }
             catch (Exception ex)
             {

@@ -8,8 +8,8 @@ namespace ECommerce.Application.Interfaces.Repository
         Task<IEnumerable<RefreshToken>> GetUserTokensAsync(string email);
         Task<RefreshToken> GetUserTokenAsync(string email);
         Task CreateAsync(RefreshToken refreshToken);
-        Task UpdateAsync(RefreshToken refreshToken);
-        Task RevokeAsync(RefreshToken refreshToken, string? reason = null);
+        void Update(RefreshToken refreshToken);
+        void Revoke(RefreshToken refreshToken, string? reason = null);
         Task CleanupExpiredTokensAsync();
     }
 }

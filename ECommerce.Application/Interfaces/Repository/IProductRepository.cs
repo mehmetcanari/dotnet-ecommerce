@@ -1,9 +1,10 @@
+using ECommerce.Domain.Model;
 namespace ECommerce.Application.Interfaces.Repository;
 
 public interface IProductRepository
 {
-    Task Create(Domain.Model.Product product);
-    Task<List<Domain.Model.Product>> Read();
-    Task Update(Domain.Model.Product product);
-    Task Delete(Domain.Model.Product product);
+    Task Create(Product product);
+    Task<List<Product>> Read();
+    void Update(Product product);
+    void Delete(Product product);
 }

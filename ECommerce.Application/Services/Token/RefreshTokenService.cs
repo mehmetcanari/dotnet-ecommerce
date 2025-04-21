@@ -16,32 +16,27 @@ public class RefreshTokenService : IRefreshTokenService
     private readonly ILoggingService _logger;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public RefreshTokenService(IRefreshTokenRepository refreshTokenRepository, ILoggingService logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+    public RefreshTokenService(
+        IRefreshTokenRepository refreshTokenRepository, 
+        ILoggingService logger, 
+        IConfiguration configuration, 
+        IHttpContextAccessor httpContextAccessor, 
+        IUnitOfWork unitOfWork)
     {
         _refreshTokenRepository = refreshTokenRepository;
         _logger = logger;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
-    }
-
-    public async Task CleanupExpiredTokensAsync()
-    {
-        try
-        {
-            await _refreshTokenRepository.CleanupExpiredTokensAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to cleanup expired tokens");
-        }
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<RefreshToken> GenerateRefreshTokenAsync(string email, IList<string> roles)
     {
         try
         {
-            await RevokeUserTokensAsync(email, "User has fresh token");
+            await RevokeUserTokens(email, "User has fresh token");
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
 
             var refreshToken = new RefreshToken
@@ -53,6 +48,7 @@ public class RefreshTokenService : IRefreshTokenService
             };
 
             await _refreshTokenRepository.CreateAsync(refreshToken);
+            await _unitOfWork.Commit();
             _logger.LogInformation("Refresh token created successfully: {RefreshToken}", refreshToken);
             return refreshToken;
         }
@@ -63,7 +59,7 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
-    public async Task RevokeUserTokensAsync(string email, string reason)
+    public async Task RevokeUserTokens(string email, string reason)
     {
         try
         {
@@ -71,8 +67,11 @@ public class RefreshTokenService : IRefreshTokenService
             RefreshToken? activeToken = tokens.FirstOrDefault(t => t.IsExpired == false && t.IsRevoked == false);
             if (activeToken is not null)
             {
-                await _refreshTokenRepository.RevokeAsync(activeToken, reason);
+                _refreshTokenRepository.Revoke(activeToken, reason);
             }
+
+            await _unitOfWork.Commit();
+            _logger.LogInformation("User tokens revoked successfully: {Email}", email);
         }
         catch (Exception ex)
         {
@@ -186,6 +185,19 @@ public class RefreshTokenService : IRefreshTokenService
         {
             _logger.LogError(ex, "Failed to get refresh token from cookie");
             throw;
+        }
+    }
+
+    public async Task CleanupExpiredTokensAsync()
+    {
+        try
+        {
+            await _refreshTokenRepository.CleanupExpiredTokensAsync();
+            await _unitOfWork.Commit();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to cleanup expired tokens");
         }
     }
 }

@@ -13,16 +13,24 @@ public class ProductService : IProductService
     private readonly ICategoryService _categoryService;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
+    private readonly IUnitOfWork _unitOfWork;
     private const string AllProductsCacheKey = "products";
     private const string ProductCacheKey = "product:{0}";
 
-    public ProductService(IProductRepository productRepository, ICategoryService categoryService, IOrderItemService orderItemService, ILoggingService logger, ICacheService cacheService)
+    public ProductService(
+        IProductRepository productRepository, 
+        ICategoryService categoryService, 
+        IOrderItemService orderItemService, 
+        ILoggingService logger, 
+        ICacheService cacheService, 
+        IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository;
         _categoryService = categoryService;
         _orderItemService = orderItemService;
-        _logger = logger;
         _cacheService = cacheService;
+        _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task ProductCacheInvalidateAsync()
@@ -56,7 +64,7 @@ public class ProductService : IProductService
                 throw new Exception("No products found");
             }
 
-            var productResponseDtos = products.Select(p => new ProductResponseDto
+            List<ProductResponseDto> productResponseDtos = products.Select(p => new ProductResponseDto
             {
                 ProductName = p.Name,
                 Description = p.Description,
@@ -91,7 +99,7 @@ public class ProductService : IProductService
             var products = await _productRepository.Read();
             var product = products.FirstOrDefault(p => p.ProductId == requestId) ?? throw new Exception("Product not found");
             
-            var productResponse = new ProductResponseDto
+            ProductResponseDto productResponse = new ProductResponseDto
             {
                 ProductName = product.Name,
                 Description = product.Description,
@@ -112,7 +120,7 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task AddProductAsync(ProductCreateRequestDto productCreateRequest)
+    public async Task CreateProductAsync(ProductCreateRequestDto productCreateRequest)
     {
         try
         {
@@ -142,6 +150,7 @@ public class ProductService : IProductService
             await _productRepository.Create(product);
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
+            await _unitOfWork.Commit();
             _logger.LogInformation("Product created successfully: {Product}", product);
         }
         catch (Exception ex)
@@ -169,11 +178,12 @@ public class ProductService : IProductService
             product.CategoryId = category.CategoryId;
             product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
-            await _productRepository.Update(product);
+            _productRepository.Update(product);
             await _orderItemService.ClearOrderItemsIncludeProductAsync(product);
             
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
+            await _unitOfWork.Commit();
 
             _logger.LogInformation("Product updated successfully: {Product}", product);
         }
@@ -191,9 +201,10 @@ public class ProductService : IProductService
             var products = await _productRepository.Read();
             var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
 
-            await _productRepository.Delete(product);
+            _productRepository.Delete(product);
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
+            await _unitOfWork.Commit();
             _logger.LogInformation("Product deleted successfully: {Product}", product);
         }
         catch (Exception ex)
@@ -210,10 +221,22 @@ public class ProductService : IProductService
             var products = await _productRepository.Read();
             foreach (var orderItem in orderItems)
             {
-                var product = products.FirstOrDefault(p => p.ProductId == orderItem.ProductId) ?? throw new Exception("Product not found");
-                product.StockQuantity -= orderItem.Quantity;
-                await _productRepository.Update(product);
+                var cartProduct = products.FirstOrDefault(p => p.ProductId == orderItem.ProductId);
+
+                if (cartProduct == null)
+                {
+                    throw new Exception($"Product with ID {orderItem.ProductId} not found in the database.");
+                }
+
+                int Quantity = orderItem.Quantity;
+                cartProduct.StockQuantity -= Quantity;
+                _productRepository.Update(cartProduct);
             }
+
+            await ProductCacheInvalidateAsync();
+            await _categoryService.CategoryCacheInvalidateAsync();
+            await _unitOfWork.Commit();
+            _logger.LogInformation("Product stock updated successfully: {Products}", products);
         }
         catch (Exception ex)
         {

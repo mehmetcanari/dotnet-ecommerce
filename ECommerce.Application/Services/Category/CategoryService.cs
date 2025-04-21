@@ -5,18 +5,21 @@ using ECommerce.Domain.Model;
 
 public class CategoryService : ICategoryService
 {
+    private const string CategoryCacheKey = "category:{0}";
     private readonly ICategoryRepository _categoryRepository;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
-    private const string CategoryCacheKey = "category:{0}";
-    public CategoryService(ICategoryRepository categoryRepository, ILoggingService logger, ICacheService cacheService)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public CategoryService(ICategoryRepository categoryRepository, ILoggingService logger, ICacheService cacheService, IUnitOfWork unitOfWork)
     {
+        _unitOfWork = unitOfWork;
         _categoryRepository = categoryRepository;
         _logger = logger;
         _cacheService = cacheService;
     }
 
-    public async Task<Category> CreateCategoryAsync(CreateCategoryRequestDto request)
+    public async Task CreateCategoryAsync(CreateCategoryRequestDto request)
     {
         try
         {
@@ -32,10 +35,10 @@ public class CategoryService : ICategoryService
                 Description = request.Description
             };
 
-            _logger.LogInformation("Category created successfully");
             await _categoryRepository.Create(category);
             await CategoryCacheInvalidateAsync();
-            return category;
+            await _unitOfWork.Commit();
+            _logger.LogInformation("Category created successfully");
         }
         catch (Exception ex)
         {
@@ -44,18 +47,22 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<Category> DeleteCategoryAsync(int categoryId)
+    public async Task DeleteCategoryAsync(int categoryId)
     {
         try
         {
             var categories = await _categoryRepository.Read();
-            var category = categories.FirstOrDefault(c => c.CategoryId == categoryId) 
-            ?? throw new Exception("Category not found");
+            var category = categories.FirstOrDefault(c => c.CategoryId == categoryId);
 
-            _logger.LogInformation("Category deleted successfully");
-            await _categoryRepository.Delete(categoryId);
+            if (category == null)
+            {
+                throw new Exception("Category not found");
+            }
+
+            _categoryRepository.Delete(category);
             await CategoryCacheInvalidateAsync();
-            return category;
+            await _unitOfWork.Commit();
+            _logger.LogInformation("Category deleted successfully");
         }
         catch (Exception ex)
         {
@@ -64,7 +71,7 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<Category> UpdateCategoryAsync(int categoryId, UpdateCategoryRequestDto request)
+    public async Task UpdateCategoryAsync(int categoryId, UpdateCategoryRequestDto request)
     {
         try
         {
@@ -76,10 +83,10 @@ public class CategoryService : ICategoryService
             category.Description = request.Description;
             category.UpdatedAt = DateTime.UtcNow;
 
-            _logger.LogInformation("Category updated successfully");
-            await _categoryRepository.Update(category);
+            _categoryRepository.Update(category);
             await CategoryCacheInvalidateAsync();
-            return category;
+            await _unitOfWork.Commit();
+            _logger.LogInformation("Category updated successfully");
         }
         catch (Exception ex)
         {

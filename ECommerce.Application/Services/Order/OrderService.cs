@@ -12,15 +12,15 @@ public class OrderService : IOrderService
     private readonly IOrderItemService _orderItemService;
     private readonly IProductService _productService;
     private readonly IOrderItemRepository _orderItemRepository;
-    private readonly IProductRepository _productRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public OrderService(
         IOrderRepository orderRepository, 
         IOrderItemService orderItemService,
         IOrderItemRepository orderItemRepository,
-        IProductRepository productRepository,
+        IUnitOfWork unitOfWork,
         IProductService productService,
         IAccountRepository accountRepository, 
         ILoggingService logger)
@@ -28,8 +28,8 @@ public class OrderService : IOrderService
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
         _orderItemRepository = orderItemRepository;
+        _unitOfWork = unitOfWork;
         _orderItemService = orderItemService;
-        _productRepository = productRepository;
         _productService = productService;
         _logger = logger;
     }
@@ -43,9 +43,15 @@ public class OrderService : IOrderService
 
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
             var userOrderItems = orderItems
-                .Where(oi => !oi.IsOrdered)
                 .Where(oi => oi.AccountId == tokenAccount.AccountId)
+                .Where(oi => oi.IsOrdered == false)
                 .ToList();
+
+            if (userOrderItems.Count == 0)
+            {
+                _logger.LogWarning("No order items found for this user: {Email}", email);
+                throw new Exception("No order items found for this user");
+            }
 
             List<Domain.Model.OrderItem> newOrderItems = userOrderItems
                 .Select(orderItem => new Domain.Model.OrderItem
@@ -57,11 +63,6 @@ public class OrderService : IOrderService
                     ProductName = orderItem.ProductName,
                     IsOrdered = true
                 }).ToList();
-
-            if (newOrderItems.Count == 0)
-            {
-                throw new Exception("No items in cart");
-            }
 
             var order = new Domain.Model.Order
             {
@@ -76,6 +77,10 @@ public class OrderService : IOrderService
             await _orderItemService.DeleteAllOrderItemsAsync(email);
             await _productService.UpdateProductStockAsync(newOrderItems);
             await _productService.ProductCacheInvalidateAsync();
+
+            await _unitOfWork.Commit();
+
+            _logger.LogInformation("Order added successfully: {Order}", order);
         }
         catch (Exception ex)
         {
@@ -106,8 +111,10 @@ public class OrderService : IOrderService
             foreach (var order in pendingOrders)
             {
                 order.Status = OrderStatus.Cancelled;
-                await _orderRepository.Update(order);
+                _orderRepository.Update(order);
             }
+
+            await _unitOfWork.Commit();
 
             _logger.LogInformation("Orders cancelled successfully. Count: {Count}", pendingOrders.Count);
         }
@@ -124,8 +131,9 @@ public class OrderService : IOrderService
         {
             var orders = await _orderRepository.Read();
             var orderToDelete = orders.FirstOrDefault(o => o.OrderId == id) ?? throw new Exception("Order not found");
-            await _orderRepository.Delete(orderToDelete);
+            _orderRepository.Delete(orderToDelete);
 
+            await _unitOfWork.Commit();
             _logger.LogInformation("Order deleted successfully: {Order}", orderToDelete);
         }
         catch (Exception ex)
@@ -253,8 +261,9 @@ public class OrderService : IOrderService
             var orders = await _orderRepository.Read();
             var order = orders.FirstOrDefault(o => o.AccountId == accountId) ?? throw new Exception("Order not found");
             order.Status = orderUpdateRequestDto.Status;
-            await _orderRepository.Update(order);
+            _orderRepository.Update(order);
 
+            await _unitOfWork.Commit();
             _logger.LogInformation("Order status updated successfully: {Order}", order);
         }
         catch (Exception ex)

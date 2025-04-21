@@ -57,7 +57,7 @@ public class AdminProductController : ControllerBase
         
         try
         {
-            await _productService.AddProductAsync(productCreateRequestRequest);
+            await _productService.CreateProductAsync(productCreateRequestRequest);
             return Created($"products/{productCreateRequestRequest.Name}", new { message = $"Product with name {productCreateRequestRequest.Name} created successfully" });
         }
         catch (Exception exception)

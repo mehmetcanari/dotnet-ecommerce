@@ -2,8 +2,8 @@ using ECommerce.Domain.Model;
 
 public interface ICategoryRepository
 {
-    Task<Category> Create(Category category);
+    Task Create(Category category);
     Task<List<Category>> Read();
-    Task<Category> Update(Category category);
-    Task<Category> Delete(int categoryId);
+    void Update(Category category);
+    void Delete(Category category);
 }

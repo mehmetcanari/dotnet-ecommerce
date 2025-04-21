@@ -67,7 +67,7 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            await _refreshTokenService.RevokeUserTokensAsync(request.Email, "Admin revoked");
+            await _refreshTokenService.RevokeUserTokens(request.Email, "Admin revoked");
             return Ok(new { message = $"{request.Email} tokens revoked successfully" });
         }
         catch (Exception ex)

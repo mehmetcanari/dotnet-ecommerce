@@ -92,7 +92,7 @@ namespace ECommerce.API.Controllers
             try
             {
                 var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
-                await _refreshTokenService.RevokeUserTokensAsync(cookieRefreshToken.Email, "Logout");
+                await _refreshTokenService.RevokeUserTokens(cookieRefreshToken.Email, "Logout");
                 _refreshTokenService.DeleteRefreshTokenCookie();
                 return Ok(new { message = "Logout successful" });
             }

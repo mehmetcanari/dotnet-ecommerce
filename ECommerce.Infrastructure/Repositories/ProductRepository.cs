@@ -2,9 +2,9 @@ using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using ECommerce.Domain.Model;
 
-namespace ECommerce.Infrastructure.Repositories.Product;
-
+namespace ECommerce.Infrastructure.Repositories;
 public class ProductRepository : IProductRepository
 {
     private readonly StoreDbContext _context;
@@ -16,7 +16,7 @@ public class ProductRepository : IProductRepository
         _logger = logger;
     }
 
-    public async Task<List<Domain.Model.Product>> Read()
+    public async Task<List<Product>> Read()
     {
         try
         {
@@ -38,12 +38,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Create(Domain.Model.Product product)
+    public async Task Create(Product product)
     {
         try
         {
             await _context.Products.AddAsync(product);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -57,12 +56,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Update(Domain.Model.Product product)
+    public void Update(Product product)
     {
         try
         {
             _context.Products.Update(product);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -76,12 +74,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Delete(Domain.Model.Product product)
+    public void Delete(Product product)
     {
         try
         {
             _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {

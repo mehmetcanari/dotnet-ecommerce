@@ -7,9 +7,9 @@ public interface IProductService
 {
     Task<List<ProductResponseDto>> GetAllProductsAsync();
     Task<ProductResponseDto> GetProductWithIdAsync(int requestId);
-    Task AddProductAsync(ProductCreateRequestDto productCreateRequest);
+    Task CreateProductAsync(ProductCreateRequestDto productCreateRequest);
     Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest);
+    Task UpdateProductStockAsync(List<Domain.Model.OrderItem> orderItems);
     Task DeleteProductAsync(int id);
     Task ProductCacheInvalidateAsync();
-    Task UpdateProductStockAsync(List<Domain.Model.OrderItem> orderItems);
 }

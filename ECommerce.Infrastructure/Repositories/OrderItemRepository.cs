@@ -2,8 +2,9 @@
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using ECommerce.Domain.Model;
 
-namespace ECommerce.Infrastructure.Repositories.OrderItem;
+namespace ECommerce.Infrastructure.Repositories;
 
 public class OrderItemRepository : IOrderItemRepository
 {
@@ -16,12 +17,11 @@ public class OrderItemRepository : IOrderItemRepository
         _logger = logger;
     }
 
-    public async Task Create(Domain.Model.OrderItem orderItem)
+    public async Task Create(OrderItem orderItem)
     {
         try
         {
             await _context.OrderItems.AddAsync(orderItem);
-            await _context.SaveChangesAsync();
         }
         catch (Exception exception)
         {
@@ -30,11 +30,13 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
     
-    public async Task<IEnumerable<Domain.Model.OrderItem>> Read()
+    public async Task<IEnumerable<OrderItem>> Read()
     {
         try
         {
-            return await _context.OrderItems.AsNoTracking().ToListAsync();
+            return await _context.OrderItems
+            .AsNoTracking()
+            .ToListAsync();
         }
         catch (Exception exception)
         {
@@ -43,12 +45,11 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
 
-    public async Task Update(Domain.Model.OrderItem orderItem)
+    public void Update(OrderItem orderItem)
     {
         try
         {
             _context.OrderItems.Update(orderItem);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException dbUpdateException)
         {
@@ -62,12 +63,11 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
 
-    public async Task Delete(Domain.Model.OrderItem orderItem)
+    public void Delete(OrderItem orderItem)
     {
         try
         {
             _context.OrderItems.Remove(orderItem);
-            await _context.SaveChangesAsync();
         }
         catch (Exception exception)
         {

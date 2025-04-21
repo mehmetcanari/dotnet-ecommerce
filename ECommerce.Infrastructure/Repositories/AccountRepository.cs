@@ -2,8 +2,9 @@ using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using ECommerce.Domain.Model;
 
-namespace ECommerce.Infrastructure.Repositories.Account;
+namespace ECommerce.Infrastructure.Repositories;
 
 public class AccountRepository : IAccountRepository
 {
@@ -16,7 +17,7 @@ public class AccountRepository : IAccountRepository
         _logger = logger;
     }
 
-    public async Task<List<Domain.Model.Account>> Read()
+    public async Task<List<Account>> Read()
     {
         try
         {
@@ -36,12 +37,11 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Create(Domain.Model.Account userAccount)
+    public async Task Create(Account userAccount)
     {
         try
         {
             await _context.Accounts.AddAsync(userAccount);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -55,12 +55,11 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Update(Domain.Model.Account account)
+    public void Update(Account account)
     {
         try
         {
             _context.Accounts.Update(account);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
@@ -74,12 +73,11 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Delete(Domain.Model.Account account)
+    public void Delete(Account account)
     {
         try
         {
             _context.Accounts.Remove(account);
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {

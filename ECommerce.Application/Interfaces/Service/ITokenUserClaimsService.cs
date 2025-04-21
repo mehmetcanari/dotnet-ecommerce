@@ -4,6 +4,6 @@ namespace ECommerce.Application.Interfaces.Service
 {
     public interface ITokenUserClaimsService
     {
-        public Task<ClaimsPrincipal> GetClaimsPrincipalFromToken(RefreshToken refreshToken);
+        public ClaimsPrincipal GetClaimsPrincipalFromToken(RefreshToken refreshToken);
     }
 }

@@ -17,11 +17,7 @@ using ECommerce.Application.Validations.Account;
 using ECommerce.Application.Validations.Order;
 using ECommerce.Application.Validations.OrderItem;
 using ECommerce.Application.Validations.Product;
-using ECommerce.Infrastructure.Repositories.Account;
-using ECommerce.Infrastructure.Repositories.Order;
-using ECommerce.Infrastructure.Repositories.OrderItem;
-using ECommerce.Infrastructure.Repositories.Product;
-using ECommerce.Infrastructure.Repositories.Token;
+using ECommerce.Infrastructure.Repositories;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Serilog;
@@ -62,6 +58,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<ICacheService, RedisCacheService>();
         _builder.Services.AddScoped<ITokenUserClaimsService, TokenUserClaimsService>();
         _builder.Services.AddScoped<ICategoryService, CategoryService>();
+        _builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         //Utility
         _builder.Services.AddScoped<ILoggingService, LogService>();

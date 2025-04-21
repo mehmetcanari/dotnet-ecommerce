@@ -3,6 +3,8 @@ using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
+
+namespace ECommerce.Infrastructure.Repositories;
 public class CategoryRepository : ICategoryRepository
 {
     private readonly StoreDbContext _context;
@@ -14,13 +16,11 @@ public class CategoryRepository : ICategoryRepository
         _logger = logger;
     }
 
-    public async Task<Category> Create(Category category)
+    public async Task Create(Category category)
     {
         try
         {
             await _context.Categories.AddAsync(category);
-            await _context.SaveChangesAsync();
-            return category;
         }
         catch (Exception ex)
         {
@@ -34,8 +34,8 @@ public class CategoryRepository : ICategoryRepository
         try
         {
             return await _context.Categories
-            .Include(c => c.Products)
             .AsNoTracking()
+            .Include(c => c.Products)
             .ToListAsync();
         }
         catch (Exception ex)
@@ -45,13 +45,11 @@ public class CategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task<Category> Update(Category category)
+    public void Update(Category category)
     {
         try
         {
             _context.Categories.Update(category);
-            await _context.SaveChangesAsync();
-            return category;
         }
         catch (Exception ex)
         {
@@ -60,19 +58,11 @@ public class CategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task<Category> Delete(int categoryId)
+    public void Delete(Category category)
     {
         try
         {
-            var category = await _context.Categories.FindAsync(categoryId);
-            if (category == null)
-            {
-                throw new Exception("Category not found");
-            }
-
             _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
-            return category;
         }
         catch (Exception ex)
         {

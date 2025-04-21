@@ -11,13 +11,20 @@ public class AccountService : IAccountService
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly ILoggingService _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public AccountService(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, UserManager<IdentityUser> userManager, ILoggingService logger)
+    public AccountService(
+        IAccountRepository accountRepository, 
+        IUnitOfWork unitOfWork,
+        IRefreshTokenService refreshTokenService, 
+        UserManager<IdentityUser> userManager, 
+        ILoggingService logger)
     {
         _accountRepository = accountRepository;
         _refreshTokenService = refreshTokenService;
         _userManager = userManager;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task RegisterAccountAsync(AccountRegisterRequestDto createUserRequestDto, string role)
@@ -44,6 +51,7 @@ public class AccountService : IAccountService
 
             _logger.LogInformation("Account created successfully: {Account}", account);
             await _accountRepository.Create(account);
+            await _unitOfWork.Commit();
         }
         catch (Exception ex)
         {
@@ -72,8 +80,7 @@ public class AccountService : IAccountService
                 PhoneNumber = account.PhoneNumber,
                 DateOfBirth = account.DateOfBirth,
                 Role = account.Role
-            })
-                .ToList();
+            }).ToList();
         }
         catch (Exception ex)
         {
@@ -133,8 +140,9 @@ public class AccountService : IAccountService
             var user = await _userManager.FindByEmailAsync(account.Email) ?? throw new Exception("User not found");
             
             _logger.LogInformation("Account deleted successfully: {Account}", account);
-            await _accountRepository.Delete(account);
             await _userManager.DeleteAsync(user);
+            _accountRepository.Delete(account);
+            await _unitOfWork.Commit();
         }
         catch (Exception ex)
         {
@@ -177,8 +185,9 @@ public class AccountService : IAccountService
         {
             var account = await GetAccountByEmailAsModel(email);
             account.BanAccount(until, reason);
-            await _accountRepository.Update(account);
-            await _refreshTokenService.RevokeUserTokensAsync(email, "Account banned");
+            _accountRepository.Update(account);
+            await _refreshTokenService.RevokeUserTokens(email, "Account banned");
+            await _unitOfWork.Commit();
             _logger.LogInformation("Account banned successfully: {Account}", account);
         }
         catch (Exception ex)
@@ -194,8 +203,9 @@ public class AccountService : IAccountService
         {
             var account = await GetAccountByEmailAsModel(email);
             account.UnbanAccount();
-            await _accountRepository.Update(account);
-            await _refreshTokenService.RevokeUserTokensAsync(email, "Account unbanned");
+            _accountRepository.Update(account);
+            await _refreshTokenService.RevokeUserTokens(email, "Account unbanned");
+            await _unitOfWork.Commit();
             _logger.LogInformation("Account unbanned successfully: {Account}", account);
         }
         catch (Exception ex)
