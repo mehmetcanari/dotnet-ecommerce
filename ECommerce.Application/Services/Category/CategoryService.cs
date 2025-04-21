@@ -2,15 +2,14 @@ using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
-using Microsoft.Extensions.Logging;
 
 public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _categoryRepository;
-    private readonly ILogger<CategoryService> _logger;
+    private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
     private const string CategoryCacheKey = "category:{0}";
-    public CategoryService(ICategoryRepository categoryRepository, ILogger<CategoryService> logger, ICacheService cacheService)
+    public CategoryService(ICategoryRepository categoryRepository, ILoggingService logger, ICacheService cacheService)
     {
         _categoryRepository = categoryRepository;
         _logger = logger;

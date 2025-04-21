@@ -20,7 +20,11 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            return await _context.Products.AsNoTracking().ToListAsync();
+            var products = await _context.Products
+            .AsNoTracking()
+            .ToListAsync();
+            
+            return products;
         }
         catch (DbUpdateException ex)
         {

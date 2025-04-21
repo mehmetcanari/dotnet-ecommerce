@@ -20,7 +20,9 @@ public class AccountRepository : IAccountRepository
     {
         try
         {
-            return await _context.Accounts.AsNoTracking().ToListAsync();
+            return await _context.Accounts
+            .AsNoTracking()
+            .ToListAsync();
         }
         catch (DbUpdateException ex)
         {

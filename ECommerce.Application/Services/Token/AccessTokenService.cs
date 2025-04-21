@@ -12,13 +12,11 @@ public class AccessTokenService : IAccessTokenService
 {
     private readonly IConfiguration _configuration;
     private readonly ILoggingService _logger;
-    private readonly IRefreshTokenService _refreshTokenService;
 
-    public AccessTokenService(IConfiguration configuration, ILoggingService logger, IRefreshTokenService refreshTokenService)
+    public AccessTokenService(IConfiguration configuration, ILoggingService logger)
     {
         _configuration = configuration;
         _logger = logger;
-        _refreshTokenService = refreshTokenService;
     }
 
     public async Task<AccessToken> GenerateAccessTokenAsync(string email, IList<string> roles)

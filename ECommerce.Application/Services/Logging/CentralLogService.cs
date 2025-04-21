@@ -3,11 +3,11 @@ using ECommerce.Application.Interfaces.Service;
 
 namespace ECommerce.Application.Services.Logging;
 
-public class CentralLogService : ILoggingService
+public class LogService : ILoggingService
 {
     private readonly ILogger _logger;
 
-    public CentralLogService(ILogger logger)
+    public LogService(ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }

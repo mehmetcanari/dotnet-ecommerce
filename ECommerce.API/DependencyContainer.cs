@@ -64,7 +64,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<ICategoryService, CategoryService>();
 
         //Utility
-        _builder.Services.AddScoped<ILoggingService, CentralLogService>();
+        _builder.Services.AddScoped<ILoggingService, LogService>();
         _builder.Services.AddHttpContextAccessor();
     }
     

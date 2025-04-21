@@ -22,6 +22,7 @@ public class OrderRepository : IOrderRepository
         {
             return await _context.Orders
                 .Include(o => o.OrderItems)
+                .AsNoTracking()
                 .ToListAsync();
         }
         catch (DbUpdateException ex)
@@ -96,6 +97,7 @@ public class OrderRepository : IOrderRepository
         {
             return await _context.Orders
                 .Include(o => o.OrderItems)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(o => o.OrderId == id) ?? throw new Exception("Order not found");
         }
         catch (Exception ex)

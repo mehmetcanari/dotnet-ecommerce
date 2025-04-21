@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
@@ -12,9 +11,9 @@ namespace ECommerce.Application.Services.Token
     public class TokenUserClaimsService : ITokenUserClaimsService
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<TokenUserClaimsService> _logger;
+        private readonly ILoggingService _logger;
 
-        public TokenUserClaimsService(IConfiguration configuration, ILogger<TokenUserClaimsService> logger)
+        public TokenUserClaimsService(IConfiguration configuration, ILoggingService logger)
         {
             _configuration = configuration;
             _logger = logger;
