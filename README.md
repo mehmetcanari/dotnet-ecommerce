@@ -15,8 +15,6 @@ E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhe
 
 🧾 Centralized logging infrastructure with Serilog
 
-📚 Comprehensive API documentation
-
 ## 🛠️ Technologies Used
 | Technology | Description |
 |-----------|----------|
@@ -29,7 +27,7 @@ E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhe
 | **PostgreSQL** | For persistent data storage |
 
 ## 📐 Architecture
-This project is developed using N-Tier Architecture and Clean Architecture. Business logic, data access, and presentation layers are separated. It is designed in accordance with SOLID, KISS, and DRY principles, making the code reusable and easy to maintain.
+This project is developed using Clean Architecture. Business logic, data access, presentation and domain layers are separated. It is designed in accordance with SOLID, KISS, and DRY principles, making the code reusable and easy to maintain.
 ```
 📁 Solution
   ├── 📁 API/                # Presentation Layer (Web API)
