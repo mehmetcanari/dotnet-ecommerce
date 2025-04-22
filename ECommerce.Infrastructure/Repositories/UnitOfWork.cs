@@ -12,6 +12,29 @@ public class UnitOfWork : IUnitOfWork
         _logger = logger;
     }
 
+    public async Task BeginTransactionAsync()
+    {
+        await _context.Database.BeginTransactionAsync();
+    }
+
+    public async Task CommitTransactionAsync()
+    {
+        await _context.Database.CommitTransactionAsync();
+    }
+
+    public async Task RollbackTransaction()
+    {
+        try
+        {
+            await _context.Database.RollbackTransactionAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error rolling back transaction: {Message}", ex.Message);
+            throw;
+        }
+    }
+
     public async Task Commit()
     {
         try
@@ -21,19 +44,6 @@ public class UnitOfWork : IUnitOfWork
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error saving changes to the database: {Message}", ex.Message);
-            throw;
-        }
-    }
-
-    public async Task Rollback()
-    {
-        try
-        {
-            await _context.Database.RollbackTransactionAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rolling back transaction: {Message}", ex.Message);
             throw;
         }
     }

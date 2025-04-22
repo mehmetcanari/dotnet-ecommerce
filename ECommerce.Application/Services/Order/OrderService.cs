@@ -38,6 +38,8 @@ public class OrderService : IOrderService
     {
         try
         {
+            await _unitOfWork.BeginTransactionAsync();
+
             var orderItems = await _orderItemRepository.Read();
             var accounts = await _accountRepository.Read();
 
@@ -77,13 +79,13 @@ public class OrderService : IOrderService
             await _orderItemService.DeleteAllOrderItemsAsync(email);
             await _productService.UpdateProductStockAsync(newOrderItems);
             await _productService.ProductCacheInvalidateAsync();
-
-            await _unitOfWork.Commit();
+            await _unitOfWork.CommitTransactionAsync();
 
             _logger.LogInformation("Order added successfully: {Order}", order);
         }
         catch (Exception ex)
         {
+            await _unitOfWork.RollbackTransaction();
             _logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
             throw;
         }

@@ -21,9 +21,9 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "Macbook Pro",
-  "Description": "Macbook Pro is a laptop that is the latest in the Apple series",
-  "Price": 1299.99,
+  "Name": "Playstation 5",
+  "Description": "Playstation 5 is a gaming console that is the latest in the Sony series",
+  "Price": 499.99,
   "StockQuantity": 10,
   "DiscountRate": 0,
   "ImageUrl": "https://via.placeholder.com/135",
@@ -37,9 +37,9 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "Macbook Pro",
-  "Description": "Macbook Pro is a laptop that is the latest in the Apple series",
-  "Price": 1299.99,
+  "Name": "Playstation 5",
+  "Description": "Playstation 5 is a gaming console that is the latest in the Sony series",
+  "Price": 499.99,
   "StockQuantity": 10,
   "DiscountRate": 25,
   "ImageUrl": "https://via.placeholder.com/135",

@@ -9,7 +9,7 @@ Authorization: Bearer {{userToken}}
 
 {
   "ProductId": 1,
-  "Quantity": 1
+  "Quantity": 3
 }
 
 ### UPDATE ORDER ITEM
