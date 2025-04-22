@@ -34,10 +34,18 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     {
         try
         {
-            return await _context.RefreshTokens
+            IQueryable<RefreshToken> query = _context.RefreshTokens;
+
+            var refreshToken = await query
                 .AsNoTracking()
-                .FirstOrDefaultAsync(rt => rt.Email == email)
-                ?? throw new Exception("Refresh token not found");
+                .FirstOrDefaultAsync(rt => rt.Email == email);
+
+            if (refreshToken == null)
+            {
+                throw new Exception("Refresh token not found");
+            }
+
+            return refreshToken;
         }
         catch (DbUpdateException ex)
         {
@@ -53,7 +61,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     {
         try
         {
-            return await _context.RefreshTokens
+            IQueryable<RefreshToken> query = _context.RefreshTokens;
+
+            return await query
                 .AsNoTracking()
                 .Where(rt => rt.Email == email)
                 .ToListAsync();
@@ -72,10 +82,18 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     {
         try
         {
-            return await _context.RefreshTokens
+            IQueryable<RefreshToken> query = _context.RefreshTokens;
+
+            var refreshToken = await query
                 .AsNoTracking()
-                .FirstOrDefaultAsync(rt => rt.Token == token && rt.IsExpired == false)
-                ?? throw new Exception("Refresh token not found");
+                .FirstOrDefaultAsync(rt => rt.Token == token && rt.IsExpired == false);
+
+            if (refreshToken == null)
+            {
+                throw new Exception("Refresh token not found");
+            }
+
+            return refreshToken;
         }
         catch (DbUpdateException ex)
         {
@@ -124,7 +142,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     {
         try
         {
-            var expiredTokens = await _context.RefreshTokens
+            IQueryable<RefreshToken> query = _context.RefreshTokens;
+
+            var expiredTokens = await query
                 .AsNoTracking()
                 .Where(rt => rt.IsExpired)
                 .ToListAsync();

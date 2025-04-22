@@ -21,10 +21,14 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            return await _context.Orders
-                .AsNoTracking()
-                .Include(o => o.OrderItems)
-                .ToListAsync();
+            IQueryable<Order> query = _context.Orders;
+
+            var orders = await query
+            .AsNoTracking()
+            .Include(o => o.OrderItems)
+            .ToListAsync();
+
+            return orders;
         }
         catch (DbUpdateException ex)
         {
@@ -91,10 +95,19 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            return await _context.Orders
-                .AsNoTracking()
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.OrderId == id) ?? throw new Exception("Order not found");
+            IQueryable<Order> query = _context.Orders;
+
+            var order = await query
+            .AsNoTracking()
+            .Include(o => o.OrderItems)
+            .FirstOrDefaultAsync(o => o.OrderId == id);
+
+            if (order == null)
+            {
+                throw new Exception("Order not found");
+            }
+
+            return order;
         }
         catch (Exception ex)
         {

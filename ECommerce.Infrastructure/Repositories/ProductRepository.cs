@@ -20,7 +20,9 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            var products = await _context.Products
+            IQueryable<Product> query = _context.Products;
+
+            var products = await query
             .AsNoTracking()
             .ToListAsync();
             

@@ -34,9 +34,13 @@ public class OrderItemRepository : IOrderItemRepository
     {
         try
         {
-            return await _context.OrderItems
+            IQueryable<OrderItem> query = _context.OrderItems;
+
+            var orderItems = await query
             .AsNoTracking()
             .ToListAsync();
+
+            return orderItems;
         }
         catch (Exception exception)
         {

@@ -21,9 +21,13 @@ public class AccountRepository : IAccountRepository
     {
         try
         {
-            return await _context.Accounts
+            IQueryable<Account> query = _context.Accounts;
+
+            var accounts = await query
             .AsNoTracking()
             .ToListAsync();
+
+            return accounts;
         }
         catch (DbUpdateException ex)
         {

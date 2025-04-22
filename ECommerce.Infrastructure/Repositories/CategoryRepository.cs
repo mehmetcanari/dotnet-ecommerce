@@ -33,10 +33,14 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            return await _context.Categories
+            IQueryable<Category> query = _context.Categories;
+
+            var categories = await query
             .AsNoTracking()
             .Include(c => c.Products)
             .ToListAsync();
+
+            return categories;
         }
         catch (Exception ex)
         {
