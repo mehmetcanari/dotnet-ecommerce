@@ -11,12 +11,15 @@ using ECommerce.Application.Services.Cache;
 using ECommerce.Application.Services.Logging;
 using ECommerce.Application.Services.Order;
 using ECommerce.Application.Services.OrderItem;
+using ECommerce.Application.Services.Payment;
 using ECommerce.Application.Services.Product;
 using ECommerce.Application.Services.Token;
 using ECommerce.Application.Validations.Account;
 using ECommerce.Application.Validations.Order;
 using ECommerce.Application.Validations.OrderItem;
+using ECommerce.Application.Validations.Payment;
 using ECommerce.Application.Validations.Product;
+using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Repositories;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -58,6 +61,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<ICacheService, RedisCacheService>();
         _builder.Services.AddScoped<ITokenUserClaimsService, TokenUserClaimsService>();
         _builder.Services.AddScoped<ICategoryService, CategoryService>();
+        _builder.Services.AddScoped<IPaymentService, PaymentService>();
         _builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         //Utility
@@ -80,5 +84,6 @@ public class DependencyContainer : IDependencyContainer
        _builder.Services.AddScoped<IValidator<CreateCategoryRequestDto>, CategoryCreateValidation>();
        _builder.Services.AddScoped<IValidator<UpdateCategoryRequestDto>, CategoryUpdateValidation>();
        _builder.Services.AddScoped<IValidator<DeleteCategoryRequestDto>, CategoryDeleteValidation>();
+       _builder.Services.AddScoped<IValidator<PaymentDetails>, PaymentValidation>();
     }
 }

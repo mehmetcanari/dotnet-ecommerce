@@ -66,7 +66,7 @@ public class OrderService : IOrderService
                     IsOrdered = true
                 }).ToList();
 
-            var order = new Domain.Model.Order
+            Domain.Model.Order order = new Domain.Model.Order
             {
                 AccountId = tokenAccount.AccountId,
                 ShippingAddress = createRequestOrderDto.ShippingAddress,
