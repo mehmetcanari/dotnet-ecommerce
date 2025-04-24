@@ -1,12 +1,12 @@
-﻿using ECommerce.Application.DTO.Response.OrderItem;
+﻿using ECommerce.Application.DTO.Response.BasketItem;
 
 namespace ECommerce.Application.DTO.Response.Order;
 
 public record OrderResponseDto
 {
     public int AccountId { get; init; }
-    public ICollection<OrderItemResponseDto> OrderItems { get; set; } = new List<OrderItemResponseDto>();
-    public decimal TotalPrice => OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity);
+    public ICollection<BasketItemResponseDto> BasketItems { get; set; } = new List<BasketItemResponseDto>();
+    public decimal TotalPrice => BasketItems.Sum(oi => oi.UnitPrice * oi.Quantity);
     public DateTime OrderDate { get; init; }
     public required string ShippingAddress { get; init; }
     public required string BillingAddress { get; init; }

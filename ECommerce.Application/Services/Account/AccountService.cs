@@ -39,8 +39,13 @@ public class AccountService : IAccountService
 
             var account = new Domain.Model.Account
             {
-                FullName = createUserRequestDto.FullName,
+                Name = createUserRequestDto.Name,
+                Surname = createUserRequestDto.Surname,
                 Email = createUserRequestDto.Email,
+                IdentityNumber = createUserRequestDto.IdentityNumber,
+                City = createUserRequestDto.City,
+                Country = createUserRequestDto.Country,
+                ZipCode = createUserRequestDto.ZipCode,
                 Address = createUserRequestDto.Address,
                 PhoneNumber = createUserRequestDto.PhoneNumber,
                 DateOfBirth = createUserRequestDto.DateOfBirth.ToUniversalTime(),
@@ -73,8 +78,9 @@ public class AccountService : IAccountService
 
             return accounts.Select(account => new AccountResponseDto
             {
-                AccountId = account.AccountId,
-                FullName = account.FullName,
+                Id = account.Id,
+                Name = account.Name,
+                Surname = account.Surname,
                 Email = account.Email,
                 Address = account.Address,
                 PhoneNumber = account.PhoneNumber,
@@ -109,12 +115,13 @@ public class AccountService : IAccountService
         try
         {
             var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
+            var account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
 
             var responseAccount = new AccountResponseDto
             {
-                AccountId = account.AccountId,
-                FullName = account.FullName,
+                Id = account.Id,
+                Name = account.Name,
+                Surname = account.Surname,
                 Email = account.Email,
                 Address = account.Address,
                 PhoneNumber = account.PhoneNumber,
@@ -136,7 +143,7 @@ public class AccountService : IAccountService
         try
         {
             var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.AccountId == id) ?? throw new Exception("User not found");
+            var account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
             var user = await _userManager.FindByEmailAsync(account.Email) ?? throw new Exception("User not found");
             
             _logger.LogInformation("Account deleted successfully: {Account}", account);
@@ -161,8 +168,9 @@ public class AccountService : IAccountService
 
             var responseAccount = new AccountResponseDto
             {
-                AccountId = account.AccountId,
-                FullName = account.FullName,
+                Id = account.Id,
+                Name = account.Name,
+                Surname = account.Surname,
                 Email = account.Email,
                 Address = account.Address,
                 PhoneNumber = account.PhoneNumber,

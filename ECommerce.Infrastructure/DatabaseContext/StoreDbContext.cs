@@ -8,7 +8,7 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContex
 {
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Product> Products => Set<Product>();
-    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<BasketItem> BasketItems => Set<BasketItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Category> Categories => Set<Category>();
@@ -17,16 +17,16 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContex
         #region Order
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasMany(o => o.OrderItems)
+            entity.HasMany(o => o.BasketItems)
                 .WithOne(oi => oi.Order)
                 .HasForeignKey(oi => oi.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
         
-        modelBuilder.Entity<OrderItem>(entity =>
+        modelBuilder.Entity<BasketItem>(entity =>
         {
             entity.HasOne(oi => oi.Order)
-                .WithMany(o => o.OrderItems)
+                .WithMany(o => o.BasketItems)
                 .HasForeignKey(oi => oi.OrderId)
                 .IsRequired(false); 
         });

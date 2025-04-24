@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using ECommerce.Application.DTO.Request.OrderItem;
+using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,20 +8,20 @@ using Asp.Versioning;
 namespace ECommerce.API.Controllers.User;
 
 [ApiController]
-[Route("api/user/order-items")]
+[Route("api/user/basket")]
 [Authorize(Roles = "User")]
 [ApiVersion("1.0")]
-public class UserOrderItemController : ControllerBase
+public class UserBasketItemController : ControllerBase
 {
-    private readonly IOrderItemService _orderItemService;
+    private readonly IBasketItemService _basketItemService;
 
-    public UserOrderItemController(IOrderItemService orderItemService)
+    public UserBasketItemController(IBasketItemService basketItemService)
     {
-        _orderItemService = orderItemService;
+        _basketItemService = basketItemService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllOrderItems()
+    public async Task<IActionResult> GetAllBasketItems()
     {
         try
         {
@@ -32,8 +32,8 @@ public class UserOrderItemController : ControllerBase
             }
 
             var userEmail = userIdClaim.Value;
-            var orderItems = await _orderItemService.GetAllOrderItemsAsync(userEmail);
-            return Ok(new { message = "Order items fetched successfully", data = orderItems });
+            var basketItems = await _basketItemService.GetAllBasketItemsAsync(userEmail);
+            return Ok(new { message = "Basket items fetched successfully", data = basketItems });
         }
         catch (Exception exception)
         {
@@ -42,7 +42,7 @@ public class UserOrderItemController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreateOrderItem([FromBody] CreateOrderItemRequestDto orderItemRequestCreateRequest)
+    public async Task<IActionResult> CreateBasketItem([FromBody] CreateBasketItemRequestDto createBasketItemRequest)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.Email);
         if (userIdClaim == null)
@@ -59,8 +59,8 @@ public class UserOrderItemController : ControllerBase
 
         try
         {
-            await _orderItemService.CreateOrderItemAsync(orderItemRequestCreateRequest, userEmail);
-            return Created($"order-items", new { message = $"Order item with product id {orderItemRequestCreateRequest.ProductId} created successfully" });
+            await _basketItemService.CreateBasketItemAsync(createBasketItemRequest, userEmail);
+            return Created($"basket", new { message = $"Basket item with product id {createBasketItemRequest.ProductId} created successfully" });
         }
         catch (Exception exception)
         {
@@ -69,7 +69,7 @@ public class UserOrderItemController : ControllerBase
     }
 
     [HttpPut("update")]
-    public async Task<IActionResult> UpdateOrderItem([FromBody] UpdateOrderItemRequestDto orderItemRequestUpdateRequest)
+    public async Task<IActionResult> UpdateBasketItem([FromBody] UpdateBasketItemRequestDto basketItemRequestUpdateRequest)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.Email);
         if (userIdClaim == null)
@@ -86,8 +86,8 @@ public class UserOrderItemController : ControllerBase
 
         try
         {
-            await _orderItemService.UpdateOrderItemAsync(orderItemRequestUpdateRequest, userEmail);
-            return Ok(new { message = $"Order item with product id {orderItemRequestUpdateRequest.ProductId} updated successfully" });
+            await _basketItemService.UpdateBasketItemAsync(basketItemRequestUpdateRequest, userEmail);
+            return Ok(new { message = $"Basket item with product id {basketItemRequestUpdateRequest.ProductId} updated successfully" });
         }
         catch (Exception exception)
         {
@@ -96,7 +96,7 @@ public class UserOrderItemController : ControllerBase
     }
 
     [HttpDelete("delete")]
-    public async Task<IActionResult> DeleteAllOrderItems()
+    public async Task<IActionResult> DeleteAllBasketItems()
     {
         try
         {
@@ -108,8 +108,8 @@ public class UserOrderItemController : ControllerBase
 
             var userEmail = userIdClaim.Value;
 
-            await _orderItemService.DeleteAllOrderItemsAsync(userEmail);
-            return Ok(new { message = "All order items deleted successfully" });
+            await _basketItemService.DeleteAllBasketItemsAsync(userEmail);
+            return Ok(new { message = "All basket items deleted successfully" });
         }
         catch (Exception exception)
         {

@@ -6,22 +6,22 @@ using ECommerce.Domain.Model;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class OrderItemRepository : IOrderItemRepository
+public class BasketItemRepository : IBasketItemRepository
 {
     private readonly StoreDbContext _context;
     private readonly ILoggingService _logger;
 
-    public OrderItemRepository(StoreDbContext context, ILoggingService logger)
+    public BasketItemRepository(StoreDbContext context, ILoggingService logger)
     {
         _context = context;
         _logger = logger;
     }
 
-    public async Task Create(OrderItem orderItem)
+    public async Task Create(BasketItem basketItem)
     {
         try
         {
-            await _context.OrderItems.AddAsync(orderItem);
+            await _context.BasketItems.AddAsync(basketItem);
         }
         catch (Exception exception)
         {
@@ -30,17 +30,17 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
     
-    public async Task<IEnumerable<OrderItem>> Read()
+    public async Task<IEnumerable<BasketItem>> Read()
     {
         try
         {
-            IQueryable<OrderItem> query = _context.OrderItems;
+            IQueryable<BasketItem> query = _context.BasketItems;
 
-            var orderItems = await query
+            var basketItems = await query
             .AsNoTracking()
             .ToListAsync();
 
-            return orderItems;
+            return basketItems;
         }
         catch (Exception exception)
         {
@@ -49,11 +49,11 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
 
-    public void Update(OrderItem orderItem)
+    public void Update(BasketItem basketItem)
     {
         try
         {
-            _context.OrderItems.Update(orderItem);
+            _context.BasketItems.Update(basketItem);
         }
         catch (DbUpdateException dbUpdateException)
         {
@@ -67,11 +67,11 @@ public class OrderItemRepository : IOrderItemRepository
         }
     }
 
-    public void Delete(OrderItem orderItem)
+    public void Delete(BasketItem basketItem)
     {
         try
         {
-            _context.OrderItems.Remove(orderItem);
+            _context.BasketItems.Remove(basketItem);
         }
         catch (Exception exception)
         {

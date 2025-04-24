@@ -1,17 +1,17 @@
-﻿using ECommerce.Application.DTO.Request.OrderItem;
+﻿using ECommerce.Application.DTO.Request.BasketItem;
 using FluentValidation;
 
-namespace ECommerce.Application.Validations.OrderItem;
+namespace ECommerce.Application.Validations.BasketItem;
 
-public class OrderItemUpdateValidation : AbstractValidator<UpdateOrderItemRequestDto>
+public class BasketItemUpdateValidation : AbstractValidator<UpdateBasketItemRequestDto>
 {
-    public OrderItemUpdateValidation()
+    public BasketItemUpdateValidation()
     {
-        RuleFor(x => x.OrderItemId)
+        RuleFor(x => x.BasketItemId)
             .NotEmpty()
-            .WithMessage("Order Item Id is required.")
+            .WithMessage("Basket Item Id is required.")
             .GreaterThan(0)
-            .WithMessage("Order Item Id must be greater than 0.");
+            .WithMessage("Basket Item Id must be greater than 0.");
         
         RuleFor(x => x.ProductId)
             .NotEmpty()

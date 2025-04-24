@@ -13,9 +13,9 @@ namespace ECommerce.API.Controllers.Auth;
 public class AccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
-    private readonly ILogger<AccountController> _logger;
+    private readonly ILoggingService _logger;
     
-    public AccountController(IAccountService accountService, ILogger<AccountController> logger)
+    public AccountController(IAccountService accountService, ILoggingService logger)
     {
         _accountService = accountService;
         _logger = logger;

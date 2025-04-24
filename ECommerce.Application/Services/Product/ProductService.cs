@@ -9,7 +9,7 @@ namespace ECommerce.Application.Services.Product;
 public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
-    private readonly IOrderItemService _orderItemService;
+    private readonly IBasketItemService _basketItemService;
     private readonly ICategoryService _categoryService;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
@@ -20,14 +20,14 @@ public class ProductService : IProductService
     public ProductService(
         IProductRepository productRepository, 
         ICategoryService categoryService, 
-        IOrderItemService orderItemService, 
+        IBasketItemService basketItemService, 
         ILoggingService logger, 
         ICacheService cacheService, 
         IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository;
         _categoryService = categoryService;
-        _orderItemService = orderItemService;
+        _basketItemService = basketItemService;
         _cacheService = cacheService;
         _logger = logger;
         _unitOfWork = unitOfWork;
@@ -179,7 +179,7 @@ public class ProductService : IProductService
             product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
             _productRepository.Update(product);
-            await _orderItemService.ClearOrderItemsIncludeProductAsync(product);
+            await _basketItemService.ClearBasketItemsIncludeOrderedProductAsync(product);
             
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
@@ -214,21 +214,21 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task UpdateProductStockAsync(List<Domain.Model.OrderItem> orderItems)
+    public async Task UpdateProductStockAsync(List<Domain.Model.BasketItem> basketItems)
     {
         try
         {
             var products = await _productRepository.Read();
-            foreach (var orderItem in orderItems)
+            foreach (var basketItem in basketItems)
             {
-                var cartProduct = products.FirstOrDefault(p => p.ProductId == orderItem.ProductId);
+                var cartProduct = products.FirstOrDefault(p => p.ProductId == basketItem.ProductId);
 
                 if (cartProduct == null)
                 {
-                    throw new Exception($"Product with ID {orderItem.ProductId} not found in the database.");
+                    throw new Exception($"Product with ID {basketItem.ProductId} not found in the database.");
                 }
 
-                int Quantity = orderItem.Quantity;
+                int Quantity = basketItem.Quantity;
                 cartProduct.StockQuantity -= Quantity;
                 _productRepository.Update(cartProduct);
             }

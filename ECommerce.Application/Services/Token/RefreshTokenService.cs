@@ -2,6 +2,7 @@ using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -55,6 +56,33 @@ public class RefreshTokenService : IRefreshTokenService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate refresh token");
+            throw;
+        }
+    }
+
+    public async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal, UserManager<IdentityUser> userManager)
+    {
+        try
+        {
+            var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new Exception("Email claim not found in token");
+            }
+
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            var roles = await userManager.GetRolesAsync(user);
+
+            return (email, roles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating refresh token");
             throw;
         }
     }

@@ -9,7 +9,7 @@ public interface IProductService
     Task<ProductResponseDto> GetProductWithIdAsync(int requestId);
     Task CreateProductAsync(ProductCreateRequestDto productCreateRequest);
     Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest);
-    Task UpdateProductStockAsync(List<Domain.Model.OrderItem> orderItems);
+    Task UpdateProductStockAsync(List<Domain.Model.BasketItem> basketItems);
     Task DeleteProductAsync(int id);
     Task ProductCacheInvalidateAsync();
 }

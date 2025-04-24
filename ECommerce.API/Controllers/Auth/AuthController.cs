@@ -33,7 +33,7 @@ namespace ECommerce.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                await _authService.RegisterAdminAsync(accountRegisterRequestDto);
+                await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "Admin");
                 return Ok(new { Message = "Admin user created successfully." });
             }
             catch (Exception ex)
@@ -54,7 +54,7 @@ namespace ECommerce.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                await _authService.RegisterUserAsync(accountRegisterRequestDto);
+                await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "User");
                 return Ok(new { Message = "User created successfully." });
             }
             catch (Exception ex)

@@ -1,11 +1,11 @@
-﻿using ECommerce.Application.DTO.Request.OrderItem;
+﻿using ECommerce.Application.DTO.Request.BasketItem;
 using FluentValidation;
 
-namespace ECommerce.Application.Validations.OrderItem;
+namespace ECommerce.Application.Validations.BasketItem;
 
-public class OrderItemCreateValidation : AbstractValidator<CreateOrderItemRequestDto>
+public class BasketItemCreateValidation : AbstractValidator<CreateBasketItemRequestDto>
 {
-    public OrderItemCreateValidation()
+    public BasketItemCreateValidation()
     {        
         RuleFor(x => x.ProductId)
             .NotEmpty()

@@ -36,7 +36,7 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    private async Task RegisterUserWithRoleAsync(AccountRegisterRequestDto registerRequestDto, string role)
+    public async Task RegisterUserWithRoleAsync(AccountRegisterRequestDto registerRequestDto, string role)
     {
         try
         {
@@ -115,7 +115,7 @@ public class AuthService : IAuthService
         {
             ClaimsPrincipal identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken);
 
-            var (email, roles) = await ValidateRefreshToken(identifier);
+            var (email, roles) = await _refreshTokenService.ValidateRefreshToken(identifier, _userManager);
 
             return await RequestGenerateTokensAsync(email, roles);
         }
@@ -144,33 +144,6 @@ public class AuthService : IAuthService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating auth tokens");
-            throw;
-        }
-    }
-
-    private async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal)
-    {
-        try
-        {
-            var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            if (string.IsNullOrEmpty(email))
-            {
-                throw new Exception("Email claim not found in token");
-            }
-
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                throw new Exception("User not found");
-            }
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            return (email, roles);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error validating refresh token");
             throw;
         }
     }
@@ -213,15 +186,5 @@ public class AuthService : IAuthService
             _logger.LogError(ex, "Error validating login process");
             throw;
         }
-    }
-
-    public async Task RegisterUserAsync(AccountRegisterRequestDto registerRequestDto)
-    {
-        await RegisterUserWithRoleAsync(registerRequestDto, "User");
-    }
-
-    public async Task RegisterAdminAsync(AccountRegisterRequestDto registerRequestDto)
-    {
-        await RegisterUserWithRoleAsync(registerRequestDto, "Admin");
     }
 }

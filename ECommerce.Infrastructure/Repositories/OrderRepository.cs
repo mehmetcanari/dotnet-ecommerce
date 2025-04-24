@@ -25,7 +25,7 @@ public class OrderRepository : IOrderRepository
 
             var orders = await query
             .AsNoTracking()
-            .Include(o => o.OrderItems)
+            .Include(o => o.BasketItems)
             .ToListAsync();
 
             return orders;
@@ -99,7 +99,7 @@ public class OrderRepository : IOrderRepository
 
             var order = await query
             .AsNoTracking()
-            .Include(o => o.OrderItems)
+            .Include(o => o.BasketItems)
             .FirstOrDefaultAsync(o => o.OrderId == id);
 
             if (order == null)

@@ -1,6 +1,6 @@
-﻿namespace ECommerce.Application.DTO.Response.OrderItem;
+﻿namespace ECommerce.Application.DTO.Response.BasketItem;
 
-public record OrderItemResponseDto
+public record BasketItemResponseDto
 {
     public int AccountId { get; set; }
     public int Quantity { get; set; }

@@ -7,7 +7,7 @@ public class AccountUpdateValidation : AbstractValidator<AccountUpdateRequestDto
 {
     public AccountUpdateValidation()
     {
-        RuleFor(x => x.FullName)
+        RuleFor(x => x.Name)
             .Length(2, 50)
             .NotEmpty()
             .WithMessage("Full name is required");

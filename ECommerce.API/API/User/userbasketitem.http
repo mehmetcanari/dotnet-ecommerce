@@ -1,5 +1,5 @@
 ﻿@baseUrl = http://localhost:5076/
-@route = api/user/order-items
+@route = api/user/basket
 @userToken =  {{$dotenv USER_TOKEN}}
 
 ### CREATE ORDER ITEM
@@ -18,7 +18,7 @@ Content-Type: application/json
 Authorization: Bearer {{userToken}}
 
 {
-  "OrderItemId": 1,
+  "BasketItemId": 1,
   "ProductId": 1,
   "Quantity": 2
 }

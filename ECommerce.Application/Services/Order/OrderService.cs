@@ -1,6 +1,6 @@
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Response.Order;
-using ECommerce.Application.DTO.Response.OrderItem;
+using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 
@@ -9,17 +9,17 @@ namespace ECommerce.Application.Services.Order;
 public class OrderService : IOrderService
 {
     private readonly IOrderRepository _orderRepository;
-    private readonly IOrderItemService _orderItemService;
+    private readonly IBasketItemService _basketItemService;
     private readonly IProductService _productService;
-    private readonly IOrderItemRepository _orderItemRepository;
+    private readonly IBasketItemRepository _basketItemRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
     private readonly IUnitOfWork _unitOfWork;
 
     public OrderService(
         IOrderRepository orderRepository, 
-        IOrderItemService orderItemService,
-        IOrderItemRepository orderItemRepository,
+        IBasketItemService basketItemService,
+        IBasketItemRepository basketItemRepository,
         IUnitOfWork unitOfWork,
         IProductService productService,
         IAccountRepository accountRepository, 
@@ -27,9 +27,9 @@ public class OrderService : IOrderService
     {
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
-        _orderItemRepository = orderItemRepository;
+        _basketItemRepository = basketItemRepository;
         _unitOfWork = unitOfWork;
-        _orderItemService = orderItemService;
+        _basketItemService = basketItemService;
         _productService = productService;
         _logger = logger;
     }
@@ -40,44 +40,44 @@ public class OrderService : IOrderService
         {
             await _unitOfWork.BeginTransactionAsync();
 
-            var orderItems = await _orderItemRepository.Read();
+            var basketItems = await _basketItemRepository.Read();
             var accounts = await _accountRepository.Read();
 
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
-            var userOrderItems = orderItems
-                .Where(oi => oi.AccountId == tokenAccount.AccountId)
+            var userBasketItems = basketItems
+                .Where(oi => oi.AccountId == tokenAccount.Id)
                 .Where(oi => oi.IsOrdered == false)
                 .ToList();
 
-            if (userOrderItems.Count == 0)
+            if (userBasketItems.Count == 0)
             {
-                _logger.LogWarning("No order items found for this user: {Email}", email);
-                throw new Exception("No order items found for this user");
+                _logger.LogWarning("No basket items found for this user: {Email}", email);
+                throw new Exception("No basket items found for this user");
             }
 
-            List<Domain.Model.OrderItem> newOrderItems = userOrderItems
-                .Select(orderItem => new Domain.Model.OrderItem
+            List<Domain.Model.BasketItem> newBasketItems = userBasketItems
+                .Select(basketItem => new Domain.Model.BasketItem
                 {
-                    AccountId = orderItem.AccountId,
-                    ProductId = orderItem.ProductId,
-                    Quantity = orderItem.Quantity,
-                    UnitPrice = orderItem.UnitPrice,
-                    ProductName = orderItem.ProductName,
+                    AccountId = basketItem.AccountId,
+                    ProductId = basketItem.ProductId,
+                    Quantity = basketItem.Quantity,
+                    UnitPrice = basketItem.UnitPrice,
+                    ProductName = basketItem.ProductName,
                     IsOrdered = true
                 }).ToList();
 
             Domain.Model.Order order = new Domain.Model.Order
             {
-                AccountId = tokenAccount.AccountId,
+                AccountId = tokenAccount.Id,
                 ShippingAddress = createRequestOrderDto.ShippingAddress,
                 BillingAddress = createRequestOrderDto.BillingAddress,
                 PaymentMethod = createRequestOrderDto.PaymentMethod,
-                OrderItems = newOrderItems
+                BasketItems = newBasketItems
             };
 
             await _orderRepository.Create(order);
-            await _orderItemService.DeleteAllOrderItemsAsync(email);
-            await _productService.UpdateProductStockAsync(newOrderItems);
+            await _basketItemService.DeleteAllBasketItemsAsync(email);
+            await _productService.UpdateProductStockAsync(newBasketItems);
             await _productService.ProductCacheInvalidateAsync();
             await _unitOfWork.CommitTransactionAsync();
 
@@ -102,7 +102,7 @@ public class OrderService : IOrderService
                 throw new Exception("Account not found");
 
             var pendingOrders = orders
-                .Where(o => o.AccountId == tokenAccount.AccountId && o.Status == OrderStatus.Pending)
+                .Where(o => o.AccountId == tokenAccount.Id && o.Status == OrderStatus.Pending)
                 .ToList();
 
             if (!pendingOrders.Any())
@@ -158,7 +158,7 @@ public class OrderService : IOrderService
             return orders.Select(o => new OrderResponseDto
             {
                 AccountId = o.AccountId,
-                OrderItems = o.OrderItems.Select(oi => new OrderItemResponseDto
+                BasketItems = o.BasketItems.Select(oi => new BasketItemResponseDto
                 {
                     AccountId = oi.AccountId,
                     ProductId = oi.ProductId,
@@ -190,8 +190,8 @@ public class OrderService : IOrderService
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                                throw new Exception("Account not found");
             
-            var userOrders = orders.Where(o => o.AccountId == tokenAccount.AccountId).ToList();
-            var orderedItems = userOrders.Where(o => o.OrderItems.Any(oi => oi.IsOrdered == true)).ToList();
+            var userOrders = orders.Where(o => o.AccountId == tokenAccount.Id).ToList();
+            var orderedItems = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered == true)).ToList();
             
             if (orderedItems.Count == 0)
                 throw new Exception("No orders found for this user");
@@ -199,7 +199,7 @@ public class OrderService : IOrderService
             return orderedItems.Select(order => new OrderResponseDto
             {
                 AccountId = order.AccountId,
-                OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
+                BasketItems = order.BasketItems.Select(oi => new BasketItemResponseDto
                 {
                     AccountId = oi.AccountId,
                     ProductId = oi.ProductId,
@@ -232,7 +232,7 @@ public class OrderService : IOrderService
             OrderResponseDto orderResponseDto = new()
             {
                 AccountId = order.AccountId,
-                OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
+                BasketItems = order.BasketItems.Select(oi => new BasketItemResponseDto
                 {
                     AccountId = oi.AccountId,
                     ProductId = oi.ProductId,

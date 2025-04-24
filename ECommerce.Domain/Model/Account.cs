@@ -2,18 +2,23 @@ namespace ECommerce.Domain.Model;
 
 public class Account
 {
-    public int AccountId { get; init; }
+    public int Id { get; set; }
     public required string Role { get; set; }
-    public required string FullName { get; set; }
+    public required string Name { get; set; }
+    public required string Surname { get; set; }
     public required string Email { get; set; }
+    public required string IdentityNumber { get; set; }
+    public required string City { get; set; }
+    public required string Country { get; set; }
+    public required string ZipCode { get; set; }
     public required string Address { get; set; }
     public required string PhoneNumber { get; set; }
     public required DateTime DateOfBirth { get; init; }
     public DateTime UserCreated { get; init; } = DateTime.UtcNow;
     public DateTime UserUpdated { get; set; }
-    public bool IsBanned 
-    { 
-        get 
+    public bool IsBanned
+    {
+        get
         {
             if (BannedAt.HasValue && BannedUntil.HasValue)
             {
@@ -39,7 +44,7 @@ public class Account
         BannedUntil = until.ToUniversalTime();
         BanReason = reason;
     }
-    
+
     public void UnbanAccount()
     {
         if (!IsBanned)

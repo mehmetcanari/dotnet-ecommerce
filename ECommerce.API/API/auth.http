@@ -11,10 +11,15 @@ POST {{baseUrl}}/{{route}}/create-user
 Content-Type: application/json
 
 {
-    "fullName": "User",
+    "name": "Mehmet Can",
+    "surname": "Ari",
     "email": "user@system.com",
-    "password": "UserPassword123!",
+    "identityNumber": "1234567890",
+    "city": "Istanbul",
+    "country": "TR",
+    "zipCode": "34343",
     "address": "Istanbul, TR",
+    "password": "UserPassword123!",
     "phoneNumber": "1234567890",
     "dateOfBirth": "1999-03-24"
 }
@@ -25,10 +30,15 @@ POST {{baseUrl}}/{{route}}/create-admin
 Content-Type: application/json
 
 {
-    "fullName": "Admin",
+    "name": "Admin Name",
+    "surname": "Admin Surname",
     "email": "admin@system.com",
-    "password": "AdminPassword123!",
+    "identityNumber": "1234567890",
+    "city": "Istanbul",
+    "country": "TR",
+    "zipCode": "34343",
     "address": "Istanbul, TR",
+    "password": "AdminPassword123!",
     "phoneNumber": "9876543210",
     "dateOfBirth": "1980-01-01"
 }
