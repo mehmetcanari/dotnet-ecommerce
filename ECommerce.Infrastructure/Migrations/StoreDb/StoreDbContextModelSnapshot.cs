@@ -179,9 +179,6 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ShippingAddress")
                         .IsRequired()
                         .HasColumnType("text");

@@ -61,7 +61,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<ICacheService, RedisCacheService>();
         _builder.Services.AddScoped<ITokenUserClaimsService, TokenUserClaimsService>();
         _builder.Services.AddScoped<ICategoryService, CategoryService>();
-        _builder.Services.AddScoped<IPaymentService, PaymentService>();
+        _builder.Services.AddScoped<IPaymentService, IyzicoPaymentService>();
         _builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         //Utility
@@ -77,13 +77,12 @@ public class DependencyContainer : IDependencyContainer
        _builder.Services.AddScoped<IValidator<AccountUpdateRequestDto>, AccountUpdateValidation>();
        _builder.Services.AddScoped<IValidator<ProductCreateRequestDto>, ProductCreateValidation>();
        _builder.Services.AddScoped<IValidator<ProductUpdateRequestDto>, ProductUpdateValidation>();
-       _builder.Services.AddScoped<IValidator<OrderCreateRequestDto>, OrderCreateValidation>();
        _builder.Services.AddScoped<IValidator<OrderUpdateRequestDto>, OrderUpdateValidation>();
        _builder.Services.AddScoped<IValidator<CreateBasketItemRequestDto>, BasketItemCreateValidation>();
        _builder.Services.AddScoped<IValidator<UpdateBasketItemRequestDto>, BasketItemUpdateValidation>();
        _builder.Services.AddScoped<IValidator<CreateCategoryRequestDto>, CategoryCreateValidation>();
        _builder.Services.AddScoped<IValidator<UpdateCategoryRequestDto>, CategoryUpdateValidation>();
        _builder.Services.AddScoped<IValidator<DeleteCategoryRequestDto>, CategoryDeleteValidation>();
-       _builder.Services.AddScoped<IValidator<PaymentDetails>, PaymentValidation>();
+       _builder.Services.AddScoped<IValidator<PaymentCard>, PaymentValidation>();
     }
 }

@@ -11,16 +11,16 @@ POST {{baseUrl}}/{{route}}/create-user
 Content-Type: application/json
 
 {
-    "name": "Mehmet Can",
-    "surname": "Ari",
+    "name": "Test User Name",
+    "surname": "Test User Surname",
     "email": "user@system.com",
-    "identityNumber": "1234567890",
+    "identityNumber": "1234567890", //Due to validation rules, you can try with your own identity number for testing purposes.
     "city": "Istanbul",
     "country": "TR",
     "zipCode": "34343",
     "address": "Istanbul, TR",
     "password": "UserPassword123!",
-    "phoneNumber": "1234567890",
+    "phoneNumber": "9876543210",
     "dateOfBirth": "1999-03-24"
 }
 
@@ -30,10 +30,10 @@ POST {{baseUrl}}/{{route}}/create-admin
 Content-Type: application/json
 
 {
-    "name": "Admin Name",
-    "surname": "Admin Surname",
+    "name": "Test Admin Name",
+    "surname": "Test Admin Surname",
     "email": "admin@system.com",
-    "identityNumber": "1234567890",
+    "identityNumber": "1234567890", //Due to validation rules, you can try with your own identity number for testing purposes.
     "city": "Istanbul",
     "country": "TR",
     "zipCode": "34343",

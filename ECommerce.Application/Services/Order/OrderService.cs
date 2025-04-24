@@ -3,6 +3,9 @@ using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ECommerce.Application.Services.Order;
 
@@ -15,15 +18,19 @@ public class OrderService : IOrderService
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPaymentService _paymentService;
 
     public OrderService(
-        IOrderRepository orderRepository, 
+        IOrderRepository orderRepository,
         IBasketItemService basketItemService,
         IBasketItemRepository basketItemRepository,
         IUnitOfWork unitOfWork,
         IProductService productService,
-        IAccountRepository accountRepository, 
-        ILoggingService logger)
+        IAccountRepository accountRepository,
+        ILoggingService logger,
+        IHttpContextAccessor httpContextAccessor,
+        IPaymentService paymentService)
     {
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
@@ -32,54 +39,40 @@ public class OrderService : IOrderService
         _basketItemService = basketItemService;
         _productService = productService;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+        _paymentService = paymentService;
     }
 
-    public async Task AddOrderAsync(OrderCreateRequestDto createRequestOrderDto, string email)
+    public async Task AddOrderAsync(PaymentCard paymentCard, string email)
     {
         try
         {
             await _unitOfWork.BeginTransactionAsync();
 
-            var basketItems = await _basketItemRepository.Read();
             var accounts = await _accountRepository.Read();
+            var account = accounts.FirstOrDefault(a => a.Email == email)
+                ?? throw new Exception("User not found");
 
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
-            var userBasketItems = basketItems
-                .Where(oi => oi.AccountId == tokenAccount.Id)
-                .Where(oi => oi.IsOrdered == false)
-                .ToList();
+            var basketItems = await GetUserBasketItemsAsync(email, account.Id);
+            var order = CreateOrder(account.Id, account.Address, basketItems);
 
-            if (userBasketItems.Count == 0)
+            string ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            Buyer buyer = CreateBuyer(account, ipAddress);
+            Address shippingAddress = CreateAddress(account);
+            Address billingAddress = CreateAddress(account);
+
+            Iyzipay.Model.Payment paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
+
+            if (paymentResult.Status != "success")
             {
-                _logger.LogWarning("No basket items found for this user: {Email}", email);
-                throw new Exception("No basket items found for this user");
+                _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
+                    paymentResult.ErrorCode, paymentResult.ErrorMessage);
+                throw new Exception($"Payment failed: {paymentResult.ErrorMessage}");
             }
-
-            List<Domain.Model.BasketItem> newBasketItems = userBasketItems
-                .Select(basketItem => new Domain.Model.BasketItem
-                {
-                    AccountId = basketItem.AccountId,
-                    ProductId = basketItem.ProductId,
-                    ExternalId = basketItem.ExternalId,
-                    Quantity = basketItem.Quantity,
-                    UnitPrice = basketItem.UnitPrice,
-                    ProductName = basketItem.ProductName,
-                    IsOrdered = true
-                }).ToList();
-
-            Domain.Model.Order order = new Domain.Model.Order
-            {
-                AccountId = tokenAccount.Id,
-                ShippingAddress = createRequestOrderDto.ShippingAddress,
-                BillingAddress = createRequestOrderDto.BillingAddress,
-                PaymentMethod = createRequestOrderDto.PaymentMethod,
-                BasketItems = newBasketItems
-            };
 
             await _orderRepository.Create(order);
             await _basketItemService.DeleteAllBasketItemsAsync(email);
-            await _productService.UpdateProductStockAsync(newBasketItems);
-            await _productService.ProductCacheInvalidateAsync();
+            await _productService.UpdateProductStockAsync(basketItems);
             await _unitOfWork.CommitTransactionAsync();
 
             _logger.LogInformation("Order added successfully: {Order}", order);
@@ -90,6 +83,73 @@ public class OrderService : IOrderService
             _logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
             throw;
         }
+    }
+
+    private async Task<List<Domain.Model.BasketItem>> GetUserBasketItemsAsync(string email, int accountId)
+    {
+        var basketItems = await _basketItemRepository.Read();
+        var userBasketItems = basketItems
+            .Where(oi => oi.AccountId == accountId)
+            .Where(oi => oi.IsOrdered == false)
+            .ToList();
+
+        if (userBasketItems.Count == 0)
+        {
+            _logger.LogWarning("No basket items found for this user: {Email}", email);
+            throw new Exception("No basket items found for this user");
+        }
+
+        return userBasketItems.Select(basketItem => new Domain.Model.BasketItem
+        {
+            AccountId = basketItem.AccountId,
+            ProductId = basketItem.ProductId,
+            ExternalId = basketItem.ExternalId,
+            Quantity = basketItem.Quantity,
+            UnitPrice = basketItem.UnitPrice,
+            ProductName = basketItem.ProductName,
+            IsOrdered = true
+        }).ToList();
+    }
+
+    private Domain.Model.Order CreateOrder(int accountId, string address, List<Domain.Model.BasketItem> basketItems)
+    {
+        return new Domain.Model.Order
+        {
+            AccountId = accountId,
+            ShippingAddress = address,
+            BillingAddress = address,
+            BasketItems = basketItems
+        };
+    }
+
+    private Buyer CreateBuyer(Domain.Model.Account account, string ipAddress)
+    {
+        return new Buyer
+        {
+            Id = account.Id.ToString(),
+            Name = account.Name,
+            Surname = account.Surname,
+            Email = account.Email,
+            GsmNumber = account.PhoneNumber,
+            IdentityNumber = account.IdentityNumber,
+            RegistrationAddress = account.Address,
+            Ip = ipAddress,
+            City = account.City,
+            Country = account.Country,
+            ZipCode = account.ZipCode
+        };
+    }
+
+    private Address CreateAddress(Domain.Model.Account account)
+    {
+        return new Address
+        {
+            ContactName = $"{account.Name} {account.Surname}",
+            Description = account.Address,
+            City = account.City,
+            Country = account.Country,
+            ZipCode = account.ZipCode
+        };
     }
 
     public async Task CancelOrderAsync(string email)
@@ -170,7 +230,6 @@ public class OrderService : IOrderService
                 OrderDate = o.OrderDate,
                 ShippingAddress = o.ShippingAddress,
                 BillingAddress = o.BillingAddress,
-                PaymentMethod = o.PaymentMethod,
                 Status = o.Status
             }).ToList();
         }
@@ -190,10 +249,10 @@ public class OrderService : IOrderService
 
             var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
                                throw new Exception("Account not found");
-            
+
             var userOrders = orders.Where(o => o.AccountId == tokenAccount.Id).ToList();
             var orderedItems = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered == true)).ToList();
-            
+
             if (orderedItems.Count == 0)
                 throw new Exception("No orders found for this user");
 
@@ -211,7 +270,6 @@ public class OrderService : IOrderService
                 OrderDate = order.OrderDate,
                 ShippingAddress = order.ShippingAddress,
                 BillingAddress = order.BillingAddress,
-                PaymentMethod = order.PaymentMethod,
                 Status = order.Status
             }).ToList();
         }
@@ -244,7 +302,6 @@ public class OrderService : IOrderService
                 OrderDate = order.OrderDate,
                 ShippingAddress = order.ShippingAddress,
                 BillingAddress = order.BillingAddress,
-                PaymentMethod = order.PaymentMethod,
                 Status = order.Status
             };
 

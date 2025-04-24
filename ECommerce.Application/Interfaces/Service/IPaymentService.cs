@@ -4,6 +4,6 @@ namespace ECommerce.Application.Interfaces.Service;
 
 public interface IPaymentService
 {
-    Task<bool> ProcessPaymentAsync(PaymentDetails paymentDetails);
+    Task<Iyzipay.Model.Payment> ProcessPaymentAsync(Order order, Buyer buyer, Address shippingAddress, Address billingAddress, PaymentCard paymentCard, List<BasketItem> basketItems);
 }
 

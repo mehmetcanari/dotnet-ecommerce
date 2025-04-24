@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Asp.Versioning;
-using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +21,7 @@ public class UserOrderController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto orderCreateRequestRequest)
+    public async Task<IActionResult> CreateOrder([FromBody] PaymentCard paymentCard)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.Email);
         if (userIdClaim == null)
@@ -30,7 +30,6 @@ public class UserOrderController : ControllerBase
         }
 
         var userEmail = userIdClaim.Value;
-        Console.WriteLine("User email: " + userEmail);
 
         if (!ModelState.IsValid)
         {
@@ -39,7 +38,7 @@ public class UserOrderController : ControllerBase
 
         try
         {
-            await _orderService.AddOrderAsync(orderCreateRequestRequest, userEmail);
+            await _orderService.AddOrderAsync(paymentCard, userEmail);
             return Created($"orders", new { message = "Order created successfully" });
         }
         catch (Exception exception)

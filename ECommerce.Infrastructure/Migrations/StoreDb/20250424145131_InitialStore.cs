@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Infrastructure.Migrations.StoreDb
 {
     /// <inheritdoc />
-    public partial class InitialApplication : Migration
+    public partial class InitialStore : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -66,7 +66,6 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                     OrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ShippingAddress = table.Column<string>(type: "text", nullable: false),
                     BillingAddress = table.Column<string>(type: "text", nullable: false),
-                    PaymentMethod = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>

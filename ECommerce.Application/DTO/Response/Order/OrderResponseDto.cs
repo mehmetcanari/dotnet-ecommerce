@@ -10,6 +10,5 @@ public record OrderResponseDto
     public DateTime OrderDate { get; init; }
     public required string ShippingAddress { get; init; }
     public required string BillingAddress { get; init; }
-    public required PaymentMethod PaymentMethod { get; init; }
     public required OrderStatus Status { get; init; }
 }

@@ -9,7 +9,6 @@ namespace ECommerce.Domain.Model
         public DateTime OrderDate { get; init; } = DateTime.UtcNow;
         public required string ShippingAddress { get; init; }
         public required string BillingAddress { get; init; }
-        public PaymentMethod PaymentMethod { get; init; }
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
     }
 }
@@ -21,11 +20,4 @@ public enum OrderStatus
     Shipped,
     Delivered,
     Cancelled
-}
-
-public enum PaymentMethod
-{
-    CreditCard,
-    DebitCard,
-    ApplePay,
 }

@@ -13,9 +13,12 @@ Content-Type: application/json
 Authorization: Bearer {{userToken}}
 
 {
-  "ShippingAddress": "1234 Street Name, City, Country",
-  "BillingAddress": "1234 Billing Address, City, Country",
-  "PaymentMethod": 1
+  "CardHolderName": "User",
+  "CardNumber": "4111111111111129", // Kart bakiyesi yetersiz senaryosu için test kartı - https://github.com/iyzico/iyzipay-dotnet
+  "ExpirationMonth": "12",
+  "ExpirationYear": "2029",
+  "CVC": "123",
+  "RegisterCard": 0
 }
 
 ### CANCEL ORDER
