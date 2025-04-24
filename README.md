@@ -7,7 +7,7 @@ E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhe
 
 🔐 User registration and authentication
 
-💳 Payment processing integration (Iyzico integration in progress)
+💳 Payment Processing Integration – Iyzico payment service fully integrated
 
 ⚡ Redis-based caching
 
@@ -22,6 +22,7 @@ E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhe
 | **FluentValidation** | Used for data validation |
 | **Identity & JWT** | For authentication and security |
 | **Redis** | Caching to improve performance |
+| **Iyzico** | Secure and reliable payment gateway integration |
 | **Swagger** | API documentation and testing interface |
 | **Serilog** | Used for centralized logging infrastructure |
 | **PostgreSQL** | For persistent data storage |
@@ -32,6 +33,7 @@ This project is developed using Clean Architecture. Business logic, data access,
 📁 Solution
   ├── 📁 API/                # Presentation Layer (Web API)
   │   ├── Controllers
+  │   ├── Logs
   │   ├── API
   │   ├── DI Container
   │   └── Program.cs
@@ -40,6 +42,7 @@ This project is developed using Clean Architecture. Business logic, data access,
   │   ├── DTOs
   │   ├── Interfaces
   │   ├── Services
+  │   ├── Utility
   │   └── Validations
   │
   ├── 📁 Domain/             # Domain and Entities
@@ -69,16 +72,22 @@ Set the following environment variables before running the project:
 ```
 ASPNETCORE_ENVIRONMENT=Development
 ASPNETCORE_URLS=http://localhost:5076
+
 JWT_SECRET=YourSecretKeyHere
 JWT_ISSUER=OnlineStoreWebAPI
 JWT_AUDIENCE=OnlineStoreClient
 JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
-DB_CONNECTION_STRING=Server=your_server;Database=ecommerce;Username=your_username;Password=your_password
-REDIS_CONNECTION=localhost:6379
-# Tokens obtained after authentication
-ADMIN_TOKEN=
-USER_TOKEN=
+REDIS_CONNECTION_STRING=localhost:6379,abortConnect=false
+DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
+
+# Iyzico Payment Settings
+IYZICO_API_KEY=your-sandbox-api-key-here
+IYZICO_SECRET_KEY=your-sandbox-secret-key-here
+IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
+
+ADMIN_TOKEN=your_admin_token_here
+USER_TOKEN=your_user_token_here
 ```
 > **Note:** After obtaining tokens for admin or user from the auth endpoints, paste these token values into the `ADMIN_TOKEN` and `USER_TOKEN` variables.
 
@@ -135,9 +144,9 @@ Authorization: Bearer {{adminToken}}
 ## 🚧 Project Status
 **In Development**  
 The project is being actively developed. The following features will be added in the near future:
-- [ ] Iyzico payment integration
-- [x] Centralized logging with Serilog
-- [ ] Addition of unit tests
+- [x] Iyzico payment integration  
+- [x] Centralized logging with Serilog  
+- [ ] Addition of unit tests  
 - [ ] Dockerization and CI/CD pipeline
 
 ## 📧 Contact
