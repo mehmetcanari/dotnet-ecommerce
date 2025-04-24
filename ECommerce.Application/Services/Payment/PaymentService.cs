@@ -22,5 +22,8 @@ public class PaymentService : IPaymentService
         };
     }
 
-    public 
+    public Task<bool> ProcessPaymentAsync(PaymentDetails paymentDetails)
+    {
+        return Task.FromResult(true);
+    }
 }

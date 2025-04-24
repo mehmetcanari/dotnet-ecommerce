@@ -60,6 +60,7 @@ public class OrderService : IOrderService
                 {
                     AccountId = basketItem.AccountId,
                     ProductId = basketItem.ProductId,
+                    ExternalId = basketItem.ExternalId,
                     Quantity = basketItem.Quantity,
                     UnitPrice = basketItem.UnitPrice,
                     ProductName = basketItem.ProductName,

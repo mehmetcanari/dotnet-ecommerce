@@ -5,7 +5,7 @@ namespace ECommerce.Domain.Model
     {
         public int BasketItemId { get; set; }
         public required int AccountId { get; set; }
-        public required string ExternalId { get; set; } = Guid.NewGuid().ToString("N"); // Bu iyzipay için gerekli 
+        public required string ExternalId { get; set; } // This is required for iyzipay, mapping to buyer model
         public required int Quantity { get; set; }
         public required decimal UnitPrice { get; set; }
         public required int ProductId { get; set; }
