@@ -26,6 +26,7 @@ E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhe
 | **Swagger** | API documentation and testing interface |
 | **Serilog** | Used for centralized logging infrastructure |
 | **PostgreSQL** | For persistent data storage |
+| **xUnit** | For unit testing the application |
 
 ## 📐 Architecture
 This project is developed using Clean Architecture. Business logic, data access, presentation and domain layers are separated. It is designed in accordance with SOLID, KISS, and DRY principles, making the code reusable and easy to maintain.
@@ -48,10 +49,13 @@ This project is developed using Clean Architecture. Business logic, data access,
   ├── 📁 Domain/             # Domain and Entities
   │   ├── Entities
   │
-  └── 📁 Infrastructure/     # Infrastructure Layer
-      ├── DB Context
-      ├── Repositories
-      ├── Migrations
+  ├── 📁 Infrastructure/     # Infrastructure Layer
+  │   ├── DB Context
+  │   ├── Repositories
+  │   ├── Migrations
+  │
+  └── 📁 ECommerce.Tests/    # Unit Tests
+      ├── Services
 ```
 
 ## 🔧 Installation
@@ -146,7 +150,7 @@ Authorization: Bearer {{adminToken}}
 The project is being actively developed. The following features will be added in the near future:
 - [x] Iyzico payment integration  
 - [x] Centralized logging with Serilog  
-- [ ] Addition of unit tests  
+- [x] Addition of unit tests  
 - [ ] Dockerization and CI/CD pipeline
 
 ## 📧 Contact
