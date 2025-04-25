@@ -78,6 +78,7 @@ public class DependencyContainer : IDependencyContainer
        _builder.Services.AddScoped<IValidator<ProductCreateRequestDto>, ProductCreateValidation>();
        _builder.Services.AddScoped<IValidator<ProductUpdateRequestDto>, ProductUpdateValidation>();
        _builder.Services.AddScoped<IValidator<OrderUpdateRequestDto>, OrderUpdateValidation>();
+       _builder.Services.AddScoped<IValidator<OrderCreateRequestDto>, OrderCreateValidation>();
        _builder.Services.AddScoped<IValidator<CreateBasketItemRequestDto>, BasketItemCreateValidation>();
        _builder.Services.AddScoped<IValidator<UpdateBasketItemRequestDto>, BasketItemUpdateValidation>();
        _builder.Services.AddScoped<IValidator<CreateCategoryRequestDto>, CategoryCreateValidation>();

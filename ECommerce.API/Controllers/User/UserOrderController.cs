@@ -21,7 +21,7 @@ public class UserOrderController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreateOrder([FromBody] PaymentCard paymentCard)
+    public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto orderCreateRequestDto)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.Email);
         if (userIdClaim == null)
@@ -38,7 +38,7 @@ public class UserOrderController : ControllerBase
 
         try
         {
-            await _orderService.AddOrderAsync(paymentCard, userEmail);
+            await _orderService.AddOrderAsync(orderCreateRequestDto, userEmail);
             return Created($"orders", new { message = "Order created successfully" });
         }
         catch (Exception exception)

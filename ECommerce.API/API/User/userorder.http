@@ -5,7 +5,6 @@
 @route = api/user/orders
 @userToken = {{$dotenv USER_TOKEN}}
 
-
 ### CREATE ORDER
 
 POST {{baseUrl}}{{route}}/create
@@ -13,12 +12,15 @@ Content-Type: application/json
 Authorization: Bearer {{userToken}}
 
 {
-  "CardHolderName": "User",
-  "CardNumber": "4111111111111129", // Kart bakiyesi yetersiz senaryosu için test kartı - https://github.com/iyzico/iyzipay-dotnet
-  "ExpirationMonth": "12",
-  "ExpirationYear": "2029",
-  "CVC": "123",
-  "RegisterCard": 0
+  "paymentCard": 
+  {
+    "cardHolderName": "User Name",
+    "cardNumber": "5528790000000008",
+    "expirationMonth": "12",
+    "expirationYear": "2029",
+    "cvc": "123",
+    "registerCard": 0
+  }
 }
 
 ### CANCEL ORDER

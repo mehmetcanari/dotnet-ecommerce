@@ -26,7 +26,7 @@ Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-    "email": "bsn.mehmetcan@gmail.com"
+    "email": "bsn.mehmetcanari@gmail.com"
 }
 
 ### BAN ACCOUNT
@@ -36,7 +36,7 @@ Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-    "email": "bsn.mehmetcan@gmail.com",
+    "email": "bsn.mehmetcanari@gmail.com",
     "until": "2025-07-11",
     "reason": "Test"
 }
@@ -48,7 +48,7 @@ Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-    "email": "bsn.mehmetcan@gmail.com"
+    "email": "bsn.mehmetcanari@gmail.com"
 }
 
 

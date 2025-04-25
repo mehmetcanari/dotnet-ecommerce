@@ -5,7 +5,6 @@ using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ECommerce.Application.Services.Order;
 
@@ -43,7 +42,7 @@ public class OrderService : IOrderService
         _paymentService = paymentService;
     }
 
-    public async Task AddOrderAsync(PaymentCard paymentCard, string email)
+    public async Task AddOrderAsync(OrderCreateRequestDto orderCreateRequestDto, string email)
     {
         try
         {
@@ -61,7 +60,7 @@ public class OrderService : IOrderService
             Address shippingAddress = CreateAddress(account);
             Address billingAddress = CreateAddress(account);
 
-            Iyzipay.Model.Payment paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
+            Iyzipay.Model.Payment paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, orderCreateRequestDto.PaymentCard, basketItems);
 
             if (paymentResult.Status != "success")
             {
