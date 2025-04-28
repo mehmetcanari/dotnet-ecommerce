@@ -109,7 +109,7 @@ public class AccountServiceTests
         Assert.Single(result);
         Assert.Equal(accounts[0].Email, result[0].Email);
     }
-
+ 
     [Fact]
     public async Task GetAllAccountsAsync_Should_ThrowException_When_No_Accounts()
     {
