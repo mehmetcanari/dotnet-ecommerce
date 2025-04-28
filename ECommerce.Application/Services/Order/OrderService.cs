@@ -57,10 +57,11 @@ public class OrderService : IOrderService
 
             string ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
             Buyer buyer = CreateBuyer(account, ipAddress);
+            PaymentCard paymentCard = CreatePaymentCard(orderCreateRequestDto);
             Address shippingAddress = CreateAddress(account);
             Address billingAddress = CreateAddress(account);
 
-            Iyzipay.Model.Payment paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, orderCreateRequestDto.PaymentCard, basketItems);
+            Iyzipay.Model.Payment paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
 
             if (paymentResult.Status != "success")
             {
@@ -108,6 +109,19 @@ public class OrderService : IOrderService
             ProductName = basketItem.ProductName,
             IsOrdered = true
         }).ToList();
+    }
+
+    private PaymentCard CreatePaymentCard(OrderCreateRequestDto orderCreateRequestDto)
+    {
+        return new PaymentCard
+        {
+            CardHolderName = orderCreateRequestDto.PaymentCard.CardHolderName,
+            CardNumber = orderCreateRequestDto.PaymentCard.CardNumber,
+            ExpirationMonth = orderCreateRequestDto.PaymentCard.ExpirationMonth,
+            ExpirationYear = orderCreateRequestDto.PaymentCard.ExpirationYear,
+            CVC = orderCreateRequestDto.PaymentCard.CVC,
+            RegisterCard = orderCreateRequestDto.PaymentCard.RegisterCard
+        };
     }
 
     private Domain.Model.Order CreateOrder(int accountId, string address, List<Domain.Model.BasketItem> basketItems)
