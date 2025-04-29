@@ -215,19 +215,6 @@ public class RefreshTokenService : IRefreshTokenService
             throw;
         }
     }
-
-    public async Task CleanupExpiredTokensAsync()
-    {
-        try
-        {
-            await _refreshTokenRepository.CleanupExpiredTokensAsync();
-            await _unitOfWork.Commit();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to cleanup expired tokens");
-        }
-    }
 }
 
 

@@ -61,6 +61,8 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<ICacheService, RedisCacheService>();
         _builder.Services.AddScoped<ITokenUserClaimsService, TokenUserClaimsService>();
         _builder.Services.AddScoped<ICategoryService, CategoryService>();
+        _builder.Services.AddScoped<ITokenCleanupService, TokenCleanupService>();
+        _builder.Services.AddHostedService<TokenCleanupBackgroundService>();
         _builder.Services.AddScoped<IPaymentService, IyzicoPaymentService>();
         _builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 

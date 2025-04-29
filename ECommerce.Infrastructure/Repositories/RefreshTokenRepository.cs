@@ -146,7 +146,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             var expiredTokens = await query
                 .AsNoTracking()
-                .Where(rt => rt.IsExpired)
+                .Where(rt => rt.Expires < DateTime.UtcNow || rt.Revoked != null)
                 .ToListAsync();
 
             _context.RefreshTokens.RemoveRange(expiredTokens);
