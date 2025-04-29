@@ -30,11 +30,6 @@ public class OrderRepository : IOrderRepository
 
             return orders;
         }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to fetch orders");
-            throw new DbUpdateException("Failed to fetch orders", ex);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred");
@@ -61,11 +56,6 @@ public class OrderRepository : IOrderRepository
         {
             _context.Orders.Update(order);
         }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to update order status");
-            throw new DbUpdateException("Failed to update order status", ex);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred");
@@ -78,11 +68,6 @@ public class OrderRepository : IOrderRepository
         try
         {
             _context.Orders.Remove(order);
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to delete order");
-            throw new DbUpdateException("Failed to delete order", ex);
         }
         catch (Exception ex)
         {

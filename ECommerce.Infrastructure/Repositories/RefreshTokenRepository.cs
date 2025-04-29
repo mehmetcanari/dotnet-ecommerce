@@ -2,16 +2,19 @@ using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using ECommerce.Application.Interfaces.Service;
 
 namespace ECommerce.Infrastructure.Repositories;
 
 public class RefreshTokenRepository : IRefreshTokenRepository
 {
     private readonly StoreDbContext _context;
+    private readonly ILoggingService _logger;
 
-    public RefreshTokenRepository(StoreDbContext context)
+    public RefreshTokenRepository(StoreDbContext context, ILoggingService logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task CreateAsync(RefreshToken refreshToken)
@@ -20,12 +23,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         {
             await _context.RefreshTokens.AddAsync(refreshToken);
         }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to create refresh token", ex);
-        }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -47,12 +47,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             return refreshToken;
         }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to get user token", ex);
-        }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -68,12 +65,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
                 .Where(rt => rt.Email == email)
                 .ToListAsync();
         }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to get user tokens", ex);
-        }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -95,13 +89,10 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             return refreshToken;
         }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to get refresh token", ex);
-        }
         catch (Exception ex)
         {
-            throw new Exception("Failed to get refresh token", ex);
+            _logger.LogError(ex, "An unexpected error occurred");
+            throw new Exception("An unexpected error occurred", ex);
         }
     }
 
@@ -111,12 +102,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         {
             _context.RefreshTokens.Update(refreshToken);
         }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to update refresh token", ex);
-        }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -128,12 +116,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             refreshToken.RevokeToken(reason);
             _context.RefreshTokens.Update(refreshToken);
         }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to revoke token", ex);
-        }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -151,12 +136,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             _context.RefreshTokens.RemoveRange(expiredTokens);
         }
-        catch (DbUpdateException ex)
-        {
-            throw new DbUpdateException("Failed to cleanup expired tokens", ex);
-        }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }

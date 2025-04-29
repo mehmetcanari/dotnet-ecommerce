@@ -28,11 +28,6 @@ public class ProductRepository : IProductRepository
             
             return products;
         }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to fetch products");
-            throw new DbUpdateException("Failed to fetch products", ex);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred");
@@ -45,11 +40,6 @@ public class ProductRepository : IProductRepository
         try
         {
             await _context.Products.AddAsync(product);
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to save product");
-            throw new DbUpdateException("Failed to save product", ex);
         }
         catch (Exception ex)
         {
@@ -64,11 +54,6 @@ public class ProductRepository : IProductRepository
         {
             _context.Products.Update(product);
         }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to update product");
-            throw new DbUpdateException("Failed to update product", ex);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred");
@@ -81,11 +66,6 @@ public class ProductRepository : IProductRepository
         try
         {
             _context.Products.Remove(product);
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to delete product");
-            throw new DbUpdateException("Failed to delete product", ex);
         }
         catch (Exception ex)
         {

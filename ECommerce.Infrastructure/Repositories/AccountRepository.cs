@@ -29,11 +29,6 @@ public class AccountRepository : IAccountRepository
 
             return accounts;
         }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to fetch accounts");
-            throw new DbUpdateException("Failed to fetch accounts", ex);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred");
@@ -46,11 +41,6 @@ public class AccountRepository : IAccountRepository
         try
         {
             await _context.Accounts.AddAsync(userAccount);
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to save account");
-            throw new DbUpdateException("Failed to save account", ex);
         }
         catch (Exception ex)
         {
@@ -65,11 +55,6 @@ public class AccountRepository : IAccountRepository
         {
             _context.Accounts.Update(account);
         }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to update account");
-            throw new DbUpdateException("Failed to update account", ex);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred");
@@ -82,11 +67,6 @@ public class AccountRepository : IAccountRepository
         try
         {
             _context.Accounts.Remove(account);
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Failed to delete account");
-            throw new DbUpdateException("Failed to delete account", ex);
         }
         catch (Exception ex)
         {

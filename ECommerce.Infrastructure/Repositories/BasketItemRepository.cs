@@ -55,11 +55,6 @@ public class BasketItemRepository : IBasketItemRepository
         {
             _context.BasketItems.Update(basketItem);
         }
-        catch (DbUpdateException dbUpdateException)
-        {
-            _logger.LogError(dbUpdateException, "Failed to update order item");
-            throw new DbUpdateException("Failed to update order item", dbUpdateException);
-        }
         catch (Exception exception)
         {
             _logger.LogError(exception, "An unexpected error occurred");
