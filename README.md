@@ -60,16 +60,46 @@ This project is developed using Clean Architecture. Business logic, data access,
 
 ## 🔧 Installation
 ```bash
-# Clone the repository
 git clone https://github.com/mehmetcanari/dotnet-ecommerce-demo.git
-# Enter the directory
 cd dotnet-ecommerce-demo
-# Install dependencies
 dotnet restore
-# Run the application
 cd ECommerce.API
 dotnet watch run 
 ```
+
+## 🐳 Running with Docker Compose
+Docker Compose simplifies the process of running the application and its dependencies (PostgreSQL and Redis) in isolated containers. Follow these steps to run the project using Docker Compose:
+
+1. **Build and Start Containers**:
+   ```bash
+   docker compose up --build
+   ```
+
+2. **Access the API**:
+   - The API will be available at [http://localhost:8080](http://localhost:8080).
+   - Swagger documentation can be accessed at [http://localhost:8080/swagger](http://localhost:8080/swagger).
+
+3. **Stop Containers**:
+   ```bash
+   docker compose down
+   ```
+
+4. **View Logs**:
+   To view logs for a specific service (e.g., `ecommerce-api`):
+   ```bash
+   docker compose logs ecommerce-api
+   ```
+
+5. **Rebuild Containers**:
+   If you make changes to the code and need to rebuild the containers:
+   ```bash
+   docker compose up --build
+   ```
+
+### Advantages of Docker Compose
+- **Simplified Setup**: Automatically sets up the API, database, and caching layers.
+- **Consistency**: Ensures the same environment is used across development, testing, and production.
+- **Isolation**: Runs services in isolated containers, avoiding conflicts with local installations.
 
 ## 🔑 Environment Variables
 Set the following environment variables before running the project:
@@ -83,7 +113,7 @@ JWT_AUDIENCE=OnlineStoreClient
 JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
 REDIS_CONNECTION_STRING=localhost:6379,abortConnect=false
-DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
+DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=ECommerceDB;Username=postgres;Password=your_password
 
 # Iyzico Payment Settings
 IYZICO_API_KEY=your-sandbox-api-key-here
@@ -151,7 +181,7 @@ The project is being actively developed. The following features will be added in
 - [x] Iyzico payment integration  
 - [x] Centralized logging with Serilog  
 - [x] Addition of unit tests  
-- [ ] Dockerization and CI/CD pipeline
+- [x] Dockerization
 
 ## 📧 Contact
 Project Owner - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)

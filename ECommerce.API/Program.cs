@@ -20,7 +20,9 @@ namespace ECommerce.API
 
         static async Task Main(string[] args)
         {
-            Env.Load();
+            // Load environment variables from the root .env file
+            var rootPath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.FullName, ".env");
+            Env.Load(rootPath);
 
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
@@ -29,6 +31,7 @@ namespace ECommerce.API
             //======================================================
             // APPLY ENVIRONMENT VARIABLES
             //======================================================
+            
             builder.Configuration["Jwt:Key"] = Environment.GetEnvironmentVariable("JWT_SECRET");
             builder.Configuration["Jwt:Issuer"] = Environment.GetEnvironmentVariable("JWT_ISSUER");
             builder.Configuration["Jwt:Audience"] = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
@@ -216,6 +219,39 @@ namespace ECommerce.API
 
             var app = builder.Build();
 
+            #region Database Migration
+
+            //======================================================
+            // DOCKER DATABASE MIGRATION
+            //======================================================
+            if (args.Contains("--migrate"))
+            {
+                using (var scope = app.Services.CreateScope())
+                {
+                    var services = scope.ServiceProvider;
+                    var storeContext = services.GetRequiredService<StoreDbContext>();
+                    var identityContext = services.GetRequiredService<ApplicationIdentityDbContext>();
+
+                    try
+                    {
+                        await using var connection = identityContext.Database.GetDbConnection();
+                        await connection.OpenAsync();
+                        await using var command = connection.CreateCommand();
+                        command.CommandText = "CREATE SCHEMA IF NOT EXISTS \"Identity\";";
+                        await command.ExecuteNonQueryAsync();
+                        await identityContext.Database.MigrateAsync();
+                        await storeContext.Database.MigrateAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("An error occurred while migrating the database.", ex);
+                    }
+                }
+                return;
+            }
+
+            #endregion
+
             #region Initialize Roles
 
             //======================================================
@@ -247,25 +283,36 @@ namespace ECommerce.API
             app.UseAuthorization();
             app.MapControllers();
 
+            // HTTPS Redirection 
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHsts();
+                app.UseHttpsRedirection();
+            }
+
+            // Security headers
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+                context.Response.Headers.Append("X-Frame-Options", "DENY");
+                context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+                await next();
+            });
+
             #endregion
 
-            await app.RunAsync();
+            app.Run();
         }
 
-        //======================================================
-        // ROLE INITIALIZATION METHOD
-        // Helper method to create default roles in the system
-        //======================================================
         private static async Task InitializeRoles(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
             string[] roleNames = { "Admin", "User" };
 
             foreach (var roleName in roleNames)
             {
-                var roleExists = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExists)
+                var roleExist = await roleManager.RoleExistsAsync(roleName);
+                if (!roleExist)
                 {
                     await roleManager.CreateAsync(new IdentityRole(roleName));
                 }

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+
+  ecommerce-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - JWT_SECRET=your-super-secret-key-here
+      - JWT_ISSUER=OnlineStoreWebAPI
+      - JWT_AUDIENCE=OnlineStoreClient
+      - DB_CONNECTION_STRING=Host=db;Port=5432;Database=ECommerceDB;Username=postgres;Password=1234
+      - REDIS_CONNECTION_STRING=redis:6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: ECommerceDB
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:

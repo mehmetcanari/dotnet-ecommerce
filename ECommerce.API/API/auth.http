@@ -14,7 +14,7 @@ Content-Type: application/json
     "name": "Test User Name",
     "surname": "Test User Surname",
     "email": "user@system.com",
-    "identityNumber": "1234567890", //Due to validation rules, you can try with your own identity number for testing purposes.
+    "identityNumber": "12345678901",
     "city": "Istanbul",
     "country": "TR",
     "zipCode": "34343",
@@ -33,7 +33,7 @@ Content-Type: application/json
     "name": "Test Admin Name",
     "surname": "Test Admin Surname",
     "email": "admin@system.com",
-    "identityNumber": "1234567890", //Due to validation rules, you can try with your own identity number for testing purposes.
+    "identityNumber": "12345678901",
     "city": "Istanbul",
     "country": "TR",
     "zipCode": "34343",
