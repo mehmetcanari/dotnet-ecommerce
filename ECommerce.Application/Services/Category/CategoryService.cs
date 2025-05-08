@@ -1,7 +1,10 @@
 using ECommerce.Application.DTO.Request.Category;
+using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
+using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
-using ECommerce.Domain.Model;
+
+namespace ECommerce.Application.Services.Category;
 
 public class CategoryService : ICategoryService
 {
@@ -29,7 +32,7 @@ public class CategoryService : ICategoryService
                 throw new Exception("Category already exists");
             }
 
-            Category category = new Category
+            Domain.Model.Category category = new Domain.Model.Category
             {
                 Name = request.Name,
                 Description = request.Description
@@ -77,7 +80,7 @@ public class CategoryService : ICategoryService
         {
             var categories = await _categoryRepository.Read();
             var category = categories.FirstOrDefault(c => c.CategoryId == categoryId) 
-            ?? throw new Exception("Category not found");
+                           ?? throw new Exception("Category not found");
 
             category.Name = request.Name;
             category.Description = request.Description;
@@ -108,24 +111,25 @@ public class CategoryService : ICategoryService
 
             var categories = await _categoryRepository.Read();
             var category = categories.FirstOrDefault(c => c.CategoryId == categoryId) 
-            ?? throw new Exception("Category not found");
+                           ?? throw new Exception("Category not found");
 
             CategoryResponseDto categoryResponseDto = new CategoryResponseDto
             {
                 CategoryId = category.CategoryId,
                 Name = category.Name,
                 Description = category.Description,
-                Products = category.Products?.Select(p => new ProductResponseDto
-                {
-                    ProductName = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    DiscountRate = p.DiscountRate,
-                    ImageUrl = p.ImageUrl,
-                    StockQuantity = p.StockQuantity,
-                    CategoryId = p.CategoryId
-            })
-            .ToList() ?? new List<ProductResponseDto>()};
+                Products = category.Products.Select(p => new ProductResponseDto
+                    {
+                        ProductName = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        DiscountRate = p.DiscountRate,
+                        ImageUrl = p.ImageUrl,
+                        StockQuantity = p.StockQuantity,
+                        CategoryId = p.CategoryId
+                    })
+                    .ToList()
+            };
 
             await _cacheService.SetAsync(string.Format(CategoryCacheKey, categoryId), categoryResponseDto, expirationTime);
 

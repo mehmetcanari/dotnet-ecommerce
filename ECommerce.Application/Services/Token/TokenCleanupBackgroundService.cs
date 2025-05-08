@@ -1,6 +1,6 @@
 using ECommerce.Application.Interfaces.Service;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace ECommerce.Application.Services.Token;
 

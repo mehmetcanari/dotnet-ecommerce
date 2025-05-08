@@ -96,8 +96,8 @@ public class AccountRegisterValidation : AbstractValidator<AccountRegisterReques
 
         int[] digits = identityNumber.Select(c => int.Parse(c.ToString())).ToArray();
 
-        int oddSum = digits.Take(9).Where((x, i) => i % 2 == 0).Sum();
-        int evenSum = digits.Take(9).Where((x, i) => i % 2 == 1).Sum();
+        int oddSum = digits.Take(9).Where((_, i) => i % 2 == 0).Sum();
+        int evenSum = digits.Take(9).Where((_, i) => i % 2 == 1).Sum();
         int digit10 = (oddSum * 7 - evenSum) % 10;
 
         int digit11 = digits.Take(10).Sum() % 10;

@@ -1,6 +1,5 @@
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Response.Order;
-using ECommerce.Domain.Model;
 
 namespace ECommerce.Application.Interfaces.Service;
 

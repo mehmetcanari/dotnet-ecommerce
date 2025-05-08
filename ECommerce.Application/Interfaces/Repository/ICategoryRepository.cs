@@ -1,5 +1,7 @@
 using ECommerce.Domain.Model;
 
+namespace ECommerce.Application.Interfaces.Repository;
+
 public interface ICategoryRepository
 {
     Task Create(Category category);

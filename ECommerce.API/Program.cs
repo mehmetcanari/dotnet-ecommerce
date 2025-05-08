@@ -141,7 +141,7 @@ namespace ECommerce.API
             //======================================================
             // SERILOG IMPLEMENTATION
             //======================================================
-            builder.Host.UseSerilog((context, services, configuration) => configuration
+            builder.Host.UseSerilog((_, _, configuration) => configuration
                 .MinimumLevel.Debug()                           
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)  
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
@@ -179,7 +179,7 @@ namespace ECommerce.API
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                     RateLimitPartition.GetFixedWindowLimiter(
                         partitionKey: context.User.Identity?.Name ?? context.Request.Headers.Host.ToString(),
-                        factory: partition => new FixedWindowRateLimiterOptions
+                        factory: _ => new FixedWindowRateLimiterOptions
                         {
                             AutoReplenishment = true,
                             PermitLimit = 100,

@@ -202,12 +202,7 @@ public class RefreshTokenService : IRefreshTokenService
             }
 
             var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
-            if (token != null)
-            {
-                return token;
-            }
-
-            throw new Exception("Refresh token not found in database");
+            return token;
         }
         catch (Exception ex)
         {

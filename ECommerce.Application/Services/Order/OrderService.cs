@@ -264,7 +264,7 @@ public class OrderService : IOrderService
                                throw new Exception("Account not found");
 
             var userOrders = orders.Where(o => o.AccountId == tokenAccount.Id).ToList();
-            var orderedItems = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered == true)).ToList();
+            var orderedItems = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered)).ToList();
 
             if (orderedItems.Count == 0)
                 throw new Exception("No orders found for this user");

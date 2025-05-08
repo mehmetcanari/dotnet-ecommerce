@@ -3,7 +3,6 @@ using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 using Asp.Versioning;
 namespace ECommerce.API.Controllers.User;
 

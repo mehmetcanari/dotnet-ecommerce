@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:5076
 @route = api/admin/categories
-@adminToken = {{$dotenv ADMIN_TOKEN}}
+@adminToken = {{$dotenv.ADMIN_TOKEN}}
 
 ### CREATE CATEGORY
 

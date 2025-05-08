@@ -1,5 +1,3 @@
-using ECommerce.Application.Interfaces.Service;
-
 namespace ECommerce.Application.Utility;
 
 public static class MathService

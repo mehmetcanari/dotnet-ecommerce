@@ -124,7 +124,7 @@ public class IyzicoPaymentService : IPaymentService
     {
         return basketItems.Select(item => new Iyzipay.Model.BasketItem
         {
-            Id = item.ExternalId ?? item.ProductId.ToString(),
+            Id = item.ExternalId,
             Name = item.ProductName,
             Category1 = "Physical",
             ItemType = BasketItemType.PHYSICAL.ToString(),

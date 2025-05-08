@@ -1,5 +1,7 @@
-using ECommerce.Domain.Model;
 using ECommerce.Application.DTO.Request.Category;
+using ECommerce.Application.DTO.Response.Category;
+
+namespace ECommerce.Application.Interfaces.Service;
 
 public interface ICategoryService
 {

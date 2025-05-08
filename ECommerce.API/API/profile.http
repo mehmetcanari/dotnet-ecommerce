@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:5076
-@userToken = {{$dotenv USER_TOKEN}}
-@adminToken = {{$dotenv ADMIN_TOKEN}}
+@userToken = {{$dotenv.USER_TOKEN}}
+@adminToken = {{$dotenv.ADMIN_TOKEN}}
 
 ### GET PROFILE AS USER
 GET {{baseUrl}}/api/account/profile

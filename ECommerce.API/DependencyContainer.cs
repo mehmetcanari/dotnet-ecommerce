@@ -11,12 +11,14 @@ using ECommerce.Application.Services.Cache;
 using ECommerce.Application.Services.Logging;
 using ECommerce.Application.Services.Order;
 using ECommerce.Application.Services.BasketItem;
+using ECommerce.Application.Services.Category;
 using ECommerce.Application.Services.Payment;
 using ECommerce.Application.Services.Product;
 using ECommerce.Application.Services.Token;
 using ECommerce.Application.Validations.Account;
 using ECommerce.Application.Validations.Order;
 using ECommerce.Application.Validations.BasketItem;
+using ECommerce.Application.Validations.Category;
 using ECommerce.Application.Validations.Payment;
 using ECommerce.Application.Validations.Product;
 using ECommerce.Domain.Model;
@@ -39,7 +41,7 @@ public class DependencyContainer : IDependencyContainer
 
     public void RegisterCoreDependencies()
     {
-        _builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
+        _builder.Services.AddSingleton<IConnectionMultiplexer>(_ => 
             ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost:6379"));
             
         // Repository

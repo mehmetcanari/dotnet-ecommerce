@@ -1,7 +1,6 @@
 using ECommerce.Application.Interfaces.Service;
 using StackExchange.Redis;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 
 namespace ECommerce.Application.Services.Cache;
 

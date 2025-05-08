@@ -1,6 +1,6 @@
 ﻿@baseUrl = http://localhost:5076/
 @route = api/admin/orders
-@adminToken =  {{$dotenv ADMIN_TOKEN}}
+@adminToken =  {{$dotenv.ADMIN_TOKEN}}
 ### GET ALL ORDERS
 
 GET {{baseUrl}}{{route}}

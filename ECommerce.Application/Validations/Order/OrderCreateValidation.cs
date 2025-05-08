@@ -1,3 +1,4 @@
+using ECommerce.Application.DTO.Request.Order;
 using FluentValidation;
 
 namespace ECommerce.Application.Validations.Order;

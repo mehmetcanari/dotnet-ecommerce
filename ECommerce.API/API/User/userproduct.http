@@ -1,8 +1,5 @@
-﻿# @name Using development environment
-# @environment development
-
-@baseUrl = http://localhost:5076
-@userToken = {{$dotenv USER_TOKEN}}
+﻿@baseUrl = http://localhost:5076
+@userToken = {{$dotenv.USER_TOKEN}}
 
 ### GET ALL PRODUCTS
 

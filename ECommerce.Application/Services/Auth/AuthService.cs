@@ -4,7 +4,6 @@ using ECommerce.Application.DTO.Response.Auth;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace ECommerce.Application.Services.Auth;
 
@@ -153,11 +152,6 @@ public class AuthService : IAuthService
         try
         {
             var account = await _accountService.GetAccountByEmailAsModel(email);
-            if (account == null)
-            {
-                _logger.LogWarning("Login failed - User not found: {Email}", email);
-                return (false, null);
-            }
 
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)

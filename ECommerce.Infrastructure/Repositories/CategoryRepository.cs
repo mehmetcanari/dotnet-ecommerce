@@ -1,3 +1,4 @@
+using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.DatabaseContext;

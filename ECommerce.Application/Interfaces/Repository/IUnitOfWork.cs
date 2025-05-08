@@ -1,3 +1,5 @@
+namespace ECommerce.Application.Interfaces.Repository;
+
 public interface IUnitOfWork : IDisposable
 {
     Task Commit(); 

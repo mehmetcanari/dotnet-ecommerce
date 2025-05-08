@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Asp.Versioning;
+using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.Interfaces.Service;
-using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

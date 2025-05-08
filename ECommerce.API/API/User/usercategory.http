@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:5076
 @route = api/user/categories
-@userToken = {{$dotenv USER_TOKEN}}
+@userToken = {{$dotenv.USER_TOKEN}}
 
 ### GET CATEGORY BY ID
 

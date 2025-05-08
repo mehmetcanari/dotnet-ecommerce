@@ -1,5 +1,7 @@
 using ECommerce.Application.DTO.Response.Product;
 
+namespace ECommerce.Application.DTO.Response.Category;
+
 public record CategoryResponseDto
 {
     public int CategoryId { get; set; }
