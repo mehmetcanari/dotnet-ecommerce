@@ -27,6 +27,7 @@ E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhe
 | **Serilog** | Used for centralized logging infrastructure |
 | **PostgreSQL** | For persistent data storage |
 | **xUnit** | For unit testing the application |
+| **Docker** | Containerization for environment consistency and deployment |
 
 ## 📐 Architecture
 This project is developed using Clean Architecture. Business logic, data access, presentation and domain layers are separated. It is designed in accordance with SOLID, KISS, and DRY principles, making the code reusable and easy to maintain.
@@ -60,8 +61,12 @@ This project is developed using Clean Architecture. Business logic, data access,
 
 ## 🔧 Installation
 ```bash
+# Clone the repository
 git clone https://github.com/mehmetcanari/dotnet-ecommerce-demo.git
+# Enter the directory
 cd dotnet-ecommerce-demo
+
+# Option 1: Run locally
 dotnet restore
 cd ECommerce.API
 dotnet watch run 
@@ -77,7 +82,6 @@ Docker Compose simplifies the process of running the application and its depende
 
 2. **Access the API**:
    - The API will be available at [http://localhost:8080](http://localhost:8080).
-   - Swagger documentation can be accessed at [http://localhost:8080/swagger](http://localhost:8080/swagger).
 
 3. **Stop Containers**:
    ```bash
@@ -85,21 +89,14 @@ Docker Compose simplifies the process of running the application and its depende
    ```
 
 4. **View Logs**:
-   To view logs for a specific service (e.g., `ecommerce-api`):
    ```bash
    docker compose logs ecommerce-api
    ```
 
 5. **Rebuild Containers**:
-   If you make changes to the code and need to rebuild the containers:
    ```bash
    docker compose up --build
    ```
-
-### Advantages of Docker Compose
-- **Simplified Setup**: Automatically sets up the API, database, and caching layers.
-- **Consistency**: Ensures the same environment is used across development, testing, and production.
-- **Isolation**: Runs services in isolated containers, avoiding conflicts with local installations.
 
 ## 🔑 Environment Variables
 Set the following environment variables before running the project:
@@ -107,13 +104,13 @@ Set the following environment variables before running the project:
 ASPNETCORE_ENVIRONMENT=Development
 ASPNETCORE_URLS=http://localhost:5076
 
-JWT_SECRET=YourSecretKeyHere
+JWT_SECRET=YourSecretKeyHere12345678901234567890
 JWT_ISSUER=OnlineStoreWebAPI
 JWT_AUDIENCE=OnlineStoreClient
 JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
 REDIS_CONNECTION_STRING=localhost:6379,abortConnect=false
-DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=ECommerceDB;Username=postgres;Password=your_password
+DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
 
 # Iyzico Payment Settings
 IYZICO_API_KEY=your-sandbox-api-key-here
