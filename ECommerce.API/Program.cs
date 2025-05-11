@@ -20,7 +20,6 @@ namespace ECommerce.API
 
         static async Task Main(string[] args)
         {
-            // Load environment variables from the root .env file
             var rootPath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.FullName, ".env");
             Env.Load(rootPath);
 

@@ -1,11 +1,10 @@
 @baseUrl = http://localhost:5076
 @route = api/admin/categories
-@adminToken = {{$dotenv.ADMIN_TOKEN}}
 
 ### CREATE CATEGORY
 
 POST {{baseUrl}}/{{route}}/create
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 
 {
@@ -16,12 +15,12 @@ Content-Type: application/json
 ### GET CATEGORY BY ID
 
 GET {{baseUrl}}/{{route}}/1
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### UPDATE CATEGORY
 
 PUT {{baseUrl}}/{{route}}/update/1
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 
 {
@@ -32,4 +31,4 @@ Content-Type: application/json
 ### DELETE CATEGORY
 
 DELETE {{baseUrl}}/{{route}}/delete/2
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}

@@ -1,21 +1,20 @@
 ﻿@baseUrl = http://localhost:5076
-@adminToken = {{$dotenv.ADMIN_TOKEN}}
 
 ### GET ALL PRODUCTS
 
 GET {{baseUrl}}/api/admin/products
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### GET PRODUCT BY ID
 
 GET {{baseUrl}}/api/admin/products/1
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### CREATE PRODUCT
 
 POST {{baseUrl}}/api/admin/products/create
 Content-Type: application/json
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}
 
 {
   "Name": "Playstation 5",
@@ -31,7 +30,7 @@ Authorization: Bearer {{adminToken}}
 
 PUT {{baseUrl}}/api/admin/products/update/1
 Content-Type: application/json
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}
 
 {
   "Name": "Playstation 5",
@@ -46,4 +45,4 @@ Authorization: Bearer {{adminToken}}
 ### DELETE PRODUCT BY ID
 
 DELETE {{baseUrl}}/api/admin/products/delete/1
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ADMIN_TOKEN}}

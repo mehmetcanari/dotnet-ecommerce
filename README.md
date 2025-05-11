@@ -15,6 +15,10 @@ E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhe
 
 🧾 Centralized logging infrastructure with Serilog
 
+📜 API documentation with Swagger
+
+🧪 Test suite using xUnit for ensuring code quality
+
 ## 🛠️ Technologies Used
 | Technology | Description |
 |-----------|----------|
@@ -116,12 +120,7 @@ DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=pos
 IYZICO_API_KEY=your-sandbox-api-key-here
 IYZICO_SECRET_KEY=your-sandbox-secret-key-here
 IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
-
-ADMIN_TOKEN=your_admin_token_here
-USER_TOKEN=your_user_token_here
 ```
-> **Note:** After obtaining tokens for admin or user from the auth endpoints, paste these token values into the `ADMIN_TOKEN` and `USER_TOKEN` variables.
-
 ## 🌟 Basic API Usage
 ### Authentication Endpoints
 ```http

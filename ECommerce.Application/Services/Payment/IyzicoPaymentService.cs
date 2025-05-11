@@ -55,6 +55,7 @@ public class IyzicoPaymentService : IPaymentService
     {
         return new CreatePaymentRequest
         {
+            
             Locale = Locale.TR.ToString(),
             ConversationId = Guid.NewGuid().ToString(),
             Price = CalculateTotalPrice(basketItems),
@@ -128,7 +129,7 @@ public class IyzicoPaymentService : IPaymentService
             Name = item.ProductName,
             Category1 = "Physical",
             ItemType = BasketItemType.PHYSICAL.ToString(),
-            Price = item.UnitPrice.ToString(CultureInfo.InvariantCulture)
+            Price = CalculateTotalPrice(basketItems),
         }).ToList();
     }
 }
