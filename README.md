@@ -113,7 +113,7 @@ JWT_ISSUER=OnlineStoreWebAPI
 JWT_AUDIENCE=OnlineStoreClient
 JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
-REDIS_CONNECTION_STRING=localhost:6379,abortConnect=false
+
 DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
 
 # Iyzico Payment Settings
