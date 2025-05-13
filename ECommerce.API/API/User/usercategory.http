@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:5076
-@route = api/user/categories
+@route = api/v1/user/categories
 
 ### GET CATEGORY BY ID
 

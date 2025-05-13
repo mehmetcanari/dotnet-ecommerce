@@ -1,10 +1,11 @@
 @baseUrl = http://localhost:5076
+@route = api/v1/account/profile
 
 ### GET PROFILE AS USER
-GET {{baseUrl}}/api/account/profile
+GET {{baseUrl}}/{{route}}
 Authorization: Bearer {{USER_TOKEN}}
 
 ### GET PROFILE AS ADMIN
-GET {{baseUrl}}/api/account/profile
+GET {{baseUrl}}/{{route}}
 Authorization: Bearer {{ADMIN_TOKEN}}
 

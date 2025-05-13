@@ -6,7 +6,7 @@ using Asp.Versioning;
 namespace ECommerce.API.Controllers.User;
 
 [ApiController]
-[Route("api/user/products")]
+[Route("api/v1/user/products")]
 [Authorize(Roles = "User")]
 [ApiVersion("1.0")]
 public class UserProductController : ControllerBase

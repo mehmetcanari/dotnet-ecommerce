@@ -6,7 +6,7 @@ using ECommerce.Application.Interfaces.Service;
 namespace ECommerce.API.Controllers.User;
 
 [ApiController]
-[Route("api/user/categories")]
+[Route("api/v1/user/categories")]
 [Authorize(Roles = "User")]
 [ApiVersion("1.0")]
 public class UserCategoryController : ControllerBase

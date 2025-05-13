@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Controllers.Auth
 {
-    [Route("api/auth")]
+    [Route("api/v1/auth")]
     [ApiController]
     [ApiVersion("1.0")]
     public class AuthController : ControllerBase

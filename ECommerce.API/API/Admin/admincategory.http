@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:5076
-@route = api/admin/categories
+@route = api/v1/admin/categories
 
 ### CREATE CATEGORY
 

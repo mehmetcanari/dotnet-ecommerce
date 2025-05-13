@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.API.Controllers.User;
 
 [ApiController]
-[Route("api/user/orders")]
+[Route("api/v1/user/orders")]
 [Authorize(Roles = "User")]
 [ApiVersion("1.0")]
 public class UserOrderController : ControllerBase

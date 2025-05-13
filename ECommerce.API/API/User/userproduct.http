@@ -1,12 +1,13 @@
 ﻿@baseUrl = http://localhost:5076
+@route = api/v1/user/products
 
 ### GET ALL PRODUCTS
 
-GET {{baseUrl}}/api/user/products
+GET {{baseUrl}}/{{route}}
 Authorization: Bearer {{USER_TOKEN}}
 
 ### GET PRODUCT BY ID
 
-GET {{baseUrl}}/api/user/products/1
+GET {{baseUrl}}/{{route}}/1
 Authorization: Bearer {{USER_TOKEN}}
 

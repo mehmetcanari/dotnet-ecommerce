@@ -1,22 +1,23 @@
 ﻿@baseUrl = http://localhost:5076
+@route = api/v1/admin/accounts
 ### GET ALL ACCOUNTS
 
-GET {{baseUrl}}/api/admin/accounts
+GET {{baseUrl}}/{{route}}
 Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### GET ACCOUNT BY ID
 
-GET {{baseUrl}}/api/admin/accounts/1
+GET {{baseUrl}}/{{route}}/1
 Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### DELETE ACCOUNT BY ID
 
-DELETE {{baseUrl}}/api/admin/accounts/delete/1
+DELETE {{baseUrl}}/{{route}}/delete/1
 Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### REVOKE USER TOKEN
 
-POST {{baseUrl}}/api/admin/accounts/revoke-token
+POST {{baseUrl}}/{{route}}/revoke-token
 Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 
@@ -26,7 +27,7 @@ Content-Type: application/json
 
 ### BAN ACCOUNT
 
-POST {{baseUrl}}/api/admin/accounts/ban
+POST {{baseUrl}}/{{route}}/ban
 Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 
@@ -38,7 +39,7 @@ Content-Type: application/json
 
 ### UNBAN ACCOUNT
 
-POST {{baseUrl}}/api/admin/accounts/unban
+POST {{baseUrl}}/api/v1/admin/accounts/unban
 Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 

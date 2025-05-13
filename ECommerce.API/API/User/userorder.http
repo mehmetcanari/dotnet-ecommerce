@@ -1,5 +1,5 @@
 ﻿@baseUrl = http://localhost:5076/
-@route = api/user/orders
+@route = api/v1/user/orders
 
 ### CREATE ORDER
 

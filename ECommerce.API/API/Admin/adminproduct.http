@@ -1,18 +1,19 @@
 ﻿@baseUrl = http://localhost:5076
+@route = api/v1/admin/products
 
 ### GET ALL PRODUCTS
 
-GET {{baseUrl}}/api/admin/products
+GET {{baseUrl}}/{{route}}
 Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### GET PRODUCT BY ID
 
-GET {{baseUrl}}/api/admin/products/1
+GET {{baseUrl}}/{{route}}/1
 Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### CREATE PRODUCT
 
-POST {{baseUrl}}/api/admin/products/create
+POST {{baseUrl}}/{{route}}/create
 Content-Type: application/json
 Authorization: Bearer {{ADMIN_TOKEN}}
 
@@ -28,7 +29,7 @@ Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### UPDATE PRODUCT BY ID
 
-PUT {{baseUrl}}/api/admin/products/update/1
+PUT {{baseUrl}}/{{route}}/update/1
 Content-Type: application/json
 Authorization: Bearer {{ADMIN_TOKEN}}
 
@@ -44,5 +45,5 @@ Authorization: Bearer {{ADMIN_TOKEN}}
 
 ### DELETE PRODUCT BY ID
 
-DELETE {{baseUrl}}/api/admin/products/delete/1
+DELETE {{baseUrl}}/{{route}}/delete/1
 Authorization: Bearer {{ADMIN_TOKEN}}

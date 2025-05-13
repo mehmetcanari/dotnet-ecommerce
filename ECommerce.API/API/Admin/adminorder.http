@@ -1,5 +1,5 @@
 ﻿@baseUrl = http://localhost:5076/
-@route = api/admin/orders
+@route = api/v1/admin/orders
 ### GET ALL ORDERS
 
 GET {{baseUrl}}{{route}}

@@ -8,7 +8,7 @@ using ECommerce.Domain.Abstract.Repository;
 namespace ECommerce.API.Controllers.Auth;
 
 [ApiController]
-[Route("api/account")]
+[Route("api/v1/account")]
 [Authorize(Roles = "User, Admin")]
 [ApiVersion("1.0")]
 public class AccountController : ControllerBase
