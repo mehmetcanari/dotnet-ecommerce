@@ -1,6 +1,7 @@
 using ECommerce.Application.Interfaces.Service;
 using StackExchange.Redis;
 using System.Text.Json;
+using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Cache;
 

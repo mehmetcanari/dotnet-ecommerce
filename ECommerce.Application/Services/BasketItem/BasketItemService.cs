@@ -1,7 +1,7 @@
 ﻿using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.DTO.Response.BasketItem;
-using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.BasketItem;
 

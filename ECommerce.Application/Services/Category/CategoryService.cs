@@ -1,8 +1,8 @@
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
-using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Category;
 

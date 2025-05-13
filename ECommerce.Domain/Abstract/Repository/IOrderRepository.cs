@@ -1,5 +1,6 @@
 using ECommerce.Domain.Model;
-namespace ECommerce.Application.Interfaces.Repository;
+
+namespace ECommerce.Domain.Abstract.Repository;
 
 public interface IOrderRepository
 {
@@ -7,10 +8,4 @@ public interface IOrderRepository
     Task<List<Order>> Read();
     void Update(Order order);
     void Delete(Order order);
-
-    #region Filtered Queries
-
-    Task<Order> GetOrderById(int orderId);
-
-    #endregion
 }

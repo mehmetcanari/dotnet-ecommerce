@@ -1,4 +1,4 @@
-namespace ECommerce.Application.Interfaces.Repository;
+namespace ECommerce.Domain.Abstract.Repository;
 
 public interface IUnitOfWork : IDisposable
 {

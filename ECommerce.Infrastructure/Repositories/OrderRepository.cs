@@ -1,8 +1,7 @@
-using ECommerce.Application.Interfaces.Repository;
 using Microsoft.EntityFrameworkCore;
-using ECommerce.Infrastructure.DatabaseContext;
-using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
+using ECommerce.Infrastructure.Context;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -68,31 +67,6 @@ public class OrderRepository : IOrderRepository
         try
         {
             _context.Orders.Remove(order);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
-        }
-    }
-
-    public async Task<Order> GetOrderById(int id)
-    {
-        try
-        {
-            IQueryable<Order> query = _context.Orders;
-
-            var order = await query
-            .AsNoTracking()
-            .Include(o => o.BasketItems)
-            .FirstOrDefaultAsync(o => o.OrderId == id);
-
-            if (order == null)
-            {
-                throw new Exception("Order not found");
-            }
-
-            return order;
         }
         catch (Exception ex)
         {

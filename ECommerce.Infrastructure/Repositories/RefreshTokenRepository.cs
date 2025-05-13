@@ -1,8 +1,7 @@
-using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Domain.Model;
-using ECommerce.Infrastructure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
-using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Infrastructure.Context;
 
 namespace ECommerce.Infrastructure.Repositories;
 

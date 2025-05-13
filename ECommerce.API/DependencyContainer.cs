@@ -3,7 +3,6 @@ using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.DTO.Request.Product;
-using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Application.Services.Account;
 using ECommerce.Application.Services.Auth;
@@ -21,6 +20,7 @@ using ECommerce.Application.Validations.BasketItem;
 using ECommerce.Application.Validations.Category;
 using ECommerce.Application.Validations.Payment;
 using ECommerce.Application.Validations.Product;
+using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Repositories;
 using FluentValidation;
@@ -42,7 +42,7 @@ public class DependencyContainer : IDependencyContainer
     public void RegisterCoreDependencies()
     {
         _builder.Services.AddSingleton<IConnectionMultiplexer>(_ => 
-            ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost:6379"));
+            ConnectionMultiplexer.Connect("localhost:6379"));
             
         // Repository
         _builder.Services.AddScoped<IOrderRepository, OrderRepository>();

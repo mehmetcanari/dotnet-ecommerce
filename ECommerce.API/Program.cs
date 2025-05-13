@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
-using ECommerce.Infrastructure.DatabaseContext;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using ECommerce.Infrastructure.Context;
 using Serilog;
 using Serilog.Events;
 
@@ -207,8 +207,8 @@ namespace ECommerce.API
             //======================================================
             builder.Services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
-                options.InstanceName = "ECommerce.API";
+                options.Configuration = "localhost:6379";
+                options.InstanceName = "ECommerce.Cache";
             });
             #endregion
 

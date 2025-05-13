@@ -1,8 +1,8 @@
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.DTO.Response.Product;
-using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
 using ECommerce.Application.Utility;
+using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Product;
 

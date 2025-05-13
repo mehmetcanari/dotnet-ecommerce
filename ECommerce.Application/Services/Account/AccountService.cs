@@ -1,7 +1,7 @@
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Account;
-using ECommerce.Application.Interfaces.Repository;
 using ECommerce.Application.Interfaces.Service;
+using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Account;
