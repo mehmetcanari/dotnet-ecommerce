@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Asp.Versioning;
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Order;
-using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,7 +39,7 @@ public class UserOrderController : ControllerBase
         try
         {
             await _orderService.AddOrderAsync(orderCreateRequestDto, userEmail);
-            return Created($"orders", new { message = "Order created successfully" });
+            return Created("orders", new { message = "Order created successfully" });
         }
         catch (Exception exception)
         {

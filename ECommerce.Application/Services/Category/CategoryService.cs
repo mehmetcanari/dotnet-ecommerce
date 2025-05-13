@@ -1,7 +1,7 @@
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Category;
@@ -32,7 +32,7 @@ public class CategoryService : ICategoryService
                 throw new Exception("Category already exists");
             }
 
-            Domain.Model.Category category = new Domain.Model.Category
+            var category = new Domain.Model.Category
             {
                 Name = request.Name,
                 Description = request.Description
@@ -113,7 +113,7 @@ public class CategoryService : ICategoryService
             var category = categories.FirstOrDefault(c => c.CategoryId == categoryId) 
                            ?? throw new Exception("Category not found");
 
-            CategoryResponseDto categoryResponseDto = new CategoryResponseDto
+            var categoryResponseDto = new CategoryResponseDto
             {
                 CategoryId = category.CategoryId,
                 Name = category.Name,

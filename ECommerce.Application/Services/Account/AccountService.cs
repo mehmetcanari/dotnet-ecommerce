@@ -1,6 +1,6 @@
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Account;
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Identity;
 
@@ -70,7 +70,7 @@ public class AccountService : IAccountService
         try
         {
             var accounts = await _accountRepository.Read();
-            int accountCount = accounts.Count;
+            var accountCount = accounts.Count;
             if (accountCount < 1)
             {
                 throw new Exception("No accounts found");

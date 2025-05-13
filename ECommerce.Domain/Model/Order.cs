@@ -16,8 +16,8 @@ namespace ECommerce.Domain.Model
 
 public enum OrderStatus
 {
-    Pending,
-    Shipped,
-    Delivered,
-    Cancelled
+    Pending = 0,
+    Shipped = 1,
+    Delivered = 2,
+    Cancelled = 3
 }

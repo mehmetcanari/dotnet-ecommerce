@@ -1,9 +1,10 @@
 ﻿using System.Security.Claims;
 using ECommerce.Application.DTO.Request.BasketItem;
-using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
+using ECommerce.Application.Abstract.Service;
+
 namespace ECommerce.API.Controllers.User;
 
 [ApiController]
@@ -59,7 +60,7 @@ public class UserBasketItemController : ControllerBase
         try
         {
             await _basketItemService.CreateBasketItemAsync(createBasketItemRequest, userEmail);
-            return Created($"basket", new { message = $"Basket item with product id {createBasketItemRequest.ProductId} created successfully" });
+            return Created("basket", new { message = $"Basket item with product id {createBasketItemRequest.ProductId} created successfully" });
         }
         catch (Exception exception)
         {

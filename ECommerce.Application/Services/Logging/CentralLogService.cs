@@ -1,5 +1,4 @@
 using ILogger = Serilog.ILogger;
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Logging;
@@ -26,10 +25,5 @@ public class LogService : ILoggingService
     public void LogWarning(string messageTemplate, params object[] propertyValues)
     {
         _logger.Warning(messageTemplate, propertyValues);
-    }
-
-    public void LogDebug(string messageTemplate, params object[] propertyValues)
-    {
-        _logger.Debug(messageTemplate, propertyValues);
     }
 }

@@ -1,9 +1,9 @@
-﻿using ECommerce.Application.DTO.Request.Account;
+﻿using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.DTO.Request.Product;
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Application.Services.Account;
 using ECommerce.Application.Services.Auth;
 using ECommerce.Application.Services.Cache;
@@ -78,7 +78,6 @@ public class DependencyContainer : IDependencyContainer
        _builder.Services.AddFluentValidationAutoValidation();
        _builder.Services.AddScoped<IValidator<AccountRegisterRequestDto>, AccountRegisterValidation>();
        _builder.Services.AddScoped<IValidator<AccountLoginRequestDto>, AccountLoginValidation>();
-       _builder.Services.AddScoped<IValidator<AccountUpdateRequestDto>, AccountUpdateValidation>();
        _builder.Services.AddScoped<IValidator<ProductCreateRequestDto>, ProductCreateValidation>();
        _builder.Services.AddScoped<IValidator<ProductUpdateRequestDto>, ProductUpdateValidation>();
        _builder.Services.AddScoped<IValidator<OrderUpdateRequestDto>, OrderUpdateValidation>();
@@ -87,7 +86,6 @@ public class DependencyContainer : IDependencyContainer
        _builder.Services.AddScoped<IValidator<UpdateBasketItemRequestDto>, BasketItemUpdateValidation>();
        _builder.Services.AddScoped<IValidator<CreateCategoryRequestDto>, CategoryCreateValidation>();
        _builder.Services.AddScoped<IValidator<UpdateCategoryRequestDto>, CategoryUpdateValidation>();
-       _builder.Services.AddScoped<IValidator<DeleteCategoryRequestDto>, CategoryDeleteValidation>();
        _builder.Services.AddScoped<IValidator<PaymentCard>, PaymentValidation>();
     }
 }

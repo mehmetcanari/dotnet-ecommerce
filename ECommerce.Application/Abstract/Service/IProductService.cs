@@ -1,7 +1,7 @@
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.DTO.Response.Product;
 
-namespace ECommerce.Application.Interfaces.Service;
+namespace ECommerce.Application.Abstract.Service;
 
 public interface IProductService
 {
@@ -11,5 +11,4 @@ public interface IProductService
     Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest);
     Task UpdateProductStockAsync(List<Domain.Model.BasketItem> basketItems);
     Task DeleteProductAsync(int id);
-    Task ProductCacheInvalidateAsync();
 }

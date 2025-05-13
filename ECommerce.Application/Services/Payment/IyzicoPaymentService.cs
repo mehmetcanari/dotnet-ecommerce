@@ -1,8 +1,8 @@
-using ECommerce.Application.Interfaces.Service;
 using Iyzipay;
 using Iyzipay.Model;
 using Iyzipay.Request;
 using System.Globalization;
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Payment;
@@ -64,8 +64,8 @@ public class IyzicoPaymentService : IPaymentService
             Currency = Currency.TRY.ToString(),
             Installment = 1,
             BasketId = order.OrderId.ToString(),
-            PaymentChannel = PaymentChannel.WEB.ToString(),
-            PaymentGroup = PaymentGroup.PRODUCT.ToString(),
+            PaymentChannel = nameof(PaymentChannel.WEB),
+            PaymentGroup = nameof(PaymentGroup.PRODUCT),
             PaymentCard = MapToIyzicoPaymentCard(paymentCard),
             Buyer = MapToIyzicoBuyer(buyer),
             ShippingAddress = MapToIyzicoAddress(shippingAddress, order.ShippingAddress),
@@ -129,7 +129,7 @@ public class IyzicoPaymentService : IPaymentService
             Id = item.ExternalId,
             Name = item.ProductName,
             Category1 = "Physical",
-            ItemType = BasketItemType.PHYSICAL.ToString(),
+            ItemType = nameof(BasketItemType.PHYSICAL),
             Price = CalculateTotalPrice(basketItems),
         }).ToList();
     }

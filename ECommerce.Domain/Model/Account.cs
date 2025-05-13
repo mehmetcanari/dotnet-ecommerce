@@ -2,7 +2,7 @@ namespace ECommerce.Domain.Model;
 
 public class Account
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
     public required string Role { get; set; }
     public required string Name { get; set; }
     public required string Surname { get; set; }
@@ -24,10 +24,8 @@ public class Account
             {
                 return BannedAt.Value < DateTime.UtcNow && BannedUntil.Value > DateTime.UtcNow;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
     }
     public DateTime? BannedAt { get; set; }

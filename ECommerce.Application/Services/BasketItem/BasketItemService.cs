@@ -1,6 +1,6 @@
-﻿using ECommerce.Application.DTO.Request.BasketItem;
+﻿using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.DTO.Response.BasketItem;
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.BasketItem;
@@ -54,7 +54,7 @@ public class BasketItemService : IBasketItemService
                 throw new Exception("No basket items found.");
             }
 
-            List<BasketItemResponseDto> clientResponseBasketItems = nonOrderedBasketItems
+            var clientResponseBasketItems = nonOrderedBasketItems
             .Select(basketItem => new BasketItemResponseDto
             {
                 AccountId = basketItem.AccountId,
@@ -88,7 +88,7 @@ public class BasketItemService : IBasketItemService
             if (createBasketItemRequestDto.Quantity > product.StockQuantity)
                 throw new Exception("Not enough stock");
 
-            Domain.Model.BasketItem basketItem = new Domain.Model.BasketItem
+            var basketItem = new Domain.Model.BasketItem
             {
                 AccountId = tokenAccount.Id,
                 ExternalId = Guid.NewGuid().ToString(),
@@ -209,7 +209,7 @@ public class BasketItemService : IBasketItemService
         }
     }
 
-    public async Task ClearBasketItemsCacheAsync()
+    private async Task ClearBasketItemsCacheAsync()
     {
         await _cacheService.RemoveAsync(GetAllBasketItemsCacheKey);
     }

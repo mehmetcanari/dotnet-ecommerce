@@ -1,4 +1,3 @@
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Token;
@@ -91,8 +91,8 @@ public class RefreshTokenService : IRefreshTokenService
     {
         try
         {
-            IEnumerable<RefreshToken> tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
-            RefreshToken? activeToken = tokens.FirstOrDefault(t => t.IsExpired == false && t.IsRevoked == false);
+            var tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
+            var activeToken = tokens.FirstOrDefault(t => t is { IsExpired: false, IsRevoked: false });
             if (activeToken is not null)
             {
                 _refreshTokenRepository.Revoke(activeToken, reason);
@@ -119,9 +119,9 @@ public class RefreshTokenService : IRefreshTokenService
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("tokenType", "refresh")
+                new(JwtRegisteredClaimNames.Sub, email),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new("tokenType", "refresh")
             };
 
             foreach (var role in roles)

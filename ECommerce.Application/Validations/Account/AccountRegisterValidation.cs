@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace ECommerce.Application.Validations.Account;
 
-public class AccountRegisterValidation : AbstractValidator<AccountRegisterRequestDto>
+public partial class AccountRegisterValidation : AbstractValidator<AccountRegisterRequestDto>
 {
     public AccountRegisterValidation()
     {
@@ -27,7 +27,7 @@ public class AccountRegisterValidation : AbstractValidator<AccountRegisterReques
         RuleFor(x => x.IdentityNumber)
             .NotEmpty().WithMessage("Identity number is required")
             .Length(11).WithMessage("Identity number must be 11 digits")
-            .Matches(@"^[0-9]+$").WithMessage("Identity number must contain only numbers")
+            .Matches("^[0-9]+$").WithMessage("Identity number must contain only numbers")
             .Must(IsValidTurkishIdentity).WithMessage("Invalid identity number format");
 
         RuleFor(x => x.Country)
@@ -78,14 +78,14 @@ public class AccountRegisterValidation : AbstractValidator<AccountRegisterReques
 
     private bool IsValidPhoneNumber(string phoneNumber)
     {
-        var digitsOnly = Regex.Replace(phoneNumber, @"[^\d+]", "");
+        var digitsOnly = MyRegex().Replace(phoneNumber, "");
         
-        if (digitsOnly.StartsWith("+"))
+        if (digitsOnly.StartsWith($"+"))
         {
             digitsOnly = digitsOnly.Substring(1);
         }
         
-        return digitsOnly.Length >= 8 && digitsOnly.Length <= 15;
+        return digitsOnly.Length is >= 8 and <= 15;
     }
 
     private bool IsValidTurkishIdentity(string identityNumber)
@@ -104,4 +104,7 @@ public class AccountRegisterValidation : AbstractValidator<AccountRegisterReques
 
         return digits[9] == digit10 && digits[10] == digit11;
     }
+
+    [GeneratedRegex(@"[^\d+]")]
+    private static partial Regex MyRegex();
 }

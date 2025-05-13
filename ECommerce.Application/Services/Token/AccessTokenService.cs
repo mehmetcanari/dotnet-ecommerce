@@ -1,11 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using ECommerce.Application.Interfaces.Service;
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using static System.Security.Claims.ClaimTypes;
 
 namespace ECommerce.Application.Services.Token;
 
@@ -55,15 +56,11 @@ public class AccessTokenService : IAccessTokenService
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("tokenType", "access")
+                new(Email, email),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new("tokenType", "access")
             };
-
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
+            claims.AddRange(roles.Select(role => new Claim(Role, role)));
 
             var token = new JwtSecurityToken(
                 issuer: issuer,

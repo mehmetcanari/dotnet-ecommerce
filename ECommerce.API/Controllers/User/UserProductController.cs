@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.Interfaces.Service;
 using Asp.Versioning;
+using ECommerce.Application.Abstract.Service;
 
 namespace ECommerce.API.Controllers.User;
 

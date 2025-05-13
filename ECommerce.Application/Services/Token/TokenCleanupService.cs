@@ -1,4 +1,4 @@
-using ECommerce.Application.Interfaces.Service;
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Token;
@@ -15,7 +15,7 @@ public class TokenCleanupService : ITokenCleanupService
         _logger = logger;
     }
 
-    public async Task CleanupExpiredTokensAsync(CancellationToken cancellationToken = default)
+    public async Task CleanupExpiredTokensAsync()
     {
         try
         {

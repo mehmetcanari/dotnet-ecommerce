@@ -1,4 +1,4 @@
-using ECommerce.Application.Interfaces.Service;
+using ECommerce.Application.Abstract.Service;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -22,7 +22,7 @@ public class TokenCleanupBackgroundService : BackgroundService
             using (var scope = _serviceProvider.CreateScope())
             {
                 var tokenCleanupService = scope.ServiceProvider.GetRequiredService<ITokenCleanupService>();
-                await tokenCleanupService.CleanupExpiredTokensAsync(stoppingToken);
+                await tokenCleanupService.CleanupExpiredTokensAsync();
             }
 
             await Task.Delay(cleanupInterval, stoppingToken);

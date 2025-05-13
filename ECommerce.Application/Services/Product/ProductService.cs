@@ -1,6 +1,6 @@
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.DTO.Response.Product;
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 
@@ -33,7 +33,7 @@ public class ProductService : IProductService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task ProductCacheInvalidateAsync()
+    private async Task ProductCacheInvalidateAsync()
     {   
         try
         {
@@ -64,7 +64,7 @@ public class ProductService : IProductService
                 throw new Exception("No products found");
             }
 
-            List<ProductResponseDto> productResponseDtos = products.Select(p => new ProductResponseDto
+            var productResponseDtos = products.Select(p => new ProductResponseDto
             {
                 ProductName = p.Name,
                 Description = p.Description,
@@ -99,7 +99,7 @@ public class ProductService : IProductService
             var products = await _productRepository.Read();
             var product = products.FirstOrDefault(p => p.ProductId == requestId) ?? throw new Exception("Product not found");
             
-            ProductResponseDto productResponse = new ProductResponseDto
+            var productResponse = new ProductResponseDto
             {
                 ProductName = product.Name,
                 Description = product.Description,
@@ -228,8 +228,8 @@ public class ProductService : IProductService
                     throw new Exception($"Product with ID {basketItem.ProductId} not found in the database.");
                 }
 
-                int Quantity = basketItem.Quantity;
-                cartProduct.StockQuantity -= Quantity;
+                var quantity = basketItem.Quantity;
+                cartProduct.StockQuantity -= quantity;
                 _productRepository.Update(cartProduct);
             }
 

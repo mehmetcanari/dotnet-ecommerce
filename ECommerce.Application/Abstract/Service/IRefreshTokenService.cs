@@ -2,7 +2,7 @@ using System.Security.Claims;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
 
-namespace ECommerce.Application.Interfaces.Service;
+namespace ECommerce.Application.Abstract.Service;
 
 public interface IRefreshTokenService
 {

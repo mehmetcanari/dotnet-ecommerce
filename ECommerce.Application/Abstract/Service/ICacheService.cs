@@ -1,4 +1,4 @@
-namespace ECommerce.Application.Interfaces.Service;
+namespace ECommerce.Application.Abstract.Service;
 
 public interface ICacheService
 {

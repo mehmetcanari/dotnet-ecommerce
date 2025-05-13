@@ -1,7 +1,7 @@
 ﻿using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.DTO.Response.BasketItem;
 
-namespace ECommerce.Application.Interfaces.Service;
+namespace ECommerce.Application.Abstract.Service;
 
 public interface IBasketItemService
 {

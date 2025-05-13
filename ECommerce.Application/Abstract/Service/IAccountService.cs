@@ -1,7 +1,7 @@
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Account;
 
-namespace ECommerce.Application.Interfaces.Service;
+namespace ECommerce.Application.Abstract.Service;
 
 public interface IAccountService
 {

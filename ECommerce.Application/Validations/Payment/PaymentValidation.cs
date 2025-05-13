@@ -44,7 +44,7 @@ public class PaymentValidation : AbstractValidator<PaymentCard>
 
     private bool IsValidExpirationDate(int month, int year)
     {
-        const int MaxYearsInFuture = 20; 
+        const int maxYearsInFuture = 20; 
 
         var today = DateTime.UtcNow.Date;
         var currentMonth = today.Month;
@@ -55,7 +55,7 @@ public class PaymentValidation : AbstractValidator<PaymentCard>
             year += 2000;
         }
 
-        if (year > currentYear + MaxYearsInFuture)
+        if (year > currentYear + maxYearsInFuture)
         {
             return false;
         }

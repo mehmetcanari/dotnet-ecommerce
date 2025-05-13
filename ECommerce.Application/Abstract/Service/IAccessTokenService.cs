@@ -1,6 +1,6 @@
 using ECommerce.Domain.Model;
 
-namespace ECommerce.Application.Interfaces.Service;
+namespace ECommerce.Application.Abstract.Service;
 
 public interface IAccessTokenService
 {

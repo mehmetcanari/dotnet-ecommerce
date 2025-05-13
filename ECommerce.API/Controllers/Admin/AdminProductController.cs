@@ -1,6 +1,6 @@
 using Asp.Versioning;
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Product;
-using ECommerce.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

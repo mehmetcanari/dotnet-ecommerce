@@ -1,7 +1,6 @@
-using System.Security.Claims;
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Auth;
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
@@ -98,7 +97,7 @@ public class AuthService : IAuthService
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            AuthResponseDto authResponseDto = await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+            var authResponseDto = await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
             _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
             return authResponseDto;
         }
@@ -113,7 +112,7 @@ public class AuthService : IAuthService
     {
         try
         {
-            ClaimsPrincipal identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken);
+            var identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken);
 
             var (email, roles) = await _refreshTokenService.ValidateRefreshToken(identifier, _userManager);
 
@@ -126,7 +125,7 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<AuthResponseDto> RequestGenerateTokensAsync(string email, IList<string> roles)
+    private async Task<AuthResponseDto> RequestGenerateTokensAsync(string email, IList<string> roles)
     {
         try
         {
