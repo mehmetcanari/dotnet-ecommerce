@@ -46,7 +46,7 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<List<ProductResponseDto>> GetAllProductsAsync()
+    public async Task<Result<List<ProductResponseDto>>> GetAllProductsAsync()
     {
         try
         {
@@ -54,7 +54,7 @@ public class ProductService : IProductService
             var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(AllProductsCacheKey);
             if (cachedProducts is { Count: > 0 })
             {
-                return cachedProducts;
+                return Result<List<ProductResponseDto>>.Success(cachedProducts);
             }
 
             var products = await _productRepository.Read();
@@ -76,16 +76,16 @@ public class ProductService : IProductService
             }).ToList();
 
             await _cacheService.SetAsync(AllProductsCacheKey, productResponseDtos, expirationTime);
-            return productResponseDtos;
+            return Result<List<ProductResponseDto>>.Success(productResponseDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching all products");
-            throw;
+            return Result<List<ProductResponseDto>>.Failure(ex.Message);
         }
     }
 
-    public async Task<ProductResponseDto> GetProductWithIdAsync(int requestId)
+    public async Task<Result<ProductResponseDto>> GetProductWithIdAsync(int requestId)
     {
         try
         {
@@ -93,7 +93,7 @@ public class ProductService : IProductService
             var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, requestId));
             if (cachedProduct != null)
             {
-                return cachedProduct;
+                return Result<ProductResponseDto>.Success(cachedProduct);
             }
 
             var products = await _productRepository.Read();
@@ -111,12 +111,12 @@ public class ProductService : IProductService
             };
 
             await _cacheService.SetAsync(string.Format(ProductCacheKey, requestId), productResponse, expirationTime);
-            return productResponse;
+            return Result<ProductResponseDto>.Success(productResponse);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
-            throw;
+            return Result<ProductResponseDto>.Failure(ex.Message);
         }
     }
 
@@ -142,7 +142,7 @@ public class ProductService : IProductService
                 StockQuantity = productCreateRequest.StockQuantity,
                 ProductCreated = DateTime.UtcNow,
                 ProductUpdated = DateTime.UtcNow,
-                CategoryId = category.CategoryId
+                CategoryId = category.Data.CategoryId
             };
 
             product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
@@ -175,7 +175,7 @@ public class ProductService : IProductService
             product.ImageUrl = productUpdateRequest.ImageUrl;
             product.StockQuantity = productUpdateRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
-            product.CategoryId = category.CategoryId;
+            product.CategoryId = category.Data.CategoryId;
             product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
             _productRepository.Update(product);

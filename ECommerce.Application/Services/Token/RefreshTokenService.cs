@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Services.Token;
 
@@ -190,7 +191,7 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
-    public async Task<RefreshToken> GetRefreshTokenFromCookie()
+    public async Task<Result<RefreshToken>> GetRefreshTokenFromCookie()
     {
         try
         {
@@ -202,12 +203,12 @@ public class RefreshTokenService : IRefreshTokenService
             }
 
             var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
-            return token;
+            return Result<RefreshToken>.Success(token);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get refresh token from cookie");
-            throw;
+            return Result<RefreshToken>.Failure(ex.Message);
         }
     }
 }

@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,7 @@ public class AccessTokenService : IAccessTokenService
         _logger = logger;
     }
 
-    public async Task<AccessToken> GenerateAccessTokenAsync(string email, IList<string> roles)
+    public Result<AccessToken> GenerateAccessTokenAsync(string email, IList<string> roles)
     {
         try
         {
@@ -33,12 +34,12 @@ public class AccessTokenService : IAccessTokenService
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(accessTokenExpiry))
             };
 
-            return await Task.FromResult(accessToken);
+            return Result<AccessToken>.Success(accessToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating access token");
-            throw;
+            return Result<AccessToken>.Failure(ex.Message);
         }
     }
 

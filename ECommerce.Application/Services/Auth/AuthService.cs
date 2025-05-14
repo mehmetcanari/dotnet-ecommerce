@@ -129,15 +129,15 @@ public class AuthService : IAuthService
     {
         try
         {
-            AccessToken accessToken = await _accessTokenService.GenerateAccessTokenAsync(email, roles);
-            RefreshToken refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(email, roles);
+            var accessToken = _accessTokenService.GenerateAccessTokenAsync(email, roles);
+            var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(email, roles);
 
             _refreshTokenService.SetRefreshTokenCookie(refreshToken);
 
             return new AuthResponseDto
             {
-                AccessToken = accessToken.Token,
-                AccessTokenExpiration = accessToken.Expires,
+                AccessToken = accessToken.Data.Token,
+                AccessTokenExpiration = accessToken.Data.Expires,
             };
         }
         catch (Exception ex)
@@ -151,7 +151,7 @@ public class AuthService : IAuthService
     {
         try
         {
-            var account = await _accountService.GetAccountByEmailAsModel(email);
+            var account = await _accountService.GetAccountByEmailAsEntity(email);
 
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
@@ -167,7 +167,7 @@ public class AuthService : IAuthService
                 return (false, user);
             }
 
-            if (account.IsBanned)
+            if (account.Data.IsBanned)
             {
                 _logger.LogWarning("Login failed - User is banned: {Email}", email);
                 throw new Exception("User is banned");

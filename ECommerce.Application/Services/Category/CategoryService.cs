@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
+using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Category;
@@ -98,7 +99,7 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<CategoryResponseDto> GetCategoryByIdAsync(int categoryId)
+    public async Task<Result<CategoryResponseDto>> GetCategoryByIdAsync(int categoryId)
     {
         try
         {
@@ -106,7 +107,7 @@ public class CategoryService : ICategoryService
             var cachedCategory = await _cacheService.GetAsync<CategoryResponseDto>(string.Format(CategoryCacheKey, categoryId));
             if (cachedCategory != null)
             {
-                return cachedCategory;
+                return Result<CategoryResponseDto>.Success(cachedCategory);
             }
 
             var categories = await _categoryRepository.Read();
@@ -134,12 +135,12 @@ public class CategoryService : ICategoryService
             await _cacheService.SetAsync(string.Format(CategoryCacheKey, categoryId), categoryResponseDto, expirationTime);
 
             _logger.LogInformation("Category retrieved successfully");
-            return categoryResponseDto;
+            return Result<CategoryResponseDto>.Success(categoryResponseDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting category by id");
-            throw;
+            return Result<CategoryResponseDto>.Failure("An unexpected error occurred");
         }
     }
 

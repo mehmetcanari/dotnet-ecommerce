@@ -2,6 +2,7 @@ using ECommerce.Domain.Abstract.Repository;
 using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
+using Sprache;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -32,6 +33,42 @@ public class AccountRepository : IAccountRepository
         {
             _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+    
+    public async Task<Account?> GetAccountByEmail(string email)
+    {
+        try
+        {
+            
+            var account = await _context.Accounts
+                .AsNoTracking()
+                .Where(a => a.Email == email)
+                .FirstOrDefaultAsync();
+
+            return account;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while retrieving account by email: {Email}", email);
+            throw new Exception($"An unexpected error occurred while retrieving account by email: {email}", ex);
+        }
+    }
+
+    public async Task<Account?> GetAccountById(int id)
+    {
+        try
+        {
+            var account = await _context.Accounts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            return account;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while retrieving account by id: {Id}", id);
+            throw new Exception($"An unexpected error occurred while retrieving account by id: {id}", ex);
         }
     }
 

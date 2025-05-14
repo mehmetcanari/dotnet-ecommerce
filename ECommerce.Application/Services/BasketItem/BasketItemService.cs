@@ -1,6 +1,7 @@
 ﻿using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.DTO.Response.BasketItem;
+using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.BasketItem;
@@ -31,7 +32,7 @@ public class BasketItemService : IBasketItemService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<List<BasketItemResponseDto>> GetAllBasketItemsAsync(string email)
+    public async Task<Result<List<BasketItemResponseDto>>> GetAllBasketItemsAsync(string email)
     {
         try
         {
@@ -41,7 +42,7 @@ public class BasketItemService : IBasketItemService
             if (cachedItems != null)
             {
                 _logger.LogInformation("Basket items fetched from cache");
-                return cachedItems;
+                return Result<List<BasketItemResponseDto>>.Success(cachedItems);
             }
 
             var accounts = await _accountRepository.Read();
@@ -51,7 +52,7 @@ public class BasketItemService : IBasketItemService
             var nonOrderedBasketItems = basketItems.Where(o => o.AccountId == tokenAccount.Id && o.IsOrdered == false).ToList();
             if (nonOrderedBasketItems.Count == 0)
             {
-                throw new Exception("No basket items found.");
+                return Result<List<BasketItemResponseDto>>.Failure("No basket items found.");
             }
 
             var clientResponseBasketItems = nonOrderedBasketItems
@@ -66,12 +67,12 @@ public class BasketItemService : IBasketItemService
 
             await _cacheService.SetAsync(cacheKey, clientResponseBasketItems, cacheDuration);
 
-            return clientResponseBasketItems;
+            return Result<List<BasketItemResponseDto>>.Success(clientResponseBasketItems);
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while fetching all basket items");
-            throw;
+            return Result<List<BasketItemResponseDto>>.Failure("An unexpected error occurred");
         }
     }
 

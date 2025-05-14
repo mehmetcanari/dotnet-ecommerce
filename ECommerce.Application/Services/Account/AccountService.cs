@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Account;
+using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Identity;
 
@@ -65,7 +66,7 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<List<AccountResponseDto>> GetAllAccountsAsync()
+    public async Task<Result<List<AccountResponseDto>>> GetAllAccountsAsync()
     {
         try
         {
@@ -73,10 +74,10 @@ public class AccountService : IAccountService
             var accountCount = accounts.Count;
             if (accountCount < 1)
             {
-                throw new Exception("No accounts found");
+                return Result<List<AccountResponseDto>>.Failure("No accounts found");
             }
-
-            return accounts.Select(account => new AccountResponseDto
+            
+            var accountList = accounts.Select(account => new AccountResponseDto
             {
                 Id = account.Id,
                 Name = account.Name,
@@ -87,35 +88,42 @@ public class AccountService : IAccountService
                 DateOfBirth = account.DateOfBirth,
                 Role = account.Role
             }).ToList();
+            
+            return Result<List<AccountResponseDto>>.Success(accountList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
-            throw;
+            return Result<List<AccountResponseDto>>.Failure("An unexpected error occurred");
         }
     }
 
-    public async Task<Domain.Model.Account> GetAccountByEmailAsModel(string email)
+    public async Task<Result<Domain.Model.Account>> GetAccountByEmailAsEntity(string email)
     {
         try
         {
-            var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("User not found");
-            return account;
+            var account = await _accountRepository.GetAccountByEmail(email);
+            if (account == null)
+            {
+                return Result<Domain.Model.Account>.Failure($"User with email {email} not found");
+            }
+
+            return Result<Domain.Model.Account>.Success(account);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
-            throw;
+            return Result<Domain.Model.Account>.Failure("An unexpected error occurred");
         }
     }
 
-    public async Task<AccountResponseDto> GetAccountWithIdAsync(int id)
+    public async Task<Result<AccountResponseDto>> GetResponseAccountByEmailAsync(string email)
     {
         try
         {
             var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            var account = accounts.FirstOrDefault(a => a.Email == email) ??
+                          throw new Exception($"User with email {email} not found");
 
             var responseAccount = new AccountResponseDto
             {
@@ -129,12 +137,43 @@ public class AccountService : IAccountService
                 Role = account.Role
             };
 
-            return responseAccount;
+            return Result<AccountResponseDto>.Success(responseAccount);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching account: {Message}", ex.Message);
-            throw;
+            _logger.LogError(ex, "Unexpected error while fetching account by email: {Message}", ex.Message);
+            return Result<AccountResponseDto>.Failure("An unexpected error occurred");
+        }
+    }
+
+    public async Task<Result<AccountResponseDto>> GetAccountWithIdAsync(int id)
+    {
+        try
+        {
+            var account = await _accountRepository.GetAccountById(id);
+            if (account == null)
+            {
+                return Result<AccountResponseDto>.Failure("Account not found");
+            }
+
+            var responseAccount = new AccountResponseDto
+            {
+                Id = account.Id,
+                Name = account.Name,
+                Surname = account.Surname,
+                Email = account.Email,
+                Address = account.Address,
+                PhoneNumber = account.PhoneNumber,
+                DateOfBirth = account.DateOfBirth,
+                Role = account.Role
+            };
+
+            return Result<AccountResponseDto>.Success(responseAccount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while fetching account by id: {Message}", ex.Message);
+            return Result<AccountResponseDto>.Failure("An unexpected error occurred");
         }
     }
 
@@ -158,42 +197,13 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<AccountResponseDto> GetAccountByEmailAsync(string email)
-    {
-        try
-        {
-            var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.Email == email) ??
-                          throw new Exception($"User with email {email} not found");
-
-            var responseAccount = new AccountResponseDto
-            {
-                Id = account.Id,
-                Name = account.Name,
-                Surname = account.Surname,
-                Email = account.Email,
-                Address = account.Address,
-                PhoneNumber = account.PhoneNumber,
-                DateOfBirth = account.DateOfBirth,
-                Role = account.Role
-            };
-
-            return responseAccount;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while fetching account by email: {Message}", ex.Message);
-            throw;
-        }
-    }
-
     public async Task BanAccountAsync(string email, DateTime until, string reason)
     {
         try
         {
-            var account = await GetAccountByEmailAsModel(email);
-            account.BanAccount(until, reason);
-            _accountRepository.Update(account);
+            var account = await GetAccountByEmailAsEntity(email);
+            account.Data.BanAccount(until, reason);
+            _accountRepository.Update(account.Data);
             await _refreshTokenService.RevokeUserTokens(email, "Account banned");
             await _unitOfWork.Commit();
             _logger.LogInformation("Account banned successfully: {Account}", account);
@@ -209,9 +219,9 @@ public class AccountService : IAccountService
     {
         try
         {
-            var account = await GetAccountByEmailAsModel(email);
-            account.UnbanAccount();
-            _accountRepository.Update(account);
+            var account = await GetAccountByEmailAsEntity(email);
+            account.Data.UnbanAccount();
+            _accountRepository.Update(account.Data);
             await _refreshTokenService.RevokeUserTokens(email, "Account unbanned");
             await _unitOfWork.Commit();
             _logger.LogInformation("Account unbanned successfully: {Account}", account);

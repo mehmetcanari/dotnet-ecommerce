@@ -1,12 +1,13 @@
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.DTO.Response.Product;
+using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Abstract.Service;
 
 public interface IProductService
 {
-    Task<List<ProductResponseDto>> GetAllProductsAsync();
-    Task<ProductResponseDto> GetProductWithIdAsync(int requestId);
+    Task<Result<List<ProductResponseDto>>> GetAllProductsAsync();
+    Task<Result<ProductResponseDto>> GetProductWithIdAsync(int requestId);
     Task CreateProductAsync(ProductCreateRequestDto productCreateRequest);
     Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest);
     Task UpdateProductStockAsync(List<Domain.Model.BasketItem> basketItems);

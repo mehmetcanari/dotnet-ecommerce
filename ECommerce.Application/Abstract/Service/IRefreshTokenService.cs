@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
+using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Abstract.Service;
 
@@ -9,7 +10,7 @@ public interface IRefreshTokenService
     Task<RefreshToken> GenerateRefreshTokenAsync(string email, IList<string> roles);
     Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal, UserManager<IdentityUser> userManager);
     Task RevokeUserTokens(string email, string reason);
-    Task<RefreshToken> GetRefreshTokenFromCookie();
+    Task<Result<RefreshToken>> GetRefreshTokenFromCookie();
     void SetRefreshTokenCookie(RefreshToken refreshToken);
     void DeleteRefreshTokenCookie();
 }

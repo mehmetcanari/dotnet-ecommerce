@@ -1,8 +1,8 @@
 using ECommerce.Domain.Model;
-
+using ECommerce.Application.Utility;
 namespace ECommerce.Application.Abstract.Service;
 
 public interface IAccessTokenService
 {
-    Task<AccessToken> GenerateAccessTokenAsync(string email, IList<string> roles);
+    Result<AccessToken> GenerateAccessTokenAsync(string email, IList<string> roles);
 } 

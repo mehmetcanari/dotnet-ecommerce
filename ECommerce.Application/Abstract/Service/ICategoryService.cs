@@ -1,5 +1,6 @@
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Response.Category;
+using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Abstract.Service;
 
@@ -9,5 +10,5 @@ public interface ICategoryService
     Task DeleteCategoryAsync(int categoryId);
     Task UpdateCategoryAsync(int categoryId, UpdateCategoryRequestDto request);
     Task CategoryCacheInvalidateAsync();
-    Task<CategoryResponseDto> GetCategoryByIdAsync(int categoryId);
+    Task<Result<CategoryResponseDto>> GetCategoryByIdAsync(int categoryId);
 }

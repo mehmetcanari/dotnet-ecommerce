@@ -5,6 +5,7 @@ using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
+using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Services.Order;
 
@@ -53,7 +54,7 @@ public class OrderService : IOrderService
                 ?? throw new Exception("User not found");
 
             var basketItems = await GetUserBasketItemsAsync(email, account.Id);
-            var order = CreateOrder(account.Id, account.Address, basketItems);
+            var order = CreateOrder(account.Id, account.Address, basketItems.Data);
 
             string ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
             Buyer buyer = CreateBuyer(account, ipAddress);
@@ -61,7 +62,7 @@ public class OrderService : IOrderService
             Address shippingAddress = CreateAddress(account);
             Address billingAddress = CreateAddress(account);
 
-            Iyzipay.Model.Payment paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
+            Iyzipay.Model.Payment paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems.Data);
 
             if (paymentResult.Status != "success")
             {
@@ -72,7 +73,7 @@ public class OrderService : IOrderService
 
             await _orderRepository.Create(order);
             await _basketItemService.DeleteAllBasketItemsAsync(email);
-            await _productService.UpdateProductStockAsync(basketItems);
+            await _productService.UpdateProductStockAsync(basketItems.Data);
             await _unitOfWork.CommitTransactionAsync();
 
             _logger.LogInformation("Order added successfully: {Order}", order);
@@ -85,7 +86,7 @@ public class OrderService : IOrderService
         }
     }
 
-    private async Task<List<Domain.Model.BasketItem>> GetUserBasketItemsAsync(string email, int accountId)
+    private async Task<Result<List<Domain.Model.BasketItem>>> GetUserBasketItemsAsync(string email, int accountId)
     {
         var basketItems = await _basketItemRepository.Read();
         var userBasketItems = basketItems
@@ -96,10 +97,10 @@ public class OrderService : IOrderService
         if (userBasketItems.Count == 0)
         {
             _logger.LogWarning("No basket items found for this user: {Email}", email);
-            throw new Exception("No basket items found for this user");
+            return Result<List<Domain.Model.BasketItem>>.Failure("No basket items found for this user");
         }
 
-        return userBasketItems.Select(basketItem => new Domain.Model.BasketItem
+        var items = userBasketItems.Select(basketItem => new Domain.Model.BasketItem
         {
             AccountId = basketItem.AccountId,
             ProductId = basketItem.ProductId,
@@ -109,6 +110,8 @@ public class OrderService : IOrderService
             ProductName = basketItem.ProductName,
             IsOrdered = true
         }).ToList();
+
+        return Result<List<Domain.Model.BasketItem>>.Success(items);
     }
 
     private PaymentCard CreatePaymentCard(OrderCreateRequestDto orderCreateRequestDto)
@@ -219,17 +222,17 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
+    public async Task<Result<List<OrderResponseDto>>> GetAllOrdersAsync()
     {
         try
         {
             var orders = await _orderRepository.Read();
             if (orders.Count == 0)
             {
-                throw new Exception("No orders found");
+                return Result<List<OrderResponseDto>>.Failure("No orders found");
             }
 
-            return orders.Select(o => new OrderResponseDto
+            var items = orders.Select(o => new OrderResponseDto
             {
                 AccountId = o.AccountId,
                 BasketItems = o.BasketItems.Select(oi => new BasketItemResponseDto
@@ -245,15 +248,17 @@ public class OrderService : IOrderService
                 BillingAddress = o.BillingAddress,
                 Status = o.Status
             }).ToList();
+
+            return Result<List<OrderResponseDto>>.Success(items);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching all orders: {Message}", ex.Message);
-            throw;
+            return Result<List<OrderResponseDto>>.Failure("An unexpected error occurred");
         }
     }
 
-    public async Task<List<OrderResponseDto>> GetUserOrdersAsync(string email)
+    public async Task<Result<List<OrderResponseDto>>> GetUserOrdersAsync(string email)
     {
         try
         {
@@ -267,9 +272,9 @@ public class OrderService : IOrderService
             var orderedItems = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered)).ToList();
 
             if (orderedItems.Count == 0)
-                throw new Exception("No orders found for this user");
+                return Result<List<OrderResponseDto>>.Failure("No orders found for this user");
 
-            return orderedItems.Select(order => new OrderResponseDto
+            var items = orderedItems.Select(order => new OrderResponseDto
             {
                 AccountId = order.AccountId,
                 BasketItems = order.BasketItems.Select(oi => new BasketItemResponseDto
@@ -285,15 +290,17 @@ public class OrderService : IOrderService
                 BillingAddress = order.BillingAddress,
                 Status = order.Status
             }).ToList();
+
+            return Result<List<OrderResponseDto>>.Success(items);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching user orders: {Message}", ex.Message);
-            throw;
+            return Result<List<OrderResponseDto>>.Failure("An unexpected error occurred");
         }
     }
 
-    public async Task<OrderResponseDto> GetOrderByIdAsync(int id)
+    public async Task<Result<OrderResponseDto>> GetOrderByIdAsync(int id)
     {
         try
         {
@@ -318,12 +325,12 @@ public class OrderService : IOrderService
                 Status = order.Status
             };
 
-            return orderResponseDto;
+            return Result<OrderResponseDto>.Success(orderResponseDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
-            throw;
+            return Result<OrderResponseDto>.Failure("An unexpected error occurred");
         }
     }
 
