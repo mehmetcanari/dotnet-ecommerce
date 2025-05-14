@@ -8,8 +8,8 @@ public interface IOrderService
     Task<Result<List<OrderResponseDto>>> GetAllOrdersAsync();
     Task<Result<List<OrderResponseDto>>> GetUserOrdersAsync(string email);
     Task<Result<OrderResponseDto>> GetOrderByIdAsync(int id);
-    Task AddOrderAsync(OrderCreateRequestDto orderCreateRequestDto, string email);
-    Task CancelOrderAsync(string email);
-    Task DeleteOrderByIdAsync(int id);
-    Task UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateRequestDto orderUpdateRequestDto);
+    Task<Result> CreateOrderAsync(OrderCreateRequestDto orderCreateRequestDto, string email);
+    Task<Result> CancelOrderAsync(string email);
+    Task<Result> DeleteOrderByIdAsync(int id);
+    Task<Result> UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateRequestDto orderUpdateRequestDto);
 }

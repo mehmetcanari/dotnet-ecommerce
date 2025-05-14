@@ -2,8 +2,6 @@
 @route = api/v1/auth
 @no-redirect = true
 @no-cookie-jar = false
-@loginUser = variable value
-@accessToken = {{loginUser.response.body.$.authResponse.accessToken}}
 
 
 ### CREATE USER ACCOUNT
@@ -66,7 +64,6 @@ Content-Type: application/json
 
 ### LOGOUT USER
 POST {{baseUrl}}/{{route}}/logout
-Authorization: Bearer {{accessToken}}
 
 ### REFRESH TOKEN USER
 POST {{baseUrl}}/{{route}}/refresh-token

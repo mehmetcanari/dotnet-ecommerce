@@ -28,8 +28,8 @@ public class AdminCategoryController : ControllerBase
         }
         try
         {   
-            await _categoryService.CreateCategoryAsync(request);
-            return Ok(new { message = "Category created successfully" });
+            var result = await _categoryService.CreateCategoryAsync(request);
+            return Ok(new { message = "Category created successfully", data = result });
         }
         catch (Exception exception)
         {
@@ -42,8 +42,8 @@ public class AdminCategoryController : ControllerBase
     {
         try
         {
-            await _categoryService.DeleteCategoryAsync(id);
-            return Ok(new { message = "Category deleted successfully" });
+            var result = await _categoryService.DeleteCategoryAsync(id);
+            return Ok(new { message = "Category deleted successfully", data = result });
         }
         catch (Exception exception)
         {
@@ -56,8 +56,8 @@ public class AdminCategoryController : ControllerBase
     {
         try
         {
-            await _categoryService.UpdateCategoryAsync(id, request);
-            return Ok(new { message = "Category updated successfully" });
+            var result = await _categoryService.UpdateCategoryAsync(id, request);
+            return Ok(new { message = "Category updated successfully", data = result });
         }
         catch (Exception exception)
         {
@@ -71,7 +71,7 @@ public class AdminCategoryController : ControllerBase
         try
         {
             var category = await _categoryService.GetCategoryByIdAsync(id);
-            return Ok(category);
+            return Ok(new { message = "Category retrieved successfully", data = category });
         }
         catch (Exception exception)
         {

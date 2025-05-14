@@ -37,8 +37,8 @@ Authorization: Bearer {{ADMIN_TOKEN}}
   "Name": "Playstation 5",
   "Description": "Playstation 5 is a gaming console that is the latest in the Sony series",
   "Price": 499.99,
-  "StockQuantity": 10,
-  "DiscountRate": 25,
+  "StockQuantity": 2000,
+  "DiscountRate": 0,
   "ImageUrl": "https://via.placeholder.com/135",
   "CategoryId": 1
 }

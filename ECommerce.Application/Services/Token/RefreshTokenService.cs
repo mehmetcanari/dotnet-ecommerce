@@ -88,7 +88,7 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
-    public async Task RevokeUserTokens(string email, string reason)
+    public async Task<Result> RevokeUserTokens(string email, string reason)
     {
         try
         {
@@ -101,11 +101,12 @@ public class RefreshTokenService : IRefreshTokenService
 
             await _unitOfWork.Commit();
             _logger.LogInformation("User tokens revoked successfully: {Email}", email);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to revoke user tokens");
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
@@ -199,7 +200,7 @@ public class RefreshTokenService : IRefreshTokenService
 
             if (string.IsNullOrEmpty(refreshToken))
             {
-                throw new Exception("User is not logged in");
+                return Result<RefreshToken>.Failure("User is not logged in");
             }
 
             var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);

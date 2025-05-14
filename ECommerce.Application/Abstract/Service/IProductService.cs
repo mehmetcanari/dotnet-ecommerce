@@ -8,8 +8,8 @@ public interface IProductService
 {
     Task<Result<List<ProductResponseDto>>> GetAllProductsAsync();
     Task<Result<ProductResponseDto>> GetProductWithIdAsync(int requestId);
-    Task CreateProductAsync(ProductCreateRequestDto productCreateRequest);
-    Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest);
-    Task UpdateProductStockAsync(List<Domain.Model.BasketItem> basketItems);
-    Task DeleteProductAsync(int id);
+    Task<Result> CreateProductAsync(ProductCreateRequestDto productCreateRequest);
+    Task<Result> UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest);
+    Task<Result> UpdateProductStockAsync(List<Domain.Model.BasketItem> basketItems);
+    Task<Result> DeleteProductAsync(int id);
 }

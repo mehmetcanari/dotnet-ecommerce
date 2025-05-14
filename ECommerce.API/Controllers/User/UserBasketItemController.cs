@@ -59,8 +59,8 @@ public class UserBasketItemController : ControllerBase
 
         try
         {
-            await _basketItemService.CreateBasketItemAsync(createBasketItemRequest, userEmail);
-            return Created("basket", new { message = $"Basket item with product id {createBasketItemRequest.ProductId} created successfully" });
+            var result = await _basketItemService.CreateBasketItemAsync(createBasketItemRequest, userEmail);
+            return Created("basket", new { message = "Basket item created successfully", data = result });
         }
         catch (Exception exception)
         {
@@ -86,8 +86,8 @@ public class UserBasketItemController : ControllerBase
 
         try
         {
-            await _basketItemService.UpdateBasketItemAsync(basketItemRequestUpdateRequest, userEmail);
-            return Ok(new { message = $"Basket item with product id {basketItemRequestUpdateRequest.ProductId} updated successfully" });
+            var result = await _basketItemService.UpdateBasketItemAsync(basketItemRequestUpdateRequest, userEmail);
+            return Ok(new { message = "Basket item updated successfully", data = result });
         }
         catch (Exception exception)
         {
@@ -108,8 +108,8 @@ public class UserBasketItemController : ControllerBase
 
             var userEmail = userIdClaim.Value;
 
-            await _basketItemService.DeleteAllBasketItemsAsync(userEmail);
-            return Ok(new { message = "All basket items deleted successfully" });
+            var result = await _basketItemService.DeleteAllBasketItemsAsync(userEmail);
+            return Ok(new { message = "All basket items deleted successfully", data = result });
         }
         catch (Exception exception)
         {

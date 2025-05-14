@@ -24,7 +24,7 @@ public class UserCategoryController : ControllerBase
         try
         {
             var category = await _categoryService.GetCategoryByIdAsync(id);
-            return Ok(category);
+            return Ok(new { message = "Category retrieved successfully", data = category });
         }
         catch (Exception exception)
         {

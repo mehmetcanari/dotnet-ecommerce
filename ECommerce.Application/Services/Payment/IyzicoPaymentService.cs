@@ -4,6 +4,7 @@ using Iyzipay.Request;
 using System.Globalization;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Services.Payment;
 
@@ -23,7 +24,7 @@ public class IyzicoPaymentService : IPaymentService
         };
     }
 
-    public async Task<Iyzipay.Model.Payment> ProcessPaymentAsync(
+    public async Task<Result<Iyzipay.Model.Payment>> ProcessPaymentAsync(
         Domain.Model.Order order, 
         Domain.Model.Buyer buyer, 
         Domain.Model.Address shippingAddress, 
@@ -37,12 +38,12 @@ public class IyzicoPaymentService : IPaymentService
             Iyzipay.Model.Payment payment = await Iyzipay.Model.Payment.Create(request, _options);
             
             _logger.LogInformation("Payment processed: {PaymentStatus}", payment.Status);
-            return payment;
+            return Result<Iyzipay.Model.Payment>.Success(payment);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Payment processing failed: {Message}", ex.Message);
-            throw;
+            return Result<Iyzipay.Model.Payment>.Failure(ex.Message);
         }
     }
 

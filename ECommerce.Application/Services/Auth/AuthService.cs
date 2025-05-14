@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Auth;
+using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
@@ -35,7 +36,7 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    public async Task RegisterUserWithRoleAsync(AccountRegisterRequestDto registerRequestDto, string role)
+    public async Task<Result> RegisterUserWithRoleAsync(AccountRegisterRequestDto registerRequestDto, string role)
     {
         try
         {
@@ -43,7 +44,7 @@ public class AuthService : IAuthService
             if (existingUser != null)
             {
                 _logger.LogWarning("Registration failed - Email already exists: {Email}", registerRequestDto.Email);
-                throw new Exception("Email is already in use.");
+                return Result.Failure("Email is already in use.");
             }
 
             var user = new IdentityUser
@@ -56,7 +57,7 @@ public class AuthService : IAuthService
             var result = await _userManager.CreateAsync(user, registerRequestDto.Password);
             if (!result.Succeeded)
             {
-                throw new Exception("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                return Result.Failure("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
             }
 
             if (!await _roleManager.RoleExistsAsync(role))
@@ -64,51 +65,53 @@ public class AuthService : IAuthService
                 var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
                 if (!roleResult.Succeeded)
                 {
-                    throw new Exception($"Error creating {role} role.");
+                    return Result.Failure($"Error creating {role} role.");
                 }
             }
 
             var addRoleResult = await _userManager.AddToRoleAsync(user, role);
             if (!addRoleResult.Succeeded)
             {
-                throw new Exception("Error assigning role to user.");
+                return Result.Failure("Error assigning role to user.");
             }
 
             _logger.LogInformation("User {Email} registered successfully with role {Role}", registerRequestDto.Email, role);
 
             await _accountService.RegisterAccountAsync(registerRequestDto, role);
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error registering user: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task<AuthResponseDto> LoginAsync(AccountLoginRequestDto loginRequestDto)
+    public async Task<Result<AuthResponseDto>> LoginAsync(AccountLoginRequestDto loginRequestDto)
     {
         try
         {
             var (isValid, user) = await ValidateLoginProcess(loginRequestDto.Email, loginRequestDto.Password);
             if (!isValid || user == null)
             {
-                throw new Exception("Invalid email or password.");
+                return Result<AuthResponseDto>.Failure("Invalid email or password.");
             }
 
             var roles = await _userManager.GetRolesAsync(user);
 
             var authResponseDto = await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
             _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
-            return authResponseDto;
+            return Result<AuthResponseDto>.Success(authResponseDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error logging in: {Message}", ex.Message);
-            throw;
+            return Result<AuthResponseDto>.Failure(ex.Message);
         }
     }
 
-    public async Task<AuthResponseDto> GenerateAuthTokenAsync(RefreshToken cookieRefreshToken)
+    public async Task<Result<AuthResponseDto>> GenerateAuthTokenAsync(RefreshToken cookieRefreshToken)
     {
         try
         {
@@ -116,12 +119,13 @@ public class AuthService : IAuthService
 
             var (email, roles) = await _refreshTokenService.ValidateRefreshToken(identifier, _userManager);
 
-            return await RequestGenerateTokensAsync(email, roles);
+            var authResponseDto = await RequestGenerateTokensAsync(email, roles);
+            return Result<AuthResponseDto>.Success(authResponseDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error refreshing token for user");
-            throw;
+            return Result<AuthResponseDto>.Failure(ex.Message);
         }
     }
 
@@ -151,7 +155,7 @@ public class AuthService : IAuthService
     {
         try
         {
-            var account = await _accountService.GetAccountByEmailAsEntity(email);
+            var account = await _accountService.GetAccountByEmailAsEntityAsync(email);
 
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)

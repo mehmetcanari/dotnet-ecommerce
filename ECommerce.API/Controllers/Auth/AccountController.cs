@@ -35,8 +35,8 @@ public class AccountController : ControllerBase
 
             var userEmail = userIdClaim.Value;
 
-            var user = await _accountService.GetAccountByEmailAsync(userEmail);
-            return Ok(new { message = "User profile fetched successfully", user });
+            var user = await _accountService.GetAccountByEmailAsResponseAsync(userEmail);
+            return Ok(new { message = "User profile fetched successfully", data = user });
         }
         catch (Exception ex)
         {

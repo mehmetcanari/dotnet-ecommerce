@@ -53,8 +53,8 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            await _accountService.DeleteAccountAsync(id);
-            return Ok(new { message = $"Account with id {id} deleted successfully" });
+            var result = await _accountService.DeleteAccountAsync(id);
+            return Ok(new { message = $"Account with id {id} deleted successfully", data = result });
         }
         catch (Exception ex)
         {
@@ -67,8 +67,8 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            await _refreshTokenService.RevokeUserTokens(request.Email, "Admin revoked");
-            return Ok(new { message = $"{request.Email} tokens revoked successfully" });
+            var result = await _refreshTokenService.RevokeUserTokens(request.Email, "Admin revoked");
+            return Ok(new { message = $"{request.Email} tokens revoked successfully", data = result });
         }
         catch (Exception ex)
         {
@@ -81,8 +81,8 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            await _accountService.BanAccountAsync(request.Email, request.Until, request.Reason);
-            return Ok(new { message = $"{request.Email} account banned successfully" });
+            var result = await _accountService.BanAccountAsync(request.Email, request.Until, request.Reason);
+            return Ok(new { message = $"{request.Email} account banned successfully", data = result });
         }
         catch (Exception ex)
         {
@@ -95,8 +95,8 @@ public class AdminAccountController : ControllerBase
     {
         try
         {
-            await _accountService.UnbanAccountAsync(request.Email);
-            return Ok(new { message = $"{request.Email} account unbanned successfully" });
+            var result = await _accountService.UnbanAccountAsync(request.Email);
+            return Ok(new { message = $"{request.Email} account unbanned successfully", data = result });
         }
         catch (Exception ex)
         {

@@ -57,8 +57,8 @@ public class AdminProductController : ControllerBase
         
         try
         {
-            await _productService.CreateProductAsync(productCreateRequestRequest);
-            return Created($"products/{productCreateRequestRequest.Name}", new { message = $"Product with name {productCreateRequestRequest.Name} created successfully" });
+            var result = await _productService.CreateProductAsync(productCreateRequestRequest);
+            return Created($"products/{productCreateRequestRequest.Name}", new { message = $"Product with name {productCreateRequestRequest.Name} created successfully", data = result });
         }
         catch (Exception exception)
         {
@@ -76,8 +76,8 @@ public class AdminProductController : ControllerBase
         
         try
         {
-            await _productService.UpdateProductAsync(id, productUpdateRequestRequest);
-            return Ok(new { message = $"Product with id {id} updated successfully" });
+            var result = await _productService.UpdateProductAsync(id, productUpdateRequestRequest);
+            return Ok(new { message = $"Product with id {id} updated successfully", data = result });
         }
         catch (Exception exception)
         {
@@ -90,8 +90,8 @@ public class AdminProductController : ControllerBase
     {
         try
         {
-            await _productService.DeleteProductAsync(id);
-            return Ok(new { message = $"Product with id {id} deleted successfully" });
+            var result = await _productService.DeleteProductAsync(id);
+            return Ok(new { message = $"Product with id {id} deleted successfully", data = result });
         }
         catch (Exception exception)
         {

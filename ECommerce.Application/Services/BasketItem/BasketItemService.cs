@@ -76,7 +76,7 @@ public class BasketItemService : IBasketItemService
         }
     }
 
-    public async Task CreateBasketItemAsync(CreateBasketItemRequestDto createBasketItemRequestDto, string email)
+    public async Task<Result> CreateBasketItemAsync(CreateBasketItemRequestDto createBasketItemRequestDto, string email)
     {
         try
         {
@@ -87,7 +87,7 @@ public class BasketItemService : IBasketItemService
             var product = products.FirstOrDefault(p => p.ProductId == createBasketItemRequestDto.ProductId) ?? throw new Exception("Product not found");
 
             if (createBasketItemRequestDto.Quantity > product.StockQuantity)
-                throw new Exception("Not enough stock");
+                return Result.Failure("Not enough stock");
 
             var basketItem = new Domain.Model.BasketItem
             {
@@ -105,15 +105,16 @@ public class BasketItemService : IBasketItemService
             await _unitOfWork.Commit();
 
             _logger.LogInformation("Basket item created successfully: {BasketItem}", basketItem);
+            return Result.Success();
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while creating basket item");
-            throw;
+            return Result.Failure(exception.Message);
         }
     }
 
-    public async Task UpdateBasketItemAsync(UpdateBasketItemRequestDto updateBasketItemRequestDto, string email)
+    public async Task<Result> UpdateBasketItemAsync(UpdateBasketItemRequestDto updateBasketItemRequestDto, string email)
     {
         try
         {
@@ -134,7 +135,7 @@ public class BasketItemService : IBasketItemService
 
             if (updatedProduct.StockQuantity < updateBasketItemRequestDto.Quantity)
             {
-                throw new Exception("Not enough stock");
+                return Result.Failure("Not enough stock");
             }
 
             basketItem.Quantity = updateBasketItemRequestDto.Quantity;
@@ -148,15 +149,16 @@ public class BasketItemService : IBasketItemService
             await _unitOfWork.Commit();
 
             _logger.LogInformation("Basket item updated successfully: {BasketItem}", basketItem);
+            return Result.Success();
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while updating basket item");
-            throw;
+            return Result.Failure(exception.Message);
         }
     }
 
-    public async Task DeleteAllBasketItemsAsync(string email)
+    public async Task<Result> DeleteAllBasketItemsAsync(string email)
     {
         try
         {
@@ -167,7 +169,7 @@ public class BasketItemService : IBasketItemService
             var nonOrderedBasketItems = basketItems.Where(o => o.AccountId == tokenAccount.Id && o.IsOrdered == false).ToList();
 
             if (nonOrderedBasketItems.Count == 0)
-                throw new Exception("No basket items found to delete");
+                return Result.Failure("No basket items found to delete");
 
             foreach (var basketItem in nonOrderedBasketItems)
             {
@@ -178,11 +180,12 @@ public class BasketItemService : IBasketItemService
             await _unitOfWork.Commit();
 
             _logger.LogInformation("All basket items deleted successfully");
+            return Result.Success();
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while deleting basket items");
-            throw;
+            return Result.Failure(exception.Message);
         }
     }
 

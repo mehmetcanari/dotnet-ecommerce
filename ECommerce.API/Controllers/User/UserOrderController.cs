@@ -38,8 +38,8 @@ public class UserOrderController : ControllerBase
 
         try
         {
-            await _orderService.AddOrderAsync(orderCreateRequestDto, userEmail);
-            return Created("orders", new { message = "Order created successfully" });
+            var result = await _orderService.CreateOrderAsync(orderCreateRequestDto, userEmail);
+            return Created("orders", new { message = "Order created successfully", data = result });
         }
         catch (Exception exception)
         {
@@ -48,7 +48,7 @@ public class UserOrderController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetOrders()
+    public async Task<IActionResult> GetUserOrders()
     {
         try
         {
@@ -60,8 +60,8 @@ public class UserOrderController : ControllerBase
 
             var userEmail = userIdClaim.Value;
 
-            var order = await _orderService.GetUserOrdersAsync(userEmail);
-            return Ok(new { message = "Order fetched successfully", data = order });
+            var userOrders = await _orderService.GetUserOrdersAsync(userEmail);
+            return Ok(new { message = "Order fetched successfully", data = userOrders });
         }
         catch (Exception exception)
         {
@@ -82,8 +82,8 @@ public class UserOrderController : ControllerBase
 
             var userEmail = userIdClaim.Value;
 
-            await _orderService.CancelOrderAsync(userEmail);
-            return Ok(new { message = "Order cancelled successfully" });
+            var result = await _orderService.CancelOrderAsync(userEmail);
+            return Ok(new { message = "Order cancelled successfully", data = result });
         }
         catch (Exception exception)
         {

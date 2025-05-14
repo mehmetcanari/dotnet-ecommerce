@@ -23,14 +23,14 @@ public class CategoryService : ICategoryService
         _cacheService = cacheService;
     }
 
-    public async Task CreateCategoryAsync(CreateCategoryRequestDto request)
+    public async Task<Result> CreateCategoryAsync(CreateCategoryRequestDto request)
     {
         try
         {
             var categories = await _categoryRepository.Read();
             if (categories.Any(c => c.Name == request.Name))
             {
-                throw new Exception("Category already exists");
+                return Result.Failure("Category already exists");
             }
 
             var category = new Domain.Model.Category
@@ -43,15 +43,16 @@ public class CategoryService : ICategoryService
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
             _logger.LogInformation("Category created successfully");
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating category");
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task DeleteCategoryAsync(int categoryId)
+    public async Task<Result> DeleteCategoryAsync(int categoryId)
     {
         try
         {
@@ -60,22 +61,23 @@ public class CategoryService : ICategoryService
 
             if (category == null)
             {
-                throw new Exception("Category not found");
+                return Result.Failure("Category not found");
             }
 
             _categoryRepository.Delete(category);
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
             _logger.LogInformation("Category deleted successfully");
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting category");
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task UpdateCategoryAsync(int categoryId, UpdateCategoryRequestDto request)
+    public async Task<Result> UpdateCategoryAsync(int categoryId, UpdateCategoryRequestDto request)
     {
         try
         {
@@ -91,11 +93,12 @@ public class CategoryService : ICategoryService
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
             _logger.LogInformation("Category updated successfully");
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating category");
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 

@@ -28,14 +28,14 @@ public class AccountService : IAccountService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task RegisterAccountAsync(AccountRegisterRequestDto createUserRequestDto, string role)
+    public async Task<Result> RegisterAccountAsync(AccountRegisterRequestDto createUserRequestDto, string role)
     {
         try
         {
             var accounts = await _accountRepository.Read();
             if (accounts.Any(a => a.Email == createUserRequestDto.Email))
             {
-                throw new Exception("Email already exists in the system, try another email");
+                return Result.Failure("Email already exists in the system, try another email");
             }
 
             var account = new Domain.Model.Account
@@ -58,11 +58,13 @@ public class AccountService : IAccountService
             _logger.LogInformation("Account created successfully: {Account}", account);
             await _accountRepository.Create(account);
             await _unitOfWork.Commit();
+            
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while adding account: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
@@ -72,7 +74,7 @@ public class AccountService : IAccountService
         {
             var accounts = await _accountRepository.Read();
             var accountCount = accounts.Count;
-            if (accountCount < 1)
+            if (accountCount == 0)
             {
                 return Result<List<AccountResponseDto>>.Failure("No accounts found");
             }
@@ -98,7 +100,7 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<Result<Domain.Model.Account>> GetAccountByEmailAsEntity(string email)
+    public async Task<Result<Domain.Model.Account>> GetAccountByEmailAsEntityAsync(string email)
     {
         try
         {
@@ -117,7 +119,7 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<Result<AccountResponseDto>> GetResponseAccountByEmailAsync(string email)
+    public async Task<Result<AccountResponseDto>> GetAccountByEmailAsResponseAsync(string email)
     {
         try
         {
@@ -177,7 +179,7 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task DeleteAccountAsync(int id)
+    public async Task<Result> DeleteAccountAsync(int id)
     {
         try
         {
@@ -189,47 +191,53 @@ public class AccountService : IAccountService
             await _userManager.DeleteAsync(user);
             _accountRepository.Delete(account);
             await _unitOfWork.Commit();
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task BanAccountAsync(string email, DateTime until, string reason)
+    public async Task<Result> BanAccountAsync(string email, DateTime until, string reason)
     {
         try
         {
-            var account = await GetAccountByEmailAsEntity(email);
+            var account = await GetAccountByEmailAsEntityAsync(email);
             account.Data.BanAccount(until, reason);
             _accountRepository.Update(account.Data);
             await _refreshTokenService.RevokeUserTokens(email, "Account banned");
             await _unitOfWork.Commit();
             _logger.LogInformation("Account banned successfully: {Account}", account);
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while banning account: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task UnbanAccountAsync(string email)
+    public async Task<Result> UnbanAccountAsync(string email)
     {
         try
         {
-            var account = await GetAccountByEmailAsEntity(email);
+            var account = await GetAccountByEmailAsEntityAsync(email);
             account.Data.UnbanAccount();
             _accountRepository.Update(account.Data);
             await _refreshTokenService.RevokeUserTokens(email, "Account unbanned");
             await _unitOfWork.Commit();
             _logger.LogInformation("Account unbanned successfully: {Account}", account);
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while unbanning account: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 }

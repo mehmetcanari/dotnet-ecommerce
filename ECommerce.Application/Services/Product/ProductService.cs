@@ -33,19 +33,6 @@ public class ProductService : IProductService
         _unitOfWork = unitOfWork;
     }
 
-    private async Task ProductCacheInvalidateAsync()
-    {   
-        try
-        {
-            await _cacheService.RemoveAsync(AllProductsCacheKey);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while invalidating cache: {Message}", ex.Message);
-            throw;
-        }
-    }
-
     public async Task<Result<List<ProductResponseDto>>> GetAllProductsAsync()
     {
         try
@@ -120,7 +107,7 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task CreateProductAsync(ProductCreateRequestDto productCreateRequest)
+    public async Task<Result> CreateProductAsync(ProductCreateRequestDto productCreateRequest)
     {
         try
         {
@@ -129,7 +116,7 @@ public class ProductService : IProductService
 
             if (products.Any(p => p.Name == productCreateRequest.Name))
             {
-                throw new Exception("Product already exists in the database");
+                return Result.Failure("Product already exists in the database");
             }
 
             var product = new Domain.Model.Product
@@ -152,15 +139,16 @@ public class ProductService : IProductService
             await _categoryService.CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
             _logger.LogInformation("Product created successfully: {Product}", product);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest)
+    public async Task<Result> UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest)
     {
         try
         {
@@ -186,15 +174,16 @@ public class ProductService : IProductService
             await _unitOfWork.Commit();
 
             _logger.LogInformation("Product updated successfully: {Product}", product);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task DeleteProductAsync(int id)
+    public async Task<Result> DeleteProductAsync(int id)
     {
         try
         {
@@ -206,15 +195,16 @@ public class ProductService : IProductService
             await _categoryService.CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
             _logger.LogInformation("Product deleted successfully: {Product}", product);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task UpdateProductStockAsync(List<Domain.Model.BasketItem> basketItems)
+    public async Task<Result> UpdateProductStockAsync(List<Domain.Model.BasketItem> basketItems)
     {
         try
         {
@@ -225,7 +215,7 @@ public class ProductService : IProductService
 
                 if (cartProduct == null)
                 {
-                    throw new Exception($"Product with ID {basketItem.ProductId} not found in the database.");
+                    return Result.Failure($"Product with ID {basketItem.ProductId} not found in the database.");
                 }
 
                 var quantity = basketItem.Quantity;
@@ -237,10 +227,24 @@ public class ProductService : IProductService
             await _categoryService.CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
             _logger.LogInformation("Product stock updated successfully: {Products}", products);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while updating product stock: {Message}", ex.Message);
+            return Result.Failure(ex.Message);
+        }
+    }
+
+    private async Task ProductCacheInvalidateAsync()
+    {   
+        try
+        {
+            await _cacheService.RemoveAsync(AllProductsCacheKey);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while invalidating cache: {Message}", ex.Message);
             throw;
         }
     }

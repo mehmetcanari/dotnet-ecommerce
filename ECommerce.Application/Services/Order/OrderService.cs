@@ -43,7 +43,7 @@ public class OrderService : IOrderService
         _paymentService = paymentService;
     }
 
-    public async Task AddOrderAsync(OrderCreateRequestDto orderCreateRequestDto, string email)
+    public async Task<Result> CreateOrderAsync(OrderCreateRequestDto orderCreateRequestDto, string email)
     {
         try
         {
@@ -62,13 +62,13 @@ public class OrderService : IOrderService
             Address shippingAddress = CreateAddress(account);
             Address billingAddress = CreateAddress(account);
 
-            Iyzipay.Model.Payment paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems.Data);
+            var paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems.Data);
 
-            if (paymentResult.Status != "success")
+            if (paymentResult.Data.Status != "success")
             {
                 _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
-                    paymentResult.ErrorCode, paymentResult.ErrorMessage);
-                throw new Exception($"Payment failed: {paymentResult.ErrorMessage}");
+                    paymentResult.Data.ErrorCode, paymentResult.Data.ErrorMessage);
+                return Result.Failure($"Payment failed: {paymentResult.Data.ErrorMessage}");
             }
 
             await _orderRepository.Create(order);
@@ -77,12 +77,13 @@ public class OrderService : IOrderService
             await _unitOfWork.CommitTransactionAsync();
 
             _logger.LogInformation("Order added successfully: {Order}", order);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransaction();
             _logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
@@ -168,7 +169,7 @@ public class OrderService : IOrderService
         };
     }
 
-    public async Task CancelOrderAsync(string email)
+    public async Task<Result> CancelOrderAsync(string email)
     {
         try
         {
@@ -184,7 +185,7 @@ public class OrderService : IOrderService
 
             if (pendingOrders.Count == 0)
             {
-                throw new Exception("No pending orders found");
+                return Result.Failure("No pending orders found");
             }
 
             foreach (var order in pendingOrders)
@@ -196,15 +197,16 @@ public class OrderService : IOrderService
             await _unitOfWork.Commit();
 
             _logger.LogInformation("Orders cancelled successfully. Count: {Count}", pendingOrders.Count);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while cancelling orders: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
-    public async Task DeleteOrderByIdAsync(int id)
+    public async Task<Result> DeleteOrderByIdAsync(int id)
     {
         try
         {
@@ -214,11 +216,12 @@ public class OrderService : IOrderService
 
             await _unitOfWork.Commit();
             _logger.LogInformation("Order deleted successfully: {Order}", orderToDelete);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 
@@ -334,7 +337,7 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateRequestDto orderUpdateRequestDto)
+    public async Task<Result> UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateRequestDto orderUpdateRequestDto)
     {
         try
         {
@@ -345,11 +348,12 @@ public class OrderService : IOrderService
 
             await _unitOfWork.Commit();
             _logger.LogInformation("Order status updated successfully: {Order}", order);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while updating order status: {Message}", ex.Message);
-            throw;
+            return Result.Failure(ex.Message);
         }
     }
 }

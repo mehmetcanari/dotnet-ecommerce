@@ -52,8 +52,8 @@ public class AdminOrderController : ControllerBase
     {
         try
         {
-            await _orderService.DeleteOrderByIdAsync(id);
-            return Ok(new { message = "Order deleted successfully with id: " + id });
+            var result = await _orderService.DeleteOrderByIdAsync(id);
+            return Ok(new { message = "Order deleted successfully with id: " + id, data = result });
         }
         catch (Exception exception) 
         {
@@ -70,8 +70,8 @@ public class AdminOrderController : ControllerBase
         }
         try
         {
-            await _orderService.UpdateOrderStatusByAccountIdAsync(id, orderUpdateRequestDto);
-            return Ok(new { message = "Order status updated successfully with id: " + id });
+            var result = await _orderService.UpdateOrderStatusByAccountIdAsync(id, orderUpdateRequestDto);
+            return Ok(new { message = "Order status updated successfully with id: " + id, data = result });
         }
         catch (Exception exception)
         {

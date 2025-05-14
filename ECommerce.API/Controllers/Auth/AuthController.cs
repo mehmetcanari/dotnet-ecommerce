@@ -33,8 +33,8 @@ namespace ECommerce.API.Controllers.Auth
                     return BadRequest(ModelState);
                 }
 
-                await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "Admin");
-                return Ok(new { Message = "Admin user created successfully." });
+                var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "Admin");
+                return Ok(new { message = "Admin user created successfully.", data = result });
             }
             catch (Exception ex)
             {
@@ -54,8 +54,8 @@ namespace ECommerce.API.Controllers.Auth
                     return BadRequest(ModelState);
                 }
 
-                await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "User");
-                return Ok(new { Message = "User created successfully." });
+                var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "User");
+                return Ok(new { message = "User created successfully.", data = result });
             }
             catch (Exception ex)
             {
@@ -75,8 +75,8 @@ namespace ECommerce.API.Controllers.Auth
                     return BadRequest(ModelState);
                 }
 
-                var authResponse = await _authService.LoginAsync(accountLoginRequestDto);
-                return Ok(new { message = "Login successful", authResponse });
+                var loginResult = await _authService.LoginAsync(accountLoginRequestDto);
+                return Ok(new { message = "Login successful", data = loginResult });
             }
             catch (Exception ex)
             {
@@ -86,15 +86,18 @@ namespace ECommerce.API.Controllers.Auth
         }
 
         [HttpPost("logout")]
-        [Authorize]
         public async Task<IActionResult> Logout()
         {   
             try
             {
                 var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
-                await _refreshTokenService.RevokeUserTokens(cookieRefreshToken.Email, "Logout");
+                if (cookieRefreshToken.IsFailure)
+                {
+                    return BadRequest(cookieRefreshToken.Error);
+                }
+                var result = await _refreshTokenService.RevokeUserTokens(cookieRefreshToken.Data.Email, "Logout");
                 _refreshTokenService.DeleteRefreshTokenCookie();
-                return Ok(new { message = "Logout successful" });
+                return Ok(new { message = "Logout successful", data = result });
             }
             catch (Exception ex)
             {
@@ -110,7 +113,11 @@ namespace ECommerce.API.Controllers.Auth
             try
             {
                 var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
-                var authResponse = await _authService.GenerateAuthTokenAsync(cookieRefreshToken);
+                if (cookieRefreshToken.IsFailure)
+                {
+                    return BadRequest(cookieRefreshToken.Error);
+                }
+                var authResponse = await _authService.GenerateAuthTokenAsync(cookieRefreshToken.Data);
 
                 return Ok(new { message = "Token refreshed successfully", authResponse });
             }

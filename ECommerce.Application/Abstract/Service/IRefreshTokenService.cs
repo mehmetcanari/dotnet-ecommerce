@@ -9,7 +9,7 @@ public interface IRefreshTokenService
 {
     Task<RefreshToken> GenerateRefreshTokenAsync(string email, IList<string> roles);
     Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal, UserManager<IdentityUser> userManager);
-    Task RevokeUserTokens(string email, string reason);
+    Task<Result> RevokeUserTokens(string email, string reason);
     Task<Result<RefreshToken>> GetRefreshTokenFromCookie();
     void SetRefreshTokenCookie(RefreshToken refreshToken);
     void DeleteRefreshTokenCookie();

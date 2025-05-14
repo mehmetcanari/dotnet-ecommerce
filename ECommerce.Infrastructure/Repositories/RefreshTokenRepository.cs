@@ -55,7 +55,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             var refreshToken = await query
                 .AsNoTracking()
-                .FirstOrDefaultAsync(rt => rt.Token == token && rt.IsExpired == false);
+                .FirstOrDefaultAsync(rt => rt.Token == token && rt.Expires > DateTime.UtcNow && rt.Revoked == null);
 
             if (refreshToken == null)
             {
