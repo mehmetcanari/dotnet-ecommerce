@@ -8,7 +8,9 @@ using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using ECommerce.API.API.Middleware;
 using ECommerce.Infrastructure.Context;
+using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
 using Serilog.Events;
 
@@ -270,8 +272,9 @@ internal static class Program
 
         #endregion
 
-        #region App Configurations
-
+        #region Middlewares
+        app.UseMiddleware<GlobalExceptionMiddleware>();
+        
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -281,7 +284,7 @@ internal static class Program
                 c.RoutePrefix = string.Empty;
             });
         }
-            
+        
         app.UseSerilogRequestLogging();
         app.UseRateLimiter();
         app.UseAuthentication();
