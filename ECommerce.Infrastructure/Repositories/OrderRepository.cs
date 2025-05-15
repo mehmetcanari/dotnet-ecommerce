@@ -101,6 +101,7 @@ public class OrderRepository : IOrderRepository
 
             var orders = await query
                 .Where(o => o.AccountId == accountId)
+                .Include(o => o.BasketItems)
                 .AsNoTracking()
                 .ToListAsync();
 

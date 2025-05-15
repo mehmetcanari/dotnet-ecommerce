@@ -56,7 +56,12 @@ public class OrderService : IOrderService
                 return Result.Failure("Account not found");
             }
 
-            var basketItems = await GetUserBasketItemsAsync(email, account.Id);
+            var basketItems = await GetUserBasketItemsAsync(email);
+            if (basketItems.IsFailure)
+            {
+                _logger.LogWarning("Failed to get basket items: {ErrorMessage}", basketItems.Error);
+                return Result.Failure(basketItems.Error);
+            }
             var order = CreateOrder(account.Id, account.Address, basketItems.Data);
 
             string ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
@@ -90,7 +95,7 @@ public class OrderService : IOrderService
         }
     }
 
-    private async Task<Result<List<Domain.Model.BasketItem>>> GetUserBasketItemsAsync(string email, int accountId)
+    private async Task<Result<List<Domain.Model.BasketItem>>> GetUserBasketItemsAsync(string email)
     {
         var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
