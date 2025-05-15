@@ -33,6 +33,42 @@ public class ProductRepository : IProductRepository
             throw new Exception("An unexpected error occurred", ex);
         }
     }
+    
+    public async Task<Product?> GetProductById(int id)
+    {
+        try
+        {
+            var product = await _context.Products
+                .AsNoTracking()
+                .Where(p => p.ProductId == id)
+                .FirstOrDefaultAsync();
+
+            return product;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while retrieving product by id: {Id}", id);
+            throw new Exception($"An unexpected error occurred while retrieving product by id: {id}", ex);
+        }
+    }
+    
+    public async Task<bool> CheckProductExistsWithName(string name)
+    {
+        try
+        {
+            var product = await _context.Products
+                .AsNoTracking()
+                .Where(p => p.Name == name)
+                .FirstOrDefaultAsync();
+
+            return product != null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred");
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
 
     public async Task Create(Product product)
     {

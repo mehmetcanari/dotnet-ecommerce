@@ -35,6 +35,83 @@ public class OrderRepository : IOrderRepository
             throw new Exception("An unexpected error occurred", ex);
         }
     }
+    
+    public async Task<List<Order>> GetAccountPendingOrders(int accountId)
+    {
+        try
+        {
+            IQueryable<Order> query = _context.Orders;
+
+            var orders = await query
+                .Where(o => o.AccountId == accountId && o.Status == OrderStatus.Pending)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return orders;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred");
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
+    
+    public async Task<Order?> GetOrderById(int id)
+    {
+        try
+        {
+            var order = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.OrderId == id)
+                .Include(o => o.BasketItems)
+                .FirstOrDefaultAsync();
+
+            return order;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while retrieving order by id: {Id}", id);
+            throw new Exception($"An unexpected error occurred while retrieving order by id: {id}", ex);
+        }
+    }
+
+    public async Task<Order?> GetOrderByAccountId(int accountId)
+    {
+        try
+        {
+            var order = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.AccountId == accountId)
+                .FirstOrDefaultAsync();
+
+            return order;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while retrieving order by account id: {AccountId}", accountId);
+            throw new Exception($"An unexpected error occurred while retrieving order by account id: {accountId}", ex);
+        }
+    }
+    
+    public async Task<List<Order?>> GetAccountOrders(int accountId)
+    {
+        try
+        {
+            IQueryable<Order> query = _context.Orders;
+
+            var orders = await query
+                .Where(o => o.AccountId == accountId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return orders;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred");
+            throw new Exception("An unexpected error occurred", ex);
+        }
+    }
 
     public async Task Create(Order order)
     {

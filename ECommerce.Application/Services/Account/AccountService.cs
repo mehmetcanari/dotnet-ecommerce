@@ -32,10 +32,11 @@ public class AccountService : IAccountService
     {
         try
         {
-            var accounts = await _accountRepository.Read();
-            if (accounts.Any(a => a.Email == createUserRequestDto.Email))
+            var accounts = await _accountRepository.GetAccountByEmail(createUserRequestDto.Email);
+            if (accounts != null)
             {
-                return Result.Failure("Email already exists in the system, try another email");
+                _logger.LogWarning("Registration failed - Email already exists: {Email}", createUserRequestDto.Email);
+                return Result.Failure("Email is already in use.");
             }
 
             var account = new Domain.Model.Account
@@ -123,10 +124,12 @@ public class AccountService : IAccountService
     {
         try
         {
-            var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.Email == email) ??
-                          throw new Exception($"User with email {email} not found");
-
+            var account = await _accountRepository.GetAccountByEmail(email); 
+            if (account == null)
+            {
+                return Result<AccountResponseDto>.Failure($"User with email {email} not found");
+            }
+            
             var responseAccount = new AccountResponseDto
             {
                 Id = account.Id,
@@ -183,8 +186,12 @@ public class AccountService : IAccountService
     {
         try
         {
-            var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.Id == id) ?? throw new Exception("User not found");
+            var account = await _accountRepository.GetAccountById(id);
+            if (account == null)
+            {
+                return Result.Failure("Account not found");
+            }
+            
             var user = await _userManager.FindByEmailAsync(account.Email) ?? throw new Exception("User not found");
             
             _logger.LogInformation("Account deleted successfully: {Account}", account);
@@ -205,9 +212,14 @@ public class AccountService : IAccountService
     {
         try
         {
-            var account = await GetAccountByEmailAsEntityAsync(email);
-            account.Data.BanAccount(until, reason);
-            _accountRepository.Update(account.Data);
+            var account = await _accountRepository.GetAccountByEmail(email);
+            if (account == null)
+            {
+                return Result.Failure("Account not found");
+            }
+            
+            account.BanAccount(until, reason);
+            _accountRepository.Update(account);
             await _refreshTokenService.RevokeUserTokens(email, "Account banned");
             await _unitOfWork.Commit();
             _logger.LogInformation("Account banned successfully: {Account}", account);
@@ -225,9 +237,14 @@ public class AccountService : IAccountService
     {
         try
         {
-            var account = await GetAccountByEmailAsEntityAsync(email);
-            account.Data.UnbanAccount();
-            _accountRepository.Update(account.Data);
+            var account = await _accountRepository.GetAccountByEmail(email);
+            if (account == null)
+            {
+                return Result.Failure("Account not found");
+            }
+            
+            account.UnbanAccount();
+            _accountRepository.Update(account);
             await _refreshTokenService.RevokeUserTokens(email, "Account unbanned");
             await _unitOfWork.Commit();
             _logger.LogInformation("Account unbanned successfully: {Account}", account);

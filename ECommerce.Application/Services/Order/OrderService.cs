@@ -49,9 +49,12 @@ public class OrderService : IOrderService
         {
             await _unitOfWork.BeginTransactionAsync();
 
-            var accounts = await _accountRepository.Read();
-            var account = accounts.FirstOrDefault(a => a.Email == email)
-                ?? throw new Exception("User not found");
+            var account = await _accountRepository.GetAccountByEmail(email);
+            if (account == null)
+            {
+                _logger.LogWarning("Account not found: {Email}", email);
+                return Result.Failure("Account not found");
+            }
 
             var basketItems = await GetUserBasketItemsAsync(email, account.Id);
             var order = CreateOrder(account.Id, account.Address, basketItems.Data);
@@ -89,12 +92,14 @@ public class OrderService : IOrderService
 
     private async Task<Result<List<Domain.Model.BasketItem>>> GetUserBasketItemsAsync(string email, int accountId)
     {
-        var basketItems = await _basketItemRepository.Read();
-        var userBasketItems = basketItems
-            .Where(oi => oi.AccountId == accountId)
-            .Where(oi => oi.IsOrdered == false)
-            .ToList();
-
+        var account = await _accountRepository.GetAccountByEmail(email);
+        if (account == null)
+        {
+            _logger.LogWarning("Account not found: {Email}", email);
+            return Result<List<Domain.Model.BasketItem>>.Failure("Account not found");
+        }
+        
+        var userBasketItems = await _basketItemRepository.GetNonOrderedBasketItems(account);
         if (userBasketItems.Count == 0)
         {
             _logger.LogWarning("No basket items found for this user: {Email}", email);
@@ -173,15 +178,14 @@ public class OrderService : IOrderService
     {
         try
         {
-            var orders = await _orderRepository.Read();
-            var accounts = await _accountRepository.Read();
-
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                throw new Exception("Account not found");
-
-            var pendingOrders = orders
-                .Where(o => o.AccountId == tokenAccount.Id && o.Status == OrderStatus.Pending)
-                .ToList();
+            var tokenAccount = await _accountRepository.GetAccountByEmail(email);
+            if (tokenAccount == null)
+            {
+                _logger.LogWarning("Account not found: {Email}", email);
+                return Result.Failure("Account not found");
+            }
+            
+            var pendingOrders = await _orderRepository.GetAccountPendingOrders(tokenAccount.Id);
 
             if (pendingOrders.Count == 0)
             {
@@ -210,12 +214,17 @@ public class OrderService : IOrderService
     {
         try
         {
-            var orders = await _orderRepository.Read();
-            var orderToDelete = orders.FirstOrDefault(o => o.OrderId == id) ?? throw new Exception("Order not found");
-            _orderRepository.Delete(orderToDelete);
+            var activeOrder = await _orderRepository.GetOrderById(id);
+            if (activeOrder == null)
+            {
+                _logger.LogWarning("Order not found: {Id}", id);
+                return Result.Failure("Order not found");
+            }
+            
+            _orderRepository.Delete(activeOrder);
 
             await _unitOfWork.Commit();
-            _logger.LogInformation("Order deleted successfully: {Order}", orderToDelete);
+            _logger.LogInformation("Order deleted successfully: {Order}", activeOrder);
             return Result.Success();
         }
         catch (Exception ex)
@@ -265,19 +274,22 @@ public class OrderService : IOrderService
     {
         try
         {
-            var orders = await _orderRepository.Read();
-            var accounts = await _accountRepository.Read();
+            var tokenAccount = await _accountRepository.GetAccountByEmail(email);
+            if (tokenAccount == null)
+            {
+                _logger.LogWarning("Account not found: {Email}", email);
+                return Result<List<OrderResponseDto>>.Failure("Account not found");
+            }
 
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                               throw new Exception("Account not found");
-
-            var userOrders = orders.Where(o => o.AccountId == tokenAccount.Id).ToList();
-            var orderedItems = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered)).ToList();
-
-            if (orderedItems.Count == 0)
+            var userOrders = await _orderRepository.GetAccountOrders(tokenAccount.Id);
+            if (userOrders.Count == 0)
+            {
+                _logger.LogWarning("No orders found for this user: {Email}", email);
                 return Result<List<OrderResponseDto>>.Failure("No orders found for this user");
+            }
+            var purchasedOrders = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered)).ToList();
 
-            var items = orderedItems.Select(order => new OrderResponseDto
+            var items = purchasedOrders.Select(order => new OrderResponseDto
             {
                 AccountId = order.AccountId,
                 BasketItems = order.BasketItems.Select(oi => new BasketItemResponseDto
@@ -307,9 +319,12 @@ public class OrderService : IOrderService
     {
         try
         {
-            var orders = await _orderRepository.Read();
-            var order = orders.FirstOrDefault(o => o.OrderId == id) ??
-                        throw new Exception("Order not found");
+            var order = await _orderRepository.GetOrderById(id);
+            if (order == null)
+            {
+                _logger.LogWarning("Order not found: {Id}", id);
+                return Result<OrderResponseDto>.Failure("Order not found");
+            }
 
             OrderResponseDto orderResponseDto = new()
             {
@@ -341,8 +356,13 @@ public class OrderService : IOrderService
     {
         try
         {
-            var orders = await _orderRepository.Read();
-            var order = orders.FirstOrDefault(o => o.AccountId == accountId) ?? throw new Exception("Order not found");
+            var order = await _orderRepository.GetOrderByAccountId(accountId);
+            if (order == null)
+            {
+                _logger.LogWarning("Order not found for account id: {AccountId}", accountId);
+                return Result.Failure("Order not found");
+            }
+            
             order.Status = orderUpdateRequestDto.Status;
             _orderRepository.Update(order);
 

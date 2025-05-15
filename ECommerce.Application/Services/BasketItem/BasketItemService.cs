@@ -45,11 +45,13 @@ public class BasketItemService : IBasketItemService
                 return Result<List<BasketItemResponseDto>>.Success(cachedItems);
             }
 
-            var accounts = await _accountRepository.Read();
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                        throw new Exception("Account not found");
-            var basketItems = await _basketItemRepository.Read();
-            var nonOrderedBasketItems = basketItems.Where(o => o.AccountId == tokenAccount.Id && o.IsOrdered == false).ToList();
+            var account = await _accountRepository.GetAccountByEmail(email);
+            if (account == null)
+            {
+                return Result<List<BasketItemResponseDto>>.Failure("Account not found");
+            }
+            
+            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItems(account);
             if (nonOrderedBasketItems.Count == 0)
             {
                 return Result<List<BasketItemResponseDto>>.Failure("No basket items found.");
@@ -80,18 +82,21 @@ public class BasketItemService : IBasketItemService
     {
         try
         {
-            var products = await _productRepository.Read();
-            var accounts = await _accountRepository.Read();
-
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ?? throw new Exception("Account not found");
-            var product = products.FirstOrDefault(p => p.ProductId == createBasketItemRequestDto.ProductId) ?? throw new Exception("Product not found");
+            var product = await _productRepository.GetProductById(createBasketItemRequestDto.ProductId);
+            var userAccount = await _accountRepository.GetAccountByEmail(email);
+            
+            if (userAccount == null)
+                return Result.Failure("Account not found");
+            
+            if (product == null)
+                return Result.Failure("Product not found");
 
             if (createBasketItemRequestDto.Quantity > product.StockQuantity)
                 return Result.Failure("Not enough stock");
 
             var basketItem = new Domain.Model.BasketItem
             {
-                AccountId = tokenAccount.Id,
+                AccountId = userAccount.Id,
                 ExternalId = Guid.NewGuid().ToString(),
                 Quantity = createBasketItemRequestDto.Quantity,
                 ProductId = product.ProductId,
@@ -118,30 +123,27 @@ public class BasketItemService : IBasketItemService
     {
         try
         {
-            var products = await _productRepository.Read();
-            var basketItems = await _basketItemRepository.Read();
-            var accounts = await _accountRepository.Read();
+            var account = await _accountRepository.GetAccountByEmail(email);
+            if (account == null)
+                return Result.Failure("Account not found");
+            
+            var basketItem = await _basketItemRepository.GetSpecificAccountBasketItemWithId(updateBasketItemRequestDto.BasketItemId, account);
+            if (basketItem == null)
+                return Result.Failure("Basket item not found");
 
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                        throw new Exception("Account not found");
+            var product = await _productRepository.GetProductById(updateBasketItemRequestDto.ProductId);
+            if (product == null)
+                return Result.Failure("Product not found");
 
-            var basketItem = basketItems.FirstOrDefault(p =>
-                                p.BasketItemId == updateBasketItemRequestDto.BasketItemId &&
-                                p.AccountId == tokenAccount.Id) ??
-                            throw new Exception("Basket item not found");
-
-            var updatedProduct = products.FirstOrDefault(p => p.ProductId == updateBasketItemRequestDto.ProductId) ??
-                          throw new Exception("Product not found");
-
-            if (updatedProduct.StockQuantity < updateBasketItemRequestDto.Quantity)
+            if (product.StockQuantity < updateBasketItemRequestDto.Quantity)
             {
                 return Result.Failure("Not enough stock");
             }
 
             basketItem.Quantity = updateBasketItemRequestDto.Quantity;
             basketItem.ProductId = updateBasketItemRequestDto.ProductId;
-            basketItem.ProductName = updatedProduct.Name;
-            basketItem.UnitPrice = updatedProduct.Price;
+            basketItem.ProductName = product.Name;
+            basketItem.UnitPrice = product.Price;
             basketItem.IsOrdered = false;
 
             _basketItemRepository.Update(basketItem);
@@ -162,11 +164,11 @@ public class BasketItemService : IBasketItemService
     {
         try
         {
-            var basketItems = await _basketItemRepository.Read();
-            var accounts = await _accountRepository.Read();
-            var tokenAccount = accounts.FirstOrDefault(a => a.Email == email) ??
-                        throw new Exception("Account not found");
-            var nonOrderedBasketItems = basketItems.Where(o => o.AccountId == tokenAccount.Id && o.IsOrdered == false).ToList();
+            var tokenAccount = await _accountRepository.GetAccountByEmail(email);
+            if (tokenAccount == null)
+                return Result.Failure("Account not found");
+            
+            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItems(tokenAccount);
 
             if (nonOrderedBasketItems.Count == 0)
                 return Result.Failure("No basket items found to delete");
@@ -193,11 +195,14 @@ public class BasketItemService : IBasketItemService
     {
         try
         {
-            var basketItems = await _basketItemRepository.Read();
-            var nonOrderedBasketItems = basketItems.Where(o => o.IsOrdered == false).ToList();
+            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItemIncludeSpecificProduct(updatedProduct.ProductId);
+            if (nonOrderedBasketItems == null || nonOrderedBasketItems.Count == 0)
+            {
+                _logger.LogInformation("No non-ordered basket items found for product: {ProductId}", updatedProduct.ProductId);
+                return;
+            }
 
-            var basketItem = nonOrderedBasketItems.FirstOrDefault(i => i.ProductId == updatedProduct.ProductId);
-            if (basketItem != null)
+            foreach (var basketItem in nonOrderedBasketItems)
             {
                 _basketItemRepository.Delete(basketItem);
             }

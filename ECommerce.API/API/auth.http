@@ -13,7 +13,7 @@ Content-Type: application/json
     "name": "Test User Name",
     "surname": "Test User Surname",
     "email": "user@system.com",
-    "identityNumber": "10030425858",
+    "identityNumber": "12345678901",
     "city": "Istanbul",
     "country": "TR",
     "zipCode": "34343",

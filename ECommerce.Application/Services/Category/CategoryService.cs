@@ -27,8 +27,8 @@ public class CategoryService : ICategoryService
     {
         try
         {
-            var categories = await _categoryRepository.Read();
-            if (categories.Any(c => c.Name == request.Name))
+            var categoryExist = await _categoryRepository.CheckCategoryExistsWithName(request.Name);
+            if (categoryExist)
             {
                 return Result.Failure("Category already exists");
             }
@@ -56,14 +56,12 @@ public class CategoryService : ICategoryService
     {
         try
         {
-            var categories = await _categoryRepository.Read();
-            var category = categories.FirstOrDefault(c => c.CategoryId == categoryId);
-
+            var category = await _categoryRepository.GetCategoryById(categoryId);
             if (category == null)
             {
                 return Result.Failure("Category not found");
             }
-
+            
             _categoryRepository.Delete(category);
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
@@ -81,9 +79,11 @@ public class CategoryService : ICategoryService
     {
         try
         {
-            var categories = await _categoryRepository.Read();
-            var category = categories.FirstOrDefault(c => c.CategoryId == categoryId) 
-                           ?? throw new Exception("Category not found");
+            var category = await _categoryRepository.GetCategoryById(categoryId);
+            if (category == null)
+            {
+                return Result.Failure("Category not found");
+            }
 
             category.Name = request.Name;
             category.Description = request.Description;
@@ -113,9 +113,11 @@ public class CategoryService : ICategoryService
                 return Result<CategoryResponseDto>.Success(cachedCategory);
             }
 
-            var categories = await _categoryRepository.Read();
-            var category = categories.FirstOrDefault(c => c.CategoryId == categoryId) 
-                           ?? throw new Exception("Category not found");
+            var category = await _categoryRepository.GetCategoryById(categoryId);
+            if (category == null)
+            {
+                return Result<CategoryResponseDto>.Failure("Category not found");
+            }
 
             var categoryResponseDto = new CategoryResponseDto
             {

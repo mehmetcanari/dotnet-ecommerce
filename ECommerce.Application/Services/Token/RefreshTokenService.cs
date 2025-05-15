@@ -92,14 +92,16 @@ public class RefreshTokenService : IRefreshTokenService
     {
         try
         {
-            var tokens = await _refreshTokenRepository.GetUserTokensAsync(email);
-            var activeToken = tokens.FirstOrDefault(t => t is { IsExpired: false, IsRevoked: false });
-            if (activeToken is not null)
+            var token = await _refreshTokenRepository.GetActiveUserTokenAsync(email);
+            if (token == null)
             {
-                _refreshTokenRepository.Revoke(activeToken, reason);
+                _logger.LogWarning("No active refresh token found for user: {Email}", email);
+                return Result.Failure("No active refresh token found");
             }
 
+            _refreshTokenRepository.Revoke(token, reason);
             await _unitOfWork.Commit();
+            
             _logger.LogInformation("User tokens revoked successfully: {Email}", email);
             return Result.Success();
         }
@@ -204,6 +206,11 @@ public class RefreshTokenService : IRefreshTokenService
             }
 
             var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+            if (token == null)
+            {
+                return Result<RefreshToken>.Failure("Refresh token not found");
+            }
+            
             return Result<RefreshToken>.Success(token);
         }
         catch (Exception ex)

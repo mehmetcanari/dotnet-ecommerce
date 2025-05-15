@@ -61,7 +61,8 @@ public class AccountRepository : IAccountRepository
         {
             var account = await _context.Accounts
                 .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .Where(a => a.Id == id)
+                .FirstOrDefaultAsync();
 
             return account;
         }

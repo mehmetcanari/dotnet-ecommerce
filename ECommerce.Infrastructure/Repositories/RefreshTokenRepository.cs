@@ -28,17 +28,19 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             throw new Exception("An unexpected error occurred", ex);
         }
     }
-
-    public async Task<IEnumerable<RefreshToken>> GetUserTokensAsync(string email)
+    
+    public async Task<RefreshToken?> GetActiveUserTokenAsync(string email)
     {
         try
         {
             IQueryable<RefreshToken> query = _context.RefreshTokens;
 
-            return await query
+            var refreshToken = await query
                 .AsNoTracking()
-                .Where(rt => rt.Email == email)
-                .ToListAsync();
+                .Where(rt => rt.Email == email && rt.Expires > DateTime.UtcNow && rt.Revoked == null)
+                .FirstOrDefaultAsync();
+            
+            return refreshToken;
         }
         catch (Exception ex)
         {
@@ -47,7 +49,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
     }
 
-    public async Task<RefreshToken> GetByTokenAsync(string token)
+    public async Task<RefreshToken?> GetByTokenAsync(string token)
     {
         try
         {
@@ -56,11 +58,6 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             var refreshToken = await query
                 .AsNoTracking()
                 .FirstOrDefaultAsync(rt => rt.Token == token && rt.Expires > DateTime.UtcNow && rt.Revoked == null);
-
-            if (refreshToken == null)
-            {
-                throw new Exception("Refresh token not found");
-            }
 
             return refreshToken;
         }

@@ -11,6 +11,7 @@ public class ProductService : IProductService
     private readonly IProductRepository _productRepository;
     private readonly IBasketItemService _basketItemService;
     private readonly ICategoryService _categoryService;
+    private readonly ICategoryRepository _categoryRepository;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
     private readonly IUnitOfWork _unitOfWork;
@@ -23,7 +24,8 @@ public class ProductService : IProductService
         IBasketItemService basketItemService, 
         ILoggingService logger, 
         ICacheService cacheService, 
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork, 
+        ICategoryRepository categoryRepository)
     {
         _productRepository = productRepository;
         _categoryService = categoryService;
@@ -31,6 +33,7 @@ public class ProductService : IProductService
         _cacheService = cacheService;
         _logger = logger;
         _unitOfWork = unitOfWork;
+        _categoryRepository = categoryRepository;
     }
 
     public async Task<Result<List<ProductResponseDto>>> GetAllProductsAsync()
@@ -51,7 +54,7 @@ public class ProductService : IProductService
                 throw new Exception("No products found");
             }
 
-            var productResponseDtos = products.Select(p => new ProductResponseDto
+            var productResponses = products.Select(p => new ProductResponseDto
             {
                 ProductName = p.Name,
                 Description = p.Description,
@@ -62,8 +65,8 @@ public class ProductService : IProductService
                 CategoryId = p.CategoryId
             }).ToList();
 
-            await _cacheService.SetAsync(AllProductsCacheKey, productResponseDtos, expirationTime);
-            return Result<List<ProductResponseDto>>.Success(productResponseDtos);
+            await _cacheService.SetAsync(AllProductsCacheKey, productResponses, expirationTime);
+            return Result<List<ProductResponseDto>>.Success(productResponses);
         }
         catch (Exception ex)
         {
@@ -72,19 +75,23 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<Result<ProductResponseDto>> GetProductWithIdAsync(int requestId)
+    public async Task<Result<ProductResponseDto>> GetProductWithIdAsync(int productId)
     {
         try
         {
             var expirationTime = TimeSpan.FromMinutes(60);
-            var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, requestId));
+            var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, productId));
             if (cachedProduct != null)
             {
                 return Result<ProductResponseDto>.Success(cachedProduct);
             }
 
-            var products = await _productRepository.Read();
-            var product = products.FirstOrDefault(p => p.ProductId == requestId) ?? throw new Exception("Product not found");
+            var product = await _productRepository.GetProductById(productId);
+            if (product == null)
+            {
+                _logger.LogWarning("Product with id {Id} not found", productId);
+                return Result<ProductResponseDto>.Failure("Product not found");
+            }
             
             var productResponse = new ProductResponseDto
             {
@@ -97,7 +104,7 @@ public class ProductService : IProductService
                 CategoryId = product.CategoryId
             };
 
-            await _cacheService.SetAsync(string.Format(ProductCacheKey, requestId), productResponse, expirationTime);
+            await _cacheService.SetAsync(string.Format(ProductCacheKey, productId), productResponse, expirationTime);
             return Result<ProductResponseDto>.Success(productResponse);
         }
         catch (Exception ex)
@@ -111,12 +118,16 @@ public class ProductService : IProductService
     {
         try
         {
-            var category = await _categoryService.GetCategoryByIdAsync(productCreateRequest.CategoryId);
-            var products = await _productRepository.Read();
-
-            if (products.Any(p => p.Name == productCreateRequest.Name))
+            var category = await _categoryRepository.GetCategoryById(productCreateRequest.CategoryId);
+            if (category == null)
             {
-                return Result.Failure("Product already exists in the database");
+                return Result.Failure("Category not found");
+            }
+            
+            var existingProduct = await _productRepository.CheckProductExistsWithName(productCreateRequest.Name);
+            if (existingProduct)
+            {
+                return Result.Failure("Product with this name already exists");
             }
 
             var product = new Domain.Model.Product
@@ -129,7 +140,7 @@ public class ProductService : IProductService
                 StockQuantity = productCreateRequest.StockQuantity,
                 ProductCreated = DateTime.UtcNow,
                 ProductUpdated = DateTime.UtcNow,
-                CategoryId = category.Data.CategoryId
+                CategoryId = category.CategoryId
             };
 
             product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
@@ -152,9 +163,18 @@ public class ProductService : IProductService
     {
         try
         {
-            var category = await _categoryService.GetCategoryByIdAsync(productUpdateRequest.CategoryId);
-            var products = await _productRepository.Read();
-            var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
+            var category = await _categoryRepository.GetCategoryById(productUpdateRequest.CategoryId);
+            var product = await _productRepository.GetProductById(id);
+            
+            if (category == null)
+            {
+                return Result.Failure("Category not found");
+            }
+            
+            if (product == null)
+            {
+                return Result.Failure("Product not found");
+            }
 
             product.Name = productUpdateRequest.Name;
             product.Description = productUpdateRequest.Description;
@@ -163,7 +183,7 @@ public class ProductService : IProductService
             product.ImageUrl = productUpdateRequest.ImageUrl;
             product.StockQuantity = productUpdateRequest.StockQuantity;
             product.ProductUpdated = DateTime.UtcNow;
-            product.CategoryId = category.Data.CategoryId;
+            product.CategoryId = category.CategoryId;
             product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
             _productRepository.Update(product);
@@ -187,8 +207,11 @@ public class ProductService : IProductService
     {
         try
         {
-            var products = await _productRepository.Read();
-            var product = products.FirstOrDefault(p => p.ProductId == id) ?? throw new Exception("Product not found");
+            var product = await _productRepository.GetProductById(id);
+            if (product == null)
+            {
+                return Result.Failure("Product not found");
+            }
 
             _productRepository.Delete(product);
             await ProductCacheInvalidateAsync();
@@ -208,10 +231,9 @@ public class ProductService : IProductService
     {
         try
         {
-            var products = await _productRepository.Read();
             foreach (var basketItem in basketItems)
             {
-                var cartProduct = products.FirstOrDefault(p => p.ProductId == basketItem.ProductId);
+                var cartProduct = await _productRepository.GetProductById(basketItem.ProductId);
 
                 if (cartProduct == null)
                 {
@@ -226,7 +248,7 @@ public class ProductService : IProductService
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
-            _logger.LogInformation("Product stock updated successfully: {Products}", products);
+            _logger.LogInformation("Product stock updated successfully: {Products}", basketItems);
             return Result.Success();
         }
         catch (Exception ex)

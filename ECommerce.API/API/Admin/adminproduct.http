@@ -18,10 +18,10 @@ Content-Type: application/json
 Authorization: Bearer {{ADMIN_TOKEN}}
 
 {
-  "Name": "Playstation 5",
-  "Description": "Playstation 5 is a gaming console that is the latest in the Sony series",
+  "Name": "Xbox One",
+  "Description": "Xbox One is a gaming console that is the latest in the Microsoft series",
   "Price": 499.99,
-  "StockQuantity": 10,
+  "StockQuantity": 20,
   "DiscountRate": 0,
   "ImageUrl": "https://via.placeholder.com/135",
   "CategoryId": 1

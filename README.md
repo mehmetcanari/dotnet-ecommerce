@@ -125,25 +125,30 @@ IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
 ### Authentication Endpoints
 ```http
 ### User Registration
-POST {{baseUrl}}/api/auth/create-user
+POST {{baseUrl}}/{{route}}/create-user
 Content-Type: application/json
 
 {
-  "fullName": "John Doe",
-  "email": "user@example.com",
-  "password": "P@ssw0rd123",
-  "address": "Istanbul",
-  "phoneNumber": "5551234567",
-  "dateOfBirth": "1990-01-01"
+    "name": "Test User Name",
+    "surname": "Test User Surname",
+    "email": "user@system.com",
+    "identityNumber": "12345678901",
+    "city": "Istanbul",
+    "country": "TR",
+    "zipCode": "34343",
+    "address": "Istanbul, TR",
+    "password": "UserPassword123!",
+    "phoneNumber": "9876543210",
+    "dateOfBirth": "1999-03-24"
 }
 
 ### Login
-POST {{baseUrl}}/api/auth/login
+POST {{baseUrl}}/{{route}}/login
 Content-Type: application/json
 
 {
-  "email": "user@example.com",
-  "password": "P@ssw0rd123"
+  "email": "user@system.com",  
+  "password": "UserPassword123!"
 }
 
 ### Token Refresh
