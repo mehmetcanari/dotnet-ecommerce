@@ -92,16 +92,6 @@ Docker Compose simplifies the process of running the application and its depende
    docker compose down
    ```
 
-4. **View Logs**:
-   ```bash
-   docker compose logs ecommerce-api
-   ```
-
-5. **Rebuild Containers**:
-   ```bash
-   docker compose up --build
-   ```
-
 ## 🔑 Environment Variables
 Set the following environment variables before running the project:
 ```
