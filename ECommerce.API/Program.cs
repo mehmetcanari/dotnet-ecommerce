@@ -273,7 +273,7 @@ internal static class Program
         #endregion
 
         #region Middlewares
-        app.UseMiddleware<GlobalExceptionMiddleware>();
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
         
         if (app.Environment.IsDevelopment())
         {
