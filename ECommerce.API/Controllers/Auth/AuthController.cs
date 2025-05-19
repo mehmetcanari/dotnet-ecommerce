@@ -46,15 +46,8 @@ namespace ECommerce.API.Controllers.Auth
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
-        {   
-            
-            //TODO: Refactor here, this is not a good practice
-            var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
-            if (cookieRefreshToken.IsFailure)
-            {
-                return BadRequest(cookieRefreshToken.Error);
-            }
-            var result = await _refreshTokenService.RevokeUserTokens(cookieRefreshToken.Data.Email, "Logout");
+        {
+            var result = await _refreshTokenService.LogoutUserRefreshToken("User logged out");
             _refreshTokenService.DeleteRefreshTokenCookie();
             return Ok(new { message = "Logout successful", data = result });
         }
@@ -63,14 +56,7 @@ namespace ECommerce.API.Controllers.Auth
         [AllowAnonymous]
         public async Task<IActionResult> GetRefreshToken()
         {
-            //TODO: Refactor here, this is not a good practice
-            var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
-            if (cookieRefreshToken.IsFailure)
-            {
-                return BadRequest(cookieRefreshToken.Error);
-            }
-            var authResponse = await _authService.GenerateAuthTokenAsync(cookieRefreshToken.Data);
-
+            var authResponse = await _authService.GenerateAuthTokenAsync();
             return Ok(new { message = "Token refreshed successfully", authResponse });
         }
     }

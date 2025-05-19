@@ -4,7 +4,6 @@ using ECommerce.Application.DTO.Response.Auth;
 using ECommerce.Application.Services.Base;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Auth;
@@ -120,11 +119,18 @@ public class AuthService : ServiceBase, IAuthService
         }
     }
 
-    public async Task<Result<AuthResponseDto>> GenerateAuthTokenAsync(RefreshToken cookieRefreshToken)
+    public async Task<Result<AuthResponseDto>> GenerateAuthTokenAsync()
     {
         try
         {
-            var identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken);
+            var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
+            if (cookieRefreshToken.Data is null)
+            {
+                _logger.LogWarning("No refresh token found in cookie");
+                return Result<AuthResponseDto>.Failure("No refresh token found in cookie");
+            }
+            
+            var identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken.Data);
             var (email, roles) = await _refreshTokenService.ValidateRefreshToken(identifier, _userManager);
 
             var authResponseDto = await RequestGenerateTokensAsync(email, roles);
@@ -144,7 +150,19 @@ public class AuthService : ServiceBase, IAuthService
             var accessToken = _accessTokenService.GenerateAccessTokenAsync(email, roles);
             var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(email, roles);
 
-            _refreshTokenService.SetRefreshTokenCookie(refreshToken);
+            if (refreshToken.Data is null)
+            {
+                _logger.LogWarning("Failed to generate refresh token for user: {Email}", email);
+                throw new Exception("Failed to generate refresh token");
+            }
+            
+            if (accessToken.Data is null)
+            {
+                _logger.LogWarning("Failed to generate access token for user: {Email}", email);
+                throw new Exception("Failed to generate access token");
+            }
+
+            _refreshTokenService.SetRefreshTokenCookie(refreshToken.Data);
 
             return new AuthResponseDto
             {

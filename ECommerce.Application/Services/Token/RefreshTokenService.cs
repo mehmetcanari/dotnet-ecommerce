@@ -18,6 +18,7 @@ public class RefreshTokenService : IRefreshTokenService
     private readonly ILoggingService _logger;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IUnitOfWork _unitOfWork;
 
     public RefreshTokenService(
@@ -25,20 +26,22 @@ public class RefreshTokenService : IRefreshTokenService
         ILoggingService logger, 
         IConfiguration configuration, 
         IHttpContextAccessor httpContextAccessor, 
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork, 
+        ICurrentUserService currentUserService)
     {
         _refreshTokenRepository = refreshTokenRepository;
         _logger = logger;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
         _unitOfWork = unitOfWork;
+        _currentUserService = currentUserService;
     }
 
-    public async Task<RefreshToken> GenerateRefreshTokenAsync(string email, IList<string> roles)
+    public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(string email, IList<string> roles)
     {
         try
         {
-            await RevokeUserTokens(email, "User has fresh token");
+            await RevokeUserTokens(email, "New refresh token generated");
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
 
             var refreshToken = new RefreshToken
@@ -52,7 +55,7 @@ public class RefreshTokenService : IRefreshTokenService
             await _refreshTokenRepository.CreateAsync(refreshToken);
             await _unitOfWork.Commit();
             _logger.LogInformation("Refresh token created successfully: {RefreshToken}", refreshToken);
-            return refreshToken;
+            return Result<RefreshToken>.Success(refreshToken);
         }
         catch (Exception ex)
         {
@@ -103,6 +106,43 @@ public class RefreshTokenService : IRefreshTokenService
             await _unitOfWork.Commit();
             
             _logger.LogInformation("User tokens revoked successfully: {Email}", email);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to revoke user tokens");
+            return Result.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result> LogoutUserRefreshToken(string reason)
+    {
+        try
+        {
+            var emailResult = _currentUserService.GetCurrentUserEmail();
+            if (emailResult is { IsSuccess: false, Error: not null })
+            {
+                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+                return Result.Failure(emailResult.Error);
+            }
+
+            if (emailResult.Data is null)
+            {
+                _logger.LogWarning("Current user email is null");
+                return Result.Failure("Current user email is null");
+            }
+            
+            var token = await _refreshTokenRepository.GetActiveUserTokenAsync(emailResult.Data);
+            if (token == null)
+            {
+                _logger.LogWarning("No active refresh token found for user: {Email}", emailResult.Data);
+                return Result.Failure("No active refresh token found");
+            }
+
+            _refreshTokenRepository.Revoke(token, reason);
+            await _unitOfWork.Commit();
+            
+            _logger.LogInformation("User tokens revoked successfully: {Email}", emailResult.Data);
             return Result.Success();
         }
         catch (Exception ex)
