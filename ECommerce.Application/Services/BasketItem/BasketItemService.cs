@@ -1,12 +1,13 @@
 ﻿using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.DTO.Response.BasketItem;
+using ECommerce.Application.Services.Base;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.BasketItem;
 
-public class BasketItemService : IBasketItemService
+public class BasketItemService : ServiceBase, IBasketItemService
 {
     private readonly IBasketItemRepository _basketItemRepository;
     private readonly IAccountRepository _accountRepository;
@@ -22,7 +23,8 @@ public class BasketItemService : IBasketItemService
         IAccountRepository accountRepository,
         ILoggingService logger,
         ICacheService cacheService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _basketItemRepository = basketItemRepository;
         _productRepository = productRepository;
@@ -82,6 +84,10 @@ public class BasketItemService : IBasketItemService
     {
         try
         {
+            var validationResult = await ValidateAsync(createBasketItemRequestDto);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result.Failure(validationResult.Error);
+
             var product = await _productRepository.GetProductById(createBasketItemRequestDto.ProductId);
             var userAccount = await _accountRepository.GetAccountByEmail(email);
             
@@ -123,6 +129,10 @@ public class BasketItemService : IBasketItemService
     {
         try
         {
+            var validationResult = await ValidateAsync(updateBasketItemRequestDto);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result.Failure(validationResult.Error);
+            
             var account = await _accountRepository.GetAccountByEmail(email);
             if (account == null)
                 return Result.Failure("Account not found");

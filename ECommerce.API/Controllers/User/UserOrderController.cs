@@ -23,71 +23,45 @@ public class UserOrderController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto orderCreateRequestDto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.Email);
+        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
         if (userIdClaim == null)
         {
             return Unauthorized(new { message = "User identity not found" });
         }
 
-        var userEmail = userIdClaim.Value;
-
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        try
-        {
-            var result = await _orderService.CreateOrderAsync(orderCreateRequestDto, userEmail);
-            return Created("orders", new { message = "Order created successfully", data = result });
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
+        var userEmail = userIdClaim.Value;*/
+        
+        var result = await _orderService.CreateOrderAsync(orderCreateRequestDto, userEmail);
+        return Ok(new { message = "Order created successfully", data = result });
     }
 
     [HttpGet]
     public async Task<IActionResult> GetUserOrders()
     {
-        try
+        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
+        if (userIdClaim == null)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.Email);
-            if (userIdClaim == null)
-            {
-                return Unauthorized(new { message = "User identity not found" });
-            }
-
-            var userEmail = userIdClaim.Value;
-
-            var userOrders = await _orderService.GetUserOrdersAsync(userEmail);
-            return Ok(new { message = "Order fetched successfully", data = userOrders });
+            return Unauthorized(new { message = "User identity not found" });
         }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
+
+        var userEmail = userIdClaim.Value;*/
+
+        var userOrders = await _orderService.GetUserOrdersAsync(userEmail);
+        return Ok(new { message = "Order fetched successfully", data = userOrders });
     }
 
     [HttpPost("cancel")]
     public async Task<IActionResult> CancelOrder()
     {
-        try
+        /*var userIdClaim = User.FindFirst(ClaimTypes.Email);  //TODO: User claim logic must be in service layer
+        if (userIdClaim == null)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.Email);
-            if (userIdClaim == null)
-            {
-                return Unauthorized(new { message = "User identity not found" });
-            }
-
-            var userEmail = userIdClaim.Value;
-
-            var result = await _orderService.CancelOrderAsync(userEmail);
-            return Ok(new { message = "Order cancelled successfully", data = result });
+            return Unauthorized(new { message = "User identity not found" });
         }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
+
+        var userEmail = userIdClaim.Value;*/
+
+        var result = await _orderService.CancelOrderAsync(userEmail);
+        return Ok(new { message = "Order cancelled successfully", data = result });
     }
 }

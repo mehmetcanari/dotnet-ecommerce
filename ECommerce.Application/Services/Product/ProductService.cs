@@ -1,12 +1,13 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.DTO.Response.Product;
+using ECommerce.Application.Services.Base;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Product;
 
-public class ProductService : IProductService
+public class ProductService : ServiceBase, IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly IBasketItemService _basketItemService;
@@ -25,7 +26,8 @@ public class ProductService : IProductService
         ILoggingService logger, 
         ICacheService cacheService, 
         IUnitOfWork unitOfWork, 
-        ICategoryRepository categoryRepository)
+        ICategoryRepository categoryRepository,
+        IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _productRepository = productRepository;
         _categoryService = categoryService;
@@ -118,16 +120,20 @@ public class ProductService : IProductService
     {
         try
         {
-            var category = await _categoryRepository.GetCategoryById(productCreateRequest.CategoryId);
-            if (category == null)
-            {
-                return Result.Failure("Category not found");
-            }
+            var validationResult = await ValidateAsync(productCreateRequest);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result.Failure(validationResult.Error);
             
             var existingProduct = await _productRepository.CheckProductExistsWithName(productCreateRequest.Name);
             if (existingProduct)
             {
                 return Result.Failure("Product with this name already exists");
+            }
+            
+            var category = await _categoryRepository.GetCategoryById(productCreateRequest.CategoryId);
+            if (category == null)
+            {
+                return Result.Failure("Category not found");
             }
 
             var product = new Domain.Model.Product
@@ -163,6 +169,10 @@ public class ProductService : IProductService
     {
         try
         {
+            var validationResult = await ValidateAsync(productUpdateRequest);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result.Failure(validationResult.Error);
+            
             var category = await _categoryRepository.GetCategoryById(productUpdateRequest.CategoryId);
             var product = await _productRepository.GetProductById(id);
             

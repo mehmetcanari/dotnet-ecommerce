@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
+using ECommerce.Application.Validations.Attribute;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,60 +23,31 @@ public class AdminCategoryController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequestDto request)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-        try
-        {   
-            var result = await _categoryService.CreateCategoryAsync(request);
-            return Ok(new { message = "Category created successfully", data = result });
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
+        var result = await _categoryService.CreateCategoryAsync(request);
+        return Ok(new { message = "Category created successfully", data = result });
     }
 
     [HttpDelete("delete/{id}")]
+    [ValidateId]
     public async Task<IActionResult> DeleteCategory([FromRoute] int id)
     {
-        try
-        {
-            var result = await _categoryService.DeleteCategoryAsync(id);
-            return Ok(new { message = "Category deleted successfully", data = result });
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
+        var result = await _categoryService.DeleteCategoryAsync(id);
+        return Ok(new { message = "Category deleted successfully", data = result });
     }
 
     [HttpPut("update/{id}")]
+    [ValidateId]
     public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] UpdateCategoryRequestDto request)
     {
-        try
-        {
-            var result = await _categoryService.UpdateCategoryAsync(id, request);
-            return Ok(new { message = "Category updated successfully", data = result });
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
+        var result = await _categoryService.UpdateCategoryAsync(id, request);
+        return Ok(new { message = "Category updated successfully", data = result });
     }
 
     [HttpGet("{id}")]
+    [ValidateId]
     public async Task<IActionResult> GetCategoryById([FromRoute] int id)
     {
-        try
-        {
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-            return Ok(new { message = "Category retrieved successfully", data = category });
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
+        var category = await _categoryService.GetCategoryByIdAsync(id);
+        return Ok(new { message = "Category retrieved successfully", data = category });
     }
 }

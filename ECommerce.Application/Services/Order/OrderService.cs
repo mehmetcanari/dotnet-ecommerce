@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.DTO.Response.BasketItem;
+using ECommerce.Application.Services.Base;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
@@ -9,7 +10,7 @@ using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Services.Order;
 
-public class OrderService : IOrderService
+public class OrderService : ServiceBase, IOrderService
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IBasketItemService _basketItemService;
@@ -30,7 +31,8 @@ public class OrderService : IOrderService
         IAccountRepository accountRepository,
         ILoggingService logger,
         IHttpContextAccessor httpContextAccessor,
-        IPaymentService paymentService)
+        IPaymentService paymentService,
+        IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
@@ -47,6 +49,10 @@ public class OrderService : IOrderService
     {
         try
         {
+            var validationResult = await ValidateAsync(orderCreateRequestDto);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result.Failure(validationResult.Error);
+
             await _unitOfWork.BeginTransactionAsync();
 
             var account = await _accountRepository.GetAccountByEmail(email);
@@ -361,6 +367,10 @@ public class OrderService : IOrderService
     {
         try
         {
+            var validationResult = await ValidateAsync(orderUpdateRequestDto);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result.Failure(validationResult.Error);
+            
             var order = await _orderRepository.GetOrderByAccountId(accountId);
             if (order == null)
             {

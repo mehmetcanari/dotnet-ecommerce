@@ -2,6 +2,7 @@ using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
+using ECommerce.Application.Validations.Attribute;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,84 +24,44 @@ public class AdminAccountController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllAccounts()
     {
-        try
-        {
-            var accounts = await _accountService.GetAllAccountsAsync();
-            return Ok(new { message = "All accounts fetched successfully", accounts });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var accounts = await _accountService.GetAllAccountsAsync();
+        return Ok(new { message = "All accounts fetched successfully", accounts });
     }
 
     [HttpGet("{id}")]
+    [ValidateId]
     public async Task<IActionResult> GetAccountById([FromRoute] int id)
     {
-        try
-        {
-            var account = await _accountService.GetAccountWithIdAsync(id);
-            return Ok(new { message = $"Account with id {id} fetched successfully", account });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var account = await _accountService.GetAccountWithIdAsync(id);
+        return Ok(new { message = $"Account with id {id} fetched successfully", account });
     }
 
     [HttpDelete("delete/{id}")]
+    [ValidateId]
     public async Task<IActionResult> DeleteAccount([FromRoute] int id)
     {
-        try
-        {
-            var result = await _accountService.DeleteAccountAsync(id);
-            return Ok(new { message = $"Account with id {id} deleted successfully", data = result });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _accountService.DeleteAccountAsync(id);
+        return Ok(new { message = $"Account with id {id} deleted successfully", data = result });
     }
   
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] TokenRevokeRequestDto request)
     {
-        try
-        {
-            var result = await _refreshTokenService.RevokeUserTokens(request.Email, "Admin revoked");
-            return Ok(new { message = $"{request.Email} tokens revoked successfully", data = result });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _refreshTokenService.RevokeUserTokens(request.Email, "Revoked by admin.");
+        return Ok(new { message = $"{request.Email} tokens revoked successfully", data = result });
     }
 
     [HttpPost("ban")]
     public async Task<IActionResult> BanAccount([FromBody] AccountBanRequestDto request)
     {
-        try
-        {
-            var result = await _accountService.BanAccountAsync(request.Email, request.Until, request.Reason);
-            return Ok(new { message = $"{request.Email} account banned successfully", data = result });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _accountService.BanAccountAsync(request.Email, request.Until, request.Reason);
+        return Ok(new { message = $"{request.Email} account banned successfully", data = result });
     }
 
     [HttpPost("unban")]
     public async Task<IActionResult> UnbanAccount([FromBody] AccountUnbanRequestDto request)
     {
-        try
-        {
-            var result = await _accountService.UnbanAccountAsync(request.Email);
-            return Ok(new { message = $"{request.Email} account unbanned successfully", data = result });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _accountService.UnbanAccountAsync(request.Email);
+        return Ok(new { message = $"{request.Email} account unbanned successfully", data = result });
     }
 }

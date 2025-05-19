@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Validations.Attribute;
 
 namespace ECommerce.API.Controllers.User;
 
@@ -19,17 +20,11 @@ public class UserCategoryController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [ValidateId]
     public async Task<IActionResult> GetCategoryById([FromRoute] int id)
     {
-        try
-        {
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-            return Ok(new { message = "Category retrieved successfully", data = category });
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
+        var category = await _categoryService.GetCategoryByIdAsync(id);
+        return Ok(new { message = "Category retrieved successfully", data = category });
     }
 }
 

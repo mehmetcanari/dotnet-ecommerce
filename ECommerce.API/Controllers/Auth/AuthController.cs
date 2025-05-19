@@ -13,119 +13,65 @@ namespace ECommerce.API.Controllers.Auth
     {
         private readonly IAuthService _authService;
         private readonly IRefreshTokenService _refreshTokenService;
-        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService, IRefreshTokenService refreshTokenService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, IRefreshTokenService refreshTokenService)
         {
             _authService = authService;
             _refreshTokenService = refreshTokenService;
-            _logger = logger;
         }
 
         [HttpPost("create-admin")]
         [AllowAnonymous]
         public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "Admin");
-                return Ok(new { message = "Admin user created successfully.", data = result });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during admin creation");
-                return BadRequest(ex.Message);
-            }
+            var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "Admin");
+            return Ok(new { message = "Admin user created successfully.", data = result });
         }
 
         [HttpPost("create-user")]
         [AllowAnonymous]
         public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "User");
-                return Ok(new { message = "User created successfully.", data = result });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during user registration");
-                return BadRequest(ex.Message);
-            }
+            var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "User");
+            return Ok(new { message = "User created successfully.", data = result });
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] AccountLoginRequestDto accountLoginRequestDto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var loginResult = await _authService.LoginAsync(accountLoginRequestDto);
-                return Ok(new { message = "Login successful", data = loginResult });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during login for user: {Email}", accountLoginRequestDto.Email);
-                return BadRequest(ex.Message);
-            }
+            var loginResult = await _authService.LoginAsync(accountLoginRequestDto);
+            return Ok(new { message = "Login successful", data = loginResult });
         }
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {   
-            try
+            
+            //TODO: Refactor here, this is not a good practice
+            var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
+            if (cookieRefreshToken.IsFailure)
             {
-                var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
-                if (cookieRefreshToken.IsFailure)
-                {
-                    return BadRequest(cookieRefreshToken.Error);
-                }
-                var result = await _refreshTokenService.RevokeUserTokens(cookieRefreshToken.Data.Email, "Logout");
-                _refreshTokenService.DeleteRefreshTokenCookie();
-                return Ok(new { message = "Logout successful", data = result });
+                return BadRequest(cookieRefreshToken.Error);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during logout");
-                return BadRequest(ex.Message);
-            }
+            var result = await _refreshTokenService.RevokeUserTokens(cookieRefreshToken.Data.Email, "Logout");
+            _refreshTokenService.DeleteRefreshTokenCookie();
+            return Ok(new { message = "Logout successful", data = result });
         }
 
         [HttpPost("refresh-token")]
         [AllowAnonymous]
         public async Task<IActionResult> GetRefreshToken()
         {
-            try
+            //TODO: Refactor here, this is not a good practice
+            var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
+            if (cookieRefreshToken.IsFailure)
             {
-                var cookieRefreshToken = await _refreshTokenService.GetRefreshTokenFromCookie();
-                if (cookieRefreshToken.IsFailure)
-                {
-                    return BadRequest(cookieRefreshToken.Error);
-                }
-                var authResponse = await _authService.GenerateAuthTokenAsync(cookieRefreshToken.Data);
+                return BadRequest(cookieRefreshToken.Error);
+            }
+            var authResponse = await _authService.GenerateAuthTokenAsync(cookieRefreshToken.Data);
 
-                return Ok(new { message = "Token refreshed successfully", authResponse });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during token refresh");
-                return BadRequest(ex.Message);
-            }
+            return Ok(new { message = "Token refreshed successfully", authResponse });
         }
     }
 }

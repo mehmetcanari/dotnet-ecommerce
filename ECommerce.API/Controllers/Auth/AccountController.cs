@@ -14,34 +14,24 @@ namespace ECommerce.API.Controllers.Auth;
 public class AccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
-    private readonly ILoggingService _logger;
     
-    public AccountController(IAccountService accountService, ILoggingService logger)
+    public AccountController(IAccountService accountService)
     {
         _accountService = accountService;
-        _logger = logger;
     }
 
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.Email);
+        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
             if (userIdClaim == null)
             {
                 return Unauthorized(new { message = "User identity not found" });
             }
 
-            var userEmail = userIdClaim.Value;
+            var userEmail = userIdClaim.Value;*/
 
-            var user = await _accountService.GetAccountByEmailAsResponseAsync(userEmail);
-            return Ok(new { message = "User profile fetched successfully", data = user });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting user profile");
-            return BadRequest(ex.Message);
-        }
+        var user = await _accountService.GetAccountByEmailAsResponseAsync(userEmail);
+        return Ok(new { message = "User profile fetched successfully", data = user });
     }
 } 

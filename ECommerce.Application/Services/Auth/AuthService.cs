@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Auth;
+using ECommerce.Application.Services.Base;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Auth;
 
-public class AuthService : IAuthService
+public class AuthService : ServiceBase, IAuthService
 {
     private readonly IAccountService _accountService;
     private readonly UserManager<IdentityUser> _userManager;
@@ -25,7 +26,7 @@ public class AuthService : IAuthService
         IAccessTokenService accessTokenService,
         IRefreshTokenService refreshTokenService,
         ITokenUserClaimsService tokenUserClaimsService,
-        ILoggingService logger)
+        ILoggingService logger, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _accountService = accountService;
         _userManager = userManager;
@@ -40,6 +41,10 @@ public class AuthService : IAuthService
     {
         try
         {
+            var validationResult = await ValidateAsync(registerRequestDto);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result.Failure(validationResult.Error);
+
             var existingUser = await _userManager.FindByEmailAsync(registerRequestDto.Email);
             if (existingUser != null)
             {
@@ -92,7 +97,11 @@ public class AuthService : IAuthService
     {
         try
         {
-            var (isValid, user) = await ValidateLoginProcess(loginRequestDto.Email, loginRequestDto.Password);
+            var validationResult = await ValidateAndReturnAsync(loginRequestDto);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result<AuthResponseDto>.Failure(validationResult.Error);
+
+            var (isValid, user) = await VerifyUserCredentialsAsync(loginRequestDto.Email, loginRequestDto.Password);
             if (!isValid || user == null)
             {
                 return Result<AuthResponseDto>.Failure("Invalid email or password.");
@@ -116,7 +125,6 @@ public class AuthService : IAuthService
         try
         {
             var identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken);
-
             var (email, roles) = await _refreshTokenService.ValidateRefreshToken(identifier, _userManager);
 
             var authResponseDto = await RequestGenerateTokensAsync(email, roles);
@@ -151,7 +159,7 @@ public class AuthService : IAuthService
         }
     }
 
-    private async Task<(bool, IdentityUser?)> ValidateLoginProcess(string email, string password)
+    private async Task<(bool, IdentityUser?)> VerifyUserCredentialsAsync(string email, string password)
     {
         try
         {
@@ -171,7 +179,7 @@ public class AuthService : IAuthService
                 return (false, user);
             }
 
-            if (account.Data.IsBanned)
+            if (account.Data is { IsBanned: true })
             {
                 _logger.LogWarning("Login failed - User is banned: {Email}", email);
                 throw new Exception("User is banned");

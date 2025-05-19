@@ -2,12 +2,13 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
+using ECommerce.Application.Services.Base;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Category;
 
-public class CategoryService : ICategoryService
+public class CategoryService : ServiceBase, ICategoryService
 {
     private const string CategoryCacheKey = "category:{0}";
     private readonly ICategoryRepository _categoryRepository;
@@ -15,7 +16,8 @@ public class CategoryService : ICategoryService
     private readonly ICacheService _cacheService;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CategoryService(ICategoryRepository categoryRepository, ILoggingService logger, ICacheService cacheService, IUnitOfWork unitOfWork)
+
+    public CategoryService(IServiceProvider serviceProvider, ICategoryRepository categoryRepository, ILoggingService logger, ICacheService cacheService, IUnitOfWork unitOfWork) : base(serviceProvider)
     {
         _unitOfWork = unitOfWork;
         _categoryRepository = categoryRepository;
@@ -27,6 +29,12 @@ public class CategoryService : ICategoryService
     {
         try
         {
+            var result = await ValidateAsync(request);
+            if (!result.IsSuccess)
+            {
+                return result;
+            }
+            
             var categoryExist = await _categoryRepository.CheckCategoryExistsWithName(request.Name);
             if (categoryExist)
             {
@@ -79,6 +87,12 @@ public class CategoryService : ICategoryService
     {
         try
         {
+            var result = await ValidateAsync(request);
+            if (!result.IsSuccess)
+            {
+                return result;
+            }
+            
             var category = await _categoryRepository.GetCategoryById(categoryId);
             if (category == null)
             {
