@@ -3,10 +3,10 @@ using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Services.Base;
-using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
 using ECommerce.Application.Utility;
+using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Order;
 

@@ -7,12 +7,10 @@ namespace ECommerce.Infrastructure.Repositories;
 public class ProductRepository : IProductRepository
 {
     private readonly StoreDbContext _context;
-    private readonly ILoggingService _logger;
 
-    public ProductRepository(StoreDbContext context, ILoggingService logger)
+    public ProductRepository(StoreDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task<List<Product>> Read()
@@ -27,10 +25,9 @@ public class ProductRepository : IProductRepository
             
             return products;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while reading products", exception);
         }
     }
     
@@ -45,10 +42,9 @@ public class ProductRepository : IProductRepository
 
             return product;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred while retrieving product by id: {Id}", id);
-            throw new Exception($"An unexpected error occurred while retrieving product by id: {id}", ex);
+            throw new Exception("An unexpected error occurred while retrieving product by id", exception);
         }
     }
     
@@ -63,10 +59,9 @@ public class ProductRepository : IProductRepository
 
             return product != null;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while checking product existence with name", exception);
         }
     }
 
@@ -76,10 +71,9 @@ public class ProductRepository : IProductRepository
         {
             await _context.Products.AddAsync(product);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while creating product", exception);
         }
     }
 
@@ -89,10 +83,9 @@ public class ProductRepository : IProductRepository
         {
             _context.Products.Update(product);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while updating product", exception);
         }
     }
 
@@ -102,10 +95,9 @@ public class ProductRepository : IProductRepository
         {
             _context.Products.Remove(product);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while deleting product", exception);
         }
     }
 }

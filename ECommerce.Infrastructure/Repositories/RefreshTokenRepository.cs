@@ -8,12 +8,10 @@ namespace ECommerce.Infrastructure.Repositories;
 public class RefreshTokenRepository : IRefreshTokenRepository
 {
     private readonly StoreDbContext _context;
-    private readonly ILoggingService _logger;
 
-    public RefreshTokenRepository(StoreDbContext context, ILoggingService logger)
+    public RefreshTokenRepository(StoreDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task CreateAsync(RefreshToken refreshToken)
@@ -22,10 +20,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         {
             await _context.RefreshTokens.AddAsync(refreshToken);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while creating refresh token", exception);
         }
     }
     
@@ -42,10 +39,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             
             return refreshToken;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while getting active user token", exception);
         }
     }
 
@@ -63,7 +59,6 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
             throw new Exception("An unexpected error occurred", ex);
         }
     }
@@ -75,10 +70,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             refreshToken.RevokeToken(reason);
             _context.RefreshTokens.Update(refreshToken);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while revoking token", exception);
         }
     }
 
@@ -95,10 +89,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             _context.RefreshTokens.RemoveRange(expiredTokens);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while cleaning up expired tokens", exception);
         }
     }
 }

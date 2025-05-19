@@ -2,19 +2,16 @@ using ECommerce.Domain.Abstract.Repository;
 using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
-using Sprache;
 
 namespace ECommerce.Infrastructure.Repositories;
 
 public class AccountRepository : IAccountRepository
 {
     private readonly StoreDbContext _context;
-    private readonly ILoggingService _logger;
 
-    public AccountRepository(StoreDbContext context, ILoggingService logger)
+    public AccountRepository(StoreDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task<List<Account>> Read()
@@ -31,8 +28,7 @@ public class AccountRepository : IAccountRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while reading accounts", ex);
         }
     }
     
@@ -48,10 +44,9 @@ public class AccountRepository : IAccountRepository
 
             return account;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred while retrieving account by email: {Email}", email);
-            throw new Exception($"An unexpected error occurred while retrieving account by email: {email}", ex);
+            throw new Exception("An unexpected error occurred while getting account by email", exception);
         }
     }
 
@@ -66,10 +61,9 @@ public class AccountRepository : IAccountRepository
 
             return account;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred while retrieving account by id: {Id}", id);
-            throw new Exception($"An unexpected error occurred while retrieving account by id: {id}", ex);
+            throw new Exception("An unexpected error occurred while getting account by id", exception);
         }
     }
 
@@ -79,10 +73,9 @@ public class AccountRepository : IAccountRepository
         {
             await _context.Accounts.AddAsync(userAccount);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while creating account", exception);
         }
     }
 
@@ -92,10 +85,9 @@ public class AccountRepository : IAccountRepository
         {
             _context.Accounts.Update(account);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while updating account", exception);
         }
     }
 
@@ -105,10 +97,9 @@ public class AccountRepository : IAccountRepository
         {
             _context.Accounts.Remove(account);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while deleting account", exception);
         }
     }
 }

@@ -3,7 +3,6 @@ using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Auth;
 using ECommerce.Application.Services.Base;
 using ECommerce.Application.Utility;
-using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Auth;
@@ -127,7 +126,7 @@ public class AuthService : ServiceBase, IAuthService
             if (cookieRefreshToken.Data is null)
             {
                 _logger.LogWarning("No refresh token found in cookie");
-                return Result<AuthResponseDto>.Failure("No refresh token found in cookie");
+                return Result<AuthResponseDto>.Failure("User is not logged in");
             }
             
             var identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken.Data);

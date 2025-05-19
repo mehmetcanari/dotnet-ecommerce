@@ -8,12 +8,10 @@ namespace ECommerce.Infrastructure.Repositories;
 public class BasketItemRepository : IBasketItemRepository
 {
     private readonly StoreDbContext _context;
-    private readonly ILoggingService _logger;
 
-    public BasketItemRepository(StoreDbContext context, ILoggingService logger)
+    public BasketItemRepository(StoreDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task Create(BasketItem basketItem)
@@ -24,8 +22,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred");
-            throw new Exception(exception.Message);
+            throw new Exception("An unexpected error occurred while creating basket item", exception);
         }
     }
 
@@ -36,16 +33,15 @@ public class BasketItemRepository : IBasketItemRepository
             IQueryable<BasketItem> query = _context.BasketItems;
         
             var items = await query
-                .Where(b => b.AccountId == account.Id && b.IsOrdered == false)
                 .AsNoTracking()
+                .Where(b => b.AccountId == account.Id && b.IsOrdered == false)
                 .ToListAsync();
             
             return items;
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred");
-            throw new Exception(exception.Message);
+            throw new Exception("An unexpected error occurred while getting non-ordered basket items", exception);
         }
     }
     
@@ -62,8 +58,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred");
-            throw new Exception(exception.Message);
+            throw new Exception("An unexpected error occurred while getting specific account basket item", exception);
         }
     }
     
@@ -74,16 +69,15 @@ public class BasketItemRepository : IBasketItemRepository
             IQueryable<BasketItem> query = _context.BasketItems;
         
             var items = await query
-                .Where(b => b.ProductId == productId && b.IsOrdered == false)
                 .AsNoTracking()
+                .Where(b => b.ProductId == productId && b.IsOrdered == false)
                 .ToListAsync();
             
             return items;
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred");
-            throw new Exception(exception.Message);
+            throw new Exception("An unexpected error occurred while getting non-ordered basket item with specific product", exception);
         }
     }
 
@@ -95,8 +89,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred");
-            throw new Exception(exception.Message);
+            throw new Exception("An unexpected error occurred while updating basket item", exception);
         }
     }
 
@@ -108,8 +101,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred");
-            throw new Exception(exception.Message);
+            throw new Exception("An unexpected error occurred while deleting basket item", exception);
         }
     }
 }

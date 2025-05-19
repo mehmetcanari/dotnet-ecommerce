@@ -8,12 +8,10 @@ namespace ECommerce.Infrastructure.Repositories;
 public class OrderRepository : IOrderRepository
 {
     private readonly StoreDbContext _context;
-    private readonly ILoggingService _logger;
 
-    public OrderRepository(StoreDbContext context, ILoggingService logger)
+    public OrderRepository(StoreDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task<List<Order>> Read()
@@ -29,10 +27,9 @@ public class OrderRepository : IOrderRepository
 
             return orders;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while reading orders", exception);
         }
     }
     
@@ -43,16 +40,15 @@ public class OrderRepository : IOrderRepository
             IQueryable<Order> query = _context.Orders;
 
             var orders = await query
-                .Where(o => o.AccountId == accountId && o.Status == OrderStatus.Pending)
                 .AsNoTracking()
+                .Where(o => o.AccountId == accountId && o.Status == OrderStatus.Pending)
                 .ToListAsync();
 
             return orders;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while getting account pending orders", exception);
         }
     }
     
@@ -68,10 +64,9 @@ public class OrderRepository : IOrderRepository
 
             return order;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred while retrieving order by id: {Id}", id);
-            throw new Exception($"An unexpected error occurred while retrieving order by id: {id}", ex);
+            throw new Exception("An unexpected error occurred while retrieving order by id", exception);
         }
     }
 
@@ -86,10 +81,9 @@ public class OrderRepository : IOrderRepository
 
             return order;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred while retrieving order by account id: {AccountId}", accountId);
-            throw new Exception($"An unexpected error occurred while retrieving order by account id: {accountId}", ex);
+            throw new Exception($"An unexpected error occurred while retrieving order by account id", exception);
         }
     }
     
@@ -100,17 +94,16 @@ public class OrderRepository : IOrderRepository
             IQueryable<Order> query = _context.Orders;
 
             var orders = await query
+                .AsNoTracking()
                 .Where(o => o.AccountId == accountId)
                 .Include(o => o.BasketItems)
-                .AsNoTracking()
                 .ToListAsync();
 
             return orders;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while getting account orders", exception);
         }
     }
 
@@ -122,8 +115,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred");
-            throw new Exception(exception.Message);
+            throw new Exception("An unexpected error occurred while creating order", exception);
         }
     }
 
@@ -133,10 +125,9 @@ public class OrderRepository : IOrderRepository
         {
             _context.Orders.Update(order);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while updating order", exception);
         }
     }
 
@@ -146,10 +137,9 @@ public class OrderRepository : IOrderRepository
         {
             _context.Orders.Remove(order);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred");
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception("An unexpected error occurred while deleting order", exception);
         }
     }
 }

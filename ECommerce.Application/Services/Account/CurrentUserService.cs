@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
-using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Http;
 
 namespace ECommerce.Application.Services.Account;
@@ -19,14 +18,30 @@ public class CurrentUserService : ICurrentUserService
 
     public Result<string> GetCurrentUserEmail()
     {
-        var email = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+        string? email = TryGetEmailFromClaims();
+
         if (string.IsNullOrEmpty(email))
         {
             _logger.LogWarning("User email not found in claims.");
             return Result<string>.Failure("User email not found.");
         }
 
+        _logger.LogInformation("Current user email: {Email}", email);
         return Result<string>.Success(email);
+    }
+
+    private string? TryGetEmailFromClaims()
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        if (user == null)
+            return null;
+
+        var email = user.FindFirst(ClaimTypes.Email)?.Value;
+
+        if (string.IsNullOrEmpty(email))
+            email = user.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+
+        return email;
     }
 
     public Result<bool> IsAuthenticated()

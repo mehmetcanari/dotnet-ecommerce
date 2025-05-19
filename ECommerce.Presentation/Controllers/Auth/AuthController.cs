@@ -48,7 +48,6 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> Logout()
         {
             var result = await _refreshTokenService.LogoutUserRefreshToken("User logged out");
-            _refreshTokenService.DeleteRefreshTokenCookie();
             return Ok(new { message = "Logout successful", data = result });
         }
 

@@ -8,12 +8,10 @@ namespace ECommerce.Infrastructure.Repositories;
 public class CategoryRepository : ICategoryRepository
 {
     private readonly StoreDbContext _context;
-    private readonly ILoggingService _logger;
 
-    public CategoryRepository(StoreDbContext context, ILoggingService logger)
+    public CategoryRepository(StoreDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task Create(Category category)
@@ -22,10 +20,9 @@ public class CategoryRepository : ICategoryRepository
         {
             await _context.Categories.AddAsync(category);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error creating category");
-            throw;
+            throw new Exception("An unexpected error occurred while creating category", exception);
         }
     }
 
@@ -42,10 +39,9 @@ public class CategoryRepository : ICategoryRepository
 
             return categories;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error reading categories");
-            throw;
+            throw new Exception("An unexpected error occurred while reading categories", exception);
         }
     }
     
@@ -60,10 +56,9 @@ public class CategoryRepository : ICategoryRepository
 
             return category != null;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error checking if category exists with name");
-            throw;
+            throw new Exception($"An unexpected error occurred while checking category existence with name: {name}", exception);
         }
     }
     
@@ -79,10 +74,9 @@ public class CategoryRepository : ICategoryRepository
 
             return category;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error getting category by ID");
-            throw;
+            throw new Exception($"An unexpected error occurred while retrieving category by id", exception);
         }
     }
 
@@ -92,10 +86,9 @@ public class CategoryRepository : ICategoryRepository
         {
             _context.Categories.Update(category);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error updating category");
-            throw;
+            throw new Exception("An unexpected error occurred while updating category", exception);
         }
     }
 
@@ -105,10 +98,9 @@ public class CategoryRepository : ICategoryRepository
         {
             _context.Categories.Remove(category);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error deleting category");
-            throw;
+            throw new Exception("An unexpected error occurred while deleting category", exception);
         }
     }
 }

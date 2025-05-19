@@ -8,9 +8,8 @@ using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
-using ECommerce.API.API.Middleware;
+using ECommerce.Application.Exceptions;
 using ECommerce.Infrastructure.Context;
-using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
 using Serilog.Events;
 
@@ -39,8 +38,7 @@ internal static class Program
         builder.Configuration["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
             
         _dependencyContainer = new DependencyContainer(builder);
-        _dependencyContainer.RegisterCoreDependencies();
-        _dependencyContainer.LoadValidationDependencies();
+        _dependencyContainer.RegisterDependencies();
 
         #region Database Configuration
 

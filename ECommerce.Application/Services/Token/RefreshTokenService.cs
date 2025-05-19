@@ -7,8 +7,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ECommerce.Application.Abstract.Service;
-using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Application.Utility;
+using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Token;
 
@@ -119,30 +119,18 @@ public class RefreshTokenService : IRefreshTokenService
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result.Failure(emailResult.Error);
-            }
+            var cookieResult = await GetRefreshTokenFromCookie();
+            if (cookieResult is { IsFailure: true, Error: not null }) 
+                return Result.Failure(cookieResult.Error);
 
-            if (emailResult.Data is null)
-            {
-                _logger.LogWarning("Current user email is null");
-                return Result.Failure("Current user email is null");
-            }
+            var refreshToken = cookieResult.Data;
+            if (refreshToken != null) 
+                _refreshTokenRepository.Revoke(refreshToken, reason);
             
-            var token = await _refreshTokenRepository.GetActiveUserTokenAsync(emailResult.Data);
-            if (token == null)
-            {
-                _logger.LogWarning("No active refresh token found for user: {Email}", emailResult.Data);
-                return Result.Failure("No active refresh token found");
-            }
-
-            _refreshTokenRepository.Revoke(token, reason);
+            DeleteRefreshTokenCookie();
             await _unitOfWork.Commit();
             
-            _logger.LogInformation("User tokens revoked successfully: {Email}", emailResult.Data);
+            _logger.LogInformation("User tokens revoked successfully");
             return Result.Success();
         }
         catch (Exception ex)

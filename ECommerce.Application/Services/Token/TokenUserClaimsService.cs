@@ -4,7 +4,6 @@ using System.Text;
 using ECommerce.Application.Abstract.Service;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 
 namespace ECommerce.Application.Services.Token;

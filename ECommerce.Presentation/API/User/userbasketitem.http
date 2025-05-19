@@ -7,8 +7,8 @@ Content-Type: application/json
 Authorization: Bearer {{USER_TOKEN}}
 
 {
-  "ProductId": 2,
-  "Quantity": 4
+  "ProductId": 1,
+  "Quantity": 25
 }
 
 ### UPDATE ORDER ITEM

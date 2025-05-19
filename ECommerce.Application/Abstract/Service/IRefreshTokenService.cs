@@ -13,5 +13,4 @@ public interface IRefreshTokenService
     Task<Result> LogoutUserRefreshToken(string reason);
     Task<Result<RefreshToken>> GetRefreshTokenFromCookie();
     void SetRefreshTokenCookie(RefreshToken refreshToken);
-    void DeleteRefreshTokenCookie();
 }

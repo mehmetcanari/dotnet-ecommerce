@@ -1,5 +1,5 @@
+using ECommerce.Application.Abstract.Service;
 using ILogger = Serilog.ILogger;
-using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Logging;
 

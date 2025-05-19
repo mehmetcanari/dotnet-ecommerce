@@ -3,37 +3,27 @@ using ECommerce.Infrastructure.Context;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork(StoreDbContext context) : IUnitOfWork
 {
-    private readonly StoreDbContext _context;
-    private readonly ILoggingService _logger;
-
-    public UnitOfWork(StoreDbContext context, ILoggingService logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
     public async Task BeginTransactionAsync()
     {
-        await _context.Database.BeginTransactionAsync();
+        await context.Database.BeginTransactionAsync();
     }
 
     public async Task CommitTransactionAsync()
     {
-        await _context.Database.CommitTransactionAsync();
+        await context.Database.CommitTransactionAsync();
     }
 
     public async Task RollbackTransaction()
     {
         try
         {
-            await _context.Database.RollbackTransactionAsync();
+            await context.Database.RollbackTransactionAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error rolling back transaction: {Message}", ex.Message);
-            throw;
+            throw new Exception("An unexpected error occurred while rolling back transaction", ex);
         }
     }
 
@@ -41,17 +31,16 @@ public class UnitOfWork : IUnitOfWork
     {
         try
         {
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving changes to the database: {Message}", ex.Message);
-            throw;
+            throw new Exception("An unexpected error occurred while committing changes", ex);
         }
     }
 
     public void Dispose()
     {
-        _context.Dispose();
+        context.Dispose();
     }
 }

@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
-using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.API.Controllers.Auth;
 

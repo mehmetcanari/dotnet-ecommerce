@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using ECommerce.Application.DTO.Request.BasketItem;
+﻿using ECommerce.Application.DTO.Request.BasketItem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;

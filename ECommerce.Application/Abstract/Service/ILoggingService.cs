@@ -1,4 +1,4 @@
-namespace ECommerce.Domain.Abstract.Repository;
+namespace ECommerce.Application.Abstract.Service;
 
 public interface ILoggingService
 {

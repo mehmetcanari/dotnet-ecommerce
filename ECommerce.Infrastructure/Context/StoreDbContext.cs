@@ -51,7 +51,7 @@ public class StoreDbContextFactory : IDesignTimeDbContextFactory<StoreDbContext>
     public StoreDbContext CreateDbContext(string[] args)
     {
         var projectDir = Directory.GetCurrentDirectory();
-        var apiDir = Path.Combine(projectDir, "..", "ECommerce.API");
+        var apiDir = Path.Combine(projectDir, "..", "ECommerce.Presentation");
         DotNetEnv.Env.Load(Path.Combine(apiDir, ".env"));
         
         var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");

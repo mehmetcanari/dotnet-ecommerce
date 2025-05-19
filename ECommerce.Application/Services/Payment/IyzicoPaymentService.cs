@@ -3,7 +3,6 @@ using Iyzipay.Model;
 using Iyzipay.Request;
 using System.Globalization;
 using ECommerce.Application.Abstract.Service;
-using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Application.Utility;
 
 namespace ECommerce.Application.Services.Payment;
