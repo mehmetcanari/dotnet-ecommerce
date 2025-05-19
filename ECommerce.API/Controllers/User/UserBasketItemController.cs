@@ -23,60 +23,28 @@ public class UserBasketItemController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllBasketItems()
     {
-        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
-           if (userIdClaim == null)
-           {
-               return Unauthorized(new { message = "User identity not found" });
-           }
-
-           var userEmail = userIdClaim.Value;*/
-            
-        var basketItems = await _basketItemService.GetAllBasketItemsAsync(userEmail);
+        var basketItems = await _basketItemService.GetAllBasketItemsAsync();
         return Ok(new { message = "Basket items fetched successfully", data = basketItems });
     }
 
     [HttpPost("create")]
     public async Task<IActionResult> CreateBasketItem([FromBody] CreateBasketItemRequestDto createBasketItemRequest)
     {
-        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
-        if (userIdClaim == null)
-        {
-            return Unauthorized(new { message = "User identity not found" });
-        }
-
-        var userEmail = userIdClaim.Value;*/
-
-        var result = await _basketItemService.CreateBasketItemAsync(createBasketItemRequest, userEmail);
+        var result = await _basketItemService.CreateBasketItemAsync(createBasketItemRequest);
         return Created("basket", new { message = "Basket item created successfully", data = result });
     }
 
     [HttpPut("update")]
     public async Task<IActionResult> UpdateBasketItem([FromBody] UpdateBasketItemRequestDto basketItemRequestUpdateRequest)
     {
-        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
-        if (userIdClaim == null)
-        {
-            return Unauthorized(new { message = "User identity not found" });
-        }
-
-        var userEmail = userIdClaim.Value;*/
-
-        var result = await _basketItemService.UpdateBasketItemAsync(basketItemRequestUpdateRequest, userEmail);
+        var result = await _basketItemService.UpdateBasketItemAsync(basketItemRequestUpdateRequest);
         return Ok(new { message = "Basket item updated successfully", data = result });
     }
 
     [HttpDelete("delete")]
     public async Task<IActionResult> DeleteAllBasketItems()
     {
-        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
-            if (userIdClaim == null)
-            {
-                return Unauthorized(new { message = "User identity not found" });
-            }
-
-            var userEmail = userIdClaim.Value;*/
-
-        var result = await _basketItemService.DeleteAllBasketItemsAsync(userEmail);
+        var result = await _basketItemService.DeleteAllNonOrderedBasketItemsAsync();
         return Ok(new { message = "All basket items deleted successfully", data = result });
     }
 }

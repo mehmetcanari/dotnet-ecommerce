@@ -5,9 +5,9 @@ namespace ECommerce.Application.Abstract.Service;
 
 public interface IBasketItemService
 {
-    Task<Result> CreateBasketItemAsync(CreateBasketItemRequestDto createBasketItemRequestDto, string email);
-    Task<Result<List<BasketItemResponseDto>>> GetAllBasketItemsAsync(string email);
-    Task<Result> UpdateBasketItemAsync(UpdateBasketItemRequestDto updateBasketItemRequestDto, string email);
-    Task<Result> DeleteAllBasketItemsAsync(string email);
+    Task<Result> CreateBasketItemAsync(CreateBasketItemRequestDto createBasketItemRequestDto);
+    Task<Result<List<BasketItemResponseDto>>> GetAllBasketItemsAsync();
+    Task<Result> UpdateBasketItemAsync(UpdateBasketItemRequestDto updateBasketItemRequestDto);
+    Task<Result> DeleteAllNonOrderedBasketItemsAsync();
     Task ClearBasketItemsIncludeOrderedProductAsync(Domain.Model.Product updatedProduct);
 }

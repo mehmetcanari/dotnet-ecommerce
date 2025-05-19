@@ -66,6 +66,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddScoped<ITokenCleanupService, TokenCleanupService>();
         _builder.Services.AddHostedService<TokenCleanupBackgroundService>();
         _builder.Services.AddScoped<IPaymentService, IyzicoPaymentService>();
+        _builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         _builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         //Utility

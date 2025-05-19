@@ -10,6 +10,7 @@ public class AccountService : IAccountService
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IRefreshTokenService _refreshTokenService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly ILoggingService _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -19,12 +20,14 @@ public class AccountService : IAccountService
         IUnitOfWork unitOfWork,
         IRefreshTokenService refreshTokenService, 
         UserManager<IdentityUser> userManager, 
-        ILoggingService logger)
+        ILoggingService logger, 
+        ICurrentUserService currentUserService)
     {
         _accountRepository = accountRepository;
         _refreshTokenService = refreshTokenService;
         _userManager = userManager;
         _logger = logger;
+        _currentUserService = currentUserService;
         _unitOfWork = unitOfWork;
     }
 
@@ -120,14 +123,23 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<Result<AccountResponseDto>> GetAccountByEmailAsResponseAsync(string email)
+    public async Task<Result<AccountResponseDto>> GetAccountByEmailAsResponseAsync()
     {
         try
         {
-            var account = await _accountRepository.GetAccountByEmail(email); 
+            var emailResult = _currentUserService.GetCurrentUserEmail();
+            if (emailResult is { IsFailure: true, Error: not null }) 
+                return Result<AccountResponseDto>.Failure(emailResult.Error);
+
+            if (emailResult.Data is null)
+            {
+                return Result<AccountResponseDto>.Failure("Email is null");
+            }
+
+            var account = await _accountRepository.GetAccountByEmail(emailResult.Data); 
             if (account == null)
             {
-                return Result<AccountResponseDto>.Failure($"User with email {email} not found");
+                return Result<AccountResponseDto>.Failure($"User with email {emailResult.Data} not found");
             }
             
             var responseAccount = new AccountResponseDto

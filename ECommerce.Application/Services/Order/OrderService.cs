@@ -21,6 +21,7 @@ public class OrderService : ServiceBase, IOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPaymentService _paymentService;
+    private ICurrentUserService _currentUserService;
 
     public OrderService(
         IOrderRepository orderRepository,
@@ -32,7 +33,8 @@ public class OrderService : ServiceBase, IOrderService
         ILoggingService logger,
         IHttpContextAccessor httpContextAccessor,
         IPaymentService paymentService,
-        IServiceProvider serviceProvider) : base(serviceProvider)
+        IServiceProvider serviceProvider, 
+        ICurrentUserService currentUserService) : base(serviceProvider)
     {
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
@@ -43,26 +45,40 @@ public class OrderService : ServiceBase, IOrderService
         _logger = logger;
         _httpContextAccessor = httpContextAccessor;
         _paymentService = paymentService;
+        _currentUserService = currentUserService;
     }
 
-    public async Task<Result> CreateOrderAsync(OrderCreateRequestDto orderCreateRequestDto, string email)
+    public async Task<Result> CreateOrderAsync(OrderCreateRequestDto orderCreateRequestDto)
     {
         try
         {
+            await _unitOfWork.BeginTransactionAsync();
+
+            var emailResult = _currentUserService.GetCurrentUserEmail();
+            if (emailResult is { IsSuccess: false, Error: not null })
+            {
+                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+                return Result.Failure(emailResult.Error);
+            }
+            
+            if (emailResult.Data == null)
+            {
+                _logger.LogWarning("User email is null or empty");
+                return Result.Failure("User email is null or empty");
+            }
+            
             var validationResult = await ValidateAsync(orderCreateRequestDto);
             if (validationResult is { IsSuccess: false, Error: not null }) 
                 return Result.Failure(validationResult.Error);
-
-            await _unitOfWork.BeginTransactionAsync();
-
-            var account = await _accountRepository.GetAccountByEmail(email);
+            
+            var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
             if (account == null)
             {
-                _logger.LogWarning("Account not found: {Email}", email);
+                _logger.LogWarning("Account not found: {Email}", emailResult.Data);
                 return Result.Failure("Account not found");
             }
 
-            var basketItems = await GetUserBasketItemsAsync(email);
+            var basketItems = await GetUserBasketItemsAsync(emailResult.Data);
             if (basketItems.IsFailure)
             {
                 _logger.LogWarning("Failed to get basket items: {ErrorMessage}", basketItems.Error);
@@ -78,7 +94,7 @@ public class OrderService : ServiceBase, IOrderService
 
             var paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems.Data);
 
-            if (paymentResult.Data.Status != "success")
+            if (paymentResult.Data != null && paymentResult.Data.Status != "success")
             {
                 _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
                     paymentResult.Data.ErrorCode, paymentResult.Data.ErrorMessage);
@@ -86,7 +102,7 @@ public class OrderService : ServiceBase, IOrderService
             }
 
             await _orderRepository.Create(order);
-            await _basketItemService.DeleteAllBasketItemsAsync(email);
+            await _basketItemService.DeleteAllNonOrderedBasketItemsAsync();
             await _productService.UpdateProductStockAsync(basketItems.Data);
             await _unitOfWork.CommitTransactionAsync();
 
@@ -185,14 +201,27 @@ public class OrderService : ServiceBase, IOrderService
         };
     }
 
-    public async Task<Result> CancelOrderAsync(string email)
+    public async Task<Result> CancelOrderAsync()
     {
         try
         {
-            var tokenAccount = await _accountRepository.GetAccountByEmail(email);
+            var emailResult = _currentUserService.GetCurrentUserEmail();
+            if (emailResult is { IsSuccess: false, Error: not null })
+            {
+                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+                return Result.Failure(emailResult.Error);
+            }
+            
+            if (emailResult.Data == null)
+            {
+                _logger.LogWarning("User email is null or empty");
+                return Result.Failure("User email is null or empty");
+            }
+            
+            var tokenAccount = await _accountRepository.GetAccountByEmail(emailResult.Data);
             if (tokenAccount == null)
             {
-                _logger.LogWarning("Account not found: {Email}", email);
+                _logger.LogWarning("Account not found: {Email}", emailResult.Data);
                 return Result.Failure("Account not found");
             }
             
@@ -281,21 +310,34 @@ public class OrderService : ServiceBase, IOrderService
         }
     }
 
-    public async Task<Result<List<OrderResponseDto>>> GetUserOrdersAsync(string email)
+    public async Task<Result<List<OrderResponseDto>>> GetUserOrdersAsync()
     {
         try
         {
-            var tokenAccount = await _accountRepository.GetAccountByEmail(email);
+            var emailResult = _currentUserService.GetCurrentUserEmail();
+            if (emailResult is { IsSuccess: false, Error: not null })
+            {
+                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+                return Result<List<OrderResponseDto>>.Failure(emailResult.Error);
+            }
+            
+            if (emailResult.Data == null)
+            {
+                _logger.LogWarning("User email is null or empty");
+                return Result<List<OrderResponseDto>>.Failure("User email is null or empty");
+            }
+            
+            var tokenAccount = await _accountRepository.GetAccountByEmail(emailResult.Data);
             if (tokenAccount == null)
             {
-                _logger.LogWarning("Account not found: {Email}", email);
+                _logger.LogWarning("Account not found: {Email}", emailResult.Data);
                 return Result<List<OrderResponseDto>>.Failure("Account not found");
             }
 
             var userOrders = await _orderRepository.GetAccountOrders(tokenAccount.Id);
             if (userOrders.Count == 0)
             {
-                _logger.LogWarning("No orders found for this user: {Email}", email);
+                _logger.LogWarning("No orders found for this user: {Email}", emailResult.Data);
                 return Result<List<OrderResponseDto>>.Failure("No orders found for this user");
             }
             var purchasedOrders = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered)).ToList();

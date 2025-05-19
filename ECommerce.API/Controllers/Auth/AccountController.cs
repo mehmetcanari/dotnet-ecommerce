@@ -23,15 +23,7 @@ public class AccountController : ControllerBase
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
-        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
-            if (userIdClaim == null)
-            {
-                return Unauthorized(new { message = "User identity not found" });
-            }
-
-            var userEmail = userIdClaim.Value;*/
-
-        var user = await _accountService.GetAccountByEmailAsResponseAsync(userEmail);
+        var user = await _accountService.GetAccountByEmailAsResponseAsync();
         return Ok(new { message = "User profile fetched successfully", data = user });
     }
 } 

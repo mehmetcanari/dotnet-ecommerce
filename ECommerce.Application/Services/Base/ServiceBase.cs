@@ -6,14 +6,11 @@ namespace ECommerce.Application.Services.Base;
 
 public abstract class ServiceBase
 {
-    #region Dependencies
-
-    public readonly IServiceProvider _serviceProvider;
-    #endregion
+    public readonly IServiceProvider ServiceProvider;
 
     protected ServiceBase(IServiceProvider serviceProvider)
     {
-        _serviceProvider = serviceProvider;
+        ServiceProvider = serviceProvider;
     }
     
     protected async Task<Result> ValidateAsync<T>(T dto)
@@ -52,7 +49,7 @@ public abstract class ServiceBase
 
     private IValidator<T>? GetValidator<T>()
     {
-        return _serviceProvider.GetService<IValidator<T>>();
+        return ServiceProvider.GetService<IValidator<T>>();
     }
 
     private static async Task<FluentValidation.Results.ValidationResult> RunValidation<T>(IValidator<T> validator, T dto)

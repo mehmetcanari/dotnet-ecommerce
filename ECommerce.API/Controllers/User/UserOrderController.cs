@@ -23,45 +23,21 @@ public class UserOrderController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto orderCreateRequestDto)
     {
-        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
-        if (userIdClaim == null)
-        {
-            return Unauthorized(new { message = "User identity not found" });
-        }
-
-        var userEmail = userIdClaim.Value;*/
-        
-        var result = await _orderService.CreateOrderAsync(orderCreateRequestDto, userEmail);
+        var result = await _orderService.CreateOrderAsync(orderCreateRequestDto);
         return Ok(new { message = "Order created successfully", data = result });
     }
 
     [HttpGet]
     public async Task<IActionResult> GetUserOrders()
     {
-        /*var userIdClaim = User.FindFirst(ClaimTypes.Email); //TODO: User claim logic must be in service layer
-        if (userIdClaim == null)
-        {
-            return Unauthorized(new { message = "User identity not found" });
-        }
-
-        var userEmail = userIdClaim.Value;*/
-
-        var userOrders = await _orderService.GetUserOrdersAsync(userEmail);
+        var userOrders = await _orderService.GetUserOrdersAsync();
         return Ok(new { message = "Order fetched successfully", data = userOrders });
     }
 
     [HttpPost("cancel")]
     public async Task<IActionResult> CancelOrder()
     {
-        /*var userIdClaim = User.FindFirst(ClaimTypes.Email);  //TODO: User claim logic must be in service layer
-        if (userIdClaim == null)
-        {
-            return Unauthorized(new { message = "User identity not found" });
-        }
-
-        var userEmail = userIdClaim.Value;*/
-
-        var result = await _orderService.CancelOrderAsync(userEmail);
+        var result = await _orderService.CancelOrderAsync();
         return Ok(new { message = "Order cancelled successfully", data = result });
     }
 }
