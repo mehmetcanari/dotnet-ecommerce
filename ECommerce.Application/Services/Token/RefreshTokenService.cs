@@ -102,35 +102,11 @@ public class RefreshTokenService : IRefreshTokenService
                 return Result.Failure("No active refresh token found");
             }
 
+            DeleteRefreshTokenCookie();
             _refreshTokenRepository.Revoke(token, reason);
             await _unitOfWork.Commit();
             
             _logger.LogInformation("User tokens revoked successfully: {Email}", email);
-            return Result.Success();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to revoke user tokens");
-            return Result.Failure(ex.Message);
-        }
-    }
-
-    public async Task<Result> LogoutUserRefreshToken(string reason)
-    {
-        try
-        {
-            var cookieResult = await GetRefreshTokenFromCookie();
-            if (cookieResult is { IsFailure: true, Error: not null }) 
-                return Result.Failure(cookieResult.Error);
-
-            var refreshToken = cookieResult.Data;
-            if (refreshToken != null) 
-                _refreshTokenRepository.Revoke(refreshToken, reason);
-            
-            DeleteRefreshTokenCookie();
-            await _unitOfWork.Commit();
-            
-            _logger.LogInformation("User tokens revoked successfully");
             return Result.Success();
         }
         catch (Exception ex)
@@ -178,6 +154,20 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
+    private void DeleteRefreshTokenCookie()
+    {
+        try
+        {
+            _httpContextAccessor.HttpContext?.Response.Cookies.Delete("refreshToken");
+            _logger.LogInformation("Refresh token cookie deleted");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete refresh token cookie");
+            throw;
+        }
+    }
+
     public void SetRefreshTokenCookie(RefreshToken refreshToken)
     {
         try
@@ -187,10 +177,11 @@ public class RefreshTokenService : IRefreshTokenService
             {
                 HttpOnly = true,
                 Secure = !string.Equals(
-                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? _configuration["ASPNETCORE_ENVIRONMENT"],
-                "Development",
-                StringComparison.OrdinalIgnoreCase),
-                SameSite = SameSiteMode.Strict,
+                    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? _configuration["ASPNETCORE_ENVIRONMENT"],
+                    "Development",
+                    StringComparison.OrdinalIgnoreCase),
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
                 Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry))
             };
 
@@ -207,21 +198,7 @@ public class RefreshTokenService : IRefreshTokenService
             throw;
         }
     }
-
-    public void DeleteRefreshTokenCookie()
-    {
-        try
-        {
-            _httpContextAccessor.HttpContext?.Response.Cookies.Delete("refreshToken");
-            _logger.LogInformation("Refresh token cookie deleted");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to delete refresh token cookie");
-            throw;
-        }
-    }
-
+    
     public async Task<Result<RefreshToken>> GetRefreshTokenFromCookie()
     {
         try

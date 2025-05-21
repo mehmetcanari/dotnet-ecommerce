@@ -62,7 +62,7 @@ Content-Type: application/json
   "password": "AdminPassword123!"
 }
 
-### LOGOUT USER
+### LOGOUT
 POST {{baseUrl}}/{{route}}/logout
 
 ### REFRESH TOKEN USER

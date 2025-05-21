@@ -1,6 +1,7 @@
 @baseUrl = http://localhost:5076
 @route = api/v1/account/profile
-
+@USER_TOKEN = {{$dotenv USER_TOKEN}}
+@ADMIN_TOKEN = {{$dotenv ADMIN_TOKEN}}
 ### GET PROFILE AS USER
 GET {{baseUrl}}/{{route}}
 Authorization: Bearer {{USER_TOKEN}}

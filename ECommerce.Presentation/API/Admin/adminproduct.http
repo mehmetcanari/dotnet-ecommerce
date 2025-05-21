@@ -1,6 +1,6 @@
 ﻿@baseUrl = http://localhost:5076
 @route = api/v1/admin/products
-
+@ADMIN_TOKEN = {{$dotenv ADMIN_TOKEN}}
 ### GET ALL PRODUCTS
 
 GET {{baseUrl}}/{{route}}

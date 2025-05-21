@@ -1,6 +1,6 @@
 ﻿@baseUrl = http://localhost:5076/
 @route = api/v1/user/orders
-
+@USER_TOKEN = {{$dotenv USER_TOKEN}}
 ### CREATE ORDER
 
 POST {{baseUrl}}{{route}}/create

@@ -26,40 +26,57 @@ E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhe
 | **FluentValidation** | Used for data validation |
 | **Identity & JWT** | For authentication and security |
 | **Redis** | Caching to improve performance |
-| **Iyzico** | Secure and reliable payment gateway integration |
+| **Iyzipay** | Secure and reliable payment gateway integration |
 | **Swagger** | API documentation and testing interface |
 | **Serilog** | Used for centralized logging infrastructure |
 | **PostgreSQL** | For persistent data storage |
 | **xUnit** | For unit testing the application |
 | **Docker** | Containerization for environment consistency and deployment |
 
+## 🛡️ Technical Approaches & Best Practices
+| Approach | Description | Implementation |
+|----------|-------------|----------------|
+| **Global Exception Handling** | Centralized error handling for consistent error responses | Custom exception middleware that catches and formats all exceptions, providing structured error responses |
+| **Targeted Queries** | Optimized database queries for better performance | Repository-specific queries with eager loading where needed, ensuring each service gets exactly the data it requires without unnecessary data transfer |
+| **Result Pattern** | Standardized API response structure | Generic Result<T> class for consistent success/error responses across all endpoints |
+| **Rate Limiting** | Prevents API abuse and ensures fair usage | Implemented using ASP.NET Core's built-in rate limiting middleware with Redis as the storage backend |
+| **Security Headers** | Enhanced API security | Implementation of security headers (X-Frame-Options, X-Content-Type-Options, etc.) through middleware |
+| **ServiceBase** | Generic validation and common service operations | Base service class implementing common CRUD operations and DTO validation |
+| **Transaction Management** | Ensures data consistency | Using Unit of Work pattern with Entity Framework Core's transaction management |
+| **Unit of Work** | Maintains data consistency across repositories | Centralized transaction management and repository coordination |
+| **Background Jobs** | Automated maintenance tasks | Custom BackgroundService implementation for periodic cleanup of expired tokens and other maintenance tasks |
+
 ## 📐 Architecture
 This project is developed using Clean Architecture. Business logic, data access, presentation and domain layers are separated. It is designed in accordance with SOLID, KISS, and DRY principles, making the code reusable and easy to maintain.
 ```
 📁 Solution
-  ├── 📁 API/                # Presentation Layer (Web API)
+  ├── 📁 Presentation/                
   │   ├── Controllers
   │   ├── Logs
   │   ├── API
   │   ├── DI Container
   │   └── Program.cs
   │
-  ├── 📁 Application/        # Business Logic Layer
-  │   ├── DTOs
-  │   ├── Interfaces
+  ├── 📁 Application/        
+  │   ├── DTO
+  │   ├── Exceptions
   │   ├── Services
+  │   ├── Abstract/Services
   │   ├── Utility
+  │   ├── Depdendencies  #Service Dependencies
   │   └── Validations
   │
-  ├── 📁 Domain/             # Domain and Entities
+  ├── 📁 Domain/        
+  │   ├── Abstract/Repository       
   │   ├── Entities
   │
-  ├── 📁 Infrastructure/     # Infrastructure Layer
-  │   ├── DB Context
+  ├── 📁 Infrastructure/     
+  │   ├── Context
   │   ├── Repositories
+  │   ├── Dependencies  #Infrastructure Dependencies  
   │   ├── Migrations
   │
-  └── 📁 ECommerce.Tests/    # Unit Tests
+  └── 📁 ECommerce.Tests/    
       ├── Services
 ```
 
@@ -85,7 +102,7 @@ Docker Compose simplifies the process of running the application and its depende
    ```
 
 2. **Access the API**:
-   - The API will be available at [http://localhost:8080](http://localhost:8080).
+   - The API will be available at [http://localhost:5076](http://localhost:5076).
 
 3. **Stop Containers**:
    ```bash
@@ -104,9 +121,11 @@ JWT_AUDIENCE=OnlineStoreClient
 JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
 
+USER_TOKEN=
+ADMIN_TOKEN=
+
 DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
 
-# Iyzico Payment Settings
 IYZICO_API_KEY=your-sandbox-api-key-here
 IYZICO_SECRET_KEY=your-sandbox-secret-key-here
 IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
@@ -165,14 +184,6 @@ Authorization: Bearer {{adminToken}}
 GET {{baseUrl}}/api/admin/products
 Authorization: Bearer {{adminToken}}
 ```
-
-## 🚧 Project Status
-**In Development**  
-The project is being actively developed. The following features will be added in the near future:
-- [x] Iyzico payment integration  
-- [x] Centralized logging with Serilog  
-- [x] Addition of unit tests  
-- [x] Dockerization
 
 ## 📧 Contact
 Project Owner - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)

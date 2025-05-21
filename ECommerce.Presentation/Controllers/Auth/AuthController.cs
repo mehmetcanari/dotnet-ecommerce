@@ -12,12 +12,10 @@ namespace ECommerce.API.Controllers.Auth
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IRefreshTokenService _refreshTokenService;
 
-        public AuthController(IAuthService authService, IRefreshTokenService refreshTokenService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
-            _refreshTokenService = refreshTokenService;
         }
 
         [HttpPost("create-admin")]
@@ -45,10 +43,10 @@ namespace ECommerce.API.Controllers.Auth
         }
 
         [HttpPost("logout")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> Logout()
         {
-            var result = await _refreshTokenService.LogoutUserRefreshToken("User logged out");
+            var result = await _authService.LogoutAsync("User logged out");
             return Ok(new { message = "Logout successful", data = result });
         }
 

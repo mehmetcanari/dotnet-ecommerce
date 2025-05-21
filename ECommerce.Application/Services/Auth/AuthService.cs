@@ -117,6 +117,28 @@ public class AuthService : ServiceBase, IAuthService
             return Result<AuthResponseDto>.Failure(ex.Message);
         }
     }
+    
+    public async Task<Result> LogoutAsync(string reason)
+    {
+        try
+        {
+            var cookieResult = await _refreshTokenService.GetRefreshTokenFromCookie();
+            if (cookieResult is { IsFailure: true, Error: not null }) 
+                return Result.Failure(cookieResult.Error);
+
+            var refreshToken = cookieResult.Data;
+            if (refreshToken != null) 
+                await _refreshTokenService.RevokeUserTokens(refreshToken.Email, reason);
+            
+            _logger.LogInformation("User logged out successfully");
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to revoke user tokens");
+            return Result.Failure(ex.Message);
+        }
+    }
 
     public async Task<Result<AuthResponseDto>> GenerateAuthTokenAsync()
     {
@@ -162,6 +184,7 @@ public class AuthService : ServiceBase, IAuthService
             }
 
             _refreshTokenService.SetRefreshTokenCookie(refreshToken.Data);
+            Console.WriteLine( $"Refresh token: {refreshToken.Data.Token}");
 
             return new AuthResponseDto
             {
