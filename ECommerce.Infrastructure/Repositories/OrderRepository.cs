@@ -14,7 +14,7 @@ public class OrderRepository : IOrderRepository
         _context = context;
     }
 
-    public async Task<List<Order>> Read()
+    public async Task<List<Order>> Read(int pageNumber = 1, int pageSize = 50)
     {
         try
         {
@@ -23,6 +23,8 @@ public class OrderRepository : IOrderRepository
             var orders = await query
             .AsNoTracking()
             .Include(o => o.BasketItems)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
             return orders;

@@ -45,6 +45,7 @@ namespace ECommerce.API.Controllers.Auth
         }
 
         [HttpPost("logout")]
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
             var result = await _refreshTokenService.LogoutUserRefreshToken("User logged out");

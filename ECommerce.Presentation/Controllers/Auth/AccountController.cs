@@ -19,6 +19,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("profile")]
+    [Authorize]
     public async Task<IActionResult> GetProfile()
     {
         var user = await _accountService.GetAccountByEmailAsResponseAsync();

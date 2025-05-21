@@ -13,16 +13,18 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public async Task<List<Product>> Read()
+    public async Task<List<Product>> Read(int pageNumber = 1, int pageSize = 50)
     {
         try
         {
             IQueryable<Product> query = _context.Products;
 
             var products = await query
-            .AsNoTracking()
-            .ToListAsync();
-            
+                .AsNoTracking()
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        
             return products;
         }
         catch (Exception exception)

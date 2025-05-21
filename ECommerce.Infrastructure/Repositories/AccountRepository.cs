@@ -14,21 +14,23 @@ public class AccountRepository : IAccountRepository
         _context = context;
     }
 
-    public async Task<List<Account>> Read()
+    public async Task<List<Account>> Read(int pageNumber = 1, int pageSize = 50)
     {
         try
         {
             IQueryable<Account> query = _context.Accounts;
 
             var accounts = await query
-            .AsNoTracking()
-            .ToListAsync();
+                .AsNoTracking()
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             return accounts;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while reading accounts", ex);
+            throw new Exception("An unexpected error occurred while reading accounts", exception);
         }
     }
     

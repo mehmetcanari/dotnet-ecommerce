@@ -26,16 +26,18 @@ public class CategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task<List<Category>> Read()
+    public async Task<List<Category>> Read(int pageNumber = 1, int pageSize = 50)
     {
         try
         {
             IQueryable<Category> query = _context.Categories;
 
             var categories = await query
-            .AsNoTracking()
-            .Include(c => c.Products)
-            .ToListAsync();
+                .AsNoTracking()
+                .Include(c => c.Products)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             return categories;
         }
