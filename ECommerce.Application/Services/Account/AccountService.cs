@@ -1,12 +1,14 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Account;
+using ECommerce.Application.Services.Base;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Application.DTO.Request.Token;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Account;
-public class AccountService : IAccountService
+public class AccountService : ServiceBase, IAccountService
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IRefreshTokenService _refreshTokenService;
@@ -21,7 +23,8 @@ public class AccountService : IAccountService
         IRefreshTokenService refreshTokenService, 
         UserManager<IdentityUser> userManager, 
         ILoggingService logger, 
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _accountRepository = accountRepository;
         _refreshTokenService = refreshTokenService;
@@ -220,19 +223,27 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<Result> BanAccountAsync(string email, DateTime until, string reason)
+    public async Task<Result> BanAccountAsync(AccountBanRequestDto request)
     {
         try
         {
-            var account = await _accountRepository.GetAccountByEmail(email);
+            var validationResult = await ValidateAsync(request);
+            if (validationResult is { IsSuccess: false, Error: not null })
+            {
+                return Result.Failure(validationResult.Error);
+            }
+
+            var account = await _accountRepository.GetAccountByEmail(request.Email);
             if (account == null)
             {
                 return Result.Failure("Account not found");
             }
             
-            account.BanAccount(until, reason);
+            account.BanAccount(request.Until, request.Reason);
             _accountRepository.Update(account);
-            await _refreshTokenService.RevokeUserTokens(email, "Account banned");
+            
+            var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.Email, Reason = "Account banned" };
+            await _refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
             await _unitOfWork.Commit();
             _logger.LogInformation("Account banned successfully: {Account}", account);
 
@@ -245,11 +256,17 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<Result> UnbanAccountAsync(string email)
+    public async Task<Result> UnbanAccountAsync(AccountUnbanRequestDto request)
     {
         try
         {
-            var account = await _accountRepository.GetAccountByEmail(email);
+            var validationResult = await ValidateAsync(request);
+            if (validationResult is { IsSuccess: false, Error: not null })
+            {
+                return Result.Failure(validationResult.Error);
+            }
+
+            var account = await _accountRepository.GetAccountByEmail(request.Email);
             if (account == null)
             {
                 return Result.Failure("Account not found");
@@ -257,7 +274,9 @@ public class AccountService : IAccountService
             
             account.UnbanAccount();
             _accountRepository.Update(account);
-            await _refreshTokenService.RevokeUserTokens(email, "Account unbanned");
+            
+            var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.Email, Reason = "Account unbanned" };
+            await _refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
             await _unitOfWork.Commit();
             _logger.LogInformation("Account unbanned successfully: {Account}", account);
 

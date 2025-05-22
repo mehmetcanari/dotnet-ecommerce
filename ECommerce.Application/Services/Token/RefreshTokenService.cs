@@ -9,10 +9,11 @@ using System.Text;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-
+using ECommerce.Application.DTO.Request.Token;
+using ECommerce.Application.Services.Base;
 namespace ECommerce.Application.Services.Token;
 
-public class RefreshTokenService : IRefreshTokenService
+public class RefreshTokenService : ServiceBase, IRefreshTokenService
 {
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ILoggingService _logger;
@@ -27,7 +28,8 @@ public class RefreshTokenService : IRefreshTokenService
         IConfiguration configuration, 
         IHttpContextAccessor httpContextAccessor, 
         IUnitOfWork unitOfWork, 
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _refreshTokenRepository = refreshTokenRepository;
         _logger = logger;
@@ -41,7 +43,8 @@ public class RefreshTokenService : IRefreshTokenService
     {
         try
         {
-            await RevokeUserTokens(email, "New refresh token generated");
+            var request = new TokenRevokeRequestDto { Email = email, Reason = "New refresh token generated" };
+            await RevokeUserTokens(request);
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
 
             var refreshToken = new RefreshToken
@@ -91,22 +94,28 @@ public class RefreshTokenService : IRefreshTokenService
         }
     }
 
-    public async Task<Result> RevokeUserTokens(string email, string reason)
+    public async Task<Result> RevokeUserTokens(TokenRevokeRequestDto request)
     {
         try
         {
-            var token = await _refreshTokenRepository.GetActiveUserTokenAsync(email);
+            var validationResult = await ValidateAsync(request);
+            if (validationResult is { IsSuccess: false, Error: not null })
+            {
+                return Result.Failure(validationResult.Error);
+            }
+
+            var token = await _refreshTokenRepository.GetActiveUserTokenAsync(request.Email);
             if (token == null)
             {
-                _logger.LogWarning("No active refresh token found for user: {Email}", email);
+                _logger.LogWarning("No active refresh token found for user: {Email}", request.Email);
                 return Result.Failure("No active refresh token found");
             }
 
             DeleteRefreshTokenCookie();
-            _refreshTokenRepository.Revoke(token, reason);
+            _refreshTokenRepository.Revoke(token, request.Reason);
             await _unitOfWork.Commit();
             
-            _logger.LogInformation("User tokens revoked successfully: {Email}", email);
+            _logger.LogInformation("User tokens revoked successfully: {Email}", request.Email);
             return Result.Success();
         }
         catch (Exception ex)

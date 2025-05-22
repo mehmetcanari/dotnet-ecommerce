@@ -23,7 +23,8 @@ Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 
 {
-    "email": "bsn.mehmetcanari@gmail.com"
+    "email": "user@system.com",
+    "reason": "Revoked by admin."
 }
 
 ### BAN ACCOUNT
@@ -33,7 +34,7 @@ Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 
 {
-    "email": "bsn.mehmetcanari@gmail.com",
+    "email": "user@system.com",
     "until": "2025-07-11",
     "reason": "Test"
 }
@@ -45,7 +46,7 @@ Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 
 {
-    "email": "bsn.mehmetcanari@gmail.com"
+    "email": "user@system.com"
 }
 
 

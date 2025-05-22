@@ -1,195 +1,201 @@
 # E-Commerce API
+
 ## 📋 Overview
-E-Commerce API is a RESTful API developed for a modern e-commerce platform, adhering to Clean Architecture and SOLID principles. This API supports core e-commerce functionalities such as product management, user registration and authentication, and payment processing.
+Modern e-commerce RESTful API built with Clean Architecture and SOLID principles. Supports product management, user authentication, and secure payment processing.
 
 ## 🚀 Features
-📦 Product management (create, list, update, delete)
+- 📦 **Product Management** - Full CRUD operations with inventory tracking
+- 🔐 **Authentication & Authorization** - JWT-based security with role management
+- 💳 **Payment Processing** - Integrated Iyzico payment gateway
+- ⚡ **Performance** - Redis caching and optimized database queries
+- 🧾 **Observability** - Centralized logging with Serilog
+- 📜 **Documentation** - Interactive Swagger API docs
+- 🧪 **Testing** - Comprehensive test suite with xUnit
 
-🔐 User registration and authentication
-
-💳 Payment Processing Integration – Iyzico payment service fully integrated
-
-⚡ Redis-based caching
-
-🔒 JWT-based security and authorization
-
-🧾 Centralized logging infrastructure with Serilog
-
-📜 API documentation with Swagger
-
-🧪 Test suite using xUnit for ensuring code quality
-
-## 🛠️ Technologies Used
-| Technology | Description |
-|-----------|----------|
-| **.NET 9** | Core platform for the API |
-| **FluentValidation** | Used for data validation |
-| **Identity & JWT** | For authentication and security |
-| **Redis** | Caching to improve performance |
-| **Iyzipay** | Secure and reliable payment gateway integration |
-| **Swagger** | API documentation and testing interface |
-| **Serilog** | Used for centralized logging infrastructure |
-| **PostgreSQL** | For persistent data storage |
-| **xUnit** | For unit testing the application |
-| **Docker** | Containerization for environment consistency and deployment |
+## 🛠️ Tech Stack
+| Technology | Purpose |
+|-----------|---------|
+| **.NET 9** | Core framework |
+| **PostgreSQL** | Primary database |
+| **Redis** | Caching layer |
+| **JWT & Identity** | Authentication/authorization |
+| **Iyzico** | Payment gateway |
+| **FluentValidation** | Input validation |
+| **Serilog** | Structured logging |
+| **Docker** | Containerization |
+| **xUnit** | Unit testing |
 
 ## 🛡️ Technical Approaches & Best Practices
+
 | Approach | Description | Implementation |
 |----------|-------------|----------------|
-| **Global Exception Handling** | Centralized error handling for consistent error responses | Custom exception middleware that catches and formats all exceptions, providing structured error responses |
-| **Targeted Queries** | Optimized database queries for better performance | Repository-specific queries with eager loading where needed, ensuring each service gets exactly the data it requires without unnecessary data transfer |
-| **Result Pattern** | Standardized API response structure | Generic Result<T> class for consistent success/error responses across all endpoints |
-| **Rate Limiting** | Prevents API abuse and ensures fair usage | Implemented using ASP.NET Core's built-in rate limiting middleware with Redis as the storage backend |
-| **Security Headers** | Enhanced API security | Implementation of security headers (X-Frame-Options, X-Content-Type-Options, etc.) through middleware |
-| **ServiceBase** | Generic validation and common service operations | Base service class implementing common CRUD operations and DTO validation |
-| **Transaction Management** | Ensures data consistency | Using Unit of Work pattern with Entity Framework Core's transaction management |
-| **Unit of Work** | Maintains data consistency across repositories | Centralized transaction management and repository coordination |
-| **Background Jobs** | Automated maintenance tasks | Custom BackgroundService implementation for periodic cleanup of expired tokens and other maintenance tasks |
+| **Global Exception Handling** | Centralized error handling for consistent responses | Custom middleware catches all exceptions, returns structured JSON responses |
+| **API Versioning** | Backward compatibility and smooth API evolution | URL-based versioning (`/api/v1/`, `/api/v2/`) with version-specific controllers |
+| **Targeted Queries** | Optimized database performance | Repository pattern with eager loading, projection queries for specific data needs |
+| **Result Pattern** | Standardized response structure | Generic `Result<T>` wrapper for consistent success/error handling across endpoints |
+| **Rate Limiting** | API abuse prevention | ASP.NET Core middleware |
+| **Security Headers** | Enhanced protection against common attacks | Middleware adds HSTS, X-Frame-Options, CSP, and other security headers |
+| **ServiceBase** | Common service operations and validation | Generic base class with CRUD operations, DTO validation, and error handling |
+| **Transaction Management** | Data consistency across operations | Unit of Work pattern with EF Core transactions for multi-repository operations |
+| **Background Jobs** | Automated system maintenance | `BackgroundService` for token cleanup, cache refresh, and scheduled tasks |
 
 ## 📐 Architecture
-This project is developed using Clean Architecture. Business logic, data access, presentation and domain layers are separated. It is designed in accordance with SOLID, KISS, and DRY principles, making the code reusable and easy to maintain.
+Clean Architecture implementation with clear separation of concerns:
+
 ```
-📁 Solution
-  ├── 📁 Presentation/                
-  │   ├── Controllers
-  │   ├── Logs
-  │   ├── API
-  │   ├── DI Container
-  │   └── Program.cs
-  │
-  ├── 📁 Application/        
-  │   ├── DTO
-  │   ├── Exceptions
-  │   ├── Services
-  │   ├── Abstract/Services
-  │   ├── Utility
-  │   ├── Depdendencies  #Service Dependencies
-  │   └── Validations
-  │
-  ├── 📁 Domain/        
-  │   ├── Abstract/Repository       
-  │   ├── Entities
-  │
-  ├── 📁 Infrastructure/     
-  │   ├── Context
-  │   ├── Repositories
-  │   ├── Dependencies  #Infrastructure Dependencies  
-  │   ├── Migrations
-  │
-  └── 📁 ECommerce.Tests/    
-      ├── Services
+📁 ECommerce.API/
+├── 📁 Presentation/          # API controllers, middleware
+│   ├── Controllers/
+│   ├── Middleware/
+│   └── Program.cs
+│
+├── 📁 Application/           # Business logic, services
+│   ├── Services/
+│   ├── DTOs/
+│   ├── Validators/
+│   └── Exceptions/
+│
+├── 📁 Domain/               # Core entities, interfaces
+│   ├── Entities/
+│   └── Interfaces/
+│
+├── 📁 Infrastructure/       # Data access, external services
+│   ├── Repositories/
+│   ├── Context/
+│   └── Migrations/
+│
+└── 📁 Tests/               # Unit and integration tests
 ```
 
-## 🔧 Installation
+## 🚀 Quick Start
+
+### Prerequisites
+- .NET 9 SDK
+- Docker & Docker Compose
+- PostgreSQL (if running locally)
+- Redis (if running locally)
+
+### Option 1: Docker Compose (Recommended)
 ```bash
-# Clone the repository
 git clone https://github.com/mehmetcanari/dotnet-ecommerce-demo.git
-# Enter the directory
 cd dotnet-ecommerce-demo
+docker compose up --build
+```
+API will be available at http://localhost:5076
 
-# Option 1: Run locally
+### Option 2: Local Development
+```bash
+git clone https://github.com/mehmetcanari/dotnet-ecommerce-demo.git
+cd dotnet-ecommerce-demo
 dotnet restore
-cd ECommerce.API
-dotnet watch run 
+cd ECommerce.Presentation
+dotnet watch run
 ```
 
-## 🐳 Running with Docker Compose
-Docker Compose simplifies the process of running the application and its dependencies (PostgreSQL and Redis) in isolated containers. Follow these steps to run the project using Docker Compose:
+## ⚙️ Configuration
 
-1. **Build and Start Containers**:
-   ```bash
-   docker compose up --build
-   ```
-
-2. **Access the API**:
-   - The API will be available at [http://localhost:5076](http://localhost:5076).
-
-3. **Stop Containers**:
-   ```bash
-   docker compose down
-   ```
-
-## 🔑 Environment Variables
-Set the following environment variables before running the project:
-```
+### Required Environment Variables
+```env
+# Application
 ASPNETCORE_ENVIRONMENT=Development
 ASPNETCORE_URLS=http://localhost:5076
 
+# JWT Configuration
 JWT_SECRET=YourSecretKeyHere12345678901234567890
 JWT_ISSUER=OnlineStoreWebAPI
 JWT_AUDIENCE=OnlineStoreClient
 JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
 
-USER_TOKEN=
-ADMIN_TOKEN=
-
+# Database
 DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
 
+# Payment Gateway (Iyzipay Sandbox)
 IYZICO_API_KEY=your-sandbox-api-key-here
 IYZICO_SECRET_KEY=your-sandbox-secret-key-here
 IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
+
+# Tokens - For testing purpose
+USER_TOKEN=
+ADMIN_TOKEN=
 ```
-## 🌟 Basic API Usage
-### Authentication Endpoints
+
+## 📖 API Documentation
+
+### Authentication
 ```http
-### User Registration
-POST {{baseUrl}}/{{route}}/create-user
+# Register New User
+POST /api/v1/auth/register
 Content-Type: application/json
 
 {
-    "name": "Test User Name",
-    "surname": "Test User Surname",
-    "email": "user@system.com",
+    "name": "John",
+    "surname": "Doe",
+    "email": "john.doe@example.com",
+    "password": "SecurePassword123!",
+    "phoneNumber": "1234567890",
     "identityNumber": "12345678901",
+    "address": "123 Main St",
     "city": "Istanbul",
     "country": "TR",
-    "zipCode": "34343",
-    "address": "Istanbul, TR",
-    "password": "UserPassword123!",
-    "phoneNumber": "9876543210",
-    "dateOfBirth": "1999-03-24"
+    "zipCode": "34000",
+    "dateOfBirth": "1990-01-01"
 }
 
-### Login
-POST {{baseUrl}}/{{route}}/login
+# Login
+POST /api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "user@system.com",  
-  "password": "UserPassword123!"
+    "email": "john.doe@example.com",
+    "password": "SecurePassword123!"
 }
 
-### Token Refresh
-POST {{baseUrl}}/{{route}}/refresh-token
+# Refresh Token
+POST /api/v1/auth/refresh-token
 ```
 
-### Product Management (Admin)
+### Product Management
 ```http
-### Add New Product
-POST {{baseUrl}}/api/admin/products/create
+# Create Product (Admin)
+POST /api/v1/admin/products
+Authorization: Bearer {admin_token}
 Content-Type: application/json
-Authorization: Bearer {{adminToken}}
 
 {
-  "Name": "Playstation 5",
-  "Description": "Playstation 5 is a gaming console that is the latest in the Playstation series",
-  "Price": 499.99,
-  "StockQuantity": 220,
-  "DiscountRate": 25,
-  "ImageUrl": "https://via.placeholder.com/150"
+    "name": "PlayStation 5",
+    "description": "Next-gen gaming console",
+    "price": 499.99,
+    "stockQuantity": 100,
+    "discountRate": 10,
+    "imageUrl": "https://example.com/ps5.jpg"
 }
 
-### List Products
-GET {{baseUrl}}/api/admin/products
-Authorization: Bearer {{adminToken}}
+# Get Products
+GET /api/v1/products?page=1&size=10
+```
+
+## 🧪 Testing
+```bash
+# Run all tests
+dotnet test
+```
+
+## 🚀 Deployment
+The project includes Docker support for easy deployment:
+
+```bash
+# Build production image
+docker build -t ecommerce-api .
+
+# Run with production compose
+docker compose -f docker-compose.prod.yml up
 ```
 
 ## 📧 Contact
-Project Owner - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)
+**Mehmet Can Arı** - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)
 
 [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mehmetcanari)
 
----
 
-**Note:** Documentation will be updated as development progresses.
+---

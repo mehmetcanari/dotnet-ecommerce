@@ -4,6 +4,7 @@ using ECommerce.Application.DTO.Response.Auth;
 using ECommerce.Application.Services.Base;
 using ECommerce.Application.Utility;
 using Microsoft.AspNetCore.Identity;
+using ECommerce.Application.DTO.Request.Token;
 
 namespace ECommerce.Application.Services.Auth;
 
@@ -128,7 +129,10 @@ public class AuthService : ServiceBase, IAuthService
 
             var refreshToken = cookieResult.Data;
             if (refreshToken != null) 
-                await _refreshTokenService.RevokeUserTokens(refreshToken.Email, reason);
+            {
+                var request = new TokenRevokeRequestDto { Email = refreshToken.Email, Reason = reason };
+                await _refreshTokenService.RevokeUserTokens(request);
+            }
             
             _logger.LogInformation("User logged out successfully");
             return Result.Success();

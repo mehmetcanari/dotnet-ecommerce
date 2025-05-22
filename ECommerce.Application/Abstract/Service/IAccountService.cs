@@ -12,6 +12,6 @@ public interface IAccountService
     Task<Result<AccountResponseDto>> GetAccountWithIdAsync(int id);
     Task<Result<AccountResponseDto>> GetAccountByEmailAsResponseAsync();
     Task<Result> DeleteAccountAsync(int id);
-    Task<Result> BanAccountAsync(string email, DateTime until, string reason);
-    Task<Result> UnbanAccountAsync(string email);
+    Task<Result> BanAccountAsync(AccountBanRequestDto request);
+    Task<Result> UnbanAccountAsync(AccountUnbanRequestDto request);
 }

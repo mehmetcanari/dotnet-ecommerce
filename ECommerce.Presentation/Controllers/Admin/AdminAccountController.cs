@@ -47,21 +47,21 @@ public class AdminAccountController : ControllerBase
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] TokenRevokeRequestDto request)
     {
-        var result = await _refreshTokenService.RevokeUserTokens(request.Email, "Revoked by admin.");
+        var result = await _refreshTokenService.RevokeUserTokens(request);
         return Ok(new { message = $"{request.Email} tokens revoked successfully", data = result });
     }
 
     [HttpPost("ban")]
     public async Task<IActionResult> BanAccount([FromBody] AccountBanRequestDto request)
     {
-        var result = await _accountService.BanAccountAsync(request.Email, request.Until, request.Reason);
+        var result = await _accountService.BanAccountAsync(request);
         return Ok(new { message = $"{request.Email} account banned successfully", data = result });
     }
 
     [HttpPost("unban")]
     public async Task<IActionResult> UnbanAccount([FromBody] AccountUnbanRequestDto request)
     {
-        var result = await _accountService.UnbanAccountAsync(request.Email);
+        var result = await _accountService.UnbanAccountAsync(request);
         return Ok(new { message = $"{request.Email} account unbanned successfully", data = result });
     }
 }
