@@ -12,6 +12,7 @@ using ECommerce.Application.Exceptions;
 using ECommerce.Infrastructure.Context;
 using Serilog;
 using Serilog.Events;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerce.API;
 
@@ -236,10 +237,10 @@ internal static class Program
                 new UrlSegmentApiVersionReader(),
                 new HeaderApiVersionReader("X-Api-Version"),
                 new QueryStringApiVersionReader("version"));
-        }).AddApiExplorer(setup =>
+        }).AddApiExplorer(options =>
         {
-            setup.GroupNameFormat = "'v'VVV";
-            setup.SubstituteApiVersionInUrl = true;
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
         });
 
         #endregion
@@ -444,9 +445,9 @@ internal static class Program
             options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
-                diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+                diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? "Unknown");
                 diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-                diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault());
+                diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? "Unknown");
             };
         });
 
