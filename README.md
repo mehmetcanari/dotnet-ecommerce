@@ -43,28 +43,35 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 Clean Architecture implementation with clear separation of concerns:
 
 ```
-📁 ECommerce.API/
-├── 📁 Presentation/          # API controllers, middleware
-│   ├── Controllers/
-│   ├── Middleware/
-│   └── Program.cs
-│
-├── 📁 Application/           # Business logic, services
-│   ├── Services/
-│   ├── DTOs/
-│   ├── Validators/
-│   └── Exceptions/
-│
-├── 📁 Domain/               # Core entities, interfaces
-│   ├── Entities/
-│   └── Interfaces/
-│
-├── 📁 Infrastructure/       # Data access, external services
-│   ├── Repositories/
-│   ├── Context/
-│   └── Migrations/
-│
-└── 📁 Tests/               # Unit and integration tests
+📁 Solution
+  ├── 📁 Presentation/                
+  │   ├── Controllers
+  │   ├── Logs
+  │   ├── API
+  │   ├── DI Container
+  │   └── Program.cs
+  │
+  ├── 📁 Application/        
+  │   ├── DTO
+  │   ├── Exceptions
+  │   ├── Services
+  │   ├── Abstract/Services
+  │   ├── Utility
+  │   ├── Depdendencies  #Service Dependencies
+  │   └── Validations
+  │
+  ├── 📁 Domain/        
+  │   ├── Abstract/Repository       
+  │   ├── Entities
+  │
+  ├── 📁 Infrastructure/     
+  │   ├── Context
+  │   ├── Repositories
+  │   ├── Dependencies  #Infrastructure Dependencies  
+  │   ├── Migrations
+  │
+  └── 📁 ECommerce.Tests/    
+      ├── Services
 ```
 
 ## 🚀 Quick Start
@@ -179,17 +186,6 @@ GET /api/v1/products?page=1&size=10
 ```bash
 # Run all tests
 dotnet test
-```
-
-## 🚀 Deployment
-The project includes Docker support for easy deployment:
-
-```bash
-# Build production image
-docker build -t ecommerce-api .
-
-# Run with production compose
-docker compose -f docker-compose.prod.yml up
 ```
 
 ## 📧 Contact
