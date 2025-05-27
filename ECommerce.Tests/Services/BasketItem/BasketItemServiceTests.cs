@@ -4,8 +4,6 @@ using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Services.BasketItem;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Application.Utility;
-using Moq;
-using Xunit;
 
 namespace ECommerce.Tests.Services.BasketItem;
 

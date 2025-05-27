@@ -4,7 +4,6 @@ using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Services.Category;
 using ECommerce.Domain.Abstract.Repository;
-using FluentAssertions;
 
 namespace ECommerce.Tests.Services.Category;
 
@@ -17,9 +16,6 @@ public class CategoryServiceTests
     private readonly Mock<ICacheService> _cacheServiceMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
-
-    private const string CategoryCacheKey = "category:{0}";
-    private const string GetAllCategoriesCacheKey = "categories";
 
     public CategoryServiceTests()
     {

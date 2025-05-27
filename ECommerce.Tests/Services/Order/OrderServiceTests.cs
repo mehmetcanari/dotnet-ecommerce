@@ -1,15 +1,10 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Order;
-using ECommerce.Application.DTO.Response.Order;
-using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Services.Order;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Iyzipay.Model;
-using FluentAssertions;
 
 namespace ECommerce.Tests.Services.Order;
 

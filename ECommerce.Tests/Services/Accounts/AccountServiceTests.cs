@@ -5,7 +5,6 @@ using ECommerce.Application.Services.Account;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Application.Utility;
 using Microsoft.AspNetCore.Identity;
-using FluentAssertions;
 
 namespace ECommerce.Tests.Services.Accounts;
 

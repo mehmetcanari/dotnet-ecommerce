@@ -5,9 +5,6 @@ using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.Services.Product;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Domain.Model;
-using Microsoft.Extensions.DependencyInjection;
-using FluentAssertions;
 
 namespace ECommerce.Tests.Services.Product;
 
