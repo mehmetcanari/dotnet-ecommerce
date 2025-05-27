@@ -1,18 +1,20 @@
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.DTO.Response.BasketItem;
-using ECommerce.Application.Interfaces.Repository;
-using ECommerce.Application.Interfaces.Service;
 using ECommerce.Application.Services.Order;
+using ECommerce.Application.Utility;
+using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
-using Moq;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 using Iyzipay.Model;
-using Iyzipay.Request;
+using FluentAssertions;
 
 namespace ECommerce.Tests.Services.Order;
 
+[Trait("Category", "Order")]
+[Trait("Category", "Service")]
 public class OrderServiceTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
@@ -24,6 +26,8 @@ public class OrderServiceTests
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<IPaymentService> _paymentServiceMock;
+    private readonly Mock<ICurrentUserService> _currentUserServiceMock;
+    private readonly Mock<IServiceProvider> _serviceProviderMock;
 
     public OrderServiceTests()
     {
@@ -36,6 +40,8 @@ public class OrderServiceTests
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _paymentServiceMock = new Mock<IPaymentService>();
+        _currentUserServiceMock = new Mock<ICurrentUserService>();
+        _serviceProviderMock = new Mock<IServiceProvider>();
     }
 
     private OrderService CreateService() => new OrderService(
@@ -47,7 +53,63 @@ public class OrderServiceTests
         _accountRepositoryMock.Object,
         _loggerMock.Object,
         _httpContextAccessorMock.Object,
-        _paymentServiceMock.Object);
+        _paymentServiceMock.Object,
+        _serviceProviderMock.Object,
+        _currentUserServiceMock.Object);
+
+    private void SetupCurrentUser(string email)
+    {
+        _currentUserServiceMock.Setup(c => c.GetCurrentUserEmail())
+            .Returns(Result<string>.Success(email));
+    }
+
+    private void SetupAccount(Domain.Model.Account account)
+    {
+        _accountRepositoryMock.Setup(r => r.GetAccountByEmail(It.IsAny<string>()))
+            .ReturnsAsync(account);
+    }
+
+    private void SetupBasketItems(List<Domain.Model.BasketItem> basketItems)
+    {
+        _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItems(It.IsAny<Domain.Model.Account>()))
+            .ReturnsAsync(basketItems);
+    }
+
+    private void SetupOrder(Domain.Model.Order order)
+    {
+        _orderRepositoryMock.Setup(r => r.GetOrderById(It.IsAny<int>()))
+            .ReturnsAsync(order);
+    }
+
+    private void SetupPendingOrders(List<Domain.Model.Order> orders)
+    {
+        _orderRepositoryMock.Setup(r => r.GetAccountPendingOrders(It.IsAny<int>()))
+            .ReturnsAsync(orders);
+    }
+
+    private void SetupUserOrders(List<Domain.Model.Order> orders)
+    {
+        _orderRepositoryMock.Setup(r => r.GetAccountOrders(It.IsAny<int>()))
+            .ReturnsAsync(orders);
+    }
+
+    private void SetupPaymentResult(bool success, string errorMessage = null)
+    {
+        var paymentResult = Result<Payment>.Success(new Payment 
+        { 
+            Status = success ? "success" : "failed", 
+            ErrorMessage = errorMessage 
+        });
+        
+        _paymentServiceMock.Setup(p => p.ProcessPaymentAsync(
+            It.IsAny<ECommerce.Domain.Model.Order>(),
+            It.IsAny<ECommerce.Domain.Model.Buyer>(),
+            It.IsAny<ECommerce.Domain.Model.Address>(),
+            It.IsAny<ECommerce.Domain.Model.Address>(),
+            It.IsAny<ECommerce.Domain.Model.PaymentCard>(),
+            It.IsAny<List<ECommerce.Domain.Model.BasketItem>>()))
+            .ReturnsAsync(paymentResult);
+    }
 
     private Domain.Model.Account CreateAccount(int id = 1, string email = "test@example.com")
         => new Domain.Model.Account
@@ -79,6 +141,18 @@ public class OrderServiceTests
             ExternalId = Guid.NewGuid().ToString()
         };
 
+    private Domain.Model.Order CreateOrder(int accountId = 1, OrderStatus status = OrderStatus.Pending)
+        => new Domain.Model.Order
+        {
+            OrderId = 1,
+            AccountId = accountId,
+            BasketItems = new List<Domain.Model.BasketItem> { CreateBasketItem() },
+            OrderDate = DateTime.UtcNow,
+            ShippingAddress = "Test Shipping Address",
+            BillingAddress = "Test Billing Address",
+            Status = status
+        };
+
     private OrderCreateRequestDto CreateOrderRequest()
         => new OrderCreateRequestDto
         {
@@ -94,287 +168,323 @@ public class OrderServiceTests
         };
 
     [Fact]
-    public async Task AddOrderAsync_Should_Create_Order_Successfully()
+    [Trait("Operation", "Create")]
+    public async Task CreateOrderAsync_Should_Create_Order_Successfully()
     {
+        // Arrange
         var account = CreateAccount();
         var basketItem = CreateBasketItem();
         var request = CreateOrderRequest();
-        var paymentResult = new Iyzipay.Model.Payment { Status = "success" };
-
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        _basketItemRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.BasketItem> { basketItem });
-        _paymentServiceMock.Setup(p => p.ProcessPaymentAsync(
-            It.IsAny<Domain.Model.Order>(), 
-            It.IsAny<Domain.Model.Buyer>(), 
-            It.IsAny<Domain.Model.Address>(), 
-            It.IsAny<Domain.Model.Address>(), 
-            It.IsAny<Domain.Model.PaymentCard>(), 
-            It.IsAny<List<Domain.Model.BasketItem>>()))
-            .ReturnsAsync(paymentResult);
+        
+        SetupCurrentUser(account.Email);
+        SetupAccount(account);
+        SetupBasketItems(new List<Domain.Model.BasketItem> { basketItem });
+        SetupPaymentResult(true);
         _unitOfWorkMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.CommitTransactionAsync()).Returns(Task.CompletedTask);
+        _productServiceMock.Setup(p => p.UpdateProductStockAsync(It.IsAny<List<Domain.Model.BasketItem>>()))
+            .ReturnsAsync(Result.Success());
         var service = CreateService();
 
-        await service.AddOrderAsync(request, account.Email);
+        // Act
+        var result = await service.CreateOrderAsync(request);
 
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
         _orderRepositoryMock.Verify(r => r.Create(It.IsAny<Domain.Model.Order>()), Times.Once);
-        _basketItemServiceMock.Verify(s => s.DeleteAllBasketItemsAsync(account.Email), Times.Once);
+        _basketItemServiceMock.Verify(s => s.DeleteAllNonOrderedBasketItemsAsync(), Times.Once);
         _productServiceMock.Verify(s => s.UpdateProductStockAsync(It.IsAny<List<Domain.Model.BasketItem>>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.CommitTransactionAsync(), Times.Once);
         _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
     }
 
     [Fact]
-    public async Task AddOrderAsync_Should_Rollback_When_Payment_Fails()
+    [Trait("Operation", "Create")]
+    public async Task CreateOrderAsync_Should_Return_Failure_When_Payment_Fails()
     {
+        // Arrange
         var account = CreateAccount();
         var basketItem = CreateBasketItem();
         var request = CreateOrderRequest();
-        var paymentResult = new Iyzipay.Model.Payment { Status = "failed", ErrorMessage = "Payment failed" };
-
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        _basketItemRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.BasketItem> { basketItem });
-        _paymentServiceMock.Setup(p => p.ProcessPaymentAsync(
-            It.IsAny<Domain.Model.Order>(), 
-            It.IsAny<Domain.Model.Buyer>(), 
-            It.IsAny<Domain.Model.Address>(), 
-            It.IsAny<Domain.Model.Address>(), 
-            It.IsAny<Domain.Model.PaymentCard>(), 
-            It.IsAny<List<Domain.Model.BasketItem>>()))
-            .ReturnsAsync(paymentResult);
+        
+        SetupCurrentUser(account.Email);
+        SetupAccount(account);
+        SetupBasketItems(new List<Domain.Model.BasketItem> { basketItem });
         _unitOfWorkMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.RollbackTransaction()).Returns(Task.CompletedTask);
+        SetupPaymentResult(false, "Payment failed");
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.AddOrderAsync(request, account.Email));
+        // Act
+        var result = await service.CreateOrderAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be("Payment failed: Payment failed");
         _unitOfWorkMock.Verify(u => u.RollbackTransaction(), Times.Once);
         _loggerMock.Verify(l => l.LogWarning(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
     }
 
     [Fact]
+    [Trait("Operation", "Cancel")]
     public async Task CancelOrderAsync_Should_Cancel_Orders_Successfully()
     {
+        // Arrange
         var account = CreateAccount();
-        var order = new Domain.Model.Order 
-        { 
-            AccountId = account.Id, 
-            Status = OrderStatus.Pending,
-            ShippingAddress = "Test Shipping Address",
-            BillingAddress = "Test Billing Address"
-        };
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order> { order });
+        var order = CreateOrder(account.Id);
+        var pendingOrders = new List<Domain.Model.Order> { order };
+        
+        SetupCurrentUser(account.Email);
+        SetupAccount(account);
+        SetupPendingOrders(pendingOrders);
         var service = CreateService();
 
-        await service.CancelOrderAsync(account.Email);
+        // Act
+        var result = await service.CancelOrderAsync();
 
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
         _orderRepositoryMock.Verify(r => r.Update(It.Is<Domain.Model.Order>(o => o.Status == OrderStatus.Cancelled)), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
     }
 
     [Fact]
-    public async Task CancelOrderAsync_Should_ThrowException_When_No_Pending_Orders()
+    [Trait("Operation", "Cancel")]
+    public async Task CancelOrderAsync_Should_Return_Failure_When_No_Pending_Orders()
     {
+        // Arrange
         var account = CreateAccount();
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order>());
+        
+        SetupCurrentUser(account.Email);
+        SetupAccount(account);
+        SetupPendingOrders(new List<Domain.Model.Order>());
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.CancelOrderAsync(account.Email));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), "Unexpected error while cancelling orders: {Message}", It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.CancelOrderAsync();
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("No pending orders found", result.Error);
+        _orderRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.Order>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
     [Fact]
+    [Trait("Operation", "Delete")]
     public async Task DeleteOrderByIdAsync_Should_Delete_Order_Successfully()
     {
-        var order = new Domain.Model.Order 
-        { 
-            OrderId = 1,
-            ShippingAddress = "Test Shipping Address",
-            BillingAddress = "Test Billing Address"
-        };
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order> { order });
+        // Arrange
+        var order = CreateOrder();
+        SetupOrder(order);
         var service = CreateService();
 
-        await service.DeleteOrderByIdAsync(order.OrderId);
+        // Act
+        var result = await service.DeleteOrderByIdAsync(order.OrderId);
 
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
         _orderRepositoryMock.Verify(r => r.Delete(It.Is<Domain.Model.Order>(o => o.OrderId == order.OrderId)), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
     }
 
     [Fact]
-    public async Task DeleteOrderByIdAsync_Should_ThrowException_When_Order_Not_Found()
+    [Trait("Operation", "Delete")]
+    public async Task DeleteOrderByIdAsync_Should_Return_Failure_When_Order_Not_Found()
     {
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order>());
+        // Arrange
+        SetupOrder(null);
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.DeleteOrderByIdAsync(1));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), "Unexpected error while deleting order: {Message}", It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.DeleteOrderByIdAsync(1);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Order not found", result.Error);
+        _orderRepositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Model.Order>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
     [Fact]
+    [Trait("Operation", "GetAll")]
     public async Task GetAllOrdersAsync_Should_Return_Orders_Successfully()
     {
-        var order = new Domain.Model.Order
-        {
-            OrderId = 1,
-            AccountId = 1,
-            BasketItems = new List<Domain.Model.BasketItem> { CreateBasketItem() },
-            OrderDate = DateTime.UtcNow,
-            ShippingAddress = "Test Shipping Address",
-            BillingAddress = "Test Billing Address",
-            Status = OrderStatus.Pending
-        };
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order> { order });
+        // Arrange
+        var order = CreateOrder();
+        _orderRepositoryMock.Setup(r => r.Read(1, 50))
+            .ReturnsAsync(new List<Domain.Model.Order> { order });
         var service = CreateService();
 
+        // Act
         var result = await service.GetAllOrdersAsync();
 
-        Assert.Single(result);
-        Assert.Equal(order.AccountId, result[0].AccountId);
-        Assert.Equal(order.OrderDate, result[0].OrderDate);
-        Assert.Equal(order.ShippingAddress, result[0].ShippingAddress);
-        Assert.Equal(order.BillingAddress, result[0].BillingAddress);
-        Assert.Equal(order.Status, result[0].Status);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        Assert.Single(result.Data);
+        Assert.Equal(order.AccountId, result.Data[0].AccountId);
+        Assert.Equal(order.OrderDate, result.Data[0].OrderDate);
+        Assert.Equal(order.ShippingAddress, result.Data[0].ShippingAddress);
+        Assert.Equal(order.BillingAddress, result.Data[0].BillingAddress);
+        Assert.Equal(order.Status, result.Data[0].Status);
         _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task GetAllOrdersAsync_Should_ThrowException_When_No_Orders()
+    [Trait("Operation", "GetAll")]
+    public async Task GetAllOrdersAsync_Should_Return_Failure_When_No_Orders()
     {
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order>());
+        // Arrange
+        _orderRepositoryMock.Setup(r => r.Read(1, 50))
+            .ReturnsAsync(new List<Domain.Model.Order>());
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.GetAllOrdersAsync());
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), "Unexpected error while fetching all orders: {Message}", It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.GetAllOrdersAsync();
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("No orders found", result.Error);
+        Assert.Null(result.Data);
     }
 
     [Fact]
+    [Trait("Operation", "GetUserOrders")]
     public async Task GetUserOrdersAsync_Should_Return_User_Orders_Successfully()
     {
+        // Arrange
         var account = CreateAccount();
+        var order = CreateOrder(account.Id);
         var basketItem = CreateBasketItem();
         basketItem.IsOrdered = true;
+        order.BasketItems = new List<Domain.Model.BasketItem> { basketItem };
         
-        var order = new Domain.Model.Order
-        {
-            OrderId = 1,
-            AccountId = account.Id,
-            BasketItems = new List<Domain.Model.BasketItem> { basketItem },
-            OrderDate = DateTime.UtcNow,
-            ShippingAddress = "Test Shipping Address",
-            BillingAddress = "Test Billing Address",
-            Status = OrderStatus.Pending
-        };
-        
-        // Setup account repository to return the test account
-        _accountRepositoryMock.Setup(r => r.Read())
-            .ReturnsAsync(new List<Domain.Model.Account> { account });
-            
-        // Setup order repository to return orders filtered by AccountId
-        _orderRepositoryMock.Setup(r => r.Read())
-            .ReturnsAsync(new List<Domain.Model.Order> { order });
-            
+        SetupCurrentUser(account.Email);
+        SetupAccount(account);
+        SetupUserOrders(new List<Domain.Model.Order> { order });
         var service = CreateService();
 
-        var result = await service.GetUserOrdersAsync(account.Email);
+        // Act
+        var result = await service.GetUserOrdersAsync();
 
-        Assert.Single(result);
-        Assert.Equal(order.AccountId, result[0].AccountId);
-        Assert.Equal(order.OrderDate, result[0].OrderDate);
-        Assert.Equal(order.ShippingAddress, result[0].ShippingAddress);
-        Assert.Equal(order.BillingAddress, result[0].BillingAddress);
-        Assert.Equal(order.Status, result[0].Status);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        Assert.Single(result.Data);
+        Assert.Equal(order.AccountId, result.Data[0].AccountId);
+        Assert.Equal(order.OrderDate, result.Data[0].OrderDate);
+        Assert.Equal(order.ShippingAddress, result.Data[0].ShippingAddress);
+        Assert.Equal(order.BillingAddress, result.Data[0].BillingAddress);
+        Assert.Equal(order.Status, result.Data[0].Status);
         _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task GetUserOrdersAsync_Should_ThrowException_When_No_Orders()
+    [Trait("Operation", "GetUserOrders")]
+    public async Task GetUserOrdersAsync_Should_Return_Failure_When_No_Orders()
     {
+        // Arrange
         var account = CreateAccount();
         
-        // Setup account repository to return the test account
-        _accountRepositoryMock.Setup(r => r.Read())
-            .ReturnsAsync(new List<Domain.Model.Account> { account });
-            
-        // Setup order repository to return empty list
-        _orderRepositoryMock.Setup(r => r.Read())
-            .ReturnsAsync(new List<Domain.Model.Order>());
-            
+        SetupCurrentUser(account.Email);
+        SetupAccount(account);
+        SetupUserOrders(new List<Domain.Model.Order>());
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.GetUserOrdersAsync(account.Email));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), "Unexpected error while fetching user orders: {Message}", It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.GetUserOrdersAsync();
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("No orders found for this user", result.Error);
+        Assert.Null(result.Data);
     }
 
     [Fact]
+    [Trait("Operation", "GetById")]
     public async Task GetOrderByIdAsync_Should_Return_Order_Successfully()
     {
-        var order = new Domain.Model.Order
-        {
-            OrderId = 1,
-            AccountId = 1,
-            BasketItems = new List<Domain.Model.BasketItem> { CreateBasketItem() },
-            OrderDate = DateTime.UtcNow,
-            ShippingAddress = "Test Shipping Address",
-            BillingAddress = "Test Billing Address",
-            Status = OrderStatus.Pending
-        };
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order> { order });
+        // Arrange
+        var order = CreateOrder();
+        SetupOrder(order);
         var service = CreateService();
 
+        // Act
         var result = await service.GetOrderByIdAsync(order.OrderId);
 
-        Assert.Equal(order.AccountId, result.AccountId);
-        Assert.Equal(order.OrderDate, result.OrderDate);
-        Assert.Equal(order.ShippingAddress, result.ShippingAddress);
-        Assert.Equal(order.BillingAddress, result.BillingAddress);
-        Assert.Equal(order.Status, result.Status);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        Assert.Equal(order.AccountId, result.Data.AccountId);
+        Assert.Equal(order.OrderDate, result.Data.OrderDate);
+        Assert.Equal(order.ShippingAddress, result.Data.ShippingAddress);
+        Assert.Equal(order.BillingAddress, result.Data.BillingAddress);
+        Assert.Equal(order.Status, result.Data.Status);
         _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task GetOrderByIdAsync_Should_ThrowException_When_Order_Not_Found()
+    [Trait("Operation", "GetById")]
+    public async Task GetOrderByIdAsync_Should_Return_Failure_When_Order_Not_Found()
     {
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order>());
+        // Arrange
+        SetupOrder(null);
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.GetOrderByIdAsync(1));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), "Unexpected error while fetching order with id: {Message}", It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.GetOrderByIdAsync(1);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Order not found", result.Error);
+        Assert.Null(result.Data);
     }
 
     [Fact]
+    [Trait("Operation", "Update")]
     public async Task UpdateOrderStatusByAccountIdAsync_Should_Update_Status_Successfully()
     {
-        var order = new Domain.Model.Order 
-        { 
-            OrderId = 1, 
-            AccountId = 1, 
-            Status = OrderStatus.Pending,
-            ShippingAddress = "Test Shipping Address",
-            BillingAddress = "Test Billing Address"
-        };
+        // Arrange
+        var order = CreateOrder();
         var request = new OrderUpdateRequestDto { Status = OrderStatus.Delivered };
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order> { order });
+        _orderRepositoryMock.Setup(r => r.GetOrderByAccountId(It.IsAny<int>()))
+            .ReturnsAsync(order);
         var service = CreateService();
 
-        await service.UpdateOrderStatusByAccountIdAsync(order.AccountId, request);
+        // Act
+        var result = await service.UpdateOrderStatusByAccountIdAsync(order.AccountId, request);
 
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
         _orderRepositoryMock.Verify(r => r.Update(It.Is<Domain.Model.Order>(o => o.Status == request.Status)), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateOrderStatusByAccountIdAsync_Should_ThrowException_When_Order_Not_Found()
+    [Trait("Operation", "Update")]
+    public async Task UpdateOrderStatusByAccountIdAsync_Should_Return_Failure_When_Order_Not_Found()
     {
+        // Arrange
         var request = new OrderUpdateRequestDto { Status = OrderStatus.Delivered };
-        _orderRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Order>());
+        _orderRepositoryMock.Setup(r => r.GetOrderByAccountId(It.IsAny<int>()))
+            .ReturnsAsync((Domain.Model.Order)null);
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.UpdateOrderStatusByAccountIdAsync(1, request));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), "Unexpected error while updating order status: {Message}", It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.UpdateOrderStatusByAccountIdAsync(1, request);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Order not found", result.Error);
+        _orderRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.Order>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 }

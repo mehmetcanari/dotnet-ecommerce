@@ -1,13 +1,16 @@
+using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
-using ECommerce.Application.Interfaces.Repository;
-using ECommerce.Application.Interfaces.Service;
+using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Services.Account;
+using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Application.Utility;
 using Microsoft.AspNetCore.Identity;
-using Moq;
-using Xunit;
+using FluentAssertions;
 
 namespace ECommerce.Tests.Services.Accounts;
 
+[Trait("Category", "Account")]
+[Trait("Category", "Service")]
 public class AccountServiceTests
 {
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
@@ -15,6 +18,8 @@ public class AccountServiceTests
     private readonly Mock<IRefreshTokenService> _refreshTokenServiceMock;
     private readonly Mock<UserManager<IdentityUser>> _userManagerMock;
     private readonly Mock<ILoggingService> _loggerMock;
+    private readonly Mock<ICurrentUserService> _currentUserServiceMock;
+    private readonly Mock<IServiceProvider> _serviceProviderMock;
 
     public AccountServiceTests()
     {
@@ -27,6 +32,8 @@ public class AccountServiceTests
             null, null, null, null
         );
         _loggerMock = new Mock<ILoggingService>();
+        _currentUserServiceMock = new Mock<ICurrentUserService>();
+        _serviceProviderMock = new Mock<IServiceProvider>();
     }
 
     private AccountService CreateService() => new AccountService(
@@ -34,9 +41,55 @@ public class AccountServiceTests
         _unitOfWorkMock.Object,
         _refreshTokenServiceMock.Object,
         _userManagerMock.Object,
-        _loggerMock.Object);
+        _loggerMock.Object,
+        _currentUserServiceMock.Object,
+        _serviceProviderMock.Object);
 
-    private Domain.Model.Account CreateAccount(string email = "test@example.com", int id = 1)
+    private void SetupAccountByEmail(Domain.Model.Account account)
+    {
+        _accountRepositoryMock.Setup(r => r.GetAccountByEmail(It.IsAny<string>()))
+            .ReturnsAsync(account);
+    }
+
+    private void SetupAccountById(Domain.Model.Account account)
+    {
+        _accountRepositoryMock.Setup(r => r.GetAccountById(It.IsAny<int>()))
+            .ReturnsAsync(account);
+    }
+
+    private void SetupUserManager(IdentityUser user)
+    {
+        var userManagerMock = new Mock<UserManager<IdentityUser>>(
+            Mock.Of<IUserStore<IdentityUser>>(),
+            null, null, null, null, null, null, null, null);
+
+        if (user != null)
+        {
+            userManagerMock.Setup(x => x.FindByEmailAsync(user.Email))
+                .ReturnsAsync(user);
+            userManagerMock.Setup(x => x.DeleteAsync(user))
+                .ReturnsAsync(IdentityResult.Success);
+        }
+        else
+        {
+            userManagerMock.Setup(x => x.FindByEmailAsync(It.IsAny<string>()))
+                .ReturnsAsync((IdentityUser)null);
+            userManagerMock.Setup(x => x.DeleteAsync(It.IsAny<IdentityUser>()))
+                .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "User not found" }));
+        }
+
+        _serviceProviderMock.Setup(x => x.GetService(typeof(UserManager<IdentityUser>)))
+            .Returns(userManagerMock.Object);
+    }
+
+    private void SetupRefreshTokenRevoke(string email, string reason)
+    {
+        _refreshTokenServiceMock.Setup(r => r.RevokeUserTokens(It.Is<TokenRevokeRequestDto>(t => 
+            t.Email == email && t.Reason == reason)))
+            .ReturnsAsync(Result.Success());
+    }
+
+    private Domain.Model.Account CreateAccount(string email, int id)
         => new Domain.Model.Account
         {
             Id = id,
@@ -53,7 +106,7 @@ public class AccountServiceTests
             Role = "User"
         };
 
-    private AccountRegisterRequestDto CreateRegisterRequest(string email = "test@example.com")
+    private AccountRegisterRequestDto CreateRegisterRequest(string email)
         => new AccountRegisterRequestDto
         {
             Name = "Test",
@@ -70,232 +123,333 @@ public class AccountServiceTests
         };
 
     [Fact]
+    [Trait("Operation", "Register")]
     public async Task RegisterAccountAsync_Should_Create_Account_When_Email_Not_Exists()
     {
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account>());
+        // Arrange
+        SetupAccountByEmail(null);
+        _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<IdentityUser>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
         var service = CreateService();
-        var request = CreateRegisterRequest();
+        var request = CreateRegisterRequest("test@example.com");
 
-        await service.RegisterAccountAsync(request, "User");
+        // Act
+        var result = await service.RegisterAccountAsync(request, "User");
 
-        _accountRepositoryMock.Verify(r => r.Create(It.IsAny<Domain.Model.Account>()), Times.Once);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        _accountRepositoryMock.Verify(r => r.Create(It.Is<Domain.Model.Account>(a => 
+            a.Email == request.Email && 
+            a.Name == request.Name && 
+            a.Surname == request.Surname)), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object>()), Times.Once);
     }
 
     [Fact]
-    public async Task RegisterAccountAsync_Should_ThrowException_When_Email_Exists()
+    [Trait("Operation", "Register")]
+    public async Task RegisterAccountAsync_Should_Return_Failure_When_Email_Exists()
     {
-        var existingAccount = CreateAccount();
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { existingAccount });
+        // Arrange
+        var existingAccount = CreateAccount("test@example.com", 1);
+        SetupAccountByEmail(existingAccount);
         var service = CreateService();
-        var request = CreateRegisterRequest();
+        var request = CreateRegisterRequest("test@example.com");
 
-        await Assert.ThrowsAsync<Exception>(() => service.RegisterAccountAsync(request, "User"));
+        // Act
+        var result = await service.RegisterAccountAsync(request, "User");
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Email is already in use.", result.Error);
         _accountRepositoryMock.Verify(r => r.Create(It.IsAny<Domain.Model.Account>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        _loggerMock.Verify(l => l.LogWarning(It.Is<string>(s => s.Contains("Registration failed")), It.IsAny<object>()), Times.Once);
     }
 
     [Fact]
+    [Trait("Operation", "GetAll")]
     public async Task GetAllAccountsAsync_Should_Return_Accounts_When_Exists()
     {
-        var accounts = new List<Domain.Model.Account> { CreateAccount() };
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(accounts);
+        // Arrange
+        var account = CreateAccount("test@example.com", 1);
+        var accounts = new List<Domain.Model.Account> { account };
+        _accountRepositoryMock.Setup(r => r.Read(1, 50)).ReturnsAsync(accounts);
         var service = CreateService();
 
+        // Act
         var result = await service.GetAllAccountsAsync();
 
-        Assert.Single(result);
-        Assert.Equal(accounts[0].Email, result[0].Email);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        Assert.Single(result.Data);
+        Assert.Equal(account.Email, result.Data[0].Email);
+        Assert.Equal(account.Name, result.Data[0].Name);
+        Assert.Equal(account.Surname, result.Data[0].Surname);
     }
- 
+
     [Fact]
-    public async Task GetAllAccountsAsync_Should_ThrowException_When_No_Accounts()
+    [Trait("Operation", "GetAll")]
+    public async Task GetAllAccountsAsync_Should_Return_Failure_When_No_Accounts()
     {
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account>());
+        // Arrange
+        var emptyList = new List<Domain.Model.Account>();
+        _accountRepositoryMock.Setup(r => r.Read(1, 50)).ReturnsAsync(emptyList);
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.GetAllAccountsAsync());
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.GetAllAccountsAsync();
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("No accounts found", result.Error);
+        Assert.Null(result.Data);
     }
 
     [Fact]
-    public async Task GetAccountByEmailAsModel_Should_Return_Account_When_Found()
+    [Trait("Operation", "GetByEmail")]
+    public async Task GetAccountByEmailAsEntityAsync_Should_Return_Account_When_Found()
     {
-        var account = CreateAccount();
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
+        // Arrange
+        var account = CreateAccount("test@example.com", 1);
+        SetupAccountByEmail(account);
         var service = CreateService();
 
-        var result = await service.GetAccountByEmailAsModel(account.Email);
+        // Act
+        var result = await service.GetAccountByEmailAsEntityAsync(account.Email);
 
-        Assert.Equal(account.Email, result.Email);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        Assert.NotNull(result.Data);
+        Assert.Equal(account.Email, result.Data.Email);
+        Assert.Equal(account.Name, result.Data.Name);
+        Assert.Equal(account.Surname, result.Data.Surname);
     }
 
     [Fact]
-    public async Task GetAccountByEmailAsModel_Should_ThrowException_When_Not_Found()
+    [Trait("Operation", "GetByEmail")]
+    public async Task GetAccountByEmailAsEntityAsync_Should_Return_Failure_When_Not_Found()
     {
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account>());
+        // Arrange
+        SetupAccountByEmail(null);
         var service = CreateService();
+        var email = "notfound@example.com";
 
-        await Assert.ThrowsAsync<Exception>(() => service.GetAccountByEmailAsModel("notfound@example.com"));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.GetAccountByEmailAsEntityAsync(email);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal($"User with email {email} not found", result.Error);
+        Assert.Null(result.Data);
     }
 
     [Fact]
+    [Trait("Operation", "GetById")]
     public async Task GetAccountWithIdAsync_Should_Return_Account_When_Found()
     {
-        var account = CreateAccount(id: 5);
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
+        // Arrange
+        var account = CreateAccount("test@example.com", 5);
+        SetupAccountById(account);
         var service = CreateService();
 
+        // Act
         var result = await service.GetAccountWithIdAsync(5);
 
-        Assert.Equal(account.Id, result.Id);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        Assert.NotNull(result.Data);
+        Assert.Equal(account.Id, result.Data.Id);
+        Assert.Equal(account.Email, result.Data.Email);
+        Assert.Equal(account.Name, result.Data.Name);
+        Assert.Equal(account.Surname, result.Data.Surname);
     }
 
     [Fact]
-    public async Task GetAccountWithIdAsync_Should_ThrowException_When_Not_Found()
+    [Trait("Operation", "GetById")]
+    public async Task GetAccountWithIdAsync_Should_Return_Failure_When_Not_Found()
     {
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account>());
+        // Arrange
+        SetupAccountById(null);
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.GetAccountWithIdAsync(99));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.GetAccountWithIdAsync(99);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Account not found", result.Error);
+        Assert.Null(result.Data);
     }
 
     [Fact]
+    [Trait("Operation", "Delete")]
     public async Task DeleteAccountAsync_Should_Delete_Account_When_Found()
     {
-        var account = CreateAccount();
+        // Arrange
+        var account = CreateAccount("test@example.com", 1);
         var user = new IdentityUser { Email = account.Email };
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        _userManagerMock.Setup(u => u.FindByEmailAsync(account.Email)).ReturnsAsync(user);
-        _userManagerMock.Setup(u => u.DeleteAsync(user)).ReturnsAsync(IdentityResult.Success);
+        SetupAccountById(account);
+        _userManagerMock.Setup(x => x.FindByEmailAsync(account.Email)).ReturnsAsync(user);
+        _userManagerMock.Setup(x => x.DeleteAsync(user)).ReturnsAsync(IdentityResult.Success);
         var service = CreateService();
 
-        await service.DeleteAccountAsync(account.Id);
+        // Act
+        var result = await service.DeleteAccountAsync(account.Id);
 
-        _accountRepositoryMock.Verify(r => r.Delete(account), Times.Once);
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Error.Should().BeNull();
+        _accountRepositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Model.Account>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
     }
 
     [Fact]
-    public async Task DeleteAccountAsync_Should_ThrowException_When_Account_Not_Found()
+    [Trait("Operation", "Delete")]
+    public async Task DeleteAccountAsync_Should_Return_Failure_When_Account_Not_Found()
     {
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account>());
+        // Arrange
+        SetupAccountById(null);
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.DeleteAccountAsync(1));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.DeleteAccountAsync(1);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Account not found", result.Error);
+        _accountRepositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Model.Account>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
     [Fact]
-    public async Task DeleteAccountAsync_Should_ThrowException_When_User_Not_Found()
+    [Trait("Operation", "Delete")]
+    public async Task DeleteAccountAsync_Should_Return_Failure_When_User_Not_Found()
     {
-        var account = CreateAccount();
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        _userManagerMock.Setup(u => u.FindByEmailAsync(account.Email)).ReturnsAsync((IdentityUser)null);
+        // Arrange
+        var account = CreateAccount("test@example.com", 1);
+        SetupAccountById(account);
+        SetupUserManager(null);
         var service = CreateService();
 
-        await Assert.ThrowsAsync<Exception>(() => service.DeleteAccountAsync(account.Id));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        // Act
+        var result = await service.DeleteAccountAsync(account.Id);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("User not found", result.Error);
+        _accountRepositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Model.Account>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
     [Fact]
-    public async Task GetAccountByEmailAsync_Should_Return_Account_When_Found()
-    {
-        var account = CreateAccount();
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        var service = CreateService();
-
-        var result = await service.GetAccountByEmailAsync(account.Email);
-
-        Assert.Equal(account.Email, result.Email);
-    }
-
-    [Fact]
-    public async Task GetAccountByEmailAsync_Should_ThrowException_When_Not_Found()
-    {
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account>());
-        var service = CreateService();
-
-        await Assert.ThrowsAsync<Exception>(() => service.GetAccountByEmailAsync("notfound@example.com"));
-        _loggerMock.Verify(l => l.LogError(It.IsAny<Exception>(), It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
-    }
-
-    [Fact]
+    [Trait("Operation", "Ban")]
     public async Task BanAccountAsync_Should_Ban_Account()
     {
-        var account = CreateAccount();
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        _refreshTokenServiceMock.Setup(r => r.RevokeUserTokens(account.Email, It.IsAny<string>())).Returns(Task.CompletedTask);
+        // Arrange
+        var account = CreateAccount("test@example.com", 1);
+        var request = new AccountBanRequestDto 
+        { 
+            Email = account.Email,
+            Until = DateTime.UtcNow.AddDays(1),
+            Reason = "test reason"
+        };
+        SetupAccountByEmail(account);
+        SetupRefreshTokenRevoke(account.Email, "Account banned");
         var service = CreateService();
 
-        await service.BanAccountAsync(account.Email, DateTime.UtcNow.AddDays(1), "reason");
+        // Act
+        var result = await service.BanAccountAsync(request);
 
-        _accountRepositoryMock.Verify(r => r.Update(account), Times.Once);
-        _refreshTokenServiceMock.Verify(r => r.RevokeUserTokens(account.Email, It.IsAny<string>()), Times.Once);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        _accountRepositoryMock.Verify(r => r.Update(It.Is<Domain.Model.Account>(a => 
+            a.Email == account.Email && 
+            a.IsBanned && 
+            a.BanReason == request.Reason)), Times.Once);
+        _refreshTokenServiceMock.Verify(r => r.RevokeUserTokens(It.Is<TokenRevokeRequestDto>(t => 
+            t.Email == account.Email && 
+            t.Reason == "Account banned")), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        _loggerMock.Verify(l => l.LogInformation(It.Is<string>(s => s.Contains("Account banned successfully")), It.IsAny<object>()), Times.Once);
     }
 
     [Fact]
-    public async Task BanAccountAsync_Should_ThrowException_When_Account_Not_Found()
+    [Trait("Operation", "Ban")]
+    public async Task BanAccountAsync_Should_Return_Failure_When_Account_Not_Found()
     {
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account>());
+        // Arrange
+        SetupAccountByEmail(null);
         var service = CreateService();
+        var request = new AccountBanRequestDto 
+        { 
+            Email = "notfound@example.com",
+            Until = DateTime.UtcNow.AddDays(1),
+            Reason = "test reason"
+        };
 
-        await Assert.ThrowsAsync<Exception>(() => service.BanAccountAsync("notfound@example.com", DateTime.UtcNow.AddDays(1), "reason"));
-        
-        // Verify both log messages
-        _loggerMock.Verify(l => l.LogError(
-            It.IsAny<Exception>(),
-            "Unexpected error while fetching accounts: {Message}",
-            It.Is<object[]>(args => args[0].ToString() == "User not found")), Times.Once);
-            
-        _loggerMock.Verify(l => l.LogError(
-            It.IsAny<Exception>(),
-            "Unexpected error while banning account: {Message}",
-            It.Is<object[]>(args => args[0].ToString() == "User not found")), Times.Once);
+        // Act
+        var result = await service.BanAccountAsync(request);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Account not found", result.Error);
+        _accountRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.Account>()), Times.Never);
+        _refreshTokenServiceMock.Verify(r => r.RevokeUserTokens(It.IsAny<TokenRevokeRequestDto>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
     [Fact]
+    [Trait("Operation", "Unban")]
     public async Task UnbanAccountAsync_Should_Unban_Account()
     {
-        var account = CreateAccount();
+        // Arrange
+        var account = CreateAccount("test@example.com", 1);
         account.BanAccount(DateTime.UtcNow.AddDays(1), "test reason");
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account> { account });
-        _refreshTokenServiceMock.Setup(r => r.RevokeUserTokens(account.Email, It.IsAny<string>())).Returns(Task.CompletedTask);
+        var request = new AccountUnbanRequestDto { Email = account.Email };
+        SetupAccountByEmail(account);
+        SetupRefreshTokenRevoke(account.Email, "Account unbanned");
         var service = CreateService();
 
-        await service.UnbanAccountAsync(account.Email);
+        // Act
+        var result = await service.UnbanAccountAsync(request);
 
-        _accountRepositoryMock.Verify(r => r.Update(account), Times.Once);
-        _refreshTokenServiceMock.Verify(r => r.RevokeUserTokens(account.Email, It.IsAny<string>()), Times.Once);
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        _accountRepositoryMock.Verify(r => r.Update(It.Is<Domain.Model.Account>(a => 
+            a.Email == account.Email && 
+            !a.IsBanned)), Times.Once);
+        _refreshTokenServiceMock.Verify(r => r.RevokeUserTokens(It.Is<TokenRevokeRequestDto>(t => 
+            t.Email == account.Email && 
+            t.Reason == "Account unbanned")), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        _loggerMock.Verify(l => l.LogInformation(It.Is<string>(s => s.Contains("Account unbanned successfully")), It.IsAny<object>()), Times.Once);
     }
 
     [Fact]
-    public async Task UnbanAccountAsync_Should_ThrowException_When_Account_Not_Found()
+    [Trait("Operation", "Unban")]
+    public async Task UnbanAccountAsync_Should_Return_Failure_When_Account_Not_Found()
     {
-        _accountRepositoryMock.Setup(r => r.Read()).ReturnsAsync(new List<Domain.Model.Account>());
+        // Arrange
+        SetupAccountByEmail(null);
         var service = CreateService();
+        var request = new AccountUnbanRequestDto { Email = "notfound@example.com" };
 
-        await Assert.ThrowsAsync<Exception>(() => service.UnbanAccountAsync("notfound@example.com"));
-        
-        // Verify both log messages
-        _loggerMock.Verify(l => l.LogError(
-            It.IsAny<Exception>(),
-            "Unexpected error while fetching accounts: {Message}",
-            It.Is<object[]>(args => args[0].ToString() == "User not found")), Times.Once);
-            
-        _loggerMock.Verify(l => l.LogError(
-            It.IsAny<Exception>(),
-            "Unexpected error while unbanning account: {Message}",
-            It.Is<object[]>(args => args[0].ToString() == "User not found")), Times.Once);
+        // Act
+        var result = await service.UnbanAccountAsync(request);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Account not found", result.Error);
+        _accountRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.Account>()), Times.Never);
+        _refreshTokenServiceMock.Verify(r => r.RevokeUserTokens(It.IsAny<TokenRevokeRequestDto>()), Times.Never);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 }
 

@@ -15,7 +15,7 @@
         <ProjectReference Include="..\ECommerce.Application\ECommerce.Application.csproj" />
         <ProjectReference Include="..\ECommerce.Domain\ECommerce.Domain.csproj" />
         <ProjectReference Include="..\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj" />
-        <ProjectReference Include="..\ECommerce.API\ECommerce.API.csproj" />
+        <ProjectReference Include="..\ECommerce.Presentation\ECommerce.Presentation.csproj" />
     </ItemGroup>
 
   <ItemGroup>

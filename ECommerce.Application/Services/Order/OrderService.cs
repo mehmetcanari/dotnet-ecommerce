@@ -98,6 +98,7 @@ public class OrderService : ServiceBase, IOrderService
             {
                 _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
                     paymentResult.Data.ErrorCode, paymentResult.Data.ErrorMessage);
+                await _unitOfWork.RollbackTransaction();
                 return Result.Failure($"Payment failed: {paymentResult.Data.ErrorMessage}");
             }
 
