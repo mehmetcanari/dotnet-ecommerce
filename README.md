@@ -1,7 +1,14 @@
 # E-Commerce API
-
 ## 📋 Overview
 Modern e-commerce RESTful API built with Clean Architecture and SOLID principles. Supports product management, user authentication, and secure payment processing.
+
+[![Coverage](https://img.shields.io/badge/Coverage-78.9%25-green?style=for-the-badge)](./coveragereport/Summary.md)
+
+> **Current critical component test coverage:** 78.9% (1185/1501 lines)
+> 
+> Coverage includes:
+> - Application Layer Services (81.3%)
+> - Infrastructure Layer Repositories (72.3%)
 
 ## 🚀 Features
 - 📦 **Product Management** - Full CRUD operations with inventory tracking

@@ -11,10 +11,12 @@ public class IyzicoPaymentService : IPaymentService
 {
     private readonly Options _options;
     private readonly ILoggingService _logger;
+    private readonly IPaymentProvider _paymentProvider;
 
-    public IyzicoPaymentService(ILoggingService logger)
+    public IyzicoPaymentService(ILoggingService logger, IPaymentProvider paymentProvider)
     {
         _logger = logger;
+        _paymentProvider = paymentProvider;
         _options = new Options
         {
             ApiKey = Environment.GetEnvironmentVariable("IYZICO_API_KEY"),
@@ -34,9 +36,13 @@ public class IyzicoPaymentService : IPaymentService
         try
         {
             CreatePaymentRequest request = CreatePaymentRequest(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
-            Iyzipay.Model.Payment payment = await Iyzipay.Model.Payment.Create(request, _options);
-            
+            Iyzipay.Model.Payment payment = await _paymentProvider.CreateAsync(request, _options);
             _logger.LogInformation("Payment processed: {PaymentStatus}", payment.Status);
+            if (payment.Status != "success")
+            {
+                _logger.LogError(new Exception(payment.ErrorMessage), "Payment failed: {ErrorMessage}", payment.ErrorMessage);
+                return Result<Iyzipay.Model.Payment>.Failure(payment.ErrorMessage ?? "Payment failed");
+            }
             return Result<Iyzipay.Model.Payment>.Success(payment);
         }
         catch (Exception ex)

@@ -5,6 +5,9 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Http;
 using Iyzipay.Model;
+using FluentAssertions;
+using Moq;
+using Xunit;
 
 namespace ECommerce.Tests.Services.Order;
 
@@ -90,7 +93,7 @@ public class OrderServiceTests
 
     private void SetupPaymentResult(bool success, string errorMessage = null)
     {
-        var paymentResult = Result<Payment>.Success(new Payment 
+        var paymentResult = Result<Iyzipay.Model.Payment>.Success(new Iyzipay.Model.Payment 
         { 
             Status = success ? "success" : "failed", 
             ErrorMessage = errorMessage 
@@ -103,7 +106,7 @@ public class OrderServiceTests
             It.IsAny<ECommerce.Domain.Model.Address>(),
             It.IsAny<ECommerce.Domain.Model.PaymentCard>(),
             It.IsAny<List<ECommerce.Domain.Model.BasketItem>>()))
-            .ReturnsAsync(paymentResult);
+            .Returns(Task.FromResult(paymentResult));
     }
 
     private Domain.Model.Account CreateAccount(int id = 1, string email = "test@example.com")
@@ -185,8 +188,9 @@ public class OrderServiceTests
         var result = await service.CreateOrderAsync(request);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Null(result.Error);
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Error.Should().BeNull();
         _orderRepositoryMock.Verify(r => r.Create(It.IsAny<Domain.Model.Order>()), Times.Once);
         _basketItemServiceMock.Verify(s => s.DeleteAllNonOrderedBasketItemsAsync(), Times.Once);
         _productServiceMock.Verify(s => s.UpdateProductStockAsync(It.IsAny<List<Domain.Model.BasketItem>>()), Times.Once);
@@ -215,6 +219,7 @@ public class OrderServiceTests
         var result = await service.CreateOrderAsync(request);
 
         // Assert
+        result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Payment failed: Payment failed");
         _unitOfWorkMock.Verify(u => u.RollbackTransaction(), Times.Once);
@@ -239,8 +244,9 @@ public class OrderServiceTests
         var result = await service.CancelOrderAsync();
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Null(result.Error);
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Error.Should().BeNull();
         _orderRepositoryMock.Verify(r => r.Update(It.Is<Domain.Model.Order>(o => o.Status == OrderStatus.Cancelled)), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
