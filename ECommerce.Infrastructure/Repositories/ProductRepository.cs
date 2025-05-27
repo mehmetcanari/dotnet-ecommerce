@@ -79,11 +79,17 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public void Update(Product product)
+    public async Task UpdateAsync(Product product)
     {
         try
         {
-            _context.Products.Update(product);
+            var existingProduct = await _context.Products.FindAsync(product.ProductId);
+            if (existingProduct == null)
+            {
+                throw new Exception($"Product with ID {product.ProductId} not found");
+            }
+
+            _context.Entry(existingProduct).CurrentValues.SetValues(product);
         }
         catch (Exception exception)
         {

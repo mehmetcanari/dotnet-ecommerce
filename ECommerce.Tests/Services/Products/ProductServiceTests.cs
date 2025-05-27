@@ -200,7 +200,7 @@ public class ProductServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
-        _productRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.Product>()), Times.Once);
+        _productRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Domain.Model.Product>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _cacheServiceMock.Verify(c => c.RemoveAsync(It.IsAny<string>()), Times.Once);
         _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
@@ -221,7 +221,7 @@ public class ProductServiceTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Category not found", result.Error);
-        _productRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.Product>()), Times.Never);
+        _productRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Domain.Model.Product>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 

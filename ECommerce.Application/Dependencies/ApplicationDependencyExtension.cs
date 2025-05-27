@@ -46,6 +46,7 @@ public static class ApplicationDependencyExtension
         services.AddScoped<ITokenCleanupService, TokenCleanupService>();
         services.AddScoped<IPaymentService, IyzicoPaymentService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IPaymentProvider, IyzicoPaymentProvider>();
     }
     
     public static void AddValidationDependencies(this IServiceCollection services)

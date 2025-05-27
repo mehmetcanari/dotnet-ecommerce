@@ -196,7 +196,7 @@ public class ProductService : ServiceBase, IProductService
             product.CategoryId = category.CategoryId;
             product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
-            _productRepository.Update(product);
+            await _productRepository.UpdateAsync(product);
             await _basketItemService.ClearBasketItemsIncludeOrderedProductAsync(product);
             
             await ProductCacheInvalidateAsync();
@@ -250,21 +250,25 @@ public class ProductService : ServiceBase, IProductService
                     return Result.Failure($"Product with ID {basketItem.ProductId} not found in the database.");
                 }
 
-                var quantity = basketItem.Quantity;
-                cartProduct.StockQuantity -= quantity;
-                _productRepository.Update(cartProduct);
+                if (cartProduct.StockQuantity < basketItem.Quantity)
+                {
+                    return Result.Failure($"Insufficient stock for product {cartProduct.Name}. Available: {cartProduct.StockQuantity}, Requested: {basketItem.Quantity}");
+                }
+
+                cartProduct.StockQuantity -= basketItem.Quantity;
+                cartProduct.ProductUpdated = DateTime.UtcNow;
+                
+                await _productRepository.UpdateAsync(cartProduct);
             }
 
-            await ProductCacheInvalidateAsync();
-            await _categoryService.CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
-            _logger.LogInformation("Product stock updated successfully: {Products}", basketItems);
+            await ProductCacheInvalidateAsync();
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating product stock: {Message}", ex.Message);
-            return Result.Failure(ex.Message);
+            _logger.LogError(ex, "An unexpected error occurred while updating product");
+            return Result.Failure("An unexpected error occurred while updating product");
         }
     }
 

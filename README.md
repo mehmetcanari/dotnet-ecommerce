@@ -4,7 +4,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 
 [![Coverage](https://img.shields.io/badge/Coverage-78.9%25-green?style=for-the-badge)](./coveragereport/Summary.md)
 
-> **Current critical component test coverage:** 78.9% (1185/1501 lines)
+> **Current critical component test coverage:** 78.9% (1185/1501 lines) - Total 142 Test Cases
 > 
 > Coverage includes:
 > - Application Layer Services (81.3%)
