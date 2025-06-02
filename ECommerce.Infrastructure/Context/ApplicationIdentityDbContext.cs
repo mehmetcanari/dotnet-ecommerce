@@ -27,8 +27,9 @@ public class ApplicationIdentityDbContextFactory : IDesignTimeDbContextFactory<A
     public ApplicationIdentityDbContext CreateDbContext(string[] args)
     {
         var projectDir = Directory.GetCurrentDirectory();
-        var apiDir = Path.Combine(projectDir, "..", "ECommerce.Presentation");
-        DotNetEnv.Env.Load(Path.Combine(apiDir, ".env"));
+        var rootDir = Path.Combine(projectDir, "..");
+        var envPath = Path.Combine(rootDir, ".env");
+        DotNetEnv.Env.Load(envPath);
         
         var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
         if (string.IsNullOrEmpty(connectionString))

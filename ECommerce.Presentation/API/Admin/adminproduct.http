@@ -18,14 +18,21 @@ Content-Type: application/json
 Authorization: Bearer {{ADMIN_TOKEN}}
 
 {
-  "Name": "Xbox One",
-  "Description": "Xbox One is a gaming console that is the latest in the Microsoft series",
+  "Name": "Playstation 5",
+  "Description": "Playstation 5 is a gaming console that is the latest in the Sony series",
   "Price": 499.99,
-  "StockQuantity": 20,
-  "DiscountRate": 0,
-  "ImageUrl": "https://via.placeholder.com/135",
+  "StockQuantity": 200,
+  "DiscountRate": 3,
+  "ImageUrl": "https://mehmetcanari-ecommerce-products.s3.eu-central-1.amazonaws.com/products/05792688-9d02-48fe-8ca2-7f9424cb2f5c_playstation5.jpeg",
   "CategoryId": 1
 }
+
+### UPLOAD IMAGE
+
+POST {{baseUrl}}/{{route}}/upload-image
+Content-Type: multipart/form-data
+Authorization: Bearer {{ADMIN_TOKEN}}
+
 
 ### UPDATE PRODUCT BY ID
 

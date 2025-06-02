@@ -6,6 +6,7 @@ using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Services.Account;
 using ECommerce.Application.Services.Auth;
+using ECommerce.Application.Services.AWS;
 using ECommerce.Application.Services.BasketItem;
 using ECommerce.Application.Services.Cache;
 using ECommerce.Application.Services.Category;
@@ -20,7 +21,6 @@ using ECommerce.Application.Validations.Category;
 using ECommerce.Application.Validations.Order;
 using ECommerce.Application.Validations.Payment;
 using ECommerce.Application.Validations.Product;
-using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -47,6 +47,7 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IPaymentService, IyzicoPaymentService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IPaymentProvider, IyzicoPaymentProvider>();
+        services.AddScoped<IS3Service, S3Service>();
     }
     
     public static void AddValidationDependencies(this IServiceCollection services)

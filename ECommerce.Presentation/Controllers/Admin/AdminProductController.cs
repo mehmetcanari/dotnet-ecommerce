@@ -14,10 +14,12 @@ namespace ECommerce.API.Controllers.Admin;
 public class AdminProductController : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly IS3Service _s3Service;
     
-    public AdminProductController(IProductService productService)
+    public AdminProductController(IProductService productService, IS3Service s3Service)
     {
         _productService = productService;
+        _s3Service = s3Service;
     }
 
     [HttpGet]
@@ -40,6 +42,13 @@ public class AdminProductController : ControllerBase
     {
         var result = await _productService.CreateProductAsync(productCreateRequestRequest);
         return Ok(new { message = "Product created successfully", data = result });
+    }
+    
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
+    {
+        var imageUrl = await _s3Service.UploadFileAsync(file, "products");
+        return Ok(new { ImageUrl = imageUrl });
     }
 
     [HttpPut("update/{id}")]

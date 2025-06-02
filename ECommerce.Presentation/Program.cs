@@ -13,6 +13,8 @@ using ECommerce.Infrastructure.Context;
 using Serilog;
 using Serilog.Events;
 using Microsoft.AspNetCore.RateLimiting;
+using Amazon.S3;
+using Amazon.Runtime;
 
 namespace ECommerce.API;
 
@@ -22,7 +24,11 @@ internal static class Program
 
     private static async Task Main(string[] args)
     {
-        var rootPath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.FullName, ".env");
+        var rootPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+        if (!File.Exists(rootPath))
+        {
+            rootPath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.FullName, ".env");
+        }
         Env.Load(rootPath);
 
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -39,7 +45,11 @@ internal static class Program
             ["JWT_SECRET"] = Environment.GetEnvironmentVariable("JWT_SECRET"),
             ["JWT_ISSUER"] = Environment.GetEnvironmentVariable("JWT_ISSUER"),
             ["JWT_AUDIENCE"] = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
-            ["DB_CONNECTION_STRING"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+            ["DB_CONNECTION_STRING"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"),
+            ["AWS_ACCESS_KEY"] = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY"),
+            ["AWS_SECRET_KEY"] = Environment.GetEnvironmentVariable("AWS_SECRET_KEY"),
+            ["AWS_REGION"] = Environment.GetEnvironmentVariable("AWS_REGION"),
+            ["AWS_BUCKET_NAME"] = Environment.GetEnvironmentVariable("AWS_BUCKET_NAME")
         };
 
         foreach (var envVar in requiredEnvVars.Where(kv => string.IsNullOrEmpty(kv.Value)))
@@ -50,10 +60,38 @@ internal static class Program
         builder.Configuration["Jwt:Key"] = requiredEnvVars["JWT_SECRET"];
         builder.Configuration["Jwt:Issuer"] = requiredEnvVars["JWT_ISSUER"];
         builder.Configuration["Jwt:Audience"] = requiredEnvVars["JWT_AUDIENCE"];
+        builder.Configuration["AWS:AccessKey"] = requiredEnvVars["AWS_ACCESS_KEY"];
+        builder.Configuration["AWS:SecretKey"] = requiredEnvVars["AWS_SECRET_KEY"];
+        builder.Configuration["AWS:Region"] = requiredEnvVars["AWS_REGION"];
         builder.Configuration["ConnectionStrings:DefaultConnection"] = requiredEnvVars["DB_CONNECTION_STRING"];
+        builder.Configuration["AWS:BucketName"] = requiredEnvVars["AWS_BUCKET_NAME"];
             
         _dependencyContainer = new DependencyContainer(builder);
         _dependencyContainer.RegisterDependencies();
+
+        #region AWS S3 Configuration
+
+        //======================================================
+        // AWS S3 CONFIGURATION
+        //======================================================
+
+        var awsCredentials = new BasicAWSCredentials(
+            Environment.GetEnvironmentVariable("AWS_ACCESS_KEY"),
+            Environment.GetEnvironmentVariable("AWS_SECRET_KEY")
+        );
+
+        builder.Services.AddSingleton<IAmazonS3>(sp =>
+        {
+            var config = new AmazonS3Config
+            {
+                RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(Environment.GetEnvironmentVariable("AWS_REGION")),
+                ForcePathStyle = true
+            };
+
+            return new AmazonS3Client(awsCredentials, config);
+        });
+
+        #endregion
 
         #region Database Configuration
 
