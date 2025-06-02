@@ -47,10 +47,10 @@ public class AdminProductController : ControllerBase
     [HttpPost("upload-image")]
     public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
     {
-        var imageUrl = await _s3Service.UploadFileAsync(file, "products");
-        return Ok(new { ImageUrl = imageUrl });
+        var result = await _s3Service.UploadFileAsync(file, "products");
+        return Ok(new { message = "Image uploaded successfully", data = result });
     }
-
+    
     [HttpPut("update/{id}")]
     [ValidateId]
     public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromBody] ProductUpdateRequestDto productUpdateRequestRequest)
