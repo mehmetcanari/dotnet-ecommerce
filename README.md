@@ -11,10 +11,14 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 > - Infrastructure Layer Repositories
 
 ## 🚀 Features
+
+### Core Features
 - 📦 **Product Management** - Full CRUD operations with inventory tracking
 - 🔐 **Authentication & Authorization** - JWT-based security with role management
 - 💳 **Payment Processing** - Integrated Iyzico payment gateway
-- ☁️ **Serverless Cloud Integration** - Secure and scalable file storage with AWS S3
+- ☁️ **Cloud Integration** - Secure and scalable file storage with AWS S3
+
+### Additional Features
 - ⚡ **Performance** - Redis caching and optimized database queries
 - 🧾 **Observability** - Centralized logging with Serilog
 - 📜 **Documentation** - Interactive Swagger API docs
@@ -36,18 +40,19 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 
 ## 🛡️ Technical Approaches & Best Practices
 
-| Approach | Description | Implementation |
-|----------|-------------|----------------|
+| Approach                     | Description | Implementation |
+|------------------------------|-------------|----------------|
 | **Global Exception Handling** | Centralized error handling for consistent responses | Custom middleware catches all exceptions, returns structured JSON responses |
-| **API Versioning** | Backward compatibility and smooth API evolution | URL-based versioning (`/api/v1/`, `/api/v2/`) with version-specific controllers |
-| **Targeted Queries** | Optimized database performance | Repository pattern with eager loading, projection queries for specific data needs |
-| **Result Pattern** | Standardized response structure | Generic `Result<T>` wrapper for consistent success/error handling across endpoints |
-| **Rate Limiting** | API abuse prevention | ASP.NET Core middleware |
-| **Security Headers** | Enhanced protection against common attacks | Middleware adds HSTS, X-Frame-Options, CSP, and other security headers |
-| **ServiceBase** | Common service operations and validation | Generic base class with CRUD operations, DTO validation, and error handling |
-| **Transaction Management** | Data consistency across operations | Unit of Work pattern with EF Core transactions for multi-repository operations |
-| **Background Jobs** | Automated system maintenance | `BackgroundService` for token cleanup, cache refresh, and scheduled tasks |
-| **Cloud Storage** | Secure and scalable file management | AWS S3 integration for file upload, download, and access control |
+| **API Versioning**           | Backward compatibility and smooth API evolution | URL-based versioning (`/api/v1/`, `/api/v2/`) with version-specific controllers |
+| **Targeted Queries**         | Optimized database performance | Repository pattern with eager loading, projection queries for specific data needs |
+| **Result Pattern**           | Standardized response structure | Generic `Result<T>` wrapper for consistent success/error handling across endpoints |
+| **Rate Limiting**            | API abuse prevention | ASP.NET Core middleware |
+| **Security Headers**         | Enhanced protection against common attacks | Middleware adds HSTS, X-Frame-Options, CSP, and other security headers |
+| **BaseValidator**            | Service operations and validation | Base class with DTO validation |
+| **Transaction Management**   | Data consistency across operations | Unit of Work pattern with EF Core transactions for multi-repository operations |
+| **Background Jobs**          | Automated system maintenance | `BackgroundService` for token cleanup, cache refresh, and scheduled tasks |
+| **Cloud Storage**            | Secure and scalable file management | AWS S3 integration for file upload |
+| **Pagination**              | Efficient data retrieval and performance | Repository pattern with Skip/Take implementation, default page size of 50 items |
 
 ## 📐 Architecture
 Clean Architecture implementation with clear separation of concerns:
@@ -146,7 +151,6 @@ ADMIN_TOKEN=
 
 ## ☁️ AWS S3 Integration
 - All product images and file uploads are securely stored in AWS S3.
-- The API provides endpoints for uploading, retrieving, and managing files in your configured S3 bucket.
 - S3 credentials and bucket info are managed via environment variables for security and flexibility.
 
 ## 📖 API Documentation

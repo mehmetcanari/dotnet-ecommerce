@@ -7,7 +7,7 @@ using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Product;
 
-public class ProductService : ServiceBase, IProductService
+public class ProductService : BaseValidator, IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly IBasketItemService _basketItemService;

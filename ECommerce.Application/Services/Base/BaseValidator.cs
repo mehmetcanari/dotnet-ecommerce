@@ -4,11 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerce.Application.Services.Base;
 
-public abstract class ServiceBase
+public abstract class BaseValidator
 {
     public readonly IServiceProvider ServiceProvider;
 
-    protected ServiceBase(IServiceProvider serviceProvider)
+    protected BaseValidator(IServiceProvider serviceProvider)
     {
         ServiceProvider = serviceProvider;
     }

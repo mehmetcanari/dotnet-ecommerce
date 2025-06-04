@@ -8,7 +8,7 @@ using ECommerce.Application.DTO.Request.Token;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Account;
-public class AccountService : ServiceBase, IAccountService
+public class AccountService : BaseValidator, IAccountService
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IRefreshTokenService _refreshTokenService;

@@ -8,7 +8,7 @@ using ECommerce.Application.DTO.Request.Token;
 
 namespace ECommerce.Application.Services.Auth;
 
-public class AuthService : ServiceBase, IAuthService
+public class AuthService : BaseValidator, IAuthService
 {
     private readonly IAccountService _accountService;
     private readonly UserManager<IdentityUser> _userManager;

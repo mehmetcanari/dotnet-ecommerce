@@ -10,7 +10,7 @@ using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Order;
 
-public class OrderService : ServiceBase, IOrderService
+public class OrderService : BaseValidator, IOrderService
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IBasketItemService _basketItemService;

@@ -13,7 +13,7 @@ using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Services.Base;
 namespace ECommerce.Application.Services.Token;
 
-public class RefreshTokenService : ServiceBase, IRefreshTokenService
+public class RefreshTokenService : BaseValidator, IRefreshTokenService
 {
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ILoggingService _logger;

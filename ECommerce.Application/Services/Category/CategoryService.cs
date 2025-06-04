@@ -8,7 +8,7 @@ using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Category;
 
-public class CategoryService : ServiceBase, ICategoryService
+public class CategoryService : BaseValidator, ICategoryService
 {
     private const string CategoryCacheKey = "category:{0}";
     private readonly ICategoryRepository _categoryRepository;
