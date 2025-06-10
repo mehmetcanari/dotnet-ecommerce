@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using ECommerce.Application.Exceptions;
 using ECommerce.Infrastructure.Context;
 using Serilog;
@@ -15,6 +15,9 @@ using Serilog.Events;
 using Microsoft.AspNetCore.RateLimiting;
 using Amazon.S3;
 using Amazon.Runtime;
+using ECommerce.API.SwaggerFilters;
+using ECommerce.API.Configurations;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace ECommerce.API;
 
@@ -201,40 +204,10 @@ internal static class Program
         //======================================================
         // SWAGGER/OPENAPI CONFIGURATION
         //======================================================
-        builder.Services.AddSwaggerGen(c =>
+        builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+        builder.Services.AddSwaggerGen(options =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "E-Commerce API",
-                Version = "v1",
-                Description = "Modern e-commerce RESTful API with Clean Architecture",
-                Contact = new OpenApiContact
-                {
-                    Name = "API Support",
-                    Email = "bsn.mehmetcanari@gmail.com"
-                }
-            });
-
-            var securitySchema = new OpenApiSecurityScheme
-            {
-                Name = "Authorization",
-                Description = "Enter JWT token as: Bearer {token}",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            };
-
-            c.AddSecurityDefinition("Bearer", securitySchema);
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                { securitySchema, ["Bearer"] }
-            });
+            options.OperationFilter<FileUploadOperationFilter>();
         });
 
         #endregion
@@ -246,7 +219,7 @@ internal static class Program
         //======================================================
         builder.Host.UseSerilog((context, _, configuration) => configuration
             .MinimumLevel.Debug()                           
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .MinimumLevel.Override("System", LogEventLevel.Warning)
             .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
@@ -468,11 +441,19 @@ internal static class Program
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            app.UseSwaggerUI(options =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "E-Commerce API v1");
-                c.RoutePrefix = string.Empty;
-                c.DisplayRequestDuration();
+                var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions.Reverse())
+                {
+                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+                        description.GroupName.ToUpperInvariant());
+                }
+                options.RoutePrefix = string.Empty;
+                options.DisplayRequestDuration();
+                options.DocExpansion(DocExpansion.None);
+                options.DefaultModelsExpandDepth(-1);
             });
         }
 
@@ -498,12 +479,12 @@ internal static class Program
 
         #endregion
 
-        Console.WriteLine($"🚀 E-Commerce API starting on {app.Environment.EnvironmentName} environment");
-        Console.WriteLine($"📊 Health checks available at: /health");
+        Console.WriteLine($"E-Commerce API starting on {app.Environment.EnvironmentName} environment");
+        Console.WriteLine($"Health checks available at: /health");
         
         if (app.Environment.IsDevelopment())
         {
-            Console.WriteLine($"📖 API Documentation: http://localhost:5076");
+            Console.WriteLine($"API Documentation available at the root URL (e.g., http://localhost:5076/swagger)");
         }
 
         await app.RunAsync();
@@ -524,18 +505,18 @@ internal static class Program
                     var result = await roleManager.CreateAsync(new IdentityRole(roleName));
                     if (result.Succeeded)
                     {
-                        Console.WriteLine($"✅ Role '{roleName}' created successfully.");
+                        Console.WriteLine($"Role '{roleName}' created successfully.");
                     }
                     else
                     {
-                        Console.WriteLine($"❌ Failed to create role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                        Console.WriteLine($"Failed to create role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error initializing roles: {ex.Message}");
+            Console.WriteLine($"Error initializing roles: {ex.Message}");
             throw;
         }
     }

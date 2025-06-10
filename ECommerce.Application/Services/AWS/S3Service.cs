@@ -1,8 +1,8 @@
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.DTO.Request.FileUpload;
 using ECommerce.Application.Utility;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
 namespace ECommerce.Application.Services.AWS;
@@ -22,20 +22,20 @@ public class S3Service : IS3Service
         _loggingService = loggingService;
     }
 
-    public async Task<Result<string>> UploadFileAsync(IFormFile file, string keyPrefix)
+    public async Task<Result<string>> UploadFileAsync(FileUploadRequestDto request, string keyPrefix)
     {
         try
         {
-            var key = $"{keyPrefix}/{Guid.NewGuid()}_{file.FileName}";
+            var key = $"{keyPrefix}/{Guid.NewGuid()}_{request.File.FileName}";
 
-            await using var stream = file.OpenReadStream();
+            await using var stream = request.File.OpenReadStream();
 
             var uploadRequest = new TransferUtilityUploadRequest
             {
                 InputStream = stream,
                 Key = key,
                 BucketName = _bucketName,
-                ContentType = file.ContentType,
+                ContentType = request.File.ContentType,
             };
 
             var fileTransferUtility = new TransferUtility(_s3Client);

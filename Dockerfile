@@ -13,6 +13,7 @@ COPY ECommerce.Presentation/*.csproj ./ECommerce.Presentation/
 COPY ECommerce.Application/*.csproj ./ECommerce.Application/
 COPY ECommerce.Domain/*.csproj ./ECommerce.Domain/
 COPY ECommerce.Infrastructure/*.csproj ./ECommerce.Infrastructure/
+COPY ECommerce.Tests/*.csproj ./ECommerce.Tests/
 
 # Restore packages
 RUN dotnet restore

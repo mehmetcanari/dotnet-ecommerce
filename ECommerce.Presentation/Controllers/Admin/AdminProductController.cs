@@ -4,6 +4,7 @@ using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Validations.Attribute;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ECommerce.Application.DTO.Request.FileUpload;
 
 namespace ECommerce.API.Controllers.Admin;
 
@@ -45,9 +46,10 @@ public class AdminProductController : ControllerBase
     }
     
     [HttpPost("upload-image")]
-    public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadImage([FromForm] FileUploadRequestDto request)
     {
-        var result = await _s3Service.UploadFileAsync(file, "products");
+        var result = await _s3Service.UploadFileAsync(request, "products");
         return Ok(new { message = "Image uploaded successfully", data = result });
     }
     
