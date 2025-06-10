@@ -23,6 +23,7 @@ public class Result<T>
 public class Result
 {
     public bool IsSuccess { get; private set; }
+    public bool IsFailure => !IsSuccess;
     public string? Error { get; private set; }
 
     public static Result Success() => new()

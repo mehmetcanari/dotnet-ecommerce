@@ -5,6 +5,8 @@ using ECommerce.Application.Validations.Attribute;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ECommerce.Application.DTO.Request.FileUpload;
+using ECommerce.Application.Queries.Product;
+using MediatR;
 
 namespace ECommerce.API.Controllers.Admin;
 
@@ -16,26 +18,39 @@ public class AdminProductController : ControllerBase
 {
     private readonly IProductService _productService;
     private readonly IS3Service _s3Service;
+    private readonly IMediator _mediator;
     
-    public AdminProductController(IProductService productService, IS3Service s3Service)
+    public AdminProductController(
+        IProductService productService, 
+        IS3Service s3Service,
+        IMediator mediator)
     {
         _productService = productService;
         _s3Service = s3Service;
+        _mediator = mediator;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
-        var products = await _productService.GetAllProductsAsync();
-        return Ok(new { message = "All products fetched successfully", products });
+        var result = await _mediator.Send(new GetAllProductsQuery());
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+        return Ok(new { message = "All products fetched successfully", data = result });
     }
 
     [HttpGet("{id}")]
     [ValidateId]
     public async Task<IActionResult> GetProductById([FromRoute] int id)
     {
-        var product = await _productService.GetProductWithIdAsync(id);
-        return Ok(new { message = $"Product with id {id} fetched successfully", product });
+        var result = await _mediator.Send(new GetProductWithIdQuery { ProductId = id });
+        if (result.IsFailure)
+        {
+            return NotFound(new { message = result.Error });
+        }
+        return Ok(new { message = $"Product with id {id} fetched successfully", data = result });
     }
 
     [HttpPost("create")]

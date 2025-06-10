@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Validations.Attribute;
+using MediatR;
+using ECommerce.Application.Queries.Product;
 
 namespace ECommerce.API.Controllers.User;
 
@@ -12,25 +14,33 @@ namespace ECommerce.API.Controllers.User;
 [ApiVersion("1.0")]
 public class UserProductController : ControllerBase
 {
-    private readonly IProductService _productService;
+    private readonly IMediator _mediator;
 
-    public UserProductController(IProductService productService)
+    public UserProductController(IMediator mediator)
     {
-        _productService = productService;
+        _mediator = mediator;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
-        var products = await _productService.GetAllProductsAsync();
-        return Ok(new { message = "All products fetched successfully", data = products });
+        var result = await _mediator.Send(new GetAllProductsQuery());
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+        return Ok(new { message = "All products fetched successfully", data = result });
     }
 
     [HttpGet("{id}")]
     [ValidateId]
     public async Task<IActionResult> GetProductById([FromRoute] int id)
     {
-        var product = await _productService.GetProductWithIdAsync(id);
+        var product = await _mediator.Send(new GetProductWithIdQuery { ProductId = id });
+        if (product.IsFailure)
+        {
+            return NotFound(new { message = product.Error });
+        }
         return Ok(new { message = $"Product with id {id} fetched successfully", data = product });
     }
 }

@@ -1,4 +1,6 @@
 ﻿using ECommerce.Application.Dependencies;
+using ECommerce.Application.Queries.Product;
+using ECommerce.Application.Commands.Product;
 using ECommerce.Application.Services.Token;
 using ECommerce.Infrastructure.Dependencies;
 using Serilog;
@@ -25,5 +27,15 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddApplicationDependencies();
         _builder.Services.AddInfrastructureDependencies();
         _builder.Services.AddValidationDependencies();
+        RegisterMediatR();
+    }
+
+    private void RegisterMediatR()
+    {
+        _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllProductsQuery).Assembly));
+        _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductWithIdQuery).Assembly));
+        _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateProductCommand).Assembly));
+        _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UpdateProductCommand).Assembly));
+        _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UpdateProductStockCommand).Assembly));
     }
 }

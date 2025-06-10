@@ -70,6 +70,8 @@ Clean Architecture implementation with clear separation of concerns:
   │   ├── DTO
   │   ├── Exceptions
   │   ├── Services
+  │   ├── Commands
+  │   ├── Queries
   │   ├── Abstract/Services
   │   ├── Utility
   │   ├── Depdendencies  #Service Dependencies
