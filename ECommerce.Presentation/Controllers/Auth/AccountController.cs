@@ -13,12 +13,10 @@ namespace ECommerce.API.Controllers.Auth;
 [ApiVersion("1.0")]
 public class AccountController : ControllerBase
 {
-    private readonly IAccountService _accountService;
     private readonly IMediator _mediator;
     
-    public AccountController(IAccountService accountService, IMediator mediator)
+    public AccountController(IMediator mediator)
     {
-        _accountService = accountService;
         _mediator = mediator;
     }
 
@@ -26,11 +24,11 @@ public class AccountController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetProfile()
     {
-        var user = await _mediator.Send(new GetAccountByEmailQuery());
-        if (user is { IsFailure: true, Error: not null })
+        var result = await _mediator.Send(new GetAccountByEmailQuery());
+        if (result.IsFailure)
         {
-            return BadRequest(new { message = user.Error });
+            return BadRequest(new { message = "Failed to fetch profile", error = result.Error });
         }
-        return Ok(new { message = "User profile fetched successfully", data = user });
+        return Ok(new { message = "result profile fetched successfully", data = result });
     }
 } 

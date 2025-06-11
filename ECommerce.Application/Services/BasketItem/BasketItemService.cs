@@ -1,149 +1,54 @@
 ﻿using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.BasketItem;
-using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using MediatR;
+using ECommerce.Application.Commands.Basket;
 
 namespace ECommerce.Application.Services.BasketItem;
 
 public class BasketItemService : BaseValidator, IBasketItemService
 {
     private readonly IBasketItemRepository _basketItemRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IAccountRepository _accountRepository;
-    private readonly IProductRepository _productRepository;
     private readonly ICacheService _cacheService;
     private readonly ILoggingService _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private IMediator _mediator;
     private const string GetAllBasketItemsCacheKey = "GetAllBasketItems";
 
     public BasketItemService(
         IBasketItemRepository basketItemRepository, 
-        IProductRepository productRepository,
-        IAccountRepository accountRepository,
         ILoggingService logger,
         ICacheService cacheService,
         IUnitOfWork unitOfWork,
         IServiceProvider serviceProvider, 
-        ICurrentUserService currentUserService) : base(serviceProvider)
+        IMediator mediator) : base(serviceProvider)
     {
         _basketItemRepository = basketItemRepository;
-        _productRepository = productRepository;
-        _accountRepository = accountRepository;
         _logger = logger;
         _cacheService = cacheService;
         _unitOfWork = unitOfWork;
-        _currentUserService = currentUserService;
-    }
-
-    public async Task<Result<List<BasketItemResponseDto>>> GetAllBasketItemsAsync()
-    {
-        try
-        {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result<List<BasketItemResponseDto>>.Failure(emailResult.Error);
-            }
-            
-            TimeSpan cacheDuration = TimeSpan.FromMinutes(10);
-            var cachedItems = await _cacheService.GetAsync<List<BasketItemResponseDto>>(GetAllBasketItemsCacheKey);
-            if (cachedItems != null)
-            {
-                _logger.LogInformation("Basket items fetched from cache");
-                return Result<List<BasketItemResponseDto>>.Success(cachedItems);
-            }
-            
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null");
-                return Result<List<BasketItemResponseDto>>.Failure("Email is not available");
-            }
-            
-            var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            if (account == null)
-            {
-                return Result<List<BasketItemResponseDto>>.Failure("Account not found");
-            }
-            
-            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItems(account);
-            if (nonOrderedBasketItems.Count == 0)
-            {
-                return Result<List<BasketItemResponseDto>>.Failure("No basket items found.");
-            }
-
-            var clientResponseBasketItems = nonOrderedBasketItems
-            .Select(basketItem => new BasketItemResponseDto
-            {
-                AccountId = basketItem.AccountId,
-                Quantity = basketItem.Quantity,
-                UnitPrice = basketItem.UnitPrice,
-                ProductId = basketItem.ProductId,
-                ProductName = basketItem.ProductName
-            }).ToList();
-
-            await _cacheService.SetAsync(GetAllBasketItemsCacheKey, clientResponseBasketItems, cacheDuration);
-
-            return Result<List<BasketItemResponseDto>>.Success(clientResponseBasketItems);
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError(exception, "Unexpected error while fetching all basket items");
-            return Result<List<BasketItemResponseDto>>.Failure("An unexpected error occurred");
-        }
+        _mediator = mediator;
     }
 
     public async Task<Result> CreateBasketItemAsync(CreateBasketItemRequestDto createBasketItemRequestDto)
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result.Failure(emailResult.Error);
-            }
-            
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null");
-                return Result.Failure("Email is not available");
-            }
-            
             var validationResult = await ValidateAsync(createBasketItemRequestDto);
             if (validationResult is { IsSuccess: false, Error: not null }) 
                 return Result.Failure(validationResult.Error);
 
-            var product = await _productRepository.GetProductById(createBasketItemRequestDto.ProductId);
-            var userAccount = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            
-            if (userAccount == null)
-                return Result.Failure("Account not found");
-            
-            if (product == null)
-                return Result.Failure("Product not found");
-
-            if (createBasketItemRequestDto.Quantity > product.StockQuantity)
-                return Result.Failure("Not enough stock");
-
-            var basketItem = new Domain.Model.BasketItem
+            var result = await _mediator.Send(new CreateBasketItemCommand { CreateBasketItemRequestDto = createBasketItemRequestDto });
+            if (result is { IsSuccess: false, Error: not null })
             {
-                AccountId = userAccount.Id,
-                ExternalId = Guid.NewGuid().ToString(),
-                Quantity = createBasketItemRequestDto.Quantity,
-                ProductId = product.ProductId,
-                UnitPrice = product.Price,
-                ProductName = product.Name,
-                IsOrdered = false
-            };
+                _logger.LogWarning("Failed to create basket item: {Error}", result.Error);
+                return Result.Failure(result.Error);
+            }
 
-            await _basketItemRepository.Create(basketItem);
             await ClearBasketItemsCacheAsync();
             await _unitOfWork.Commit();
-
-            _logger.LogInformation("Basket item created successfully: {BasketItem}", basketItem);
             return Result.Success();
         }
         catch (Exception exception)
@@ -157,50 +62,21 @@ public class BasketItemService : BaseValidator, IBasketItemService
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result.Failure(emailResult.Error);
-            }
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null");
-                return Result.Failure("Email is not available");
-            }
-            
             var validationResult = await ValidateAsync(updateBasketItemRequestDto);
             if (validationResult is { IsSuccess: false, Error: not null }) 
                 return Result.Failure(validationResult.Error);
-            
-            var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            if (account == null)
-                return Result.Failure("Account not found");
-            
-            var basketItem = await _basketItemRepository.GetSpecificAccountBasketItemWithId(updateBasketItemRequestDto.BasketItemId, account);
-            if (basketItem == null)
-                return Result.Failure("Basket item not found");
 
-            var product = await _productRepository.GetProductById(updateBasketItemRequestDto.ProductId);
-            if (product == null)
-                return Result.Failure("Product not found");
-
-            if (product.StockQuantity < updateBasketItemRequestDto.Quantity)
+            //mediatr process
+            var result = await _mediator.Send(new UpdateBasketItemCommand { UpdateBasketItemRequestDto = updateBasketItemRequestDto });
+            if (result is { IsSuccess: false, Error: not null })
             {
-                return Result.Failure("Not enough stock");
+                _logger.LogWarning("Failed to update basket item: {Error}", result.Error);
+                return Result.Failure(result.Error);
             }
 
-            basketItem.Quantity = updateBasketItemRequestDto.Quantity;
-            basketItem.ProductId = updateBasketItemRequestDto.ProductId;
-            basketItem.ProductName = product.Name;
-            basketItem.UnitPrice = product.Price;
-            basketItem.IsOrdered = false;
-
-            _basketItemRepository.Update(basketItem);
             await ClearBasketItemsCacheAsync();
             await _unitOfWork.Commit();
 
-            _logger.LogInformation("Basket item updated successfully: {BasketItem}", basketItem);
             return Result.Success();
         }
         catch (Exception exception)
@@ -214,37 +90,16 @@ public class BasketItemService : BaseValidator, IBasketItemService
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
+            var result = await _mediator.Send(new DeleteAllNonOrderedBasketItemsCommand());
+            if (result is { IsSuccess: false, Error: not null })
             {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result.Failure(emailResult.Error);
-            }
-            
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null");
-                return Result.Failure("Email is not available");
-            }
-            
-            var tokenAccount = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            if (tokenAccount == null)
-                return Result.Failure("Account not found");
-            
-            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItems(tokenAccount);
-
-            if (nonOrderedBasketItems.Count == 0)
-                return Result.Failure("No basket items found to delete");
-
-            foreach (var basketItem in nonOrderedBasketItems)
-            {
-                _basketItemRepository.Delete(basketItem);
+                _logger.LogWarning("Failed to delete all non-ordered basket items: {Error}", result.Error);
+                return Result.Failure(result.Error);
             }
 
             await ClearBasketItemsCacheAsync();
             await _unitOfWork.Commit();
 
-            _logger.LogInformation("All basket items deleted successfully");
             return Result.Success();
         }
         catch (Exception exception)

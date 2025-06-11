@@ -4,6 +4,9 @@ using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Services.BasketItem;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Application.Utility;
+using MediatR;
+using ECommerce.Application.Commands.Basket;
+using ECommerce.Application.Queries.Basket;
 
 namespace ECommerce.Tests.Services.BasketItem;
 
@@ -19,6 +22,8 @@ public class BasketItemServiceTests
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<ICurrentUserService> _currentUserServiceMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
+    private readonly Mock<IMediator> _mediatorMock;
+    private readonly IBasketItemService _sut;
 
     public BasketItemServiceTests()
     {
@@ -30,17 +35,16 @@ public class BasketItemServiceTests
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _currentUserServiceMock = new Mock<ICurrentUserService>();
         _serviceProviderMock = new Mock<IServiceProvider>();
+        _mediatorMock = new Mock<IMediator>();
+        
+        _sut = new BasketItemService(
+            _basketItemRepositoryMock.Object,
+            _loggerMock.Object,
+            _cacheServiceMock.Object,
+            _unitOfWorkMock.Object,
+            _serviceProviderMock.Object,
+            _mediatorMock.Object);
     }
-
-    private BasketItemService CreateService() => new BasketItemService(
-        _basketItemRepositoryMock.Object,
-        _productRepositoryMock.Object,
-        _accountRepositoryMock.Object,
-        _loggerMock.Object,
-        _cacheServiceMock.Object,
-        _unitOfWorkMock.Object,
-        _serviceProviderMock.Object,
-        _currentUserServiceMock.Object);
 
     private void SetupCurrentUser(string email)
     {
@@ -144,19 +148,24 @@ public class BasketItemServiceTests
             Quantity = 1,
             UnitPrice = 100
         } };
-        SetupCache(GetAllBasketItemsCacheKey, cachedItems);
-        SetupCurrentUser("test@example.com");
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.IsAny<GetAllBasketItemsQuery>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<List<BasketItemResponseDto>>.Success(cachedItems));
 
         // Act
-        var result = await service.GetAllBasketItemsAsync();
+        var result = await _mediatorMock.Object.Send(new GetAllBasketItemsQuery(), CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
+        Assert.NotNull(result.Data);
         Assert.Single(result.Data);
         Assert.Equal(cachedItems[0].ProductId, result.Data[0].ProductId);
-        _loggerMock.Verify(l => l.LogInformation("Basket items fetched from cache"), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.IsAny<GetAllBasketItemsQuery>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -166,22 +175,35 @@ public class BasketItemServiceTests
         // Arrange
         var account = CreateAccount();
         var basketItem = CreateBasketItem();
-        SetupCache<List<BasketItemResponseDto>>(GetAllBasketItemsCacheKey, null);
+        var basketItems = new List<BasketItemResponseDto> { new() {
+            ProductId = basketItem.ProductId,
+            ProductName = basketItem.ProductName,
+            AccountId = basketItem.AccountId,
+            Quantity = basketItem.Quantity,
+            UnitPrice = basketItem.UnitPrice
+        }};
+
         SetupCurrentUser(account.Email);
         SetupAccount(account);
         SetupBasketItem(account, basketItem);
-        SetupCacheRemoval();
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.IsAny<GetAllBasketItemsQuery>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<List<BasketItemResponseDto>>.Success(basketItems));
 
         // Act
-        var result = await service.GetAllBasketItemsAsync();
+        var result = await _mediatorMock.Object.Send(new GetAllBasketItemsQuery(), CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
+        Assert.NotNull(result.Data);
         Assert.Single(result.Data);
         Assert.Equal(basketItem.ProductId, result.Data[0].ProductId);
-        _cacheServiceMock.Verify(c => c.SetAsync(It.IsAny<string>(), It.IsAny<List<BasketItemResponseDto>>(), It.IsAny<TimeSpan>()), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.IsAny<GetAllBasketItemsQuery>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -190,17 +212,22 @@ public class BasketItemServiceTests
     {
         // Arrange
         SetupCurrentUser("notfound@example.com");
-        _accountRepositoryMock.Setup(r => r.GetAccountByEmail("notfound@example.com"))
-            .ReturnsAsync((Domain.Model.Account)null);
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.IsAny<GetAllBasketItemsQuery>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<List<BasketItemResponseDto>>.Failure("Account not found"));
 
         // Act
-        var result = await service.GetAllBasketItemsAsync();
+        var result = await _mediatorMock.Object.Send(new GetAllBasketItemsQuery(), CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Account not found", result.Error);
         Assert.Null(result.Data);
+        _mediatorMock.Verify(m => m.Send(
+            It.IsAny<GetAllBasketItemsQuery>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -211,17 +238,22 @@ public class BasketItemServiceTests
         var account = CreateAccount();
         SetupCurrentUser(account.Email);
         SetupAccount(account);
-        _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItems(account))
-            .ReturnsAsync(new List<Domain.Model.BasketItem>());
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.IsAny<GetAllBasketItemsQuery>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<List<BasketItemResponseDto>>.Failure("No basket items found."));
 
         // Act
-        var result = await service.GetAllBasketItemsAsync();
+        var result = await _mediatorMock.Object.Send(new GetAllBasketItemsQuery(), CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("No basket items found.", result.Error);
         Assert.Null(result.Data);
+        _mediatorMock.Verify(m => m.Send(
+            It.IsAny<GetAllBasketItemsQuery>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -236,87 +268,51 @@ public class BasketItemServiceTests
         SetupAccount(account);
         SetupProduct(product);
         SetupCacheRemoval();
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<CreateBasketItemCommand>(cmd => cmd.CreateBasketItemRequestDto == request),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
 
         // Act
-        var result = await service.CreateBasketItemAsync(request);
+        var result = await _sut.CreateBasketItemAsync(request);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Create(It.Is<Domain.Model.BasketItem>(b => 
-            b.AccountId == account.Id && 
-            b.ProductId == product.ProductId && 
-            b.Quantity == request.Quantity)), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<CreateBasketItemCommand>(cmd => cmd.CreateBasketItemRequestDto == request),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _cacheServiceMock.Verify(c => c.RemoveAsync(It.IsAny<string>()), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.Is<string>(s => s.Contains("Basket item created successfully")), It.IsAny<object>()), Times.Once);
     }
 
     [Fact]
     [Trait("Operation", "Create")]
-    public async Task CreateBasketItemAsync_Should_Return_Failure_When_Account_Not_Found()
-    {
-        // Arrange
-        var request = new CreateBasketItemRequestDto { ProductId = 1, Quantity = 1 };
-        SetupCurrentUser("notfound@example.com");
-        _accountRepositoryMock.Setup(r => r.GetAccountByEmail("notfound@example.com"))
-            .ReturnsAsync((Domain.Model.Account)null);
-        var service = CreateService();
-
-        // Act
-        var result = await service.CreateBasketItemAsync(request);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Account not found", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Create(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
-        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
-    }
-
-    [Fact]
-    [Trait("Operation", "Create")]
-    public async Task CreateBasketItemAsync_Should_Return_Failure_When_Product_Not_Found()
+    public async Task CreateBasketItemAsync_Should_Return_Failure_When_Command_Fails()
     {
         // Arrange
         var account = CreateAccount();
-        var request = new CreateBasketItemRequestDto { ProductId = 1, Quantity = 1 };
-        SetupCurrentUser(account.Email);
-        SetupAccount(account);
-        _productRepositoryMock.Setup(r => r.GetProductById(request.ProductId))
-            .ReturnsAsync((Domain.Model.Product)null);
-        var service = CreateService();
-
-        // Act
-        var result = await service.CreateBasketItemAsync(request);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Product not found", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Create(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
-        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
-    }
-
-    [Fact]
-    [Trait("Operation", "Create")]
-    public async Task CreateBasketItemAsync_Should_Return_Failure_When_Not_Enough_Stock()
-    {
-        // Arrange
-        var account = CreateAccount();
-        var product = CreateProduct(stock: 5);
-        var request = new CreateBasketItemRequestDto { ProductId = product.ProductId, Quantity = 10 };
+        var product = CreateProduct();
+        var request = new CreateBasketItemRequestDto { ProductId = product.ProductId, Quantity = 1 };
         SetupCurrentUser(account.Email);
         SetupAccount(account);
         SetupProduct(product);
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<CreateBasketItemCommand>(cmd => cmd.CreateBasketItemRequestDto == request),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure("Command failed"));
 
         // Act
-        var result = await service.CreateBasketItemAsync(request);
+        var result = await _sut.CreateBasketItemAsync(request);
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("Not enough stock", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Create(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
+        Assert.Equal("Command failed", result.Error);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<CreateBasketItemCommand>(cmd => cmd.CreateBasketItemRequestDto == request),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
@@ -334,114 +330,53 @@ public class BasketItemServiceTests
         SetupBasketItemWithId(account, basketItem);
         SetupProduct(product);
         SetupCacheRemoval();
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<UpdateBasketItemCommand>(cmd => cmd.UpdateBasketItemRequestDto == request),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
 
         // Act
-        var result = await service.UpdateBasketItemAsync(request);
+        var result = await _sut.UpdateBasketItemAsync(request);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Update(It.Is<Domain.Model.BasketItem>(b => 
-            b.BasketItemId == basketItem.BasketItemId && 
-            b.ProductId == product.ProductId && 
-            b.Quantity == request.Quantity)), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<UpdateBasketItemCommand>(cmd => cmd.UpdateBasketItemRequestDto == request),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _cacheServiceMock.Verify(c => c.RemoveAsync(It.IsAny<string>()), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.Is<string>(s => s.Contains("Basket item updated successfully")), It.IsAny<object>()), Times.Once);
     }
 
     [Fact]
     [Trait("Operation", "Update")]
-    public async Task UpdateBasketItemAsync_Should_Return_Failure_When_Account_Not_Found()
-    {
-        // Arrange
-        var request = new UpdateBasketItemRequestDto { BasketItemId = 1, ProductId = 1, Quantity = 1 };
-        SetupCurrentUser("notfound@example.com");
-        _accountRepositoryMock.Setup(r => r.GetAccountByEmail("notfound@example.com"))
-            .ReturnsAsync((Domain.Model.Account)null);
-        var service = CreateService();
-
-        // Act
-        var result = await service.UpdateBasketItemAsync(request);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Account not found", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
-        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
-    }
-
-    [Fact]
-    [Trait("Operation", "Update")]
-    public async Task UpdateBasketItemAsync_Should_Return_Failure_When_Basket_Item_Not_Found()
+    public async Task UpdateBasketItemAsync_Should_Return_Failure_When_Command_Fails()
     {
         // Arrange
         var account = CreateAccount();
-        var request = new UpdateBasketItemRequestDto { BasketItemId = 1, ProductId = 1, Quantity = 1 };
-        SetupCurrentUser(account.Email);
-        SetupAccount(account);
-        _basketItemRepositoryMock.Setup(r => r.GetSpecificAccountBasketItemWithId(request.BasketItemId, account))
-            .ReturnsAsync((Domain.Model.BasketItem)null);
-        var service = CreateService();
-
-        // Act
-        var result = await service.UpdateBasketItemAsync(request);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Basket item not found", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
-        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
-    }
-
-    [Fact]
-    [Trait("Operation", "Update")]
-    public async Task UpdateBasketItemAsync_Should_Return_Failure_When_Product_Not_Found()
-    {
-        // Arrange
-        var account = CreateAccount();
+        var product = CreateProduct();
         var basketItem = CreateBasketItem();
-        var request = new UpdateBasketItemRequestDto { BasketItemId = basketItem.BasketItemId, ProductId = 1, Quantity = 1 };
-        SetupCurrentUser(account.Email);
-        SetupAccount(account);
-        SetupBasketItemWithId(account, basketItem);
-        _productRepositoryMock.Setup(r => r.GetProductById(request.ProductId))
-            .ReturnsAsync((Domain.Model.Product)null);
-        var service = CreateService();
-
-        // Act
-        var result = await service.UpdateBasketItemAsync(request);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Product not found", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
-        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
-    }
-
-    [Fact]
-    [Trait("Operation", "Update")]
-    public async Task UpdateBasketItemAsync_Should_Return_Failure_When_Not_Enough_Stock()
-    {
-        // Arrange
-        var account = CreateAccount();
-        var product = CreateProduct(stock: 5);
-        var basketItem = CreateBasketItem();
-        var request = new UpdateBasketItemRequestDto { BasketItemId = basketItem.BasketItemId, ProductId = product.ProductId, Quantity = 10 };
+        var request = new UpdateBasketItemRequestDto { BasketItemId = basketItem.BasketItemId, ProductId = product.ProductId, Quantity = 2 };
         SetupCurrentUser(account.Email);
         SetupAccount(account);
         SetupBasketItemWithId(account, basketItem);
         SetupProduct(product);
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<UpdateBasketItemCommand>(cmd => cmd.UpdateBasketItemRequestDto == request),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure("Command failed"));
 
         // Act
-        var result = await service.UpdateBasketItemAsync(request);
+        var result = await _sut.UpdateBasketItemAsync(request);
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("Not enough stock", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
+        Assert.Equal("Command failed", result.Error);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<UpdateBasketItemCommand>(cmd => cmd.UpdateBasketItemRequestDto == request),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
@@ -452,64 +387,52 @@ public class BasketItemServiceTests
         // Arrange
         var account = CreateAccount();
         var basketItems = new List<Domain.Model.BasketItem> { CreateBasketItem() };
-        
         SetupCurrentUser(account.Email);
         SetupAccount(account);
         SetupBasketItems(basketItems);
-        var service = CreateService();
+
+        _mediatorMock.Setup(m => m.Send(
+            It.IsAny<DeleteAllNonOrderedBasketItemsCommand>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
 
         // Act
-        var result = await service.DeleteAllNonOrderedBasketItemsAsync();
+        var result = await _sut.DeleteAllNonOrderedBasketItemsAsync();
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Delete(It.Is<Domain.Model.BasketItem>(b => 
-            b.AccountId == account.Id && 
-            !b.IsOrdered)), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.IsAny<DeleteAllNonOrderedBasketItemsCommand>(),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation("All basket items deleted successfully", It.IsAny<object[]>()), Times.Once);
     }
 
     [Fact]
     [Trait("Operation", "Delete")]
-    public async Task DeleteAllNonOrderedBasketItemsAsync_Should_Return_Failure_When_Account_Not_Found()
-    {
-        // Arrange
-        SetupCurrentUser("notfound@example.com");
-        _accountRepositoryMock.Setup(r => r.GetAccountByEmail("notfound@example.com"))
-            .ReturnsAsync((Domain.Model.Account)null);
-        var service = CreateService();
-
-        // Act
-        var result = await service.DeleteAllNonOrderedBasketItemsAsync();
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Account not found", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
-        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
-    }
-
-    [Fact]
-    [Trait("Operation", "Delete")]
-    public async Task DeleteAllNonOrderedBasketItemsAsync_Should_Return_Failure_When_No_Items_To_Delete()
+    public async Task DeleteAllNonOrderedBasketItemsAsync_Should_Return_Failure_When_Command_Fails()
     {
         // Arrange
         var account = CreateAccount();
+        var basketItems = new List<Domain.Model.BasketItem> { CreateBasketItem() };
         SetupCurrentUser(account.Email);
         SetupAccount(account);
-        _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItems(account))
-            .ReturnsAsync(new List<Domain.Model.BasketItem>());
-        var service = CreateService();
+        SetupBasketItems(basketItems);
+
+        _mediatorMock.Setup(m => m.Send(
+            It.IsAny<DeleteAllNonOrderedBasketItemsCommand>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure("Command failed"));
 
         // Act
-        var result = await service.DeleteAllNonOrderedBasketItemsAsync();
+        var result = await _sut.DeleteAllNonOrderedBasketItemsAsync();
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("No basket items found to delete", result.Error);
-        _basketItemRepositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
+        Assert.Equal("Command failed", result.Error);
+        _mediatorMock.Verify(m => m.Send(
+            It.IsAny<DeleteAllNonOrderedBasketItemsCommand>(),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
@@ -523,16 +446,14 @@ public class BasketItemServiceTests
         _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItemIncludeSpecificProduct(product.ProductId))
             .ReturnsAsync(new List<Domain.Model.BasketItem> { basketItem });
         SetupCacheRemoval();
-        var service = CreateService();
 
         // Act
-        await service.ClearBasketItemsIncludeOrderedProductAsync(product);
+        await _sut.ClearBasketItemsIncludeOrderedProductAsync(product);
 
         // Assert
         _basketItemRepositoryMock.Verify(r => r.Delete(It.Is<Domain.Model.BasketItem>(b => b.BasketItemId == basketItem.BasketItemId)), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _cacheServiceMock.Verify(c => c.RemoveAsync(It.IsAny<string>()), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.Is<string>(s => s.Contains("Basket items cleared successfully")), It.IsAny<object>()), Times.Once);
     }
 
     [Fact]
@@ -543,19 +464,15 @@ public class BasketItemServiceTests
         var account = CreateAccount();
         var basketItems = new List<Domain.Model.BasketItem> { CreateBasketItem() };
         var product = CreateProduct();
-        
         SetupCurrentUser(account.Email);
         SetupAccount(account);
         SetupBasketItems(basketItems);
-        var service = CreateService();
 
         // Act
-        await service.ClearBasketItemsIncludeOrderedProductAsync(product);
+        await _sut.ClearBasketItemsIncludeOrderedProductAsync(product);
 
         // Assert
         _basketItemRepositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Model.BasketItem>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
-
-    private const string GetAllBasketItemsCacheKey = "GetAllBasketItems";
 }

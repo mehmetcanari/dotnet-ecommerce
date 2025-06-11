@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
+using MediatR;
+using ECommerce.Application.Queries.Basket;
 
 namespace ECommerce.API.Controllers.User;
 
@@ -13,16 +15,22 @@ namespace ECommerce.API.Controllers.User;
 public class UserBasketItemController : ControllerBase
 {
     private readonly IBasketItemService _basketItemService;
+    private readonly IMediator _mediator;
 
-    public UserBasketItemController(IBasketItemService basketItemService)
+    public UserBasketItemController(IBasketItemService basketItemService, IMediator mediator)
     {
         _basketItemService = basketItemService;
+        _mediator = mediator;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllBasketItems()
     {
-        var basketItems = await _basketItemService.GetAllBasketItemsAsync();
+        var basketItems = await _mediator.Send(new GetAllBasketItemsQuery());
+        if (basketItems.IsFailure)
+        {
+            return BadRequest(new { message = "Failed to fetch basket items", error = basketItems.Error });
+        }
         return Ok(new { message = "Basket items fetched successfully", data = basketItems });
     }
 

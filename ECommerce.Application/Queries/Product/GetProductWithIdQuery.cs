@@ -17,6 +17,7 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
     private readonly ICacheService _cacheService;
     private readonly ILoggingService _logger;
     private const string ProductCacheKey = "product:{0}";
+    private const int CacheDurationInMinutes = 60;
 
     public GetProductWithIdQueryHandler(
         IProductRepository productRepository,
@@ -32,7 +33,7 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
     {
         try
         {
-            var expirationTime = TimeSpan.FromMinutes(60);
+            var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
             var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, request.ProductId));
             if (cachedProduct != null)
             {
