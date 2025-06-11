@@ -3,6 +3,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Validations.Attribute;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,24 +16,34 @@ public class AdminAccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
     private readonly IRefreshTokenService _refreshTokenService;
-    public AdminAccountController(IAccountService accountService, IRefreshTokenService refreshTokenService)
+    private readonly IMediator _mediator;
+    public AdminAccountController(IAccountService accountService, IRefreshTokenService refreshTokenService, IMediator mediator)
     {
         _accountService = accountService;
         _refreshTokenService = refreshTokenService;
+        _mediator = mediator;
     }
     
     [HttpGet]
     public async Task<IActionResult> GetAllAccounts()
     {
-        var accounts = await _accountService.GetAllAccountsAsync();
-        return Ok(new { message = "All accounts fetched successfully", accounts });
+        var result = await _mediator.Send(new GetAllAccountsQuery());
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+        return Ok(new { message = "All accounts fetched successfully", data = result });
     }
 
     [HttpGet("{id}")]
     [ValidateId]
     public async Task<IActionResult> GetAccountById([FromRoute] int id)
     {
-        var account = await _accountService.GetAccountWithIdAsync(id);
+        var account = await _mediator.Send(new GetAccountWithIdQuery { Id = id });
+        if (account.IsFailure)
+        {
+            return BadRequest(new { message = account.Error });
+        }
         return Ok(new { message = $"Account with id {id} fetched successfully", account });
     }
 
@@ -40,7 +51,11 @@ public class AdminAccountController : ControllerBase
     [ValidateId]
     public async Task<IActionResult> DeleteAccount([FromRoute] int id)
     {
-        var result = await _accountService.DeleteAccountAsync(id);
+        var result = await _mediator.Send(new DeleteAccountCommand { Id = id });
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = $"Account with id {id} deleted successfully", data = result });
     }
   

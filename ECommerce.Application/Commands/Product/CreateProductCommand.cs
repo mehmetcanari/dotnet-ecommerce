@@ -40,7 +40,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
                 return Result.Failure("Category not found");
             }
 
-            var product = new ECommerce.Domain.Model.Product
+            var product = new Domain.Model.Product
             {
                 Name = request.ProductCreateRequest.Name,
                 Description = request.ProductCreateRequest.Description,
