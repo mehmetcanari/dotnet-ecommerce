@@ -2,7 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
-using ECommerce.Application.Services.Base;
+using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 

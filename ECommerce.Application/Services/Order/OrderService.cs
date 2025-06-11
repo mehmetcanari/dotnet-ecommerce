@@ -2,7 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.DTO.Response.BasketItem;
-using ECommerce.Application.Services.Base;
+using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;
 using ECommerce.Application.Utility;
@@ -54,6 +54,10 @@ public class OrderService : BaseValidator, IOrderService
         {
             await _unitOfWork.BeginTransactionAsync();
 
+            var validationResult = await ValidateAsync(orderCreateRequestDto);
+            if (validationResult is { IsSuccess: false, Error: not null }) 
+                return Result.Failure(validationResult.Error);
+
             var emailResult = _currentUserService.GetCurrentUserEmail();
             if (emailResult is { IsSuccess: false, Error: not null })
             {
@@ -66,10 +70,6 @@ public class OrderService : BaseValidator, IOrderService
                 _logger.LogWarning("User email is null or empty");
                 return Result.Failure("User email is null or empty");
             }
-            
-            var validationResult = await ValidateAsync(orderCreateRequestDto);
-            if (validationResult is { IsSuccess: false, Error: not null }) 
-                return Result.Failure(validationResult.Error);
             
             var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
             if (account == null)

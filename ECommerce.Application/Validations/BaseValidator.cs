@@ -2,7 +2,7 @@ using ECommerce.Application.Utility;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ECommerce.Application.Services.Base;
+namespace ECommerce.Application.Validations.BaseValidator;
 
 public abstract class BaseValidator
 {

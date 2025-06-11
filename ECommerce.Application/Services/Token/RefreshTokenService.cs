@@ -10,7 +10,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Application.DTO.Request.Token;
-using ECommerce.Application.Services.Base;
+using ECommerce.Application.Validations.BaseValidator;
 namespace ECommerce.Application.Services.Token;
 
 public class RefreshTokenService : BaseValidator, IRefreshTokenService

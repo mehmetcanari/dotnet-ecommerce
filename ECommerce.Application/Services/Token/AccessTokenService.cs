@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
-using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;

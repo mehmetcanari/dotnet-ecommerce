@@ -1,7 +1,7 @@
 ﻿using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.DTO.Response.BasketItem;
-using ECommerce.Application.Services.Base;
+using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 
