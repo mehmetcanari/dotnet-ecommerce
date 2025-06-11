@@ -1,6 +1,0 @@
-version: "1.0"
-ide: QDNET
-profile:
-  name: qodana.recommended
-dotnet:
-  solution: "dotnet-ecommerce-demo.sln"
