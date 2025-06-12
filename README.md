@@ -38,7 +38,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **Serilog** | Structured logging |
 | **Docker** | Containerization |
 | **xUnit** | Unit testing |
-| **MediatR** | CQRS implementation and in-process messaging |
+| **MediatR** | CQRS implementation |
 
 ## 🛡️ Technical Approaches & Best Practices
 
