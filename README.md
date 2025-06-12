@@ -23,6 +23,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 - 🧾 **Observability** - Centralized logging with Serilog
 - 📜 **Documentation** - Interactive Swagger API docs
 - 🧪 **Testing** - Comprehensive test suite with xUnit
+- 🔄 **CQRS** - Command Query Responsibility Segregation with MediatR
 
 ## 🛠️ Tech Stack
 | Technology | Purpose |
@@ -37,6 +38,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **Serilog** | Structured logging |
 | **Docker** | Containerization |
 | **xUnit** | Unit testing |
+| **MediatR** | CQRS implementation and in-process messaging |
 
 ## 🛡️ Technical Approaches & Best Practices
 
@@ -53,6 +55,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **Background Jobs**          | Automated system maintenance | `BackgroundService` for token cleanup, cache refresh, and scheduled tasks |
 | **Cloud Storage**            | Secure and scalable file management | AWS S3 integration for file upload |
 | **Pagination**              | Efficient data retrieval and performance | Repository pattern with Skip/Take implementation, default page size of 50 items |
+| **CQRS Pattern**            | Separation of read and write operations | MediatR implementation with Commands and Queries for better scalability and maintainability |
 
 ## 📐 Architecture
 Clean Architecture implementation with clear separation of concerns:

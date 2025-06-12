@@ -27,6 +27,10 @@ public class AdminCategoryController : ControllerBase
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequestDto request)
     {
         var result = await _categoryService.CreateCategoryAsync(request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = "Category created successfully", data = result });
     }
 
@@ -35,6 +39,10 @@ public class AdminCategoryController : ControllerBase
     public async Task<IActionResult> DeleteCategory([FromRoute] int id)
     {
         var result = await _categoryService.DeleteCategoryAsync(id);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = "Category deleted successfully", data = result });
     }
 
@@ -43,6 +51,10 @@ public class AdminCategoryController : ControllerBase
     public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] UpdateCategoryRequestDto request)
     {
         var result = await _categoryService.UpdateCategoryAsync(id, request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = "Category updated successfully", data = result });
     }
 

@@ -30,7 +30,7 @@ public class AdminAccountController : ControllerBase
         var result = await _mediator.Send(new GetAllAccountsQuery());
         if (result.IsFailure)
         {
-            return BadRequest(new { message = result.Error });
+            return NotFound(new { message = result.Error });
         }
         return Ok(new { message = "All accounts fetched successfully", data = result });
     }
@@ -42,7 +42,7 @@ public class AdminAccountController : ControllerBase
         var account = await _mediator.Send(new GetAccountWithIdQuery { Id = id });
         if (account.IsFailure)
         {
-            return BadRequest(new { message = account.Error });
+            return NotFound(new { message = account.Error });
         }
         return Ok(new { message = $"Account with id {id} fetched successfully", account });
     }
@@ -63,6 +63,10 @@ public class AdminAccountController : ControllerBase
     public async Task<IActionResult> RevokeToken([FromBody] TokenRevokeRequestDto request)
     {
         var result = await _refreshTokenService.RevokeUserTokens(request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = $"{request.Email} tokens revoked successfully", data = result });
     }
 
@@ -70,6 +74,10 @@ public class AdminAccountController : ControllerBase
     public async Task<IActionResult> BanAccount([FromBody] AccountBanRequestDto request)
     {
         var result = await _accountService.BanAccountAsync(request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = $"{request.Email} account banned successfully", data = result });
     }
 
@@ -77,6 +85,10 @@ public class AdminAccountController : ControllerBase
     public async Task<IActionResult> UnbanAccount([FromBody] AccountUnbanRequestDto request)
     {
         var result = await _accountService.UnbanAccountAsync(request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = $"{request.Email} account unbanned successfully", data = result });
     }
 }

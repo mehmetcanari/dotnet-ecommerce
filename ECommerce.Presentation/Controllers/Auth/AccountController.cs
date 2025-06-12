@@ -27,7 +27,7 @@ public class AccountController : ControllerBase
         var result = await _mediator.Send(new GetAccountByEmailQuery());
         if (result.IsFailure)
         {
-            return BadRequest(new { message = "Failed to fetch profile", error = result.Error });
+            return NotFound(new { message = "Failed to fetch profile", error = result.Error });
         }
         return Ok(new { message = "result profile fetched successfully", data = result });
     }

@@ -36,7 +36,7 @@ public class AdminProductController : ControllerBase
         var result = await _mediator.Send(new GetAllProductsQuery());
         if (result.IsFailure)
         {
-            return BadRequest(new { message = result.Error });
+            return NotFound(new { message = result.Error });
         }
         return Ok(new { message = "All products fetched successfully", data = result });
     }
@@ -57,6 +57,10 @@ public class AdminProductController : ControllerBase
     public async Task<IActionResult> CreateProduct([FromBody] ProductCreateRequestDto productCreateRequestRequest)
     {
         var result = await _productService.CreateProductAsync(productCreateRequestRequest);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = "Product created successfully", data = result });
     }
     
@@ -65,6 +69,10 @@ public class AdminProductController : ControllerBase
     public async Task<IActionResult> UploadImage([FromForm] FileUploadRequestDto request)
     {
         var result = await _s3Service.UploadFileAsync(request, "products");
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = "Image uploaded successfully", data = result });
     }
     
@@ -73,6 +81,10 @@ public class AdminProductController : ControllerBase
     public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromBody] ProductUpdateRequestDto productUpdateRequestRequest)
     {
         var result = await _productService.UpdateProductAsync(id, productUpdateRequestRequest);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = $"Product with id {id} updated successfully", data = result });
     }
 
@@ -81,6 +93,10 @@ public class AdminProductController : ControllerBase
     public async Task<IActionResult> DeleteProduct([FromRoute] int id)
     {
         var result = await _productService.DeleteProductAsync(id);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = $"Product with id {id} deleted successfully", data = result });
     }
 }

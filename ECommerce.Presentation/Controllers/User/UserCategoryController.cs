@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Asp.Versioning;
-using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Validations.Attribute;
 using MediatR;
 
@@ -13,12 +12,10 @@ namespace ECommerce.API.Controllers.User;
 [ApiVersion("1.0")]
 public class UserCategoryController : ControllerBase
 {
-    private readonly ICategoryService _categoryService;
     private readonly IMediator _mediator;
 
-    public UserCategoryController(ICategoryService categoryService, IMediator mediator)
+    public UserCategoryController(IMediator mediator)
     {
-        _categoryService = categoryService;
         _mediator = mediator;
     }
 

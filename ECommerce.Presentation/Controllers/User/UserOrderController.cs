@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Order;
@@ -33,7 +32,11 @@ public class UserOrderController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUserOrders()
     {
-        var userOrders = await _orderService.GetUserOrdersAsync();
+        var userOrders = await _mediator.Send(new GetUserOrdersQuery());
+        if (userOrders.IsFailure)
+        {
+            return BadRequest(new { message = userOrders.Error });
+        }
         return Ok(new { message = "Order fetched successfully", data = userOrders });
     }
 

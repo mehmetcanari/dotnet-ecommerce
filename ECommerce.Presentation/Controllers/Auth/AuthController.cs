@@ -23,6 +23,10 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
             var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "Admin");
+            if (result == null)
+            {
+                return BadRequest(new { message = "Failed to create admin user." });
+            }
             return Ok(new { message = "Admin user created successfully.", data = result });
         }
 
@@ -31,6 +35,10 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
             var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "User");
+            if (result == null)
+            {
+                return BadRequest(new { message = "Failed to create user." });
+            }
             return Ok(new { message = "User created successfully.", data = result });
         }
 
@@ -39,6 +47,10 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> Login([FromBody] AccountLoginRequestDto accountLoginRequestDto)
         {
             var loginResult = await _authService.LoginAsync(accountLoginRequestDto);
+            if (loginResult == null)
+            {
+                return Unauthorized(new { message = "Invalid credentials" });
+            }
             return Ok(new { message = "Login successful", data = loginResult });
         }
 
@@ -47,6 +59,10 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> Logout()
         {
             var result = await _authService.LogoutAsync("User logged out");
+            if (result == null)
+            {
+                return BadRequest(new { message = "Logout failed" });
+            }
             return Ok(new { message = "Logout successful", data = result });
         }
 
@@ -55,6 +71,10 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> GetRefreshToken()
         {
             var authResponse = await _authService.GenerateAuthTokenAsync();
+            if (authResponse == null)
+            {
+                return BadRequest(new { message = "Failed to refresh token" });
+            }
             return Ok(new { message = "Token refreshed successfully", authResponse });
         }
     }

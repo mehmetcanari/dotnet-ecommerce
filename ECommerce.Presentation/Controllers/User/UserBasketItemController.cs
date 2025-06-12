@@ -29,7 +29,7 @@ public class UserBasketItemController : ControllerBase
         var basketItems = await _mediator.Send(new GetAllBasketItemsQuery());
         if (basketItems.IsFailure)
         {
-            return BadRequest(new { message = "Failed to fetch basket items", error = basketItems.Error });
+            return NotFound(new { message = "Failed to fetch basket items", error = basketItems.Error });
         }
         return Ok(new { message = "Basket items fetched successfully", data = basketItems });
     }
@@ -38,6 +38,10 @@ public class UserBasketItemController : ControllerBase
     public async Task<IActionResult> CreateBasketItem([FromBody] CreateBasketItemRequestDto createBasketItemRequest)
     {
         var result = await _basketItemService.CreateBasketItemAsync(createBasketItemRequest);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = "Failed to create basket item", error = result.Error });
+        }
         return Created("basket", new { message = "Basket item created successfully", data = result });
     }
 
@@ -45,6 +49,10 @@ public class UserBasketItemController : ControllerBase
     public async Task<IActionResult> UpdateBasketItem([FromBody] UpdateBasketItemRequestDto basketItemRequestUpdateRequest)
     {
         var result = await _basketItemService.UpdateBasketItemAsync(basketItemRequestUpdateRequest);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = "Failed to update basket item", error = result.Error });
+        }
         return Ok(new { message = "Basket item updated successfully", data = result });
     }
 
@@ -52,6 +60,10 @@ public class UserBasketItemController : ControllerBase
     public async Task<IActionResult> DeleteAllBasketItems()
     {
         var result = await _basketItemService.DeleteAllNonOrderedBasketItemsAsync();
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = "Failed to delete basket items", error = result.Error });
+        }
         return Ok(new { message = "All basket items deleted successfully", data = result });
     }
 }
