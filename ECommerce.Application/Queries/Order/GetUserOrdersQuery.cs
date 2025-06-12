@@ -41,10 +41,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
                 return Result<List<OrderResponseDto>>.Failure("No orders found for this user");
             }
 
-            //TODO : Filter out orders that have purchased items in DB context
-            var purchasedOrders = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered)).ToList();
-
-            var items = purchasedOrders.Select(order => new OrderResponseDto
+            var items = userOrders.Select(order => new OrderResponseDto
             {
                 AccountId = order.AccountId,
                 BasketItems = order.BasketItems.Select(oi => new BasketItemResponseDto

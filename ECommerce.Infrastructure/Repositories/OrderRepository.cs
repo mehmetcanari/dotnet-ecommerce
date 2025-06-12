@@ -97,8 +97,10 @@ public class OrderRepository : IOrderRepository
 
             var orders = await query
                 .AsNoTracking()
-                .Where(o => o.AccountId == accountId)
                 .Include(o => o.BasketItems)
+                .Where(o => o.AccountId == accountId)
+                .Where(o => o.BasketItems.Any(oi => oi.IsOrdered))
+                .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
             return orders;
