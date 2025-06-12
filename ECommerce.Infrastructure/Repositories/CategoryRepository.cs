@@ -64,11 +64,13 @@ public class CategoryRepository : ICategoryRepository
         }
     }
     
-    public async Task<Category?> GetCategoryById(int id)
+    public async Task<Category> GetCategoryById(int id)
     {
         try
         {
-            var category = await _context.Categories
+            IQueryable<Category> query = _context.Categories;
+
+            var category = await query
                 .AsNoTracking()
                 .Where(c => c.CategoryId == id)
                 .Include(c => c.Products)

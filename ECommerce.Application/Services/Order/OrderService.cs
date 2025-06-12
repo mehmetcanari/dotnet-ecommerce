@@ -54,37 +54,14 @@ public class OrderService : BaseValidator, IOrderService
         {
             await _unitOfWork.BeginTransactionAsync();
 
-            var validationResult = await ValidateAsync(orderCreateRequestDto);
-            if (validationResult is { IsSuccess: false, Error: not null }) 
-                return Result.Failure(validationResult.Error);
-
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
+            var userInfoResult = await ValidateAndGetUserInfoAsync(orderCreateRequestDto);
+            if (userInfoResult.IsFailure)
             {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result.Failure(emailResult.Error);
-            }
-            
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null or empty");
-                return Result.Failure("User email is null or empty");
-            }
-            
-            var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            if (account == null)
-            {
-                _logger.LogWarning("Account not found: {Email}", emailResult.Data);
-                return Result.Failure("Account not found");
+                return Result.Failure(userInfoResult.Error);
             }
 
-            var basketItems = await GetUserBasketItemsAsync(emailResult.Data);
-            if (basketItems.IsFailure)
-            {
-                _logger.LogWarning("Failed to get basket items: {ErrorMessage}", basketItems.Error);
-                return Result.Failure(basketItems.Error);
-            }
-            var order = CreateOrder(account.Id, account.Address, basketItems.Data);
+            var (account, basketItems) = userInfoResult.Data;
+            var order = CreateOrder(account.Id, account.Address, basketItems);
 
             string ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
             Buyer buyer = CreateBuyer(account, ipAddress);
@@ -92,7 +69,7 @@ public class OrderService : BaseValidator, IOrderService
             Address shippingAddress = CreateAddress(account);
             Address billingAddress = CreateAddress(account);
 
-            var paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems.Data);
+            var paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
 
             if (paymentResult.Data != null && paymentResult.Data.Status != "success")
             {
@@ -104,7 +81,7 @@ public class OrderService : BaseValidator, IOrderService
 
             await _orderRepository.Create(order);
             await _basketItemService.DeleteAllNonOrderedBasketItemsAsync();
-            await _productService.UpdateProductStockAsync(basketItems.Data);
+            await _productService.UpdateProductStockAsync(basketItems);
             await _unitOfWork.CommitTransactionAsync();
 
             _logger.LogInformation("Order added successfully: {Order}", order);
@@ -116,6 +93,51 @@ public class OrderService : BaseValidator, IOrderService
             _logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
             return Result.Failure(ex.Message);
         }
+    }
+
+    private async Task<Result<Domain.Model.Account>> GetCurrentUserAccountAsync()
+    {
+        var emailResult = _currentUserService.GetCurrentUserEmail();
+        if (emailResult is { IsSuccess: false, Error: not null })
+        {
+            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+            return Result<Domain.Model.Account>.Failure(emailResult.Error);
+        }
+        
+        if (emailResult.Data == null)
+        {
+            _logger.LogWarning("User email is null or empty");
+            return Result<Domain.Model.Account>.Failure("User email is null or empty");
+        }
+        
+        var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
+        if (account == null)
+        {
+            _logger.LogWarning("Account not found: {Email}", emailResult.Data);
+            return Result<Domain.Model.Account>.Failure("Account not found");
+        }
+
+        return Result<Domain.Model.Account>.Success(account);
+    }
+
+    private async Task<Result<(Domain.Model.Account Account, List<Domain.Model.BasketItem> BasketItems)>> ValidateAndGetUserInfoAsync(OrderCreateRequestDto orderCreateRequestDto)
+    {
+        var validationResult = await ValidateAsync(orderCreateRequestDto);
+        if (validationResult is { IsSuccess: false, Error: not null }) 
+            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(validationResult.Error);
+
+        var accountResult = await GetCurrentUserAccountAsync();
+        if (accountResult.IsFailure)
+            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(accountResult.Error);
+
+        var basketItems = await GetUserBasketItemsAsync(accountResult.Data.Email);
+        if (basketItems.IsFailure)
+        {
+            _logger.LogWarning("Failed to get basket items: {ErrorMessage}", basketItems.Error);
+            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(basketItems.Error);
+        }
+
+        return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Success((accountResult.Data, basketItems.Data));
     }
 
     private async Task<Result<List<Domain.Model.BasketItem>>> GetUserBasketItemsAsync(string email)
@@ -202,55 +224,6 @@ public class OrderService : BaseValidator, IOrderService
         };
     }
 
-    public async Task<Result> CancelOrderAsync()
-    {
-        try
-        {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result.Failure(emailResult.Error);
-            }
-            
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null or empty");
-                return Result.Failure("User email is null or empty");
-            }
-            
-            var tokenAccount = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            if (tokenAccount == null)
-            {
-                _logger.LogWarning("Account not found: {Email}", emailResult.Data);
-                return Result.Failure("Account not found");
-            }
-            
-            var pendingOrders = await _orderRepository.GetAccountPendingOrders(tokenAccount.Id);
-
-            if (pendingOrders.Count == 0)
-            {
-                return Result.Failure("No pending orders found");
-            }
-
-            foreach (var order in pendingOrders)
-            {
-                order.Status = OrderStatus.Cancelled;
-                _orderRepository.Update(order);
-            }
-
-            await _unitOfWork.Commit();
-
-            _logger.LogInformation("Orders cancelled successfully. Count: {Count}", pendingOrders.Count);
-            return Result.Success();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while cancelling orders: {Message}", ex.Message);
-            return Result.Failure(ex.Message);
-        }
-    }
-
     public async Task<Result> DeleteOrderByIdAsync(int id)
     {
         try
@@ -315,30 +288,14 @@ public class OrderService : BaseValidator, IOrderService
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result<List<OrderResponseDto>>.Failure(emailResult.Error);
-            }
-            
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null or empty");
-                return Result<List<OrderResponseDto>>.Failure("User email is null or empty");
-            }
-            
-            var tokenAccount = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            if (tokenAccount == null)
-            {
-                _logger.LogWarning("Account not found: {Email}", emailResult.Data);
-                return Result<List<OrderResponseDto>>.Failure("Account not found");
-            }
+            var accountResult = await GetCurrentUserAccountAsync();
+            if (accountResult.IsFailure)
+                return Result<List<OrderResponseDto>>.Failure(accountResult.Error);
 
-            var userOrders = await _orderRepository.GetAccountOrders(tokenAccount.Id);
+            var userOrders = await _orderRepository.GetAccountOrders(accountResult.Data.Id);
             if (userOrders.Count == 0)
             {
-                _logger.LogWarning("No orders found for this user: {Email}", emailResult.Data);
+                _logger.LogWarning("No orders found for this user: {Email}", accountResult.Data.Email);
                 return Result<List<OrderResponseDto>>.Failure("No orders found for this user");
             }
             var purchasedOrders = userOrders.Where(o => o.BasketItems.Any(oi => oi.IsOrdered)).ToList();

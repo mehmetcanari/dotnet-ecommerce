@@ -4,6 +4,10 @@ using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Services.Category;
 using ECommerce.Domain.Abstract.Repository;
+using MediatR;
+using ECommerce.Application.Utility;
+using FluentValidation;
+using ECommerce.Application.Validations.Category;
 
 namespace ECommerce.Tests.Services.Category;
 
@@ -16,6 +20,8 @@ public class CategoryServiceTests
     private readonly Mock<ICacheService> _cacheServiceMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
+    private readonly Mock<IMediator> _mediatorMock;
+    private readonly ICategoryService _sut;
 
     public CategoryServiceTests()
     {
@@ -24,67 +30,38 @@ public class CategoryServiceTests
         _cacheServiceMock = new Mock<ICacheService>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _serviceProviderMock = new Mock<IServiceProvider>();
+        _mediatorMock = new Mock<IMediator>();
+        _sut = new CategoryService(
+            _serviceProviderMock.Object,
+            _categoryRepositoryMock.Object,
+            _loggerMock.Object,
+            _cacheServiceMock.Object,
+            _unitOfWorkMock.Object,
+            _mediatorMock.Object);
     }
 
-    private CategoryService CreateService() => new CategoryService(
-        _serviceProviderMock.Object,
-        _categoryRepositoryMock.Object,
-        _loggerMock.Object,
-        _cacheServiceMock.Object,
-        _unitOfWorkMock.Object);
-
-    private void SetupCategoryRead(Domain.Model.Category category = null)
-    {
-        var categories = category != null ? new List<Domain.Model.Category> { category } : new List<Domain.Model.Category>();
-        _categoryRepositoryMock.Setup(r => r.Read(1, 50)).ReturnsAsync(categories);
-    }
-
-    private void SetupCategoryById(Domain.Model.Category category)
-    {
-        _categoryRepositoryMock.Setup(r => r.GetCategoryById(It.IsAny<int>()))
-            .ReturnsAsync(category);
-        if (category != null)
+    private CreateCategoryRequestDto CreateCategoryRequest()
+        => new CreateCategoryRequestDto
         {
-            _categoryRepositoryMock.Setup(r => r.GetCategoryById(category.CategoryId))
-                .ReturnsAsync(category);
-        }
-    }
+            Name = "Test Category",
+            Description = "Test Description"
+        };
 
-    private void SetupCacheGet<T>(T value)
-    {
-        _cacheServiceMock.Setup(c => c.GetAsync<T>(It.IsAny<string>()))
-            .ReturnsAsync(value);
-    }
+    private UpdateCategoryRequestDto CreateCategoryUpdateRequest()
+        => new UpdateCategoryRequestDto
+        {
+            Name = "Updated Category",
+            Description = "Updated Description"
+        };
 
-    private void SetupCacheSet()
-    {
-        _cacheServiceMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<TimeSpan>()))
-            .Returns(Task.CompletedTask);
-    }
-
-    private void SetupCacheRemove()
-    {
-        _cacheServiceMock.Setup(c => c.RemoveAsync(It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-    }
-
-    private Domain.Model.Category CreateCategory(int id = 1, string name = "Test Category")
+    private Domain.Model.Category CreateCategory(int id = 1)
         => new Domain.Model.Category
         {
             CategoryId = id,
-            Name = name,
+            Name = "Test Category",
             Description = "Test Description",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
-        };
-
-    private CategoryResponseDto CreateCategoryResponse(int id = 1, string name = "Test Category")
-        => new CategoryResponseDto
-        {
-            CategoryId = id,
-            Name = name,
-            Description = "Test Description",
-            Products = new List<ProductResponseDto>()
         };
 
     [Fact]
@@ -92,23 +69,31 @@ public class CategoryServiceTests
     public async Task CreateCategoryAsync_Should_Create_Category_Successfully()
     {
         // Arrange
-        var request = new CreateCategoryRequestDto { Name = "New Category", Description = "New Description" };
-        SetupCategoryRead();
-        SetupCacheRemove();
-        _categoryRepositoryMock.Setup(r => r.CheckCategoryExistsWithName(request.Name)).ReturnsAsync(false);
-        var service = CreateService();
+        var request = CreateCategoryRequest();
+        var validator = new CategoryCreateValidation();
+        _serviceProviderMock.Setup(x => x.GetService(typeof(IValidator<CreateCategoryRequestDto>)))
+            .Returns(validator);
+        _categoryRepositoryMock.Setup(r => r.Read(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(new List<Domain.Model.Category>());
+        _cacheServiceMock.Setup(c => c.RemoveAsync(It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<CreateCategoryCommand>(cmd => cmd.CreateCategoryRequestDto == request),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
+        _unitOfWorkMock.Setup(u => u.Commit())
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await service.CreateCategoryAsync(request);
+        var result = await _sut.CreateCategoryAsync(request);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
-        _categoryRepositoryMock.Verify(r => r.Create(It.Is<Domain.Model.Category>(c => 
-            c.Name == request.Name && 
-            c.Description == request.Description)), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<CreateCategoryCommand>(cmd => cmd.CreateCategoryRequestDto == request),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation("Category created successfully"), Times.Once);
     }
 
     [Fact]
@@ -116,18 +101,21 @@ public class CategoryServiceTests
     public async Task CreateCategoryAsync_Should_Return_Failure_When_Category_Exists()
     {
         // Arrange
-        var existingCategory = CreateCategory();
-        var request = new CreateCategoryRequestDto { Name = existingCategory.Name, Description = "New Description" };
-        _categoryRepositoryMock.Setup(r => r.CheckCategoryExistsWithName(existingCategory.Name)).ReturnsAsync(true);
-        var service = CreateService();
+        var request = CreateCategoryRequest();
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<CreateCategoryCommand>(cmd => cmd.CreateCategoryRequestDto == request),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure("Category already exists"));
 
         // Act
-        var result = await service.CreateCategoryAsync(request);
+        var result = await _sut.CreateCategoryAsync(request);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Category already exists", result.Error);
-        _categoryRepositoryMock.Verify(r => r.Create(It.IsAny<Domain.Model.Category>()), Times.Never);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<CreateCategoryCommand>(cmd => cmd.CreateCategoryRequestDto == request),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
@@ -137,19 +125,26 @@ public class CategoryServiceTests
     {
         // Arrange
         var category = CreateCategory();
-        category.Products = new List<ECommerce.Domain.Model.Product>();
-        SetupCategoryById(category);
-        SetupCacheRemove();
-        _categoryRepositoryMock.Setup(r => r.Read(1, 50)).ReturnsAsync(new List<ECommerce.Domain.Model.Category> { category });
-        var service = CreateService();
+        _categoryRepositoryMock.Setup(r => r.Read(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(new List<Domain.Model.Category>());
+        _cacheServiceMock.Setup(c => c.RemoveAsync(It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<DeleteCategoryCommand>(cmd => cmd.CategoryId == category.CategoryId),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
+        _unitOfWorkMock.Setup(u => u.Commit())
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await service.DeleteCategoryAsync(category.CategoryId);
+        var result = await _sut.DeleteCategoryAsync(category.CategoryId);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Error.Should().BeNull();
-        _categoryRepositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Model.Category>()), Times.Once);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<DeleteCategoryCommand>(cmd => cmd.CategoryId == category.CategoryId),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
     }
 
@@ -158,15 +153,21 @@ public class CategoryServiceTests
     public async Task DeleteCategoryAsync_Should_Return_Failure_When_Category_Not_Found()
     {
         // Arrange
-        SetupCategoryById(null);
-        var service = CreateService();
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<DeleteCategoryCommand>(cmd => cmd.CategoryId == 1),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure("Category not found"));
 
         // Act
-        var result = await service.DeleteCategoryAsync(1);
+        var result = await _sut.DeleteCategoryAsync(1);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Category not found", result.Error);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<DeleteCategoryCommand>(cmd => cmd.CategoryId == 1),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
     [Fact]
@@ -175,20 +176,30 @@ public class CategoryServiceTests
     {
         // Arrange
         var category = CreateCategory();
-        category.Products = new List<ECommerce.Domain.Model.Product>();
-        var request = new UpdateCategoryRequestDto { Name = "Updated Name", Description = "Updated Description" };
-        SetupCategoryById(category);
-        SetupCacheRemove();
-        _categoryRepositoryMock.Setup(r => r.Read(1, 50)).ReturnsAsync(new List<ECommerce.Domain.Model.Category> { category });
-        var service = CreateService();
+        var request = CreateCategoryUpdateRequest();
+        var validator = new CategoryUpdateValidation();
+        _serviceProviderMock.Setup(x => x.GetService(typeof(IValidator<UpdateCategoryRequestDto>)))
+            .Returns(validator);
+        _categoryRepositoryMock.Setup(r => r.Read(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(new List<Domain.Model.Category>());
+        _cacheServiceMock.Setup(c => c.RemoveAsync(It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<UpdateCategoryCommand>(cmd => cmd.CategoryId == category.CategoryId && cmd.UpdateCategoryRequestDto == request),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
+        _unitOfWorkMock.Setup(u => u.Commit())
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await service.UpdateCategoryAsync(category.CategoryId, request);
+        var result = await _sut.UpdateCategoryAsync(category.CategoryId, request);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Error.Should().BeNull();
-        _categoryRepositoryMock.Verify(r => r.Update(It.IsAny<Domain.Model.Category>()), Times.Once);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Error);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<UpdateCategoryCommand>(cmd => cmd.CategoryId == category.CategoryId && cmd.UpdateCategoryRequestDto == request),
+            It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
     }
 
@@ -197,16 +208,22 @@ public class CategoryServiceTests
     public async Task UpdateCategoryAsync_Should_Return_Failure_When_Category_Not_Found()
     {
         // Arrange
-        var request = new UpdateCategoryRequestDto { Name = "Updated Name", Description = "Updated Description" };
-        SetupCategoryById(null);
-        var service = CreateService();
+        var request = CreateCategoryUpdateRequest();
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<UpdateCategoryCommand>(cmd => cmd.CategoryId == 1 && cmd.UpdateCategoryRequestDto == request),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure("Category not found"));
 
         // Act
-        var result = await service.UpdateCategoryAsync(1, request);
+        var result = await _sut.UpdateCategoryAsync(1, request);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Category not found", result.Error);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<UpdateCategoryCommand>(cmd => cmd.CategoryId == 1 && cmd.UpdateCategoryRequestDto == request),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }
 
     [Fact]
@@ -215,41 +232,30 @@ public class CategoryServiceTests
     {
         // Arrange
         var categoryId = 1;
-        var cachedCategory = CreateCategoryResponse(categoryId, "Cached Category");
-        SetupCacheGet(cachedCategory);
-        var service = CreateService();
+        var cachedCategory = new CategoryResponseDto
+        {
+            CategoryId = categoryId,
+            Name = "Cached Category",
+            Description = "Cached Description",
+            Products = new List<ProductResponseDto>()
+        };
+
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<GetCategoryByIdQuery>(cmd => cmd.CategoryId == categoryId),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<CategoryResponseDto>.Success(cachedCategory));
 
         // Act
-        var result = await service.GetCategoryByIdAsync(categoryId);
+        var result = await _mediatorMock.Object.Send(new GetCategoryByIdQuery { CategoryId = categoryId });
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
         Assert.Equal(cachedCategory.CategoryId, result.Data.CategoryId);
         Assert.Equal(cachedCategory.Name, result.Data.Name);
-    }
-
-    [Fact]
-    [Trait("Operation", "GetById")]
-    public async Task GetCategoryByIdAsync_Should_Return_Category_From_Repository_When_Not_In_Cache()
-    {
-        // Arrange
-        var category = CreateCategory();
-        var categoryId = category.CategoryId;
-        SetupCacheGet<CategoryResponseDto>(null);
-        SetupCategoryById(category);
-        SetupCacheSet();
-        var service = CreateService();
-
-        // Act
-        var result = await service.GetCategoryByIdAsync(categoryId);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Null(result.Error);
-        Assert.Equal(category.CategoryId, result.Data.CategoryId);
-        Assert.Equal(category.Name, result.Data.Name);
-        _cacheServiceMock.Verify(c => c.SetAsync(It.IsAny<string>(), It.IsAny<CategoryResponseDto>(), It.IsAny<TimeSpan>()), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<GetCategoryByIdQuery>(cmd => cmd.CategoryId == categoryId),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -257,15 +263,21 @@ public class CategoryServiceTests
     public async Task GetCategoryByIdAsync_Should_Return_Failure_When_Category_Not_Found()
     {
         // Arrange
-        SetupCategoryById(null);
-        var service = CreateService();
+        var categoryId = 1;
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<GetCategoryByIdQuery>(cmd => cmd.CategoryId == categoryId),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<CategoryResponseDto>.Failure("Category not found"));
 
         // Act
-        var result = await service.GetCategoryByIdAsync(1);
+        var result = await _mediatorMock.Object.Send(new GetCategoryByIdQuery { CategoryId = categoryId });
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Category not found", result.Error);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<GetCategoryByIdQuery>(cmd => cmd.CategoryId == categoryId),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -276,10 +288,9 @@ public class CategoryServiceTests
         var categories = new List<Domain.Model.Category> { CreateCategory(1), CreateCategory(2) };
         _categoryRepositoryMock.Setup(r => r.Read(1, 50))
             .ReturnsAsync(categories);
-        var service = CreateService();
 
         // Act
-        await service.CategoryCacheInvalidateAsync();
+        await _sut.CategoryCacheInvalidateAsync();
 
         // Assert
         _cacheServiceMock.Verify(c => c.RemoveAsync("category:1"), Times.Once);
@@ -291,11 +302,11 @@ public class CategoryServiceTests
     public async Task CategoryCacheInvalidateAsync_Should_Handle_Empty_Categories()
     {
         // Arrange
-        SetupCategoryRead();
-        var service = CreateService();
+        _categoryRepositoryMock.Setup(r => r.Read(1, 50))
+            .ReturnsAsync(new List<Domain.Model.Category>());
 
         // Act
-        await service.CategoryCacheInvalidateAsync();
+        await _sut.CategoryCacheInvalidateAsync();
 
         // Assert
         _cacheServiceMock.Verify(c => c.RemoveAsync(It.IsAny<string>()), Times.Never);

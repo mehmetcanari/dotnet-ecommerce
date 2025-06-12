@@ -9,7 +9,6 @@ public interface IOrderService
     Task<Result<List<OrderResponseDto>>> GetUserOrdersAsync();
     Task<Result<OrderResponseDto>> GetOrderByIdAsync(int id);
     Task<Result> CreateOrderAsync(OrderCreateRequestDto orderCreateRequestDto);
-    Task<Result> CancelOrderAsync();
     Task<Result> DeleteOrderByIdAsync(int id);
     Task<Result> UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateRequestDto orderUpdateRequestDto);
 }

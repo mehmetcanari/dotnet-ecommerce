@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Order;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +15,12 @@ namespace ECommerce.API.Controllers.User;
 public class UserOrderController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly IMediator _mediator;
 
-    public UserOrderController(IOrderService orderService)
+    public UserOrderController(IOrderService orderService, IMediator mediator)
     {
         _orderService = orderService;
+        _mediator = mediator;
     }
 
     [HttpPost("create")]
@@ -37,7 +40,11 @@ public class UserOrderController : ControllerBase
     [HttpPost("cancel")]
     public async Task<IActionResult> CancelOrder()
     {
-        var result = await _orderService.CancelOrderAsync();
+        var result = await _mediator.Send(new CancelOrderCommand());
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { message = result.Error });
+        }
         return Ok(new { message = "Order cancelled successfully", data = result });
     }
 }

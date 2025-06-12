@@ -2,6 +2,7 @@ using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Validations.Attribute;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +15,12 @@ namespace ECommerce.API.Controllers.Admin;
 public class AdminCategoryController : ControllerBase
 {
     private readonly ICategoryService _categoryService;
+    private readonly IMediator _mediator;
 
-    public AdminCategoryController(ICategoryService categoryService)
+    public AdminCategoryController(ICategoryService categoryService, IMediator mediator)
     {
         _categoryService = categoryService;
+        _mediator = mediator;
     }
 
     [HttpPost("create")]
@@ -47,7 +50,11 @@ public class AdminCategoryController : ControllerBase
     [ValidateId]
     public async Task<IActionResult> GetCategoryById([FromRoute] int id)
     {
-        var category = await _categoryService.GetCategoryByIdAsync(id);
+        var category = await _mediator.Send(new GetCategoryByIdQuery { CategoryId = id });
+        if (category.IsFailure)
+        {
+            return NotFound(new { message = category.Error });
+        }
         return Ok(new { message = "Category retrieved successfully", data = category });
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Validations.Attribute;
+using MediatR;
 
 namespace ECommerce.API.Controllers.User;
 
@@ -13,17 +14,23 @@ namespace ECommerce.API.Controllers.User;
 public class UserCategoryController : ControllerBase
 {
     private readonly ICategoryService _categoryService;
+    private readonly IMediator _mediator;
 
-    public UserCategoryController(ICategoryService categoryService)
+    public UserCategoryController(ICategoryService categoryService, IMediator mediator)
     {
         _categoryService = categoryService;
+        _mediator = mediator;
     }
 
     [HttpGet("{id}")]
     [ValidateId]
     public async Task<IActionResult> GetCategoryById([FromRoute] int id)
     {
-        var category = await _categoryService.GetCategoryByIdAsync(id);
+        var category = await _mediator.Send(new GetCategoryByIdQuery { CategoryId = id });
+        if (category.IsFailure)
+        {
+            return NotFound(new { message = category.Error });
+        }
         return Ok(new { message = "Category retrieved successfully", data = category });
     }
 }

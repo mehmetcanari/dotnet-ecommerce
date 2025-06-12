@@ -1,10 +1,9 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
-using ECommerce.Application.DTO.Response.Category;
-using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using MediatR;
 
 namespace ECommerce.Application.Services.Category;
 
@@ -15,41 +14,47 @@ public class CategoryService : BaseValidator, ICategoryService
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMediator _mediator;
 
 
-    public CategoryService(IServiceProvider serviceProvider, ICategoryRepository categoryRepository, ILoggingService logger, ICacheService cacheService, IUnitOfWork unitOfWork) : base(serviceProvider)
+    public CategoryService(
+        IServiceProvider serviceProvider, 
+        ICategoryRepository categoryRepository, 
+        ILoggingService logger, 
+        ICacheService cacheService, 
+        IUnitOfWork unitOfWork, 
+        IMediator mediator) : base(serviceProvider)
     {
         _unitOfWork = unitOfWork;
         _categoryRepository = categoryRepository;
         _logger = logger;
         _cacheService = cacheService;
+        _mediator = mediator;
     }
 
     public async Task<Result> CreateCategoryAsync(CreateCategoryRequestDto request)
     {
         try
         {
-            var result = await ValidateAsync(request);
-            if (!result.IsSuccess)
+            var validationResult = await ValidateAsync(request);
+            if (!validationResult.IsSuccess)
             {
-                return result;
+                return validationResult;
             }
             
-            var categoryExist = await _categoryRepository.CheckCategoryExistsWithName(request.Name);
-            if (categoryExist)
+            var commandResult = await _mediator.Send(new CreateCategoryCommand
             {
-                return Result.Failure("Category already exists");
+                CreateCategoryRequestDto = request
+            });
+
+            if (commandResult is { IsSuccess: false, Error: not null })
+            {
+                _logger.LogWarning("Failed to create category: {Error}", commandResult.Error);
+                return Result.Failure(commandResult.Error);
             }
 
-            var category = new Domain.Model.Category
-            {
-                Name = request.Name,
-                Description = request.Description
-            };
-
-            await _categoryRepository.Create(category);
-            await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
+            await CategoryCacheInvalidateAsync();
             _logger.LogInformation("Category created successfully");
             return Result.Success();
         }
@@ -64,13 +69,16 @@ public class CategoryService : BaseValidator, ICategoryService
     {
         try
         {
-            var category = await _categoryRepository.GetCategoryById(categoryId);
-            if (category == null)
+            var result = await _mediator.Send(new DeleteCategoryCommand
             {
-                return Result.Failure("Category not found");
+                CategoryId = categoryId
+            });
+            if (result is { IsSuccess: false, Error: not null })
+            {
+                _logger.LogWarning("Failed to delete category: {Error}", result.Error);
+                return Result.Failure(result.Error);
             }
-            
-            _categoryRepository.Delete(category);
+
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
             _logger.LogInformation("Category deleted successfully");
@@ -93,17 +101,18 @@ public class CategoryService : BaseValidator, ICategoryService
                 return result;
             }
             
-            var category = await _categoryRepository.GetCategoryById(categoryId);
-            if (category == null)
+            var commandResult = await _mediator.Send(new UpdateCategoryCommand
             {
-                return Result.Failure("Category not found");
+                CategoryId = categoryId,
+                UpdateCategoryRequestDto = request
+            });
+            
+            if (commandResult is { IsSuccess: false, Error: not null })
+            {
+                _logger.LogWarning("Failed to update category: {Error}", commandResult.Error);
+                return Result.Failure(commandResult.Error);
             }
 
-            category.Name = request.Name;
-            category.Description = request.Description;
-            category.UpdatedAt = DateTime.UtcNow;
-
-            _categoryRepository.Update(category);
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
             _logger.LogInformation("Category updated successfully");
@@ -113,53 +122,6 @@ public class CategoryService : BaseValidator, ICategoryService
         {
             _logger.LogError(ex, "Error updating category");
             return Result.Failure(ex.Message);
-        }
-    }
-
-    public async Task<Result<CategoryResponseDto>> GetCategoryByIdAsync(int categoryId)
-    {
-        try
-        {
-            var expirationTime = TimeSpan.FromMinutes(60);
-            var cachedCategory = await _cacheService.GetAsync<CategoryResponseDto>(string.Format(CategoryCacheKey, categoryId));
-            if (cachedCategory != null)
-            {
-                return Result<CategoryResponseDto>.Success(cachedCategory);
-            }
-
-            var category = await _categoryRepository.GetCategoryById(categoryId);
-            if (category == null)
-            {
-                return Result<CategoryResponseDto>.Failure("Category not found");
-            }
-
-            var categoryResponseDto = new CategoryResponseDto
-            {
-                CategoryId = category.CategoryId,
-                Name = category.Name,
-                Description = category.Description,
-                Products = category.Products.Select(p => new ProductResponseDto
-                    {
-                        ProductName = p.Name,
-                        Description = p.Description,
-                        Price = p.Price,
-                        DiscountRate = p.DiscountRate,
-                        ImageUrl = p.ImageUrl,
-                        StockQuantity = p.StockQuantity,
-                        CategoryId = p.CategoryId
-                    })
-                    .ToList()
-            };
-
-            await _cacheService.SetAsync(string.Format(CategoryCacheKey, categoryId), categoryResponseDto, expirationTime);
-
-            _logger.LogInformation("Category retrieved successfully");
-            return Result<CategoryResponseDto>.Success(categoryResponseDto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting category by id");
-            return Result<CategoryResponseDto>.Failure("An unexpected error occurred");
         }
     }
 
