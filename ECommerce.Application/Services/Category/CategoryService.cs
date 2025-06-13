@@ -4,6 +4,7 @@ using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
+using ECommerce.Application.Commands.Category;
 
 namespace ECommerce.Application.Services.Category;
 

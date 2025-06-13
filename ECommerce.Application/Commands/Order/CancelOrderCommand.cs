@@ -3,7 +3,9 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 
-public class CancelOrderCommand : IRequest<Result> {}
+namespace ECommerce.Application.Commands.Order;
+
+public class CancelOrderCommand : IRequest<Result> { }
 
 public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Result>
 {
@@ -13,7 +15,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
     private readonly IAccountRepository _accountRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-public CancelOrderCommandHandler(
+    public CancelOrderCommandHandler(
         ICurrentUserService currentUserService,
         ILoggingService logger,
         IOrderRepository orderRepository,
@@ -27,47 +29,24 @@ public CancelOrderCommandHandler(
         _unitOfWork = unitOfWork;
     }
 
-
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+            var emailResult = await GetValidatedUserEmail();
+            if (emailResult.IsFailure)
                 return Result.Failure(emailResult.Error);
-            }
-            
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null or empty");
-                return Result.Failure("User email is null or empty");
-            }
-            
-            var tokenAccount = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            if (tokenAccount == null)
-            {
-                _logger.LogWarning("Account not found: {Email}", emailResult.Data);
-                return Result.Failure("Account not found");
-            }
-            
-            var pendingOrders = await _orderRepository.GetAccountPendingOrders(tokenAccount.Id);
 
-            if (pendingOrders.Count == 0)
-            {
-                return Result.Failure("No pending orders found");
-            }
+            var accountResult = await ValidateAndGetAccount(emailResult.Data);
+            if (accountResult.IsFailure)
+                return Result.Failure(accountResult.Error);
 
-            foreach (var order in pendingOrders)
-            {
-                order.Status = OrderStatus.Cancelled;
-                _orderRepository.Update(order);
-            }
+            var ordersResult = await ValidateAndGetPendingOrders(accountResult.Data);
+            if (ordersResult.IsFailure)
+                return Result.Failure(ordersResult.Error);
 
-            await _unitOfWork.Commit();
+            await CancelOrders(ordersResult.Data);
 
-            _logger.LogInformation("Orders cancelled successfully. Count: {Count}", pendingOrders.Count);
             return Result.Success();
         }
         catch (Exception ex)
@@ -75,5 +54,53 @@ public CancelOrderCommandHandler(
             _logger.LogError(ex, "Unexpected error while cancelling orders: {Message}", ex.Message);
             return Result.Failure(ex.Message);
         }
+    }
+
+    private async Task<Result<string>> GetValidatedUserEmail()
+    {
+        var emailResult = await Task.FromResult(_currentUserService.GetCurrentUserEmail());
+        if (emailResult.IsFailure)
+        {
+            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+            return Result<string>.Failure(emailResult.Error);
+        }
+
+        return Result<string>.Success(emailResult.Data);
+    }
+
+    private async Task<Result<Domain.Model.Account>> ValidateAndGetAccount(string email)
+    {
+        var account = await _accountRepository.GetAccountByEmail(email);
+        if (account == null)
+        {
+            _logger.LogWarning("Account not found: {Email}", email);
+            return Result<Domain.Model.Account>.Failure("Account not found");
+        }
+
+        return Result<Domain.Model.Account>.Success(account);
+    }
+
+    private async Task<Result<List<Domain.Model.Order>>> ValidateAndGetPendingOrders(Domain.Model.Account account)
+    {
+        var pendingOrders = await _orderRepository.GetAccountPendingOrders(account.Id);
+        if (!pendingOrders.Any())
+        {
+            _logger.LogInformation("No pending orders found for account: {AccountId}", account.Id);
+            return Result<List<Domain.Model.Order>>.Failure("No pending orders found");
+        }
+
+        return Result<List<Domain.Model.Order>>.Success(pendingOrders);
+    }
+
+    private async Task CancelOrders(List<Domain.Model.Order> orders)
+    {
+        foreach (var order in orders)
+        {
+            order.Status = OrderStatus.Cancelled;
+            _orderRepository.Update(order);
+        }
+
+        await _unitOfWork.Commit();
+        _logger.LogInformation("Orders cancelled successfully. Count: {Count}", orders.Count);
     }
 }

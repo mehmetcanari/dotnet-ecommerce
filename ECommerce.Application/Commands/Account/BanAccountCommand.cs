@@ -35,7 +35,8 @@ public class BanAccountCommandHandler : IRequestHandler<BanAccountCommand, Resul
             var account = await _accountRepository.GetAccountByEmail(request.AccountBanRequestDto.Email);
             if (account == null)
             {
-                return Result.Failure($"Account with email {request.AccountBanRequestDto.Email} not found");
+                _logger.LogWarning("Account not found: {Email}", request.AccountBanRequestDto.Email);
+                return Result.Failure($"Account with email {request.AccountBanRequestDto.Email} does not exist.");
             }
             
             var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.AccountBanRequestDto.Email, Reason = "Account banned" };

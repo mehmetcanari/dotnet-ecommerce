@@ -4,9 +4,11 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 
+namespace ECommerce.Application.Commands.Order;
+
 public class UpdateOrderStatusByAccountIdCommand : IRequest<Result>
 {
-    public int AccountId { get; set; }
+    public required int AccountId { get; set; }
     public required OrderUpdateRequestDto OrderUpdateRequestDto { get; set; }
 }
 
@@ -27,23 +29,41 @@ public class UpdateOrderStatusByAccountIdCommandHandler : IRequestHandler<Update
     {
         try
         {
-            var order = await _orderRepository.GetOrderByAccountId(request.AccountId);
-            if (order == null)
+            var orderResult = await ValidateAndGetOrder(request.AccountId);
+            if (!orderResult.IsSuccess)
             {
-                _logger.LogWarning("Order not found for account id: {AccountId}", request.AccountId);
-                return Result.Failure("Order not found");
+                return Result.Failure(orderResult.Error);
             }
-            
-            order.Status = request.OrderUpdateRequestDto.Status;
-            _orderRepository.Update(order);
 
-            _logger.LogInformation("Order status updated successfully: {Order}", order);
+            UpdateOrderStatus(orderResult.Data, request.OrderUpdateRequestDto.Status);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating order status: {Message}", ex.Message);
-            return Result.Failure(ex.Message);
+            _logger.LogError(ex, "Unexpected error while updating order status for account {AccountId}: {Message}", 
+                request.AccountId, ex.Message);
+            return Result.Failure("An unexpected error occurred while updating the order status");
         }
+    }
+
+    private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(int accountId)
+    {
+        var order = await _orderRepository.GetOrderByAccountId(accountId);
+        if (order == null)
+        {
+            _logger.LogWarning("Order not found for account id: {AccountId}", accountId);
+            return Result<Domain.Model.Order>.Failure("Order not found");
+        }
+
+        return Result<Domain.Model.Order>.Success(order);
+    }
+
+    private void UpdateOrderStatus(Domain.Model.Order order, OrderStatus newStatus)
+    {
+        order.Status = newStatus;
+        _orderRepository.Update(order);
+
+        _logger.LogInformation("Order status updated successfully. OrderId: {OrderId}, NewStatus: {Status}", 
+            order.OrderId, newStatus);
     }
 }

@@ -1,6 +1,5 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
-using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
@@ -30,14 +29,10 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
     {
         try
         {
-            var existingAccount = await _accountRepository.GetAccountByEmail(request.AccountCreateRequest.Email);
-            if (existingAccount != null)
-            {
-                _logger.LogWarning("Registration failed - Email already exists: {Email}", request.AccountCreateRequest.Email);
-                return Result.Failure("Email is already in use.");
-            }
-
-            var account = new Domain.Model.Account
+            var result = await IsEmailExists(request);
+            if (result) return Result.Failure("Email already exists. Please use a different email address.");
+            
+            var newAccount = new Domain.Model.Account
             {
                 Name = request.AccountCreateRequest.Name,
                 Surname = request.AccountCreateRequest.Surname,
@@ -52,7 +47,7 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
                 Role = request.Role
             };
 
-            await _accountRepository.Create(account);
+            await _accountRepository.Create(newAccount);
 
             _logger.LogInformation("Account created successfully for email: {Email}", request.AccountCreateRequest.Email);
             return Result.Success();
@@ -62,5 +57,11 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
             _logger.LogError(ex, "An error occurred while creating account for email: {Email}", request.AccountCreateRequest.Email);
             return Result.Failure("An error occurred while processing your request. Please try again later.");
         }
+    }
+
+    private async Task<bool> IsEmailExists(CreateAccountCommand request)
+    {
+        var account = await _accountRepository.GetAccountByEmail(request.AccountCreateRequest.Email);
+        return account != null;
     }
 }

@@ -8,11 +8,17 @@ public class RedisCacheService : ICacheService
 {
     private readonly IDatabase _database;
     private readonly ILoggingService _logger;
+    private readonly JsonSerializerOptions _jsonOptions;
     
     public RedisCacheService(IConnectionMultiplexer redis, ILoggingService logger)
     {
         _database = redis.GetDatabase();
         _logger = logger;
+        _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = null // This ensures property names are preserved exactly as they are in the class
+        };
     }
 
     public async Task<T?> GetAsync<T>(string key)
@@ -28,7 +34,8 @@ public class RedisCacheService : ICacheService
                     return default;
                 }
 
-                var result = JsonSerializer.Deserialize<T>(value!);
+                _logger.LogInformation("Retrieved value from cache for key {Key}: {Value}", key, value);
+                var result = JsonSerializer.Deserialize<T>(value!, _jsonOptions);
                 return result;
             }
             return default;
@@ -44,7 +51,8 @@ public class RedisCacheService : ICacheService
     {
         try
         {
-            var serialized = JsonSerializer.Serialize(value);
+            var serialized = JsonSerializer.Serialize(value, _jsonOptions);
+            _logger.LogInformation("Serialized value for key {Key}: {Value}", key, serialized);
             await _database.StringSetAsync(key, serialized, expiry);
             _logger.LogInformation("Cache value set for key: {Key}", key);
         }

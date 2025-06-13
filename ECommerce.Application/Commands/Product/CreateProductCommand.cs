@@ -17,7 +17,10 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     private readonly ICategoryRepository _categoryRepository;
     private readonly ILoggingService _logger;
 
-    public CreateProductCommandHandler(IProductRepository productRepository , ICategoryRepository categoryRepository , ILoggingService logger)
+    public CreateProductCommandHandler(
+        IProductRepository productRepository,
+        ICategoryRepository categoryRepository,
+        ILoggingService logger)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
@@ -28,40 +31,63 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     {
         try
         {
-            var existingProduct = await _productRepository.CheckProductExistsWithName(request.ProductCreateRequest.Name);
-            if (existingProduct)
+            var validationResult = await ValidateRequest(request.ProductCreateRequest);
+            if (!validationResult.IsSuccess)
             {
-                return Result.Failure("Product with this name already exists");
+                return Result.Failure(validationResult.Error);
             }
 
-            var category = await _categoryRepository.GetCategoryById(request.ProductCreateRequest.CategoryId);
-            if (category == null)
-            {
-                return Result.Failure("Category not found");
-            }
-
-            var product = new Domain.Model.Product
-            {
-                Name = request.ProductCreateRequest.Name,
-                Description = request.ProductCreateRequest.Description,
-                Price = request.ProductCreateRequest.Price,
-                DiscountRate = request.ProductCreateRequest.DiscountRate,
-                ImageUrl = request.ProductCreateRequest.ImageUrl,
-                StockQuantity = request.ProductCreateRequest.StockQuantity,
-                ProductCreated = DateTime.UtcNow,
-                ProductUpdated = DateTime.UtcNow,
-                CategoryId = category.CategoryId
-            };
-
-            product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
-
+            var product = CreateProductEntity(request.ProductCreateRequest, validationResult.Data);
             await _productRepository.Create(product);
+
+            _logger.LogInformation("Product created successfully. ProductId: {ProductId}, Name: {Name}", 
+                product.ProductId, product.Name);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,"An error occurred while creating the product", ex.Message);
+            _logger.LogError(ex, "An error occurred while creating the product: {Message}", ex.Message);
             return Result.Failure("An error occurred while creating the product");
         }
+    }
+
+    private async Task<Result<Domain.Model.Category>> ValidateRequest(ProductCreateRequestDto request)
+    {
+        var existingProduct = await _productRepository.CheckProductExistsWithName(request.Name);
+        if (existingProduct)
+        {
+            _logger.LogWarning("Product creation failed. Product with name '{Name}' already exists", request.Name);
+            return Result<Domain.Model.Category>.Failure("Product with this name already exists");
+        }
+
+        var category = await _categoryRepository.GetCategoryById(request.CategoryId);
+        if (category == null)
+        {
+            _logger.LogWarning("Product creation failed. Category with ID {CategoryId} not found", request.CategoryId);
+            return Result<Domain.Model.Category>.Failure("Category not found");
+        }
+
+        return Result<Domain.Model.Category>.Success(category);
+    }
+
+    private static Domain.Model.Product CreateProductEntity(
+        ProductCreateRequestDto request,
+        Domain.Model.Category category)
+    {
+        var product = new Domain.Model.Product
+        {
+            Name = request.Name,
+            Description = request.Description,
+            Price = request.Price,
+            DiscountRate = request.DiscountRate,
+            ImageUrl = request.ImageUrl,
+            StockQuantity = request.StockQuantity,
+            ProductCreated = DateTime.UtcNow,
+            ProductUpdated = DateTime.UtcNow,
+            CategoryId = category.CategoryId
+        };
+
+        product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
+        return product;
     }
 }

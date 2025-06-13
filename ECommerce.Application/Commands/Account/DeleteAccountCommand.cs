@@ -4,6 +4,8 @@ using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
+namespace ECommerce.Application.Commands.Account;
+
 public class DeleteAccountCommand : IRequest<Result>
 {
     public int Id { get; set; }

@@ -18,8 +18,6 @@ using Amazon.Runtime;
 using ECommerce.API.SwaggerFilters;
 using ECommerce.API.Configurations;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using MediatR;
-using System.Reflection;
 
 namespace ECommerce.API;
 

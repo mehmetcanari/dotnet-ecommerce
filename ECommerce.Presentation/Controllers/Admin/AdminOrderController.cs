@@ -1,6 +1,8 @@
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Commands.Order;
 using ECommerce.Application.DTO.Request.Order;
+using ECommerce.Application.Queries.Order;
 using ECommerce.Application.Validations.Attribute;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

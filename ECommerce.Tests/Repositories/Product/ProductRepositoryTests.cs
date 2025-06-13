@@ -154,7 +154,7 @@ public class ProductRepositoryTests
         product.Description = "Updated Description";
         product.Price = 200;
         product.StockQuantity = 20;
-        await _repository.UpdateAsync(product);
+        _repository.Update(product);
         await _context.SaveChangesAsync();
 
         // Assert

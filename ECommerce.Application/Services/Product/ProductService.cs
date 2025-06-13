@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Commands.Product;
 using ECommerce.Application.DTO.Request.Product;
+using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -52,6 +53,7 @@ public class ProductService : BaseValidator, IProductService
 
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
+            await SetProductCacheAsync();
             await _unitOfWork.Commit();
             
             _logger.LogInformation("Product created successfully: {ProductName}", productCreateRequest.Name);
@@ -81,6 +83,7 @@ public class ProductService : BaseValidator, IProductService
             
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
+            await SetProductCacheAsync();
             await _unitOfWork.Commit();
 
             _logger.LogInformation("Product updated successfully: {ProductName}", productUpdateRequest.Name);
@@ -149,6 +152,32 @@ public class ProductService : BaseValidator, IProductService
         {
             _logger.LogError(ex, "Unexpected error while invalidating cache: {Message}", ex.Message);
             throw;
+        }
+    }
+
+    private async Task SetProductCacheAsync()
+    {
+        try
+        {
+            var products = await _productRepository.Read();
+            var productResponses = products.Select(p => new ProductResponseDto
+            {
+                ProductName = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                DiscountRate = p.DiscountRate,
+                ImageUrl = p.ImageUrl,
+                StockQuantity = p.StockQuantity,
+                CategoryId = p.CategoryId
+            }).ToList();
+
+            await _cacheService.SetAsync(AllProductsCacheKey, productResponses, TimeSpan.FromMinutes(60));
+            _logger.LogInformation("Successfully cached {Count} products", productResponses.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while setting product cache: {Message}", ex.Message);
+            throw;   
         }
     }
 }

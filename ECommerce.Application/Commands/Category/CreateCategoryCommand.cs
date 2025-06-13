@@ -1,9 +1,10 @@
-using Amazon.Runtime.Internal;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
+
+namespace ECommerce.Application.Commands.Category;
 
 public class CreateCategoryCommand : IRequest<Result>
 {
@@ -25,20 +26,13 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
     {
         try
         {
-            var categoryExist = await _categoryRepository.CheckCategoryExistsWithName(request.CreateCategoryRequestDto.Name);
-            if (categoryExist)
-            {
-                return Result.Failure("Category already exists");
-            }
+            var validationResult = await ValidateCategoryName(request);
+            if (validationResult.IsFailure)
+                return validationResult;
 
-            var category = new ECommerce.Domain.Model.Category
-            {
-                Name = request.CreateCategoryRequestDto.Name,
-                Description = request.CreateCategoryRequestDto.Description,
-            };
+            var category = CreateCategoryEntity(request);
+            await SaveCategory(category);
 
-            await _categoryRepository.Create(category);
-            _logger.LogInformation("Category created successfully");
             return Result.Success();
         }
         catch (Exception ex)
@@ -46,5 +40,33 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
             _logger.LogError(ex, "Error creating category");
             return Result.Failure("An unexpected error occurred while creating the category");   
         }
+    }
+
+    private async Task<Result> ValidateCategoryName(CreateCategoryCommand request)
+    {
+
+        var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.CreateCategoryRequestDto.Name);
+        if (categoryExists)
+        {
+            _logger.LogWarning("Category already exists with name: {CategoryName}", request.CreateCategoryRequestDto.Name);
+            return Result.Failure("Category already exists");
+        }
+
+        return Result.Success();
+    }
+
+    private static Domain.Model.Category CreateCategoryEntity(CreateCategoryCommand request)
+    {
+        return new Domain.Model.Category
+        {
+            Name = request.CreateCategoryRequestDto.Name,
+            Description = request.CreateCategoryRequestDto.Description,
+        };
+    }
+
+    private async Task SaveCategory(Domain.Model.Category category)
+    {
+        await _categoryRepository.Create(category);
+        _logger.LogInformation("Category created successfully: {CategoryName}", category.Name);
     }
 }

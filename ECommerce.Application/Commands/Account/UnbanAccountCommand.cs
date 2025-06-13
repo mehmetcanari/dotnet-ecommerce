@@ -19,7 +19,6 @@ public class UnbanAccountCommandHandler : IRequestHandler<UnbanAccountCommand, R
     private readonly ILoggingService _logger;
 
     public UnbanAccountCommandHandler(
-        IAccountService accountService,
         IAccountRepository accountRepository,
         IRefreshTokenService refreshTokenService,
         ILoggingService logger)
@@ -38,12 +37,12 @@ public class UnbanAccountCommandHandler : IRequestHandler<UnbanAccountCommand, R
             {
                 return Result.Failure("Account not found");
             }
-            
             account.UnbanAccount();
             _accountRepository.Update(account);
-            
-            var tokenRevokeRequest = new TokenRevokeRequestDto 
-            { Email = request.AccountUnbanRequestDto.Email, Reason = "Account unbanned" };
+            var tokenRevokeRequest = new TokenRevokeRequestDto
+            {
+                Email = request.AccountUnbanRequestDto.Email, Reason = "Account unbanned successfully by Admin."
+            };
             await _refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
 
             _logger.LogInformation("Account unbanned successfully: {Email}", request.AccountUnbanRequestDto.Email);

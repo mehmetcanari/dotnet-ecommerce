@@ -1,6 +1,8 @@
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Commands.Order;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.DTO.Response.Order;
+using ECommerce.Application.Queries.Order;
 using ECommerce.Application.Services.Order;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;

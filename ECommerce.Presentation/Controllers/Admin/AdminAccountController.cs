@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Commands.Account;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Validations.Attribute;

@@ -5,6 +5,8 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 
+namespace ECommerce.Application.Queries.Order;
+
 public class GetAllOrdersQuery : IRequest<Result<List<OrderResponseDto>>>{}
 
 public class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery, Result<List<OrderResponseDto>>>
@@ -20,7 +22,7 @@ public class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery, Resul
 
     public async Task<Result<List<OrderResponseDto>>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
     {
-       try
+        try
         {
             var orders = await _orderRepository.Read();
             if (orders.Count == 0)

@@ -3,9 +3,11 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 
+namespace ECommerce.Application.Commands.Order;
+
 public class DeleteOrderByIdCommand : IRequest<Result>
 {
-    public int Id { get; set; }
+    public required int Id { get; set; }
 }
 
 public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdCommand, Result>
@@ -28,17 +30,12 @@ public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdComm
     {
         try
         {
-            var activeOrder = await _orderRepository.GetOrderById(request.Id);
-            if (activeOrder == null)
-            {
-                _logger.LogWarning("Order not found: {Id}", request.Id);
-                return Result.Failure("Order not found");
-            }
-            
-            _orderRepository.Delete(activeOrder);
+            var orderResult = await ValidateAndGetOrder(request);
+            if (orderResult.IsFailure)
+                return Result.Failure(orderResult.Error);
 
-            await _unitOfWork.Commit();
-            _logger.LogInformation("Order deleted successfully: {Order}", activeOrder);
+            await DeleteOrder(orderResult.Data);
+
             return Result.Success();
         }
         catch (Exception ex)
@@ -46,5 +43,26 @@ public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdComm
             _logger.LogError(ex, "Unexpected error while deleting order: {Message}", ex.Message);
             return Result.Failure(ex.Message);
         }
+    }
+
+    private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(DeleteOrderByIdCommand request)
+    {
+        var order = await _orderRepository.GetOrderById(request.Id);
+        if (order == null)
+        {
+            _logger.LogWarning("Order not found with ID: {OrderId}", request.Id);
+            return Result<Domain.Model.Order>.Failure("Order not found");
+        }
+
+        return Result<Domain.Model.Order>.Success(order);
+    }
+
+    private async Task DeleteOrder(Domain.Model.Order order)
+    {
+        _orderRepository.Delete(order);
+        await _unitOfWork.Commit();
+        
+        _logger.LogInformation("Order deleted successfully: {OrderId}, {OrderStatus}", 
+            order.OrderId, order.Status);
     }
 }

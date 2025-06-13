@@ -5,9 +5,10 @@ using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
+
 public class CreateBasketItemCommand : IRequest<Result>
 {
-    public required CreateBasketItemRequestDto CreateBasketItemRequestDto { get; set;}
+    public required CreateBasketItemRequestDto CreateBasketItemRequestDto { get; set; }
 }
 
 public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCommand, Result>
@@ -19,7 +20,7 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
     private const string GetAllBasketItemsCacheKey = "GetAllBasketItems";
-    private const int _cacheDurationInMinutes = 30;
+    private const int CacheDurationInMinutes = 30;
 
     public CreateBasketItemCommandHandler(
         IBasketItemRepository basketItemRepository,
@@ -41,46 +42,23 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+            var emailResult = await GetValidatedUserEmail();
+            if (emailResult.IsFailure)
                 return Result.Failure(emailResult.Error);
-            }
-            
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null");
-                return Result.Failure("Email is not available");
-            }
 
-            var product = await _productRepository.GetProductById(request.CreateBasketItemRequestDto.ProductId);
-            var userAccount = await _accountRepository.GetAccountByEmail(emailResult.Data);
-            
-            if (userAccount == null)
-                return Result.Failure("Account not found");
-            
-            if (product == null)
-                return Result.Failure("Product not found");
+            var validationResult = await ValidateProductAndAccount(request, emailResult.Data);
+            if (validationResult.IsFailure)
+                return Result.Failure(emailResult.Error);
 
-            if (request.CreateBasketItemRequestDto.Quantity > product.StockQuantity)
-                return Result.Failure("Not enough stock");
+            var (product, userAccount) = validationResult.Data;
 
-            var basketItem = new ECommerce.Domain.Model.BasketItem
-            {
-                AccountId = userAccount.Id,
-                ExternalId = Guid.NewGuid().ToString(),
-                Quantity = request.CreateBasketItemRequestDto.Quantity,
-                ProductId = product.ProductId,
-                UnitPrice = product.Price,
-                ProductName = product.Name,
-                IsOrdered = false
-            };
+            var stockValidationResult = ValidateStock(request, product);
+            if (stockValidationResult.IsFailure)
+                return stockValidationResult;
 
-            await _basketItemRepository.Create(basketItem);
-            await _cacheService.SetAsync(GetAllBasketItemsCacheKey, basketItem, TimeSpan.FromMinutes(_cacheDurationInMinutes));
+            var basketItem = CreateBasketItem(request, product, userAccount);
+            await SaveBasketItem(basketItem);
 
-            _logger.LogInformation("Basket item created successfully: {BasketItem}", basketItem);
             return Result.Success();
         }
         catch (Exception exception)
@@ -88,5 +66,70 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
             _logger.LogError(exception, "Unexpected error while creating basket item");
             return Result.Failure(exception.Message);
         }
+    }
+
+    private async Task<Result<string>> GetValidatedUserEmail()
+    {
+        var emailResult = _currentUserService.GetCurrentUserEmail();
+        if (emailResult is { IsSuccess: false, Error: not null })
+        {
+            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+            return Result<string>.Failure(emailResult.Error);
+        }
+
+        if (emailResult.Data == null)
+        {
+            _logger.LogWarning("User email is null");
+            return Result<string>.Failure("User email is null");
+        }
+
+        return Result<string>.Success(emailResult.Data);
+    }
+
+    private async Task<Result<(Domain.Model.Product, Domain.Model.Account)>> ValidateProductAndAccount(
+        CreateBasketItemCommand request, string email)
+    {
+        var product = await _productRepository.GetProductById(request.CreateBasketItemRequestDto.ProductId);
+        if (product == null)
+            return Result<(Domain.Model.Product, Domain.Model.Account)>.Failure("Product not found");
+
+        var userAccount = await _accountRepository.GetAccountByEmail(email);
+        if (userAccount == null)
+            return Result<(Domain.Model.Product, Domain.Model.Account)>.Failure("Account not found");
+
+        return Result<(Domain.Model.Product, Domain.Model.Account)>.Success((product, userAccount));
+    }
+
+    private Result ValidateStock(CreateBasketItemCommand request, Domain.Model.Product product)
+    {
+        if (request.CreateBasketItemRequestDto.Quantity > product.StockQuantity)
+            return Result.Failure("Not enough stock");
+
+        return Result.Success();
+    }
+
+    private Domain.Model.BasketItem CreateBasketItem(
+        CreateBasketItemCommand request,
+        Domain.Model.Product product,
+        Domain.Model.Account userAccount)
+    {
+        return new Domain.Model.BasketItem
+        {
+            AccountId = userAccount.Id,
+            ExternalId = Guid.NewGuid().ToString(),
+            Quantity = request.CreateBasketItemRequestDto.Quantity,
+            ProductId = product.ProductId,
+            UnitPrice = product.Price,
+            ProductName = product.Name,
+            IsOrdered = false
+        };
+    }
+
+    private async Task SaveBasketItem(Domain.Model.BasketItem basketItem)
+    {
+        await _basketItemRepository.Create(basketItem);
+        await _cacheService.SetAsync(GetAllBasketItemsCacheKey, basketItem,
+            TimeSpan.FromMinutes(CacheDurationInMinutes));
+        _logger.LogInformation("Basket item created successfully: {BasketItem}", basketItem);
     }
 }
