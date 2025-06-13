@@ -1,4 +1,5 @@
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -28,37 +29,20 @@ public class GetAccountByEmailQueryHandler : IRequestHandler<GetAccountByEmailQu
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
+            var validationResult = ValidateUser();
+            if (!validationResult.IsSuccess)
             {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result<AccountResponseDto>.Failure(emailResult.Error);
+                return Result<AccountResponseDto>.Failure(validationResult.Error);
             }
 
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null");
-                return Result<AccountResponseDto>.Failure("Email is not available");
-            }
-
-            var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
+            var account = await _accountRepository.GetAccountByEmail(validationResult.Data);
             if (account == null)
             {
-                return Result<AccountResponseDto>.Failure($"User with email {emailResult.Data} not found");
+                _logger.LogWarning("Account not found for email: {Email}", validationResult.Data);
+                return Result<AccountResponseDto>.Failure($"User with email {validationResult.Data} not found");
             }
 
-            var responseDto = new AccountResponseDto
-            {
-                Id = account.Id,
-                Name = account.Name,
-                Surname = account.Surname,
-                Email = account.Email,
-                Address = account.Address,
-                PhoneNumber = account.PhoneNumber,
-                DateOfBirth = account.DateOfBirth,
-                Role = account.Role
-            };
-
+            var responseDto = MapToResponseDto(account);
             return Result<AccountResponseDto>.Success(responseDto);
         }
         catch (Exception ex)
@@ -66,5 +50,38 @@ public class GetAccountByEmailQueryHandler : IRequestHandler<GetAccountByEmailQu
             _logger.LogError(ex, "Unexpected error while fetching account by email: {Message}", ex.Message);
             return Result<AccountResponseDto>.Failure("An unexpected error occurred");
         }
+    }
+
+    private Result<string> ValidateUser()
+    {
+        var emailResult = _currentUserService.GetCurrentUserEmail();
+        if (emailResult is { IsSuccess: false, Error: not null })
+        {
+            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
+            return Result<string>.Failure(emailResult.Error);
+        }
+
+        if (string.IsNullOrEmpty(emailResult.Data))
+        {
+            _logger.LogWarning("User email is null or empty");
+            return Result<string>.Failure("Email is not available");
+        }
+
+        return Result<string>.Success(emailResult.Data);
+    }
+
+    private static AccountResponseDto MapToResponseDto(Domain.Model.Account account)
+    {
+        return new AccountResponseDto
+        {
+            Id = account.Id,
+            Name = account.Name,
+            Surname = account.Surname,
+            Email = account.Email,
+            Address = account.Address,
+            PhoneNumber = account.PhoneNumber,
+            DateOfBirth = account.DateOfBirth,
+            Role = account.Role
+        };
     }
 }

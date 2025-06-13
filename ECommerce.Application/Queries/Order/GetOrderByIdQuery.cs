@@ -5,6 +5,8 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 
+namespace ECommerce.Application.Queries.Order;
+
 public class GetOrderByIdQuery : IRequest<Result<OrderResponseDto>>
 {
     public int OrderId { get; set; }
@@ -32,23 +34,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
                 return Result<OrderResponseDto>.Failure("Order not found");
             }
 
-            OrderResponseDto orderResponseDto = new()
-            {
-                AccountId = order.AccountId,
-                BasketItems = order.BasketItems.Select(oi => new BasketItemResponseDto
-                {
-                    AccountId = oi.AccountId,
-                    ProductId = oi.ProductId,
-                    Quantity = oi.Quantity,
-                    UnitPrice = oi.UnitPrice,
-                    ProductName = oi.ProductName
-                }).ToList(),
-                OrderDate = order.OrderDate,
-                ShippingAddress = order.ShippingAddress,
-                BillingAddress = order.BillingAddress,
-                Status = order.Status
-            };
-
+            var orderResponseDto = MapToResponseDto(order);
             return Result<OrderResponseDto>.Success(orderResponseDto);
         }
         catch (Exception ex)
@@ -56,5 +42,30 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
             _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
             return Result<OrderResponseDto>.Failure("An unexpected error occurred");
         }
+    }
+
+    private static OrderResponseDto MapToResponseDto(Domain.Model.Order order)
+    {
+        return new OrderResponseDto
+        {
+            AccountId = order.AccountId,
+            BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
+            OrderDate = order.OrderDate,
+            ShippingAddress = order.ShippingAddress,
+            BillingAddress = order.BillingAddress,
+            Status = order.Status
+        };
+    }
+
+    private static BasketItemResponseDto MapToBasketItemDto(Domain.Model.BasketItem basketItem)
+    {
+        return new BasketItemResponseDto
+        {
+            AccountId = basketItem.AccountId,
+            ProductId = basketItem.ProductId,
+            Quantity = basketItem.Quantity,
+            UnitPrice = basketItem.UnitPrice,
+            ProductName = basketItem.ProductName
+        };
     }
 }

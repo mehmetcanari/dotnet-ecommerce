@@ -3,6 +3,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Commands.Account;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
+using ECommerce.Application.Queries.Account;
 using ECommerce.Application.Validations.Attribute;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

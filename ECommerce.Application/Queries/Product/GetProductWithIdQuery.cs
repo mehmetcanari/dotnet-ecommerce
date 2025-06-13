@@ -33,8 +33,7 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
     {
         try
         {
-            var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
-            var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, request.ProductId));
+            var cachedProduct = await GetCachedProduct(request.ProductId);
             if (cachedProduct != null)
             {
                 return Result<ProductResponseDto>.Success(cachedProduct);
@@ -47,18 +46,9 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
                 return Result<ProductResponseDto>.Failure("Product not found");
             }
             
-            var productResponse = new ProductResponseDto
-            {
-                ProductName = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                DiscountRate = product.DiscountRate,
-                ImageUrl = product.ImageUrl,
-                StockQuantity = product.StockQuantity,
-                CategoryId = product.CategoryId
-            };
-
-            await _cacheService.SetAsync(string.Format(ProductCacheKey, request.ProductId), productResponse, expirationTime);
+            var productResponse = MapToResponseDto(product);
+            await CacheProduct(request.ProductId, productResponse);
+            
             return Result<ProductResponseDto>.Success(productResponse);
         }
         catch (Exception ex)
@@ -66,5 +56,30 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
             _logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
             return Result<ProductResponseDto>.Failure(ex.Message);
         }
+    }
+
+    private async Task<ProductResponseDto?> GetCachedProduct(int productId)
+    {
+        return await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, productId));
+    }
+
+    private async Task CacheProduct(int productId, ProductResponseDto productDto)
+    {
+        var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
+        await _cacheService.SetAsync(string.Format(ProductCacheKey, productId), productDto, expirationTime);
+    }
+
+    private static ProductResponseDto MapToResponseDto(Domain.Model.Product product)
+    {
+        return new ProductResponseDto
+        {
+            ProductName = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            DiscountRate = product.DiscountRate,
+            ImageUrl = product.ImageUrl,
+            StockQuantity = product.StockQuantity,
+            CategoryId = product.CategoryId
+        };
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Asp.Versioning;
 using ECommerce.Application.Validations.Attribute;
 using MediatR;
+using ECommerce.Application.Queries.Category;
 
 namespace ECommerce.API.Controllers.User;
 

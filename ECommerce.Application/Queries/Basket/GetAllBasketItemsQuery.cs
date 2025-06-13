@@ -5,6 +5,7 @@ using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Basket;
+
 public class GetAllBasketItemsQuery : IRequest<Result<List<BasketItemResponseDto>>> { }
 
 public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQuery, Result<List<BasketItemResponseDto>>>
@@ -31,8 +32,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
         _accountRepository = accountRepository;
     }
 
-    public async Task<Result<List<BasketItemResponseDto>>> 
-    Handle(GetAllBasketItemsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<BasketItemResponseDto>>> Handle(GetAllBasketItemsQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -43,11 +43,9 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
                 return Result<List<BasketItemResponseDto>>.Failure(emailResult.Error);
             }
 
-            TimeSpan cacheDuration = TimeSpan.FromMinutes(_cacheDurationInMinutes);
-            var cachedItems = await _cacheService.GetAsync<List<BasketItemResponseDto>>(GetAllBasketItemsCacheKey);
+            var cachedItems = await GetCachedBasketItems();
             if (cachedItems != null)
             {
-                _logger.LogInformation("Basket items fetched from cache");
                 return Result<List<BasketItemResponseDto>>.Success(cachedItems);
             }
 
@@ -63,30 +61,54 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
                 return Result<List<BasketItemResponseDto>>.Failure("Account not found");
             }
 
-            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItems(account);
-            if (nonOrderedBasketItems.Count == 0)
+            var basketItems = await GetBasketItems(account);
+            if (basketItems.Count == 0)
             {
                 return Result<List<BasketItemResponseDto>>.Failure("No basket items found.");
             }
 
-            var clientResponseBasketItems = nonOrderedBasketItems
-            .Select(basketItem => new BasketItemResponseDto
-            {
-                AccountId = basketItem.AccountId,
-                Quantity = basketItem.Quantity,
-                UnitPrice = basketItem.UnitPrice,
-                ProductId = basketItem.ProductId,
-                ProductName = basketItem.ProductName
-            }).ToList();
+            var responseItems = basketItems.Select(MapToResponseDto).ToList();
+            await CacheBasketItems(responseItems);
 
-            await _cacheService.SetAsync(GetAllBasketItemsCacheKey, clientResponseBasketItems, cacheDuration);
-
-            return Result<List<BasketItemResponseDto>>.Success(clientResponseBasketItems);
+            return Result<List<BasketItemResponseDto>>.Success(responseItems);
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unexpected error while fetching all basket items");
             return Result<List<BasketItemResponseDto>>.Failure("An unexpected error occurred");
         }
+    }
+
+    private async Task<List<BasketItemResponseDto>?> GetCachedBasketItems()
+    {
+        var cachedItems = await _cacheService.GetAsync<List<BasketItemResponseDto>>(GetAllBasketItemsCacheKey);
+        if (cachedItems != null)
+        {
+            _logger.LogInformation("Basket items fetched from cache");
+        }
+        return cachedItems;
+    }
+
+    private async Task<List<Domain.Model.BasketItem>> GetBasketItems(Domain.Model.Account account)
+    {
+        return await _basketItemRepository.GetNonOrderedBasketItems(account);
+    }
+
+    private async Task CacheBasketItems(List<BasketItemResponseDto> items)
+    {
+        TimeSpan cacheDuration = TimeSpan.FromMinutes(_cacheDurationInMinutes);
+        await _cacheService.SetAsync(GetAllBasketItemsCacheKey, items, cacheDuration);
+    }
+
+    private static BasketItemResponseDto MapToResponseDto(Domain.Model.BasketItem basketItem)
+    {
+        return new BasketItemResponseDto
+        {
+            AccountId = basketItem.AccountId,
+            Quantity = basketItem.Quantity,
+            UnitPrice = basketItem.UnitPrice,
+            ProductId = basketItem.ProductId,
+            ProductName = basketItem.ProductName
+        };
     }
 }

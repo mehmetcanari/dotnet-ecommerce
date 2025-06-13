@@ -4,6 +4,8 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 
+namespace ECommerce.Application.Queries.Account;
+
 public class GetAllAccountsQuery : IRequest<Result<List<AccountResponseDto>>>{}
 
 public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, Result<List<AccountResponseDto>>>
@@ -19,7 +21,7 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, R
 
     public async Task<Result<List<AccountResponseDto>>> Handle(GetAllAccountsQuery request, CancellationToken cancellationToken)
     {
-         try
+        try
         {
             var accounts = await _accountRepository.Read();
             var accountCount = accounts.Count;
@@ -28,18 +30,7 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, R
                 return Result<List<AccountResponseDto>>.Failure("No accounts found");
             }
             
-            var accountList = accounts.Select(account => new AccountResponseDto
-            {
-                Id = account.Id,
-                Name = account.Name,
-                Surname = account.Surname,
-                Email = account.Email,
-                Address = account.Address,
-                PhoneNumber = account.PhoneNumber,
-                DateOfBirth = account.DateOfBirth,
-                Role = account.Role
-            }).ToList();
-            
+            var accountList = accounts.Select(MapToResponseDto).ToList();
             return Result<List<AccountResponseDto>>.Success(accountList);
         }
         catch (Exception ex)
@@ -47,5 +38,20 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, R
             _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
             return Result<List<AccountResponseDto>>.Failure("An unexpected error occurred");
         }
+    }
+
+    private static AccountResponseDto MapToResponseDto(Domain.Model.Account account)
+    {
+        return new AccountResponseDto
+        {
+            Id = account.Id,
+            Name = account.Name,
+            Surname = account.Surname,
+            Email = account.Email,
+            Address = account.Address,
+            PhoneNumber = account.PhoneNumber,
+            DateOfBirth = account.DateOfBirth,
+            Role = account.Role
+        };
     }
 }

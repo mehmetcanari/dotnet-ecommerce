@@ -4,7 +4,6 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using Microsoft.Extensions.Logging;
 using ECommerce.Domain.Abstract.Repository;
-using System.Text.Json;
 
 namespace ECommerce.Application.Queries.Product;
 
@@ -16,7 +15,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
     private readonly ICacheService _cacheService;
     private readonly ILogger<GetAllProductsQueryHandler> _logger;
     private const string AllProductsCacheKey = "products";
-    private int _cacheDurationInMinutes = 60;
+    private const int CacheDurationInMinutes = 60;
 
     public GetAllProductsQueryHandler(
         IProductRepository productRepository,
@@ -32,7 +31,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
     {
         try
         {
-            var expirationTime = TimeSpan.FromMinutes(_cacheDurationInMinutes);
+            var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
             var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(AllProductsCacheKey);
             if (cachedProducts is { Count: > 0 })
             {
@@ -57,14 +56,6 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
                 StockQuantity = p.StockQuantity,
                 CategoryId = p.CategoryId
             }).ToList();
-
-            // Log the first product to verify the data structure
-            if (productResponses.Any())
-            {
-                var firstProduct = productResponses.First();
-                _logger.LogInformation("First product before caching: ProductName={ProductName}, Description={Description}", 
-                    firstProduct.ProductName, firstProduct.Description);
-            }
 
             await _cacheService.SetAsync(AllProductsCacheKey, productResponses, expirationTime);
             _logger.LogInformation("Successfully cached {Count} products", productResponses.Count);
