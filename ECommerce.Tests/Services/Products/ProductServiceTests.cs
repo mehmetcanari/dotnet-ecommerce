@@ -55,6 +55,24 @@ public class ProductServiceTests
             .Returns(Task.CompletedTask);
     }
 
+    private void SetupCategoryCacheInvalidate()
+    {
+        _categoryServiceMock.Setup(x => x.CategoryCacheInvalidateAsync())
+            .Returns(Task.CompletedTask);
+    }
+
+    private void SetupSetProductCache()
+    {
+        _productRepositoryMock.Setup(x => x.Read(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(new List<Domain.Model.Product>());
+        
+        _cacheServiceMock.Setup(x => x.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<object>(),
+            It.IsAny<TimeSpan>()))
+            .Returns(Task.CompletedTask);
+    }
+
     private ProductService CreateService() => new ProductService(
         _productRepositoryMock.Object,
         _categoryServiceMock.Object,
@@ -138,6 +156,9 @@ public class ProductServiceTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 
+        SetupCacheRemove();
+        SetupCategoryCacheInvalidate();
+        SetupSetProductCache();
         var service = CreateService();
 
         // Act
@@ -151,7 +172,7 @@ public class ProductServiceTests
             It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _cacheServiceMock.Verify(c => c.RemoveAsync(It.IsAny<string>()), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -161,6 +182,11 @@ public class ProductServiceTests
         // Arrange
         var product = CreateProduct();
         var request = CreateProductUpdateRequest();
+        SetupProductById(product);
+        SetupCacheRemove();
+        SetupCategoryCacheInvalidate();
+        SetupSetProductCache();
+
         _mediatorMock.Setup(m => m.Send(
             It.Is<UpdateProductCommand>(cmd => cmd.Id == product.ProductId && cmd.ProductUpdateRequest == request),
             It.IsAny<CancellationToken>()))
@@ -179,7 +205,7 @@ public class ProductServiceTests
             It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
         _cacheServiceMock.Verify(c => c.RemoveAsync(It.IsAny<string>()), Times.Once);
-        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+        _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(2));
     }
 
     [Fact]

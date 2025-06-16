@@ -2,14 +2,6 @@
 ## 📋 Overview
 Modern e-commerce RESTful API built with Clean Architecture and SOLID principles. Supports product management, user authentication, secure payment processing, and cloud file storage with AWS S3.
 
-[![Coverage](https://img.shields.io/badge/Coverage-78.9%25-green?style=for-the-badge)](./coveragereport/Summary.md)
-
-> **Current critical component test coverage:** 78.95% (1185/1501 lines) - Total 142 Test Cases
-> 
-> Coverage includes:
-> - Application Layer Services 
-> - Infrastructure Layer Repositories
-
 ## 🚀 Features
 
 ### Core Features
