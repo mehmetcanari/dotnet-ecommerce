@@ -2,6 +2,7 @@
 using ECommerce.Application.Queries.Product;
 using ECommerce.Application.Commands.Product;
 using ECommerce.Application.Services.Token;
+using ECommerce.Application.Services.Queue;
 using ECommerce.Infrastructure.Dependencies;
 using Serilog;
 using StackExchange.Redis;
@@ -23,6 +24,7 @@ public class DependencyContainer : IDependencyContainer
         _builder.Services.AddSingleton(Log.Logger);
         _builder.Services.AddHostedService<TokenCleanupBackgroundService>();
         _builder.Services.AddHttpContextAccessor();
+        _builder.Services.AddSingleton<IMessageBroker, RabbitMQService>();
 
         _builder.Services.AddApplicationDependencies();
         _builder.Services.AddInfrastructureDependencies();

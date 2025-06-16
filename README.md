@@ -34,6 +34,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **JWT & Identity** | Authentication/authorization |
 | **AWS S3** | File storage and management |
 | **Iyzico** | Payment gateway |
+| **RabbitMQ** | Message broker for event-driven architecture |
 | **FluentValidation** | Input validation |
 | **Serilog** | Structured logging |
 | **Docker** | Containerization |
@@ -56,6 +57,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **Cloud Storage**            | Secure and scalable file management | AWS S3 integration for file upload |
 | **Pagination**              | Efficient data retrieval and performance | Repository pattern with Skip/Take implementation, default page size of 50 items |
 | **CQRS Pattern**            | Separation of read and write operations | MediatR implementation with Commands and Queries for better scalability and maintainability |
+| **Event-Driven Architecture** | Loose coupling between services | RabbitMQ implementation for asynchronous message publishing and consumption |
 
 ## 📐 Architecture
 Clean Architecture implementation with clear separation of concerns:
@@ -73,6 +75,7 @@ Clean Architecture implementation with clear separation of concerns:
   │   ├── DTO
   │   ├── Exceptions
   │   ├── Services
+  │   ├── Queue
   │   ├── Commands
   │   ├── Queries
   │   ├── Abstract/Services
@@ -101,6 +104,7 @@ Clean Architecture implementation with clear separation of concerns:
 - Docker & Docker Compose
 - PostgreSQL (if running locally)
 - Redis (if running locally)
+- RabbitMQ (if running locally)
 - AWS S3 account and bucket (for file storage)
 
 ### Option 1: Docker Compose (Recommended)
@@ -148,6 +152,12 @@ AWS_BUCKET_NAME=your-bucket-name
 IYZICO_API_KEY=your-sandbox-api-key-here
 IYZICO_SECRET_KEY=your-sandbox-secret-key-here
 IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
+
+# RabbitMQ Configuration
+RABBITMQ_HOST=localhost
+RABBITMQ_PORT=5672
+RABBITMQ_USERNAME=guest
+RABBITMQ_PASSWORD=guest
 
 # Tokens - For testing purpose
 USER_TOKEN=

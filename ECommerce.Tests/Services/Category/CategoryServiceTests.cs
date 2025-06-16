@@ -9,6 +9,7 @@ using MediatR;
 using ECommerce.Application.Utility;
 using FluentValidation;
 using ECommerce.Application.Validations.Category;
+using ECommerce.Application.Queries.Category;
 
 namespace ECommerce.Tests.Services.Category;
 

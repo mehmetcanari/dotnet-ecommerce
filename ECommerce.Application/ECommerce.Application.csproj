@@ -19,7 +19,7 @@
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
       <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
       <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
-      <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
+      <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
       <PackageReference Include="Serilog" Version="4.2.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
       <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />  

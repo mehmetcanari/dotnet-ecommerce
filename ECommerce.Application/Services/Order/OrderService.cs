@@ -21,6 +21,7 @@ public class OrderService : BaseValidator, IOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPaymentService _paymentService;
+    private readonly IMessageBroker _messageBroker;
     private ICurrentUserService _currentUserService;
     private IMediator _mediator;
 
@@ -36,7 +37,8 @@ public class OrderService : BaseValidator, IOrderService
         IPaymentService paymentService,
         IServiceProvider serviceProvider, 
         ICurrentUserService currentUserService,
-        IMediator mediator) : base(serviceProvider)
+        IMediator mediator,
+        IMessageBroker messageBroker) : base(serviceProvider)
     {
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
@@ -49,6 +51,7 @@ public class OrderService : BaseValidator, IOrderService
         _paymentService = paymentService;
         _currentUserService = currentUserService;
         _mediator = mediator;
+        _messageBroker = messageBroker;
     }
 
     public async Task<Result> CreateOrderAsync(OrderCreateRequestDto orderCreateRequestDto)
@@ -85,6 +88,17 @@ public class OrderService : BaseValidator, IOrderService
             await _orderRepository.Create(order);
             await _basketItemService.DeleteAllNonOrderedBasketItemsAsync();
             await _productService.UpdateProductStockAsync(basketItems);
+            await _messageBroker.PublishAsync(new OrderCreatedEvent
+            {
+                OrderId = order.OrderId,
+                AccountId = order.AccountId,
+                TotalPrice = order.BasketItems.Sum(bi => bi.Quantity * bi.UnitPrice),
+                ShippingAddress = order.ShippingAddress,
+                BillingAddress = order.BillingAddress,
+                OrderDate = DateTime.UtcNow,
+                Status = order.Status
+            }, "order_exchange", "order.created");
+
             await _unitOfWork.CommitTransactionAsync();
 
             _logger.LogInformation("Order added successfully: {Order}", order);

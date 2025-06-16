@@ -32,7 +32,7 @@ public static class ApplicationDependencyExtension
 {
     public static void AddApplicationDependencies(this IServiceCollection services)
     {
-        services.AddScoped<ILoggingService, LogService>();
+        services.AddSingleton<ILoggingService, LogService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IProductService, ProductService>();

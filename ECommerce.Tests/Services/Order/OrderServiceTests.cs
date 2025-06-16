@@ -7,10 +7,6 @@ using ECommerce.Application.Services.Order;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Http;
-using Iyzipay.Model;
-using FluentAssertions;
-using Moq;
-using Xunit;
 using MediatR;
 
 namespace ECommerce.Tests.Services.Order;
@@ -31,6 +27,7 @@ public class OrderServiceTests
     private readonly Mock<ICurrentUserService> _currentUserServiceMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<IMediator> _mediatorMock;
+    private readonly Mock<IMessageBroker> _messageBrokerMock;
 
     public OrderServiceTests()
     {
@@ -46,6 +43,7 @@ public class OrderServiceTests
         _currentUserServiceMock = new Mock<ICurrentUserService>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _mediatorMock = new Mock<IMediator>();
+        _messageBrokerMock = new Mock<IMessageBroker>();
     }
 
     private OrderService CreateService() => new OrderService(
@@ -60,7 +58,8 @@ public class OrderServiceTests
         _paymentServiceMock.Object,
         _serviceProviderMock.Object,
         _currentUserServiceMock.Object,
-        _mediatorMock.Object);
+        _mediatorMock.Object,
+        _messageBrokerMock.Object);
 
     private void SetupCurrentUser(string email)
     {
