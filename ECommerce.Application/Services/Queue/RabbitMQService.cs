@@ -68,41 +68,6 @@ public class RabbitMQService : IMessageBroker, IDisposable
         }
     }
 
-    public async Task SubscribeAsync<T>(string queue, Func<T, Task> handler)
-    {
-        await Task.Run(() =>
-        {
-            _channel.QueueDeclare(queue, true, false, false, null);
-            
-            var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += async (model, ea) =>
-            {
-                try
-                {
-                    var body = ea.Body.ToArray();
-                    var message = JsonSerializer.Deserialize<T>(Encoding.UTF8.GetString(body));
-                    
-                    if (message != null)
-                    {
-                        await handler(message);
-                        _channel.BasicAck(ea.DeliveryTag, false);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Received null message from queue: {Queue}", queue);
-                        _channel.BasicNack(ea.DeliveryTag, false, false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error processing message from queue: {Queue}", queue);
-                    _channel.BasicNack(ea.DeliveryTag, false, true); // Mesajı tekrar kuyruğa al
-                }
-            };
-
-            _channel.BasicConsume(queue, false, consumer);
-        });
-    }
 
     public void Dispose()
     {
