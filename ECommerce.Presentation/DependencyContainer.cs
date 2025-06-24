@@ -6,6 +6,7 @@ using ECommerce.Application.Services.Queue;
 using ECommerce.Infrastructure.Dependencies;
 using Serilog;
 using StackExchange.Redis;
+using Elastic.Clients.Elasticsearch;
 
 namespace ECommerce.API;
 
@@ -20,6 +21,7 @@ public class DependencyContainer : IDependencyContainer
 
     public void RegisterDependencies()
     {
+        
         _builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect("localhost:6379"));
         _builder.Services.AddSingleton(Log.Logger);
         _builder.Services.AddHostedService<TokenCleanupBackgroundService>();

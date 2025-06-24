@@ -18,6 +18,8 @@ using Amazon.Runtime;
 using ECommerce.API.SwaggerFilters;
 using ECommerce.API.Configurations;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
 
 namespace ECommerce.API;
 
@@ -233,6 +235,35 @@ internal static class Program
             .Enrich.WithMachineName());
 
         #endregion
+
+        #region Elasticsearch Configuration
+        //======================================================
+        // ELASTICSEARCH CONFIGURATION 
+        //======================================================
+
+        var elasticUri = Environment.GetEnvironmentVariable("ELASTICSEARCH_URI") ?? "http://localhost:9200";
+        var elasticUsername = Environment.GetEnvironmentVariable("ELASTICSEARCH_USERNAME");
+        var elasticPassword = Environment.GetEnvironmentVariable("ELASTICSEARCH_PASSWORD");
+
+        if (string.IsNullOrEmpty(elasticUri))
+        {
+            throw new InvalidOperationException("ELASTICSEARCH_URI environment variable is not set.");
+        }
+
+        builder.Services.AddSingleton(sp =>
+        {
+            var settings = new ElasticsearchClientSettings(new Uri(elasticUri));
+
+            if (!string.IsNullOrEmpty(elasticUsername) && !string.IsNullOrEmpty(elasticPassword))
+            {
+                settings = settings.Authentication(new BasicAuthentication(elasticUsername, elasticPassword));
+            }
+
+            return new ElasticsearchClient(settings);
+        });
+
+        #endregion
+
 
         #region API Versioning Configuration
 
