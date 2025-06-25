@@ -99,4 +99,15 @@ public class AdminProductController : ControllerBase
         }
         return Ok(new { message = $"Product with id {id} deleted successfully", data = result });
     }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchProducts([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var result = await _mediator.Send(new ProductSearchQuery(query, page, pageSize));
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+        return Ok(new { message = "Product search completed successfully", data = result });
+    }
 }

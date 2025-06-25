@@ -43,4 +43,15 @@ public class UserProductController : ControllerBase
         }
         return Ok(new { message = $"Product with id {id} fetched successfully", data = product });
     }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchProducts([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var result = await _mediator.Send(new ProductSearchQuery(query, page, pageSize));
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+        return Ok(new { message = "Product search completed successfully", data = result });
+    }
 }

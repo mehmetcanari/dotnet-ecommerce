@@ -19,6 +19,7 @@ public class ProductServiceTests
     private readonly Mock<ILoggingService> _loggerMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<IMediator> _mediatorMock;
+    private readonly Mock<IProductSearchService> _productSearchServiceMock;
     private readonly IProductService _sut;
 
     private const string AllProductsCacheKey = "products";
@@ -32,6 +33,7 @@ public class ProductServiceTests
         _loggerMock = new Mock<ILoggingService>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _mediatorMock = new Mock<IMediator>();
+        _productSearchServiceMock = new Mock<IProductSearchService>();
         _sut = new ProductService(
             _productRepositoryMock.Object,
             _categoryServiceMock.Object,
@@ -39,7 +41,8 @@ public class ProductServiceTests
             _cacheServiceMock.Object,
             _unitOfWorkMock.Object,
             _serviceProviderMock.Object,
-            _mediatorMock.Object
+            _mediatorMock.Object,
+            _productSearchServiceMock.Object
         );
     }
 
@@ -80,7 +83,8 @@ public class ProductServiceTests
         _cacheServiceMock.Object,
         _unitOfWorkMock.Object,
         _serviceProviderMock.Object,
-        _mediatorMock.Object
+        _mediatorMock.Object,
+        _productSearchServiceMock.Object
     );
 
     private ProductCreateRequestDto CreateProductRequest()

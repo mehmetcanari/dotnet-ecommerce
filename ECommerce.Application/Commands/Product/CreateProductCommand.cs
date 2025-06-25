@@ -41,6 +41,8 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
                 return Result.Failure(validationResult.Error);
             }
 
+            await _productSearchService.CreateProductIndexWithNGramAsync();
+
             var product = CreateProductEntity(request.ProductCreateRequest, validationResult.Data);
             await _productRepository.Create(product);
             await _productSearchService.IndexProductAsync(product);

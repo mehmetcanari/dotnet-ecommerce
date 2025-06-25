@@ -32,6 +32,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.13.0" />
   </ItemGroup>
 
   <ItemGroup>

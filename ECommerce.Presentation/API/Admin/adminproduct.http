@@ -54,3 +54,7 @@ Authorization: Bearer {{ADMIN_TOKEN}}
 
 DELETE {{baseUrl}}/{{route}}/delete/1
 Authorization: Bearer {{ADMIN_TOKEN}}
+
+### SEARCH PRODUCTS
+GET {{baseUrl}}/{{route}}/search?query=play
+Authorization: Bearer {{ADMIN_TOKEN}}

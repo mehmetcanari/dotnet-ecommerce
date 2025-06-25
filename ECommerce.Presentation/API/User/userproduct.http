@@ -11,3 +11,7 @@ Authorization: Bearer {{USER_TOKEN}}
 GET {{baseUrl}}/{{route}}/1
 Authorization: Bearer {{USER_TOKEN}}
 
+### SEARCH PRODUCTS
+GET {{baseUrl}}/{{route}}/search?query=meta
+Authorization: Bearer {{USER_TOKEN}}
+

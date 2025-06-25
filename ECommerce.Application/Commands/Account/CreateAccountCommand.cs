@@ -43,7 +43,7 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
                 ZipCode = request.AccountCreateRequest.ZipCode,
                 Address = request.AccountCreateRequest.Address,
                 PhoneNumber = request.AccountCreateRequest.PhoneNumber,
-                DateOfBirth = request.AccountCreateRequest.DateOfBirth,
+                DateOfBirth = request.AccountCreateRequest.DateOfBirth.ToUniversalTime(),
                 Role = request.Role
             };
 

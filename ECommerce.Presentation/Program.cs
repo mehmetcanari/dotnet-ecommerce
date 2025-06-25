@@ -241,24 +241,11 @@ internal static class Program
         // ELASTICSEARCH CONFIGURATION 
         //======================================================
 
-        var elasticUri = Environment.GetEnvironmentVariable("ELASTICSEARCH_URI") ?? "http://localhost:9200";
-        var elasticUsername = Environment.GetEnvironmentVariable("ELASTICSEARCH_USERNAME");
-        var elasticPassword = Environment.GetEnvironmentVariable("ELASTICSEARCH_PASSWORD");
-
-        if (string.IsNullOrEmpty(elasticUri))
-        {
-            throw new InvalidOperationException("ELASTICSEARCH_URI environment variable is not set.");
-        }
+        var elasticUri = "http://localhost:9200";
 
         builder.Services.AddSingleton(sp =>
         {
             var settings = new ElasticsearchClientSettings(new Uri(elasticUri));
-
-            if (!string.IsNullOrEmpty(elasticUsername) && !string.IsNullOrEmpty(elasticPassword))
-            {
-                settings = settings.Authentication(new BasicAuthentication(elasticUsername, elasticPassword));
-            }
-
             return new ElasticsearchClient(settings);
         });
 

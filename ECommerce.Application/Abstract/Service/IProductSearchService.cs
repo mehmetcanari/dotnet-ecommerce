@@ -9,4 +9,5 @@ public interface IProductSearchService
     Task<Result<List<Product>>> SearchProductsAsync(string query, int page = 1, int pageSize = 10);
     Task<Result> UpdateProductAsync(Product product);
     Task<Result> BulkIndexProductsAsync(IEnumerable<Product> products);
+    Task<Result> CreateProductIndexWithNGramAsync();
 }

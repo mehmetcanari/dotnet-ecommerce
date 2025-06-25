@@ -13,18 +13,21 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
 {
     private readonly IProductRepository _productRepository;
     private readonly ICacheService _cacheService;
-    private readonly ILogger<GetAllProductsQueryHandler> _logger;
+    private readonly ILoggingService _logger;
+    private readonly IProductSearchService _productSearchService;
     private const string AllProductsCacheKey = "products";
     private const int CacheDurationInMinutes = 60;
 
     public GetAllProductsQueryHandler(
         IProductRepository productRepository,
         ICacheService cacheService,
-        ILogger<GetAllProductsQueryHandler> logger)
+        ILoggingService logger,
+        IProductSearchService productSearchService)
     {
         _productRepository = productRepository;
         _cacheService = cacheService;
         _logger = logger;
+        _productSearchService = productSearchService;
     }
 
     public async Task<Result<List<ProductResponseDto>>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
@@ -33,13 +36,14 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
         {
             var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
             var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(AllProductsCacheKey);
+            var products = await _productRepository.Read();
+            await _productSearchService.BulkIndexProductsAsync(products);
+
             if (cachedProducts is { Count: > 0 })
             {
                 _logger.LogInformation("Retrieved {Count} products from cache", cachedProducts.Count);
                 return Result<List<ProductResponseDto>>.Success(cachedProducts);
             }
-
-            var products = await _productRepository.Read();
 
             if (products.Count == 0)
             {
