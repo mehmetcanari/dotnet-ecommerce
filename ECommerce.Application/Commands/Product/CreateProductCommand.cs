@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
+using Result = ECommerce.Application.Utility.Result;
 
 namespace ECommerce.Application.Commands.Product;
 
@@ -15,16 +16,19 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 {
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IProductSearchService _productSearchService;
     private readonly ILoggingService _logger;
 
     public CreateProductCommandHandler(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
-        ILoggingService logger)
+        ILoggingService logger,
+        IProductSearchService productSearchService)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _logger = logger;
+        _productSearchService = productSearchService;
     }
 
     public async Task<Result> Handle(CreateProductCommand request, CancellationToken cancellationToken)
@@ -39,6 +43,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
             var product = CreateProductEntity(request.ProductCreateRequest, validationResult.Data);
             await _productRepository.Create(product);
+            await _productSearchService.IndexProductAsync(product);
 
             _logger.LogInformation("Product created successfully. ProductId: {ProductId}, Name: {Name}", 
                 product.ProductId, product.Name);

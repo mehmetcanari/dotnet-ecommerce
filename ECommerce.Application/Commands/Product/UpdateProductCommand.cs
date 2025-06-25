@@ -19,17 +19,20 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
     private readonly ICategoryRepository _categoryRepository;
     private readonly IBasketItemService _basketItemService;
     private readonly ILoggingService _logger;
+    private readonly IProductSearchService _productSearchService;
 
     public UpdateProductCommandHandler(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         IBasketItemService basketItemService,
-        ILoggingService logger)
+        ILoggingService logger,
+        IProductSearchService productSearchService)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _basketItemService = basketItemService;
         _logger = logger;
+        _productSearchService = productSearchService;
     }
 
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -43,7 +46,8 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             }
 
             var (product, category) = validationResult.Data;
-            UpdateProduct(product, category, request.ProductUpdateRequest);
+            var updatedProduct = UpdateProduct(product, category, request.ProductUpdateRequest);
+            await _productSearchService.UpdateProductAsync(updatedProduct);
             await _basketItemService.ClearBasketItemsIncludeOrderedProductAsync(product);
 
             _logger.LogInformation("Product updated successfully. ProductId: {ProductId}, Name: {Name}", 
@@ -78,7 +82,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         return Result<(Domain.Model.Product, Domain.Model.Category)>.Success((product, category));
     }
 
-    private void UpdateProduct(
+    private Domain.Model.Product UpdateProduct(
         Domain.Model.Product product,
         Domain.Model.Category category,
         ProductUpdateRequestDto request)
@@ -94,5 +98,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
         _productRepository.Update(product);
+
+        return product;
     }
 }

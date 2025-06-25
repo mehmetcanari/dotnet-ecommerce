@@ -17,6 +17,7 @@ public class ProductService : BaseValidator, IProductService
     private readonly ICacheService _cacheService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMediator _mediator;
+    private readonly IProductSearchService _productSearchService;
     private const string AllProductsCacheKey = "products";
 
     public ProductService(
@@ -26,7 +27,8 @@ public class ProductService : BaseValidator, IProductService
         ICacheService cacheService, 
         IUnitOfWork unitOfWork, 
         IServiceProvider serviceProvider,
-        IMediator mediator) : base(serviceProvider)
+        IMediator mediator,
+        IProductSearchService productSearchService) : base(serviceProvider)
     {
         _productRepository = productRepository;
         _categoryService = categoryService;
@@ -34,6 +36,7 @@ public class ProductService : BaseValidator, IProductService
         _logger = logger;
         _unitOfWork = unitOfWork;
         _mediator = mediator;
+        _productSearchService = productSearchService;
     }
 
     public async Task<Result> CreateProductAsync(ProductCreateRequestDto productCreateRequest)
@@ -107,6 +110,7 @@ public class ProductService : BaseValidator, IProductService
             }
 
             _productRepository.Delete(product);
+            await _productSearchService.DeleteProductAsync(product.ProductId.ToString());
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
