@@ -26,6 +26,7 @@
       <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />  
       <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
       <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+      <PackageReference Include="System.Text.Json" Version="9.0.3" />
     </ItemGroup>
 
 </Project>
