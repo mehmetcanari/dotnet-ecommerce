@@ -18,16 +18,66 @@ public class CurrentUserService : ICurrentUserService
 
     public Result<string> GetCurrentUserEmail()
     {
-        string? email = TryGetEmailFromClaims();
-
-        if (string.IsNullOrEmpty(email))
+        try
         {
-            _logger.LogWarning("User email not found in claims.");
-            return Result<string>.Failure("User email not found.");
+            var isAuthenticatedResult = IsAuthenticated();
+            if (isAuthenticatedResult.IsFailure || !isAuthenticatedResult.Data)
+                return Result<string>.Failure("User is not authenticated.");
+
+            string? email = TryGetEmailFromClaims();
+
+            if (string.IsNullOrEmpty(email))
+            {
+                _logger.LogWarning("User email not found in claims.");
+                return Result<string>.Failure("User email not found.");
+            }
+
+            _logger.LogInformation("Current user email: {Email}", email);
+            return Result<string>.Success(email);
+        }
+        catch (Exception exception)
+        {
+            throw new Exception("An unexpected error occurred while getting current user email", exception);
         }
 
-        _logger.LogInformation("Current user email: {Email}", email);
-        return Result<string>.Success(email);
+    }
+
+    public Result<string> GetCurrentUserId()
+    {
+        try
+        {
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("User ID not found in claims.");
+                return Result<string>.Failure("User ID not found.");
+            }
+
+            _logger.LogInformation("Current user ID: {UserId}", userId);
+            return Result<string>.Success(userId);
+        }
+        catch (Exception exception)
+        {
+            throw new Exception("An unexpected error occurred while getting current user id", exception);
+        }
+    }
+
+    public Result<bool> IsAuthenticated()
+    {
+        try
+        {
+            var isAuthenticated = _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+            if (!isAuthenticated)
+            {
+                _logger.LogWarning("User is not authenticated.");
+                return Result<bool>.Failure("User is not authenticated.");
+            }
+            return Result<bool>.Success(isAuthenticated);
+        }
+        catch (Exception exception)
+        {
+            throw new Exception("An unexpected error occurred while checking if user is authenticated", exception);
+        }
     }
 
     private string? TryGetEmailFromClaims()
@@ -42,24 +92,5 @@ public class CurrentUserService : ICurrentUserService
             email = user.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
 
         return email;
-    }
-
-    public Result<string> GetCurrentUserId()
-    {
-        var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
-            return Result<string>.Failure("User ID not found.");
-        return Result<string>.Success(userId);
-    }
-    public Result<bool> IsAuthenticated()
-    {
-        var isAuthenticated = _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
-        if (!isAuthenticated)
-        {
-            _logger.LogWarning("User is not authenticated.");
-            return Result<bool>.Failure("User is not authenticated.");
-        }
-
-        return Result<bool>.Success(isAuthenticated);
     }
 }
