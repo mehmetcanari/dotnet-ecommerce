@@ -9,6 +9,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 - 🔐 **Authentication & Authorization** - JWT-based security with role management
 - 💳 **Payment Processing** - Integrated Iyzico payment gateway
 - ☁️ **Cloud Integration** - Secure and scalable file storage with AWS S3
+- 🔎 **Advanced Product Search** - Full-text and filtered product search powered by Elasticsearch
 
 ### Additional Features
 - ⚡ **Performance** - Redis caching and optimized database queries
@@ -32,6 +33,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **Docker** | Containerization |
 | **xUnit** | Unit testing |
 | **MediatR** | CQRS implementation |
+| **Elasticsearch** | Advanced product search and filtering |
 
 ## 🛡️ Technical Approaches & Best Practices
 
@@ -144,12 +146,6 @@ AWS_BUCKET_NAME=your-bucket-name
 IYZICO_API_KEY=your-sandbox-api-key-here
 IYZICO_SECRET_KEY=your-sandbox-secret-key-here
 IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
-
-# RabbitMQ Configuration
-RABBITMQ_HOST=localhost
-RABBITMQ_PORT=5672
-RABBITMQ_USERNAME=guest
-RABBITMQ_PASSWORD=guest
 
 # Tokens - For testing purpose
 USER_TOKEN=
