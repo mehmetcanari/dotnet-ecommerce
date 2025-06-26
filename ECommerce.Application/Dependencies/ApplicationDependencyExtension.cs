@@ -11,6 +11,7 @@ using ECommerce.Application.Services.BasketItem;
 using ECommerce.Application.Services.Cache;
 using ECommerce.Application.Services.Category;
 using ECommerce.Application.Services.Logging;
+using ECommerce.Application.Services.Notification;
 using ECommerce.Application.Services.Order;
 using ECommerce.Application.Services.Payment;
 using ECommerce.Application.Services.Product;
@@ -50,6 +51,7 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IPaymentProvider, IyzicoPaymentProvider>();
         services.AddScoped<IS3Service, S3Service>();
         services.AddScoped<IProductSearchService, ProductSearchService>();
+        services.AddScoped<INotificationService, NotificationService>();
     }
     
     public static void AddValidationDependencies(this IServiceCollection services)

@@ -51,7 +51,9 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            var category = await _context.Categories
+            IQueryable<Category> query = _context.Categories;
+
+            var category = await query
                 .AsNoTracking()
                 .Where(c => c.Name == name)
                 .FirstOrDefaultAsync();
@@ -75,6 +77,9 @@ public class CategoryRepository : ICategoryRepository
                 .Where(c => c.CategoryId == id)
                 .Include(c => c.Products)
                 .FirstOrDefaultAsync();
+
+            if(category == null)
+                throw new Exception("Category not found");
 
             return category;
         }

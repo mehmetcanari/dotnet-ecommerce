@@ -14,6 +14,7 @@ public static class InfrastructureDependencyExtension
         services.AddScoped<IBasketItemRepository, BasketItemRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
 }

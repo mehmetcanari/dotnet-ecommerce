@@ -19,7 +19,7 @@ using ECommerce.API.SwaggerFilters;
 using ECommerce.API.Configurations;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Elastic.Clients.Elasticsearch;
-using Elastic.Transport;
+using ECommerce.Presentation.Hubs;
 
 namespace ECommerce.API;
 
@@ -251,6 +251,20 @@ internal static class Program
 
         #endregion
 
+        #region SignalR Configuration
+
+        //======================================================
+        // SIGNALR CONFIGURATION
+        //======================================================
+        builder.Services.AddSignalR(options =>
+        {
+            options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+            options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
+            options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+            options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+        });
+
+        #endregion
 
         #region API Versioning Configuration
 
@@ -494,6 +508,7 @@ internal static class Program
         app.MapHealthChecks("/health");
 
         app.MapControllers();
+        app.MapHub<NotificationHub>("/notificationHub");
 
         #endregion
 

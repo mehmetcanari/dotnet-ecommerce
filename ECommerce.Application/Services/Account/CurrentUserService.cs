@@ -44,6 +44,13 @@ public class CurrentUserService : ICurrentUserService
         return email;
     }
 
+    public Result<string> GetCurrentUserId()
+    {
+        var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Result<string>.Failure("User ID not found.");
+        return Result<string>.Success(userId);
+    }
     public Result<bool> IsAuthenticated()
     {
         var isAuthenticated = _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
