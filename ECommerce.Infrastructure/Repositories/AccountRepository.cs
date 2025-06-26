@@ -69,6 +69,23 @@ public class AccountRepository : IAccountRepository
         }
     }
 
+    public async Task<Account?> GetAccountByIdentityNumber(string identityNumber)
+    {
+        try
+        {
+            var account = await _context.Accounts
+                .AsNoTracking()
+                .Where(a => a.IdentityNumber == identityNumber)
+                .FirstOrDefaultAsync();
+
+            return account;
+        }
+        catch (Exception exception)
+        {
+            throw new Exception("An unexpected error occurred while getting account by identity number", exception);
+        }
+    }
+
     public async Task Create(Account userAccount)
     {
         try

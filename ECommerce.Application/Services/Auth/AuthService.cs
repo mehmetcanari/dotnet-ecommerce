@@ -36,7 +36,7 @@ public class AuthService : BaseValidator, IAuthService
         _logger = logger;
     }
 
-    public async Task<Result> RegisterUserWithRoleAsync(AccountRegisterRequestDto registerRequestDto, string role)
+    public async Task<Result> RegisterAsync(AccountRegisterRequestDto registerRequestDto, string role)
     {
         try
         {
@@ -79,9 +79,13 @@ public class AuthService : BaseValidator, IAuthService
                 return Result.Failure("Error assigning role to user.");
             }
 
-            _logger.LogInformation("User {Email} registered successfully with role {Role}", registerRequestDto.Email, role);
+            var accountResult = await _accountService.RegisterAccountAsync(registerRequestDto, role);
+            if (accountResult is { IsFailure: true, Error: not null })
+            {
+                return Result.Failure(accountResult.Error);
+            }
 
-            await _accountService.RegisterAccountAsync(registerRequestDto, role);
+            _logger.LogInformation("User {Email} registered successfully with role {Role}", registerRequestDto.Email, role);
 
             return Result.Success();
         }
@@ -100,7 +104,7 @@ public class AuthService : BaseValidator, IAuthService
             if (validationResult is { IsSuccess: false, Error: not null }) 
                 return Result<AuthResponseDto>.Failure(validationResult.Error);
 
-            var (isValid, user) = await VerifyUserCredentialsAsync(loginRequestDto.Email, loginRequestDto.Password);
+            var (isValid, user) = await VerifyCredentialsAsync(loginRequestDto.Email, loginRequestDto.Password);
             if (!isValid || user == null)
             {
                 return Result<AuthResponseDto>.Failure("Invalid email or password.");
@@ -203,11 +207,16 @@ public class AuthService : BaseValidator, IAuthService
         }
     }
 
-    private async Task<(bool, IdentityUser?)> VerifyUserCredentialsAsync(string email, string password)
+    private async Task<(bool, IdentityUser?)> VerifyCredentialsAsync(string email, string password)
     {
         try
         {
             var account = await _accountService.GetAccountByEmailAsEntityAsync(email);
+            if (account.IsFailure || account.Data == null)
+            {
+                _logger.LogWarning("Login failed - Account not found: {Email}", email);
+                return (false, null);
+            }
 
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)

@@ -182,8 +182,8 @@ public class NotificationService : INotificationService
         try
         {
             var result = await CreateNotificationAsync(title, message, type, relatedEntityId, relatedEntityType);
-            if (result is { IsSuccess: false, Error: not null })
-                return Result<bool>.Failure(result.Error);
+            if (result.IsFailure || result.Data == null)
+                return Result<bool>.Failure(result.Error ?? "Failed to create notification");
 
             _logger.LogInformation("Notification sent to user {UserId}", result.Data.UserId);
             return Result<bool>.Success(true);

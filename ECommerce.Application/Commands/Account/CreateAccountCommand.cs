@@ -29,8 +29,11 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
     {
         try
         {
-            var result = await IsEmailExists(request);
-            if (result) return Result.Failure("Email already exists. Please use a different email address.");
+            var validationResult = await ValidateAccountExists(request);
+            if (!validationResult.IsSuccess)
+            {
+                return Result.Failure(validationResult.Error);
+            }
             
             var newAccount = new Domain.Model.Account
             {
@@ -59,9 +62,24 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
         }
     }
 
-    private async Task<bool> IsEmailExists(CreateAccountCommand request)
+    private async Task<Result> ValidateAccountExists(CreateAccountCommand request)
     {
-        var account = await _accountRepository.GetAccountByEmail(request.AccountCreateRequest.Email);
-        return account != null;
+        var existingAccountByEmail = await _accountRepository.GetAccountByEmail(request.AccountCreateRequest.Email);
+        if (existingAccountByEmail != null)
+        {
+            _logger.LogWarning("Email already exists: {Email}", request.AccountCreateRequest.Email);
+            return Result.Failure("Email already exists. Please use a different email address.");
+        }
+
+        var existingAccountByIdentityNumber = await _accountRepository.GetAccountByIdentityNumber(request.AccountCreateRequest.IdentityNumber);
+        if (existingAccountByIdentityNumber != null)
+        {
+            _logger.LogWarning("Identity number already exists: {IdentityNumber}", request.AccountCreateRequest.IdentityNumber);
+            return Result.Failure("Identity number already exists. Please use a different identity number.");
+        }
+
+        _logger.LogInformation("Validation passed for email: {Email}, identityNumber: {IdentityNumber}", 
+            request.AccountCreateRequest.Email, request.AccountCreateRequest.IdentityNumber);
+        return Result.Success();
     }
 }

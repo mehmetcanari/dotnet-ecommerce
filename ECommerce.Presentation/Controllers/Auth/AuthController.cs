@@ -22,7 +22,7 @@ namespace ECommerce.API.Controllers.Auth
         [AllowAnonymous]
         public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
-            var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "Admin");
+            var result = await _authService.RegisterAsync(accountRegisterRequestDto, "Admin");
             if (result == null)
             {
                 return BadRequest(new { message = "Failed to create admin user." });
@@ -34,7 +34,7 @@ namespace ECommerce.API.Controllers.Auth
         [AllowAnonymous]
         public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
-            var result = await _authService.RegisterUserWithRoleAsync(accountRegisterRequestDto, "User");
+            var result = await _authService.RegisterAsync(accountRegisterRequestDto, "User");
             if (result == null)
             {
                 return BadRequest(new { message = "Failed to create user." });

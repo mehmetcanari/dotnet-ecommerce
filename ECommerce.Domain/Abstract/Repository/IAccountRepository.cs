@@ -8,6 +8,7 @@ public interface IAccountRepository
     Task<List<Account>> Read(int pageNumber = 1, int pageSize = 50);
     Task<Account?> GetAccountById(int id);
     Task<Account?> GetAccountByEmail(string email);
+    Task<Account?> GetAccountByIdentityNumber(string identityNumber);
     void Update(Account account);
     void Delete(Account account);
 }
