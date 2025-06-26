@@ -111,26 +111,15 @@ public class AuthServiceTests
             .ReturnsAsync(new List<string> { "User" });
     }
 
-    private void SetupTokenServices(string email, List<string> roles)
+    private void SetupTokenServices(string userId, string email, List<string> roles)
     {
-        var accessToken = new AccessToken
-        {
-            Token = "test-token",
-            Expires = DateTime.UtcNow.AddHours(1)
-        };
+        var accessToken = new AccessToken { Token = "test-token", Expires = DateTime.UtcNow.AddMinutes(15) };
+        var refreshToken = new RefreshToken { Token = "test-refresh-token", Email = email, Expires = DateTime.UtcNow.AddDays(7) };
 
-        var refreshToken = new RefreshToken
-        {
-            Token = "refresh-token",
-            Email = email,
-            Created = DateTime.UtcNow,
-            Expires = DateTime.UtcNow.AddDays(7)
-        };
-
-        _accessTokenServiceMock.Setup(x => x.GenerateAccessTokenAsync(email, roles))
+        _accessTokenServiceMock.Setup(x => x.GenerateAccessTokenAsync(userId, email, roles))
             .Returns(Result<AccessToken>.Success(accessToken));
 
-        _refreshTokenServiceMock.Setup(x => x.GenerateRefreshTokenAsync(email, roles))
+        _refreshTokenServiceMock.Setup(x => x.GenerateRefreshTokenAsync(userId, email, roles))
             .ReturnsAsync(Result<RefreshToken>.Success(refreshToken));
     }
 
@@ -145,7 +134,7 @@ public class AuthServiceTests
         var roles = new List<string> { "User" };
 
         SetupUserManager(user);
-        SetupTokenServices(loginRequest.Email, roles);
+        SetupTokenServices("test-user-id", loginRequest.Email, roles);
         _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(loginRequest.Email))
             .ReturnsAsync(Result<Account>.Success(account));
 
@@ -162,8 +151,8 @@ public class AuthServiceTests
         _userManagerMock.Verify(x => x.CheckPasswordAsync(user, loginRequest.Password), Times.Once);
         _userManagerMock.Verify(x => x.GetRolesAsync(user), Times.Once);
         _accountServiceMock.Verify(x => x.GetAccountByEmailAsEntityAsync(loginRequest.Email), Times.Once);
-        _accessTokenServiceMock.Verify(x => x.GenerateAccessTokenAsync(loginRequest.Email, roles), Times.Once);
-        _refreshTokenServiceMock.Verify(x => x.GenerateRefreshTokenAsync(loginRequest.Email, roles), Times.Once);
+        _accessTokenServiceMock.Verify(x => x.GenerateAccessTokenAsync("test-user-id", loginRequest.Email, roles), Times.Once);
+        _refreshTokenServiceMock.Verify(x => x.GenerateRefreshTokenAsync("test-user-id", loginRequest.Email, roles), Times.Once);
         _refreshTokenServiceMock.Verify(x => x.SetRefreshTokenCookie(It.IsAny<RefreshToken>()), Times.Once);
     }
 
@@ -256,7 +245,7 @@ public class AuthServiceTests
             .ReturnsAsync(Result.Success());
 
         // Act
-        var result = await _authService.RegisterUserWithRoleAsync(registerRequest, role);
+        var result = await _authService.RegisterAsync(registerRequest, role);
 
         // Assert
         result.Should().NotBeNull();
@@ -282,7 +271,7 @@ public class AuthServiceTests
             .ReturnsAsync(existingUser);
 
         // Act
-        var result = await _authService.RegisterUserWithRoleAsync(registerRequest, role);
+        var result = await _authService.RegisterAsync(registerRequest, role);
 
         // Assert
         result.Should().NotBeNull();
@@ -316,7 +305,7 @@ public class AuthServiceTests
         _refreshTokenServiceMock.Setup(x => x.ValidateRefreshToken(It.IsAny<ClaimsPrincipal>(), _userManagerMock.Object))
             .ReturnsAsync((refreshToken.Email, roles));
 
-        SetupTokenServices(refreshToken.Email, roles);
+        SetupTokenServices("test-user-id", refreshToken.Email, roles);
 
         // Act
         var result = await _authService.GenerateAuthTokenAsync();
@@ -330,8 +319,8 @@ public class AuthServiceTests
         _refreshTokenServiceMock.Verify(x => x.GetRefreshTokenFromCookie(), Times.Once);
         _tokenUserClaimsServiceMock.Verify(x => x.GetClaimsPrincipalFromToken(refreshToken), Times.Once);
         _refreshTokenServiceMock.Verify(x => x.ValidateRefreshToken(It.IsAny<ClaimsPrincipal>(), _userManagerMock.Object), Times.Once);
-        _accessTokenServiceMock.Verify(x => x.GenerateAccessTokenAsync(refreshToken.Email, roles), Times.Once);
-        _refreshTokenServiceMock.Verify(x => x.GenerateRefreshTokenAsync(refreshToken.Email, roles), Times.Once);
+        _accessTokenServiceMock.Verify(x => x.GenerateAccessTokenAsync("test-user-id", refreshToken.Email, roles), Times.Once);
+        _refreshTokenServiceMock.Verify(x => x.GenerateRefreshTokenAsync("test-user-id", refreshToken.Email, roles), Times.Once);
         _refreshTokenServiceMock.Verify(x => x.SetRefreshTokenCookie(It.IsAny<RefreshToken>()), Times.Once);
     }
 

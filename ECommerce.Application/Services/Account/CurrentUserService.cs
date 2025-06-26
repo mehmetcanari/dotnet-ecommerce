@@ -2,6 +2,7 @@ using System.Security.Claims;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Account;
 
@@ -9,11 +10,13 @@ public class CurrentUserService : ICurrentUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILoggingService _logger;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public CurrentUserService(IHttpContextAccessor httpContextAccessor, ILoggingService logger)
+    public CurrentUserService(IHttpContextAccessor httpContextAccessor, ILoggingService logger, UserManager<IdentityUser> userManager)
     {
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
+        _userManager = userManager;
     }
 
     public Result<string> GetCurrentUserEmail()
@@ -42,19 +45,35 @@ public class CurrentUserService : ICurrentUserService
 
     }
 
-    public Result<string> GetCurrentUserId()
+    public async Task<Result<string>> GetCurrentUserId()
     {
         try
         {
+            // First try to get user ID from NameIdentifier claim
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            if (!string.IsNullOrEmpty(userId))
             {
-                _logger.LogWarning("User ID not found in claims.");
-                return Result<string>.Failure("User ID not found.");
+                _logger.LogInformation("Current user ID from NameIdentifier claim: {UserId}", userId);
+                return Result<string>.Success(userId);
             }
 
-            _logger.LogInformation("Current user ID: {UserId}", userId);
-            return Result<string>.Success(userId);
+            // If NameIdentifier not found, try to get user ID from email
+            var emailResult = GetCurrentUserEmail();
+            if (emailResult.IsFailure || string.IsNullOrEmpty(emailResult.Data))
+            {
+                _logger.LogWarning("User email not found in claims.");
+                return Result<string>.Failure("User email not found.");
+            }
+
+            var user = await _userManager.FindByEmailAsync(emailResult.Data);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found in database for email: {Email}", emailResult.Data);
+                return Result<string>.Failure("User not found in database.");
+            }
+
+            _logger.LogInformation("Current user ID from database: {UserId}", user.Id);
+            return Result<string>.Success(user.Id);
         }
         catch (Exception exception)
         {

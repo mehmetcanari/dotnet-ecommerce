@@ -4,5 +4,5 @@ namespace ECommerce.Application.Abstract.Service;
 
 public interface IAccessTokenService
 {
-    Result<AccessToken> GenerateAccessTokenAsync(string email, IList<string> roles);
+    Result<AccessToken> GenerateAccessTokenAsync(string userId, string email, IList<string> roles);
 } 

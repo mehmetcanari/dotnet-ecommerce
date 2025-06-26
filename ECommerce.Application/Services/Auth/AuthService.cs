@@ -5,6 +5,7 @@ using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using Microsoft.AspNetCore.Identity;
 using ECommerce.Application.DTO.Request.Token;
+using System.Security.Claims;
 
 namespace ECommerce.Application.Services.Auth;
 
@@ -112,7 +113,7 @@ public class AuthService : BaseValidator, IAuthService
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            var authResponseDto = await RequestGenerateTokensAsync(user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+            var authResponseDto = await RequestGenerateTokensAsync(user.Id, user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
             _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
             return Result<AuthResponseDto>.Success(authResponseDto);
         }
@@ -162,7 +163,19 @@ public class AuthService : BaseValidator, IAuthService
             var identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken.Data);
             var (email, roles) = await _refreshTokenService.ValidateRefreshToken(identifier, _userManager);
 
-            var authResponseDto = await RequestGenerateTokensAsync(email, roles);
+            // Get user ID from claims or find by email
+            var userId = identifier.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    return Result<AuthResponseDto>.Failure("User not found");
+                }
+                userId = user.Id;
+            }
+
+            var authResponseDto = await RequestGenerateTokensAsync(userId, email, roles);
             return Result<AuthResponseDto>.Success(authResponseDto);
         }
         catch (Exception ex)
@@ -172,12 +185,12 @@ public class AuthService : BaseValidator, IAuthService
         }
     }
 
-    private async Task<AuthResponseDto> RequestGenerateTokensAsync(string email, IList<string> roles)
+    private async Task<AuthResponseDto> RequestGenerateTokensAsync(string userId, string email, IList<string> roles)
     {
         try
         {
-            var accessToken = _accessTokenService.GenerateAccessTokenAsync(email, roles);
-            var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(email, roles);
+            var accessToken = _accessTokenService.GenerateAccessTokenAsync(userId, email, roles);
+            var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(userId, email, roles);
 
             if (refreshToken.Data is null)
             {

@@ -21,7 +21,7 @@ public class AccessTokenService : IAccessTokenService
         _logger = logger;
     }
 
-    public Result<AccessToken> GenerateAccessTokenAsync(string email, IList<string> roles)
+    public Result<AccessToken> GenerateAccessTokenAsync(string userId, string email, IList<string> roles)
     {
         try
         {
@@ -29,7 +29,7 @@ public class AccessTokenService : IAccessTokenService
 
             AccessToken accessToken = new AccessToken
             {
-                Token = GenerateAccessJwtToken(email, roles),
+                Token = GenerateAccessJwtToken(userId, email, roles),
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(accessTokenExpiry))
             };
 
@@ -42,7 +42,7 @@ public class AccessTokenService : IAccessTokenService
         }
     }
 
-    private string GenerateAccessJwtToken(string email, IList<string> roles)
+    private string GenerateAccessJwtToken(string userId, string email, IList<string> roles)
     {
         try
         {
@@ -56,6 +56,7 @@ public class AccessTokenService : IAccessTokenService
 
             var claims = new List<Claim>
             {
+                new(NameIdentifier, userId),
                 new(Email, email),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new("tokenType", "access")

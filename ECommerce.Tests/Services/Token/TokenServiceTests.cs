@@ -64,10 +64,11 @@ public class TokenServiceTests
     {
         // Arrange
         var email = "test@example.com";
+        var userId = "test-user-id";
         var roles = new List<string> { "User" };
 
         // Act
-        var result = _accessTokenService.GenerateAccessTokenAsync(email, roles);
+        var result = _accessTokenService.GenerateAccessTokenAsync(userId, email, roles);
 
         // Assert
         result.Should().NotBeNull();
@@ -82,17 +83,18 @@ public class TokenServiceTests
     public async Task GenerateAccessToken_WithInvalidSecret_ShouldReturnFailure()
     {
         // Arrange
-        Environment.SetEnvironmentVariable("JWT_SECRET", null);
         var email = "test@example.com";
+        var userId = "test-user-id";
         var roles = new List<string> { "User" };
+        Environment.SetEnvironmentVariable("JWT_SECRET", null);
 
         // Act
-        var result = _accessTokenService.GenerateAccessTokenAsync(email, roles);
+        var result = _accessTokenService.GenerateAccessTokenAsync(userId, email, roles);
 
         // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNullOrEmpty();
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("JWT_SECRET is not configured");
     }
 
     [Fact]
@@ -101,6 +103,7 @@ public class TokenServiceTests
     {
         // Arrange
         var email = "test@example.com";
+        var userId = "test-user-id";
         var roles = new List<string> { "User" };
         _refreshTokenRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<RefreshToken>()))
             .Returns(Task.CompletedTask);
@@ -108,7 +111,7 @@ public class TokenServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _refreshTokenService.GenerateRefreshTokenAsync(email, roles);
+        var result = await _refreshTokenService.GenerateRefreshTokenAsync(userId, email, roles);
 
         // Assert
         result.Should().NotBeNull();

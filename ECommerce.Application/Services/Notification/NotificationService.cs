@@ -28,7 +28,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var userId = GetCurrentUserId();
+            var userId = await GetCurrentUserId();
             if (userId.IsFailure || string.IsNullOrEmpty(userId.Data))
                 return Result<Domain.Model.Notification>.Failure("User ID not found");
 
@@ -60,7 +60,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var userId = GetCurrentUserId();
+            var userId = await GetCurrentUserId();
             if (userId.IsFailure || string.IsNullOrEmpty(userId.Data))
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure("User ID not found");
 
@@ -81,7 +81,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var userId = GetCurrentUserId();
+            var userId = await GetCurrentUserId();
             if (userId.IsFailure || string.IsNullOrEmpty(userId.Data))
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure("User ID not found");
 
@@ -102,7 +102,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var userId = GetCurrentUserId();
+            var userId = await GetCurrentUserId();
             if (userId.IsFailure || string.IsNullOrEmpty(userId.Data))
                 return Result<int>.Failure("User ID not found");
 
@@ -141,7 +141,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var userId = GetCurrentUserId();
+            var userId = await GetCurrentUserId();
             if (userId.IsFailure || string.IsNullOrEmpty(userId.Data))
                 return Result<bool>.Failure("User ID not found");
 
@@ -195,9 +195,9 @@ public class NotificationService : INotificationService
         }
     }
 
-    private Result<string> GetCurrentUserId()
+    private async Task<Result<string>> GetCurrentUserId()
     {
-        var userIdResult = _currentUserService.GetCurrentUserId();
+        var userIdResult = await _currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure || string.IsNullOrEmpty(userIdResult.Data))
             return Result<string>.Failure("User ID not found");
 

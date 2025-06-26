@@ -19,7 +19,7 @@ public class NotificationHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        var result = _currentUserService.GetCurrentUserId();
+        var result = await _currentUserService.GetCurrentUserId();
         if (result.IsSuccess && !string.IsNullOrEmpty(result.Data))
         {
             _userConnections[result.Data] = Context.ConnectionId;
@@ -32,7 +32,7 @@ public class NotificationHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var result = _currentUserService.GetCurrentUserId();
+        var result = await _currentUserService.GetCurrentUserId();
         if (result.IsSuccess && !string.IsNullOrEmpty(result.Data))
         {
             _userConnections.Remove(result.Data);

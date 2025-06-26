@@ -39,7 +39,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         _currentUserService = currentUserService;
     }
 
-    public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(string email, IList<string> roles)
+    public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(string userId, string email, IList<string> roles)
     {
         try
         {
@@ -49,7 +49,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
 
             var refreshToken = new RefreshToken
             {
-                Token = GenerateRefreshJwtToken(email, roles),
+                Token = GenerateRefreshJwtToken(userId, email, roles),
                 Email = email,
                 Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry)),
                 Created = DateTime.UtcNow
@@ -125,7 +125,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         }
     }
 
-    private string GenerateRefreshJwtToken(string email, IList<string> roles)
+    private string GenerateRefreshJwtToken(string userId, string email, IList<string> roles)
     {
         try
         {
@@ -138,7 +138,8 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
             {
                 new(JwtRegisteredClaimNames.Sub, email),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new("tokenType", "refresh")
+                new("tokenType", "refresh"),
+                new(ClaimTypes.NameIdentifier, userId)
             };
 
             foreach (var role in roles)
