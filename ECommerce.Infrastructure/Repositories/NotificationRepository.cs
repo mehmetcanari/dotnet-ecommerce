@@ -26,27 +26,6 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<Notification> GetByIdAsync(int id)
-    {
-        try
-        {
-            IQueryable<Notification> query = _context.Notifications;
-
-            var notification = await query
-                .Include(n => n.User)
-                .FirstOrDefaultAsync(n => n.Id == id);
-
-            if(notification == null)
-                throw new Exception("Notification not found");
-
-            return notification;
-        }
-        catch (Exception exception)
-        {
-            throw new Exception("An unexpected error occurred while getting notification by id", exception);
-        }
-    }
-
     public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId, int page = 1, int size = 50)
     {
         try

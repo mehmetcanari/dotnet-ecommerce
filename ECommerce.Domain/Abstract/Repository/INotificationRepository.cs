@@ -5,7 +5,6 @@ namespace ECommerce.Domain.Abstract.Repository;
 public interface INotificationRepository
 {
     Task CreateAsync(Notification notification);
-    Task<Notification> GetByIdAsync(int id);
     Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId, int page = 1, int size = 50);
     Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(string userId);
     Task<int> GetUnreadCountAsync(string userId);

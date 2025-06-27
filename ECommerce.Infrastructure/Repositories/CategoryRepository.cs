@@ -78,9 +78,6 @@ public class CategoryRepository : ICategoryRepository
                 .Include(c => c.Products)
                 .FirstOrDefaultAsync();
 
-            if(category == null)
-                throw new Exception("Category not found");
-
             return category;
         }
         catch (Exception exception)
