@@ -4,6 +4,7 @@ using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Services.Auth;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Model;
+using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -20,6 +21,7 @@ public class AuthServiceTests
     private readonly Mock<IRefreshTokenService> _refreshTokenServiceMock;
     private readonly Mock<ITokenUserClaimsService> _tokenUserClaimsServiceMock;
     private readonly Mock<ILoggingService> _loggingServiceMock;
+    private readonly Mock<ICrossContextUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly IAuthService _authService;
 
@@ -36,6 +38,7 @@ public class AuthServiceTests
         _refreshTokenServiceMock = new Mock<IRefreshTokenService>();
         _tokenUserClaimsServiceMock = new Mock<ITokenUserClaimsService>();
         _loggingServiceMock = new Mock<ILoggingService>();
+        _unitOfWorkMock = new Mock<ICrossContextUnitOfWork>();
         _serviceProviderMock = new Mock<IServiceProvider>();
 
         _authService = new AuthService(
@@ -46,6 +49,7 @@ public class AuthServiceTests
             _refreshTokenServiceMock.Object,
             _tokenUserClaimsServiceMock.Object,
             _loggingServiceMock.Object,
+            _unitOfWorkMock.Object,
             _serviceProviderMock.Object);
     }
 

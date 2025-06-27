@@ -21,7 +21,7 @@ public class OrderServiceTests
     private readonly Mock<IBasketItemRepository> _basketItemRepositoryMock;
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
     private readonly Mock<ILoggingService> _loggerMock;
-    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IStoreUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<IPaymentService> _paymentServiceMock;
     private readonly Mock<ICurrentUserService> _currentUserServiceMock;
@@ -37,7 +37,7 @@ public class OrderServiceTests
         _basketItemRepositoryMock = new Mock<IBasketItemRepository>();
         _accountRepositoryMock = new Mock<IAccountRepository>();
         _loggerMock = new Mock<ILoggingService>();
-        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _unitOfWorkMock = new Mock<IStoreUnitOfWork>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _paymentServiceMock = new Mock<IPaymentService>();
         _currentUserServiceMock = new Mock<ICurrentUserService>();

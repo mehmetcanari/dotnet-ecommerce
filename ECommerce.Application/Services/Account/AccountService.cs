@@ -46,7 +46,6 @@ public class AccountService : BaseValidator, IAccountService
                 return Result.Failure(result.Error);
             }
 
-            await _unitOfWork.Commit();
             return Result.Success();
         }
         catch (Exception ex)
