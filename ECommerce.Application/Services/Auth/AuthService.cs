@@ -6,6 +6,7 @@ using ECommerce.Application.Utility;
 using Microsoft.AspNetCore.Identity;
 using ECommerce.Application.DTO.Request.Token;
 using System.Security.Claims;
+using ECommerce.Domain.Abstract.Repository;
 
 namespace ECommerce.Application.Services.Auth;
 
@@ -18,6 +19,7 @@ public class AuthService : BaseValidator, IAuthService
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ITokenUserClaimsService _tokenUserClaimsService;
     private readonly ILoggingService _logger;
+    private readonly ICrossContextUnitOfWork _crossContextUnitOfWork;
     
     public AuthService(
         IAccountService accountService,
@@ -26,7 +28,9 @@ public class AuthService : BaseValidator, IAuthService
         IAccessTokenService accessTokenService,
         IRefreshTokenService refreshTokenService,
         ITokenUserClaimsService tokenUserClaimsService,
-        ILoggingService logger, IServiceProvider serviceProvider) : base(serviceProvider)
+        ILoggingService logger,
+        ICrossContextUnitOfWork unitOfWork,
+        IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _accountService = accountService;
         _userManager = userManager;
@@ -35,66 +39,128 @@ public class AuthService : BaseValidator, IAuthService
         _refreshTokenService = refreshTokenService;
         _tokenUserClaimsService = tokenUserClaimsService;
         _logger = logger;
+        _crossContextUnitOfWork = unitOfWork;
     }
 
-    public async Task<Result> RegisterAsync(AccountRegisterRequestDto registerRequestDto, string role)
+        public async Task<Result> RegisterAsync(AccountRegisterRequestDto registerRequestDto, string role)
     {
         try
         {
-            var validationResult = await ValidateAsync(registerRequestDto);
-            if (validationResult is { IsSuccess: false, Error: not null }) 
-                return Result.Failure(validationResult.Error);
+            var validationResult = await ValidateRegistrationRequestAsync(registerRequestDto);
+            if (validationResult.IsFailure)
+                return validationResult;
 
-            var existingUser = await _userManager.FindByEmailAsync(registerRequestDto.Email);
-            if (existingUser != null)
+            await _crossContextUnitOfWork.BeginTransactionAsync();
+
+            var accountResult = await CreateAccountInStoreAsync(registerRequestDto, role);
+            if (accountResult.IsFailure)
             {
-                _logger.LogWarning("Registration failed - Email already exists: {Email}", registerRequestDto.Email);
-                return Result.Failure("Email is already in use.");
+                _logger.LogError(new Exception("Transaction failed to commit"),"Transaction failed to commit: {Error}", accountResult.Error);
+                await _crossContextUnitOfWork.RollbackTransaction();
+                return accountResult;
             }
 
-            var accountResult = await _accountService.RegisterAccountAsync(registerRequestDto, role);
-            if (accountResult is { IsFailure: true, Error: not null })
+            var identityResult = await CreateIdentityUserAsync(registerRequestDto);
+            if (identityResult.IsFailure)
             {
-                return Result.Failure(accountResult.Error);
+                _logger.LogError(new Exception("Transaction failed to commit"),"Transaction failed to commit: {Error}", identityResult.Error);
+                await _crossContextUnitOfWork.RollbackTransaction();
+                return Result.Failure(identityResult.Error!);
             }
 
-            var user = new IdentityUser
+            var roleResult = await AssignUserRoleAsync(identityResult.Data!, role);
+            if (roleResult.IsFailure)
             {
-                UserName = registerRequestDto.Email,
-                Email = registerRequestDto.Email,
-                PhoneNumber = registerRequestDto.PhoneNumber,
-            };
-
-            var result = await _userManager.CreateAsync(user, registerRequestDto.Password);
-            if (!result.Succeeded)
-            {
-                return Result.Failure("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                _logger.LogError(new Exception("Transaction failed to commit"),"Transaction failed to commit: {Error}", roleResult.Error);
+                await _crossContextUnitOfWork.RollbackTransaction();
+                return roleResult;
             }
 
-            if (!await _roleManager.RoleExistsAsync(role))
-            {
-                var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
-                if (!roleResult.Succeeded)
-                {
-                    return Result.Failure($"Error creating {role} role.");
-                }
-            }
-
-            var addRoleResult = await _userManager.AddToRoleAsync(user, role);
-            if (!addRoleResult.Succeeded)
-            {
-                return Result.Failure("Error assigning role to user.");
-            }
+            await _crossContextUnitOfWork.CommitTransactionAsync();
 
             _logger.LogInformation("User {Email} registered successfully with role {Role}", registerRequestDto.Email, role);
-
             return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error registering user: {Message}", ex.Message);
+            
+            try
+            {
+                await _crossContextUnitOfWork.RollbackTransaction();
+            }
+            catch (Exception rollbackEx)
+            {
+                _logger.LogError(rollbackEx, "Error during rollback: {Message}", rollbackEx.Message);
+            }
+            
             return Result.Failure(ex.Message);
         }
+    }
+
+    private async Task<Result> ValidateRegistrationRequestAsync(AccountRegisterRequestDto registerRequestDto)
+    {
+        var validationResult = await ValidateAsync(registerRequestDto);
+        if (validationResult is { IsSuccess: false, Error: not null })
+            return Result.Failure(validationResult.Error);
+
+        var existingUser = await _userManager.FindByEmailAsync(registerRequestDto.Email);
+        if (existingUser != null)
+        {
+            _logger.LogWarning("Registration failed - Email already exists: {Email}", registerRequestDto.Email);
+            return Result.Failure("Email is already in use.");
+        }
+
+        return Result.Success();
+    }
+
+    private async Task<Result> CreateAccountInStoreAsync(AccountRegisterRequestDto registerRequestDto, string role)
+    {
+        var accountResult = await _accountService.RegisterAccountAsync(registerRequestDto, role);
+        if (accountResult is { IsFailure: true, Error: not null })
+        {
+            return Result.Failure(accountResult.Error);
+        }
+
+        return Result.Success();
+    }
+
+    private async Task<Result<IdentityUser>> CreateIdentityUserAsync(AccountRegisterRequestDto registerRequestDto)
+    {
+        var user = new IdentityUser
+        {
+            UserName = registerRequestDto.Email,
+            Email = registerRequestDto.Email,
+            PhoneNumber = registerRequestDto.PhoneNumber,
+        };
+
+        var result = await _userManager.CreateAsync(user, registerRequestDto.Password);
+        if (!result.Succeeded)
+        {
+            return Result<IdentityUser>.Failure("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        return Result<IdentityUser>.Success(user);
+    }
+
+    private async Task<Result> AssignUserRoleAsync(IdentityUser user, string role)
+    {
+        if (!await _roleManager.RoleExistsAsync(role))
+        {
+            var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
+            if (!roleResult.Succeeded)
+            {
+                return Result.Failure($"Error creating {role} role.");
+            }
+        }
+
+        var addRoleResult = await _userManager.AddToRoleAsync(user, role);
+        if (!addRoleResult.Succeeded)
+        {
+            return Result.Failure("Error assigning role to user.");
+        }
+
+        return Result.Success();
     }
 
     public async Task<Result<AuthResponseDto>> LoginAsync(AccountLoginRequestDto loginRequestDto)

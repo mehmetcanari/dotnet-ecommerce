@@ -19,7 +19,7 @@ public class OrderService : BaseValidator, IOrderService
     private readonly IBasketItemRepository _basketItemRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IStoreUnitOfWork _storeUnitOfWork;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPaymentService _paymentService;
     private readonly IMessageBroker _messageBroker;
@@ -30,7 +30,7 @@ public class OrderService : BaseValidator, IOrderService
         IOrderRepository orderRepository,
         IBasketItemService basketItemService,
         IBasketItemRepository basketItemRepository,
-        IUnitOfWork unitOfWork,
+        IStoreUnitOfWork unitOfWork,
         IProductService productService,
         IAccountRepository accountRepository,
         ILoggingService logger,
@@ -44,7 +44,7 @@ public class OrderService : BaseValidator, IOrderService
         _orderRepository = orderRepository;
         _accountRepository = accountRepository;
         _basketItemRepository = basketItemRepository;
-        _unitOfWork = unitOfWork;
+        _storeUnitOfWork = unitOfWork;
         _basketItemService = basketItemService;
         _productService = productService;
         _logger = logger;
@@ -59,7 +59,7 @@ public class OrderService : BaseValidator, IOrderService
     {
         try
         {
-            await _unitOfWork.BeginTransactionAsync();
+            await _storeUnitOfWork.BeginTransactionAsync();
 
             var userInfoResult = await ValidateAndGetUserInfoAsync(orderCreateRequestDto);
             if (userInfoResult.IsFailure)
@@ -82,7 +82,7 @@ public class OrderService : BaseValidator, IOrderService
             {
                 _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
                     paymentResult.Data.ErrorCode, paymentResult.Data.ErrorMessage);
-                await _unitOfWork.RollbackTransaction();
+                await _storeUnitOfWork.RollbackTransaction();
                 return Result.Failure($"Payment failed: {paymentResult.Data.ErrorMessage}");
             }
 
@@ -100,14 +100,14 @@ public class OrderService : BaseValidator, IOrderService
                 Status = order.Status
             }, "order_exchange", "order.created");
 
-            await _unitOfWork.CommitTransactionAsync();
+            await _storeUnitOfWork.CommitTransactionAsync();
 
             _logger.LogInformation("Order added successfully: {Order}", order);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            await _unitOfWork.RollbackTransaction();
+            await _storeUnitOfWork.RollbackTransaction();
             _logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
             return Result.Failure(ex.Message);
         }
@@ -236,7 +236,7 @@ public class OrderService : BaseValidator, IOrderService
                 return Result.Failure(result.Error);
             }
             
-            await _unitOfWork.Commit();
+            await _storeUnitOfWork.Commit();
 
             return Result.Success();
         }

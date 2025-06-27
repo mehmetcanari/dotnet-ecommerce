@@ -1,5 +1,6 @@
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Infrastructure.Repositories;
+using ECommerce.Infrastructure.Context;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerce.Infrastructure.Dependencies;
@@ -15,6 +16,9 @@ public static class InfrastructureDependencyExtension
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddScoped<IStoreUnitOfWork, StoreUnitOfWork>();
+        services.AddScoped<ICrossContextUnitOfWork, CrossContextUnitOfWork>();
+        services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<IStoreUnitOfWork>());
     }
 }
