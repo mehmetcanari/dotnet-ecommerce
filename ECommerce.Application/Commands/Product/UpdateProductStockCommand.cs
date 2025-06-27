@@ -1,4 +1,5 @@
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
@@ -14,13 +15,16 @@ public class UpdateProductStockCommand : IRequest<Result>
 public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductStockCommand, Result>
 {
     private readonly IProductRepository _productRepository;
+    private readonly IMediator _mediator;
     private readonly ILoggingService _logger;
 
     public UpdateProductStockCommandHandler(
         IProductRepository productRepository,
+        IMediator mediator,
         ILoggingService logger)
     {
         _productRepository = productRepository;
+        _mediator = mediator;
         _logger = logger;
     }
 
@@ -28,16 +32,38 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
     {
         try
         {
+            var updatedProducts = new List<Domain.Model.Product>();
+            
             foreach (var item in request.BasketItems)
             {
                 var validationResult = await ValidateAndUpdateStock(item);
-                if (!validationResult.IsSuccess)
+                if (!validationResult.result.IsSuccess)
                 {
-                    return validationResult;
+                    return validationResult.result;
                 }
+                updatedProducts.Add(validationResult.product);
             }
 
-            _logger.LogInformation("Product stock updated successfully for {Count} items", request.BasketItems.Count);
+            foreach (var product in updatedProducts)
+            {
+                var domainEvent = new ProductStockUpdatedEvent
+                {
+                    ProductId = product.ProductId,
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price,
+                    DiscountRate = product.DiscountRate,
+                    ImageUrl = product.ImageUrl,
+                    StockQuantity = product.StockQuantity,
+                    CategoryId = product.CategoryId,
+                    ProductCreated = product.ProductCreated,
+                    ProductUpdated = product.ProductUpdated
+                };
+
+                await _mediator.Publish(domainEvent, cancellationToken);
+            }
+
+            _logger.LogInformation("Product stock updated successfully for {Count} items. Events published for Elasticsearch updating.", request.BasketItems.Count);
             return Result.Success();
         }
         catch (Exception ex)
@@ -47,13 +73,13 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
         }
     }
 
-    private async Task<Result> ValidateAndUpdateStock(BasketItem item)
+    private async Task<(Result result, Domain.Model.Product product)> ValidateAndUpdateStock(BasketItem item)
     {
         var product = await _productRepository.GetProductById(item.ProductId);
         if (product == null)
         {
             _logger.LogWarning("Product stock update failed. Product with ID {ProductId} not found", item.ProductId);
-            return Result.Failure($"Product with ID {item.ProductId} not found");
+            return (Result.Failure($"Product with ID {item.ProductId} not found"), null!);
         }
 
         if (product.StockQuantity < item.Quantity)
@@ -61,16 +87,17 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
             _logger.LogWarning(
                 "Product stock update failed. Insufficient stock for product {ProductName}. Available: {Available}, Requested: {Requested}",
                 product.Name, product.StockQuantity, item.Quantity);
-            return Result.Failure($"Insufficient stock for product {product.Name}");
+            return (Result.Failure($"Insufficient stock for product {product.Name}"), null!);
         }
 
         UpdateProductStock(product, item.Quantity);
-        return Result.Success();
+        return (Result.Success(), product);
     }
 
     private void UpdateProductStock(Domain.Model.Product product, int quantity)
     {
         product.StockQuantity -= quantity;
+        product.ProductUpdated = DateTime.UtcNow;
         _productRepository.Update(product);
 
         _logger.LogInformation(

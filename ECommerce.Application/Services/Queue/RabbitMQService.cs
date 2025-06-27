@@ -3,7 +3,6 @@ using System.Text.Json;
 using ECommerce.Application.Abstract.Service;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 namespace ECommerce.Application.Services.Queue;
 
@@ -38,7 +37,7 @@ public class RabbitMQService : IMessageBroker, IDisposable
         }
     }
 
-    public async Task PublishAsync<T>(T message, string exchange, string routingKey)
+    public async Task PublishAsync<T>(T message, string exchange, string routingKey) where T : class
     {
         try
         {
@@ -50,7 +49,7 @@ public class RabbitMQService : IMessageBroker, IDisposable
                 var body = Encoding.UTF8.GetBytes(json);
 
                 var properties = _channel.CreateBasicProperties();
-                properties.Persistent = true; // Mesajların kalıcı olmasını sağlar
+                properties.Persistent = true;
 
                 _channel.BasicPublish(
                     exchange: exchange,

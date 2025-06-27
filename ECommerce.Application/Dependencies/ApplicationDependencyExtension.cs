@@ -15,7 +15,7 @@ using ECommerce.Application.Services.Notification;
 using ECommerce.Application.Services.Order;
 using ECommerce.Application.Services.Payment;
 using ECommerce.Application.Services.Product;
-using ECommerce.Application.Services.Search;
+using ECommerce.Application.Services.Search.Product;
 using ECommerce.Application.Services.Token;
 using ECommerce.Application.Validations.Account;
 using ECommerce.Application.Validations.BasketItem;

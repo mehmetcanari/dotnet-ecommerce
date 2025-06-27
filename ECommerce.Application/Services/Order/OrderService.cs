@@ -1,5 +1,6 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Order;
+using ECommerce.Application.Events;
 using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Http;

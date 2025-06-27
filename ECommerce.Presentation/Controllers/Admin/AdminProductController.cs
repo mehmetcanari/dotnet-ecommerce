@@ -19,15 +19,18 @@ public class AdminProductController : ControllerBase
     private readonly IProductService _productService;
     private readonly IS3Service _s3Service;
     private readonly IMediator _mediator;
+    private readonly IProductSearchService _productSearchService;
     
     public AdminProductController(
         IProductService productService, 
         IS3Service s3Service,
-        IMediator mediator)
+        IMediator mediator,
+        IProductSearchService productSearchService)
     {
         _productService = productService;
         _s3Service = s3Service;
         _mediator = mediator;
+        _productSearchService = productSearchService;
     }
 
     [HttpGet]

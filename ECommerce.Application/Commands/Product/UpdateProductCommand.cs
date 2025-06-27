@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Product;
+using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Domain.Model;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Product;
@@ -19,20 +19,23 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
     private readonly ICategoryRepository _categoryRepository;
     private readonly IBasketItemService _basketItemService;
     private readonly ILoggingService _logger;
-    private readonly IProductSearchService _productSearchService;
+    private readonly IMessageBroker _messageBroker;
+    private readonly IMediator _mediator;
 
     public UpdateProductCommandHandler(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         IBasketItemService basketItemService,
         ILoggingService logger,
-        IProductSearchService productSearchService)
+        IMessageBroker messageBroker,
+        IMediator mediator)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _basketItemService = basketItemService;
         _logger = logger;
-        _productSearchService = productSearchService;
+        _messageBroker = messageBroker;
+        _mediator = mediator;
     }
 
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -47,11 +50,25 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
             var (product, category) = validationResult.Data;
             var updatedProduct = UpdateProduct(product, category, request.ProductUpdateRequest);
-            await _productSearchService.UpdateProductAsync(updatedProduct);
             await _basketItemService.ClearBasketItemsIncludeOrderedProductAsync(product);
 
-            _logger.LogInformation("Product updated successfully. ProductId: {ProductId}, Name: {Name}", 
-                product.ProductId, product.Name);
+            var domainEvent = new ProductUpdatedEvent
+            {
+                ProductId = updatedProduct.ProductId,
+                Name = updatedProduct.Name,
+                Description = updatedProduct.Description,
+                Price = updatedProduct.Price,
+                DiscountRate = updatedProduct.DiscountRate,
+                ImageUrl = updatedProduct.ImageUrl,
+                StockQuantity = updatedProduct.StockQuantity,
+                CategoryId = updatedProduct.CategoryId,
+                ProductCreated = updatedProduct.ProductCreated,
+                ProductUpdated = updatedProduct.ProductUpdated
+            };
+
+            await _mediator.Publish(domainEvent, cancellationToken);
+            await _messageBroker.PublishAsync(domainEvent, "product_exchange", "product.updated");
+
             return Result.Success();
         }
         catch (Exception ex)

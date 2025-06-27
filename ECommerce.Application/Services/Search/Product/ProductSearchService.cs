@@ -1,10 +1,10 @@
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Utility;
 using Elastic.Clients.Elasticsearch;
-using Elastic.Clients.Elasticsearch.Mapping;
 using Result = ECommerce.Application.Utility.Result;
 
-namespace ECommerce.Application.Services.Search;
+namespace ECommerce.Application.Services.Search.Product;
 public class ProductSearchService : IProductSearchService
 {
     private readonly ElasticsearchClient _elasticClient;
@@ -28,7 +28,19 @@ public class ProductSearchService : IProductSearchService
                 return Result.Failure("Product cannot be null");
             }
 
-            var response = await _elasticClient.IndexAsync(product, ProductIndexName);
+            // Index yoksa oluştur
+            var existsResponse = await _elasticClient.Indices.ExistsAsync(ProductIndexName);
+            if (!existsResponse.IsValidResponse || (existsResponse.ApiCallDetails?.HttpStatusCode != 200))
+            {
+                _logger.LogInformation("Index {IndexName} does not exist, creating it", ProductIndexName);
+                var createResult = await CreateProductIndexWithNGramAsync();
+                if (!createResult.IsSuccess)
+                {
+                    return Result.Failure($"Failed to create index: {createResult.Error}");
+                }
+            }
+
+            var response = await _elasticClient.IndexAsync(product, ProductIndexName, i => i.Id(product.ProductId.ToString()));
             if (!response.IsValidResponse)
             {
                 return Result.Failure($"Failed to index product: {response.ElasticsearchServerError?.Error?.Reason}");
@@ -65,13 +77,13 @@ public class ProductSearchService : IProductSearchService
         }
     }
 
-    public async Task<Result<List<Domain.Model.Product>>> SearchProductsAsync(string query, int page = 1, int pageSize = 10)
+    public async Task<Result<List<ProductResponseDto>>> SearchProductsAsync(string query, int page = 1, int pageSize = 10)
     {
         try
         {
             if (string.IsNullOrEmpty(query))
             {
-                return Result<List<Domain.Model.Product>>.Failure("Query cannot be null or empty");
+                return Result<List<ProductResponseDto>>.Failure("Query cannot be null or empty");
             }
 
             _logger.LogInformation("Elasticsearch query: {Query}", query.ToLower());
@@ -81,9 +93,35 @@ public class ProductSearchService : IProductSearchService
             var searchResponse = await _elasticClient.SearchAsync<Domain.Model.Product>(s => s
                 .Indices(ProductIndexName)
                 .Query(q => q
-                    .Match(m => m
-                        .Field("name")
-                        .Query(query.ToLower())
+                    .Bool(b => b
+                        .Should(
+                            sh => sh.Term(t => t
+                                .Field("name.keyword")
+                                .Value(query)
+                                .Boost(3.0f)
+                            ),
+                            sh => sh.Match(m => m
+                                .Field("name")
+                                .Query(query)
+                                .Boost(2.5f)
+                            ),
+                            sh => sh.Prefix(p => p
+                                .Field("name.keyword")
+                                .Value(query.ToLower())
+                                .Boost(2.0f)
+                            ),
+                            sh => sh.Wildcard(w => w
+                                .Field("name.keyword")
+                                .Value($"*{query.ToLower()}*")
+                                .Boost(1.5f)
+                            ),
+                            sh => sh.Wildcard(w => w
+                                .Field("description")
+                                .Value($"*{query.ToLower()}*")
+                                .Boost(0.5f)
+                            )
+                        )
+                        .MinimumShouldMatch(1)
                     )
                 )
                 .From((page - 1) * pageSize)
@@ -94,27 +132,36 @@ public class ProductSearchService : IProductSearchService
             if (searchResponse == null)
             {
                 _logger.LogError(null, "Elasticsearch searchResponse is null!");
-                return Result<List<Domain.Model.Product>>.Failure("Elasticsearch response is null");
+                return Result<List<ProductResponseDto>>.Failure("Elasticsearch response is null");
             }
 
             if (!searchResponse.IsValidResponse)
             {
                 _logger.LogError(null, "Elasticsearch search failed: {Error}", searchResponse.ElasticsearchServerError?.Error?.Reason ?? "Unknown error");
-                return Result<List<Domain.Model.Product>>.Failure("Elasticsearch search failed");
+                return Result<List<ProductResponseDto>>.Failure("Elasticsearch search failed");
             }
 
             if (searchResponse.Documents == null || !searchResponse.Documents.Any())
             {
                 _logger.LogInformation("No products found for query: {Query}", query);
-                return Result<List<Domain.Model.Product>>.Success(new List<Domain.Model.Product>());
+                return Result<List<ProductResponseDto>>.Success(new List<ProductResponseDto>());
             }
 
-            return Result<List<Domain.Model.Product>>.Success(searchResponse.Documents.ToList());
+            return Result<List<ProductResponseDto>>.Success(searchResponse.Documents.Select(d => new ProductResponseDto
+            {
+                ProductName = d.Name,
+                Description = d.Description,
+                Price = d.Price,
+                DiscountRate = d.DiscountRate,
+                ImageUrl = d.ImageUrl,
+                StockQuantity = d.StockQuantity,
+                CategoryId = d.CategoryId
+            }).ToList());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while searching products: {Message}", ex.Message);
-            return Result<List<Domain.Model.Product>>.Failure("Unexpected error while searching products");
+            return Result<List<ProductResponseDto>>.Failure("Unexpected error while searching products");
         }
     }
 
@@ -169,13 +216,6 @@ public class ProductSearchService : IProductSearchService
                 return Result.Failure("Product list cannot be null or empty");
             }
 
-            // Önce index'teki tüm ürünleri sil
-            var deleteResult = await DeleteAllProductsFromIndexAsync();
-            if (!deleteResult.IsSuccess)
-            {
-                return Result.Failure($"Failed to clear index before bulk indexing: {deleteResult.Error}");
-            }
-
             var response = await _elasticClient.BulkAsync(b => b
                 .Index(ProductIndexName)
                 .IndexMany(products));
@@ -194,6 +234,31 @@ public class ProductSearchService : IProductSearchService
         }
     }
 
+    public async Task<Result> ReindexAllProductsAsync(IEnumerable<Domain.Model.Product> products)
+    {
+        try
+        {
+            var deleteResult = await DeleteAllProductsFromIndexAsync();
+            if (!deleteResult.IsSuccess)
+            {
+                return Result.Failure($"Failed to clear index before reindexing: {deleteResult.Error}");
+            }
+
+            var bulkResult = await BulkIndexProductsAsync(products);
+            if (!bulkResult.IsSuccess)
+            {
+                return Result.Failure($"Failed to bulk index products: {bulkResult.Error}");
+            }
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while reindexing products: {Message}", ex.Message);
+            return Result.Failure("Unexpected error while reindexing products");
+        }
+    }
+
     public async Task<Result> CreateProductIndexWithNGramAsync()
     {
         try
@@ -202,37 +267,59 @@ public class ProductSearchService : IProductSearchService
             if (existsResponse.IsValidResponse && existsResponse.ApiCallDetails != null && existsResponse.ApiCallDetails.HttpStatusCode == 200)
                 return Result.Success();
 
-            var createIndexResponse = await _elasticClient.Indices.CreateAsync(ProductIndexName, c => c
-                .Settings(s => s
-                    .Analysis(a => a
-                        .Analyzers(an => an
-                            .Custom("ngram_analyzer", ca => ca
-                                .Tokenizer("ngram_tokenizer")
-                                .Filter(new[] { "lowercase" })
-                            )
-                        )
-                        .Tokenizers(tz => tz
-                            .NGram("ngram_tokenizer", ng => ng
-                                .MinGram(3)
-                                .MaxGram(10)
-                                .TokenChars(new[] { Elastic.Clients.Elasticsearch.Analysis.TokenChar.Letter, Elastic.Clients.Elasticsearch.Analysis.TokenChar.Digit })
-                            )
-                        )
-                    )
-                )
-                .Mappings(ms => ms
-                    .Properties(new Properties
-                    {
-                        { "name", new TextProperty { Analyzer = "ngram_analyzer" } }
-                    })
-                )
-            );
-            return createIndexResponse.IsValidResponse ? Result.Success() : Result.Failure("Failed to create index with ngram analyzer");
+            // Mapping olmadan, otomatik mapping ile index oluştur
+            var createIndexResponse = await _elasticClient.Indices.CreateAsync(ProductIndexName);
+            _logger.LogInformation("Index creation response: {@Response}", createIndexResponse);
+            return createIndexResponse.IsValidResponse ? Result.Success() : Result.Failure($"Failed to create index: {createIndexResponse.ElasticsearchServerError?.Error?.Reason}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while creating product index: {Message}", ex.Message);
             return Result.Failure("Unexpected error while creating product index");
+        }
+    }
+
+    public async Task<Result> InitializeIndexAsync(IEnumerable<Domain.Model.Product> products)
+    {
+        try
+        {
+            var existsResponse = await _elasticClient.Indices.ExistsAsync(ProductIndexName);
+            
+            if (existsResponse.IsValidResponse && existsResponse.ApiCallDetails != null && existsResponse.ApiCallDetails.HttpStatusCode == 200)
+            {
+                _logger.LogInformation("Index already exists, clearing and reindexing products");
+                var reindexResult = await ReindexAllProductsAsync(products);
+                if (!reindexResult.IsSuccess)
+                {
+                    return Result.Failure($"Failed to reindex products: {reindexResult.Error}");
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Creating new index and indexing products");
+                var indexResult = await CreateProductIndexWithNGramAsync();
+                if (!indexResult.IsSuccess)
+                {
+                    return Result.Failure($"Failed to create index: {indexResult.Error}");
+                }
+
+                if (products != null && products.Any())
+                {
+                    var bulkResult = await BulkIndexProductsAsync(products);
+                    if (!bulkResult.IsSuccess)
+                    {
+                        return Result.Failure($"Failed to bulk index products: {bulkResult.Error}");
+                    }
+                }
+            }
+
+            _logger.LogInformation("Elasticsearch index initialized successfully");
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while initializing index: {Message}", ex.Message);
+            return Result.Failure("Unexpected error while initializing index");
         }
     }
 }

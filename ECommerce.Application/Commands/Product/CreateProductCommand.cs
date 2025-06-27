@@ -1,5 +1,6 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Product;
+using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
@@ -16,19 +17,25 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 {
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
-    private readonly IProductSearchService _productSearchService;
+    private readonly IMessageBroker _messageBroker;
+    private readonly IMediator _mediator;
     private readonly ILoggingService _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CreateProductCommandHandler(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         ILoggingService logger,
-        IProductSearchService productSearchService)
+        IMessageBroker messageBroker,
+        IMediator mediator,
+        IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _logger = logger;
-        _productSearchService = productSearchService;
+        _messageBroker = messageBroker;
+        _mediator = mediator;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> Handle(CreateProductCommand request, CancellationToken cancellationToken)
@@ -41,14 +48,27 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
                 return Result.Failure(validationResult.Error);
             }
 
-            await _productSearchService.CreateProductIndexWithNGramAsync();
-
             var product = CreateProductEntity(request.ProductCreateRequest, validationResult.Data);
             await _productRepository.Create(product);
-            await _productSearchService.IndexProductAsync(product);
+            
+            await _unitOfWork.Commit();
 
-            _logger.LogInformation("Product created successfully. ProductId: {ProductId}, Name: {Name}", 
-                product.ProductId, product.Name);
+            var domainEvent = new ProductCreatedEvent
+            {
+                ProductId = product.ProductId,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                DiscountRate = product.DiscountRate,
+                ImageUrl = product.ImageUrl,
+                StockQuantity = product.StockQuantity,
+                CategoryId = product.CategoryId,
+                ProductCreated = product.ProductCreated,
+                ProductUpdated = product.ProductUpdated
+            };
+
+            await _mediator.Publish(domainEvent, cancellationToken);
+            await _messageBroker.PublishAsync(domainEvent, "product_exchange", "product.created");
             return Result.Success();
         }
         catch (Exception ex)

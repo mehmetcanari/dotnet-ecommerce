@@ -1,9 +1,10 @@
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Utility;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Product;
-public class ProductSearchQuery : IRequest<Result<List<ECommerce.Domain.Model.Product>>>
+public class ProductSearchQuery : IRequest<Result<List<ProductResponseDto>>>
 {
     public string Query { get; set; }
     public int Page { get; set; } = 1;
@@ -16,7 +17,7 @@ public class ProductSearchQuery : IRequest<Result<List<ECommerce.Domain.Model.Pr
         PageSize = pageSize;
     }
 }
-public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Result<List<Domain.Model.Product>>>
+public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Result<List<ProductResponseDto>>>
 {
     private readonly IProductSearchService _productSearchService;
     private readonly ILoggingService _logger;
@@ -27,7 +28,7 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
         _logger = logger;
     }
 
-    public async Task<Result<List<Domain.Model.Product>>> Handle(ProductSearchQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<ProductResponseDto>>> Handle(ProductSearchQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -36,13 +37,13 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
             if (result.Data == null || !result.Data.Any())
             {
                 _logger.LogInformation("No products found for query: {Query}", request.Query);
-                return Result<List<Domain.Model.Product>>.Success(new List<Domain.Model.Product>());
+                return Result<List<ProductResponseDto>>.Success(new List<ProductResponseDto>());
             }
 
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("Product search failed: {Error}", result.Error);
-                return Result<List<Domain.Model.Product>>.Failure(result.Error);
+                return Result<List<ProductResponseDto>>.Failure(result.Error);
             }
 
             _logger.LogInformation("Product search completed successfully. Found {Count} products", result.Data.Count);
@@ -51,7 +52,7 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while searching for products: {Message}", ex.Message);
-            return Result<List<Domain.Model.Product>>.Failure("An error occurred while searching for products");
+            return Result<List<ProductResponseDto>>.Failure("An error occurred while searching for products");
         }
     }
 }

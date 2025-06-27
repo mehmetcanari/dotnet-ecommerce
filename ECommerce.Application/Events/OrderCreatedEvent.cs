@@ -1,3 +1,5 @@
+namespace ECommerce.Application.Events;
+
 public class OrderCreatedEvent
 {
     public int OrderId { get; init; }

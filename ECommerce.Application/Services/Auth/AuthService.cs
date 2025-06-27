@@ -52,6 +52,12 @@ public class AuthService : BaseValidator, IAuthService
                 return Result.Failure("Email is already in use.");
             }
 
+            var accountResult = await _accountService.RegisterAccountAsync(registerRequestDto, role);
+            if (accountResult is { IsFailure: true, Error: not null })
+            {
+                return Result.Failure(accountResult.Error);
+            }
+
             var user = new IdentityUser
             {
                 UserName = registerRequestDto.Email,
@@ -78,12 +84,6 @@ public class AuthService : BaseValidator, IAuthService
             if (!addRoleResult.Succeeded)
             {
                 return Result.Failure("Error assigning role to user.");
-            }
-
-            var accountResult = await _accountService.RegisterAccountAsync(registerRequestDto, role);
-            if (accountResult is { IsFailure: true, Error: not null })
-            {
-                return Result.Failure(accountResult.Error);
             }
 
             _logger.LogInformation("User {Email} registered successfully with role {Role}", registerRequestDto.Email, role);
