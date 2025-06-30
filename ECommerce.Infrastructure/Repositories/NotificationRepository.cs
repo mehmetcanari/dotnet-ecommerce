@@ -26,7 +26,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId, int page = 1, int size = 50)
+    public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(int accountId, int page = 1, int size = 50)
     {
         try
         {
@@ -34,7 +34,7 @@ public class NotificationRepository : INotificationRepository
 
             var notifications = await query
                 .AsNoTracking()
-                .Where(n => n.UserId == userId)
+                .Where(n => n.AccountId == accountId)
                 .OrderByDescending(n => n.CreatedAt)
                 .Skip((page - 1) * size)
                 .Take(size)
@@ -48,7 +48,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(string userId)
+    public async Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(int accountId)
     {
         try
         {
@@ -56,7 +56,7 @@ public class NotificationRepository : INotificationRepository
 
             var notifications = await query
             .AsNoTracking()
-            .Where(n => n.UserId == userId && n.Status == NotificationStatus.Unread)
+            .Where(n => n.AccountId == accountId && n.Status == NotificationStatus.Unread)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
 
@@ -76,7 +76,7 @@ public class NotificationRepository : INotificationRepository
 
             var count = await query
                 .AsNoTracking()
-                .CountAsync(n => n.UserId == userId && n.Status == NotificationStatus.Unread);
+                .CountAsync(n => n.AccountId == int.Parse(userId) && n.Status == NotificationStatus.Unread);
 
             return count;
         }
@@ -122,6 +122,7 @@ public class NotificationRepository : INotificationRepository
             if (notification == null) return false;
             
             notification.MarkAsRead();
+            _context.Notifications.Update(notification);
             return true;
         }
         catch (Exception exception)
@@ -130,19 +131,20 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<bool> MarkAllAsReadAsync(string userId)
+    public async Task<bool> MarkAllAsReadAsync(int id)
     {
         try
         {
             IQueryable<Notification> query = _context.Notifications;
             var unreadNotifications = await query
                 .AsNoTracking()
-                .Where(n => n.UserId == userId && n.Status == NotificationStatus.Unread)
+                .Where(n => n.AccountId == id && n.Status == NotificationStatus.Unread)
                 .ToListAsync();
 
             foreach (var notification in unreadNotifications)
             {
                 notification.MarkAsRead();
+                _context.Notifications.Update(notification);
             }
 
             return true;

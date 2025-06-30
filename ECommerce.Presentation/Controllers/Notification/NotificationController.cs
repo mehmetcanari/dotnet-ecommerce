@@ -1,5 +1,9 @@
 using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.DTO.Request.Notification;
+using ECommerce.Application.Services.Notification;
+using ECommerce.Application.Validations.Attribute;
+using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,10 +16,36 @@ namespace ECommerce.Presentation.Controllers.Notification;
 public class NotificationController : ControllerBase
 {
     private readonly INotificationService _notificationService;
+    private readonly ICurrentUserService _currentUserService;
 
-    public NotificationController(INotificationService notificationService)
+    public NotificationController(
+        INotificationService notificationService, 
+        ICurrentUserService currentUserService)
     {
         _notificationService = notificationService;
+        _currentUserService = currentUserService;
+    }
+
+    [HttpPost("send-to-all")]
+    public async Task<IActionResult> SendToAll(SendNotificationRequestDto request)
+    {
+        var result = await _notificationService.SendNotificationToAllUsersAsync(request.Title, request.Message, request.Type);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+        return Ok(new { message = "Notification sent to all users", data = result });
+    }
+
+    [HttpPost("test")]
+    public async Task<IActionResult> Test(SendNotificationRequestDto request)
+    {
+        var result = await _notificationService.TestCreateNotificationAsync(request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+        return Ok(new { message = "Notification created", data = result });
     }
 
     [HttpGet]
@@ -52,6 +82,7 @@ public class NotificationController : ControllerBase
     }
 
     [HttpPost("{id}/mark-read")]
+    [ValidateId]
     public async Task<IActionResult> MarkAsRead(int id)
     {
         var result = await _notificationService.MarkAsReadAsync(id);
@@ -59,7 +90,7 @@ public class NotificationController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok();
+        return Ok(new { message = "Notification marked as read successfully", data = result });
     }
 
     [HttpPost("mark-all-read")]
@@ -82,5 +113,40 @@ public class NotificationController : ControllerBase
             return BadRequest(new { message = result.Error });
         }
         return Ok(new { message = "Notification deleted successfully", data = result });
+    }
+
+    [HttpGet("hub-status")]
+    public async Task<IActionResult> GetHubStatus()
+    {
+        try
+        {
+            var currentUserResult = await _currentUserService.GetCurrentUserId();
+            if (currentUserResult.IsFailure)
+            {
+                return BadRequest(new { message = "User not found", hubConnected = false });
+            }
+
+            var userId = currentUserResult.Data;
+            
+            var isConnected = NotificationHub.IsUserConnected(userId);
+            var connectionId = NotificationHub.GetUserConnectionId(userId);
+            var totalConnections = NotificationHub.GetTotalConnections();
+
+            return Ok(new 
+            { 
+                message = "Hub status retrieved successfully", 
+                data = new
+                {
+                    hubConnected = isConnected,
+                    connectionId = connectionId,
+                    userId = userId,
+                    totalConnections = totalConnections
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = $"Error checking hub status: {ex.Message}", hubConnected = false });
+        }
     }
 } 

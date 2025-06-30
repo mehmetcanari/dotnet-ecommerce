@@ -18,6 +18,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **xUnit** | Unit testing |
 | **MediatR** | CQRS implementation |
 | **Elasticsearch** | Advanced product search and filtering |
+| **SignalR** | Action based notifications |
 
 ## 🛡️ Technical Approaches & Best Practices
 

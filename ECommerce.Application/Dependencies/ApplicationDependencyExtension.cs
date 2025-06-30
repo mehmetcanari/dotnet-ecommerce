@@ -52,6 +52,7 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IS3Service, S3Service>();
         services.AddScoped<IProductSearchService, ProductSearchService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IRealtimeNotificationHandler, RealtimeNotificationHandler>();
     }
     
     public static void AddValidationDependencies(this IServiceCollection services)

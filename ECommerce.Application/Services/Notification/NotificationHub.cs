@@ -2,7 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace ECommerce.Presentation.Controllers.Notification;
+namespace ECommerce.Application.Services.Notification;
 
 [Authorize]
 public class NotificationHub : Hub
@@ -16,6 +16,14 @@ public class NotificationHub : Hub
         _logger = logger;
         _currentUserService = currentUserService;
     }
+
+    public static IReadOnlyDictionary<string, string> UserConnections => _userConnections;
+
+    public static bool IsUserConnected(string userId) => _userConnections.ContainsKey(userId);
+
+    public static string? GetUserConnectionId(string userId) => _userConnections.TryGetValue(userId, out var connectionId) ? connectionId : null;
+
+    public static int GetTotalConnections() => _userConnections.Count;
 
     public override async Task OnConnectedAsync()
     {

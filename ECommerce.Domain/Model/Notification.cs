@@ -3,18 +3,17 @@ namespace ECommerce.Domain.Model;
 public class Notification
 {
     public int Id { get; init; }
-    public required string UserId { get; set; }
     public required string Title { get; set; }
     public required string Message { get; set; }
     public NotificationType Type { get; set; }
     public NotificationStatus Status { get; set; } = NotificationStatus.Unread;
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? ReadAt { get; set; }
-    public string? RelatedEntityId { get; set; }
-    public string? RelatedEntityType { get; set; }
-    
+
     // Navigation property
     public Account? User { get; set; }
+    public int? AccountId { get; set; }
+
     
     public void MarkAsRead()
     {

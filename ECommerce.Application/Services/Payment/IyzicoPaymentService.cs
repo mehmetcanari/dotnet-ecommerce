@@ -4,6 +4,7 @@ using Iyzipay.Request;
 using System.Globalization;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
+using ECommerce.Domain.Model;
 
 namespace ECommerce.Application.Services.Payment;
 
@@ -12,8 +13,9 @@ public class IyzicoPaymentService : IPaymentService
     private readonly Options _options;
     private readonly ILoggingService _logger;
     private readonly IPaymentProvider _paymentProvider;
+    private readonly INotificationService _notificationService;
 
-    public IyzicoPaymentService(ILoggingService logger, IPaymentProvider paymentProvider)
+    public IyzicoPaymentService(ILoggingService logger, IPaymentProvider paymentProvider, INotificationService notificationService)
     {
         _logger = logger;
         _paymentProvider = paymentProvider;
@@ -23,6 +25,7 @@ public class IyzicoPaymentService : IPaymentService
             SecretKey = Environment.GetEnvironmentVariable("IYZICO_SECRET_KEY"),
             BaseUrl = Environment.GetEnvironmentVariable("IYZICO_BASE_URL")
         };
+        _notificationService = notificationService;
     }
 
     public async Task<Result<Iyzipay.Model.Payment>> ProcessPaymentAsync(
@@ -43,6 +46,7 @@ public class IyzicoPaymentService : IPaymentService
                 _logger.LogError(new Exception(payment.ErrorMessage), "Payment failed: {ErrorMessage}", payment.ErrorMessage);
                 return Result<Iyzipay.Model.Payment>.Failure(payment.ErrorMessage ?? "Payment failed");
             }
+            await _notificationService.CreateNotificationAsync("Payment Success", $"Payment successful for order {order.OrderId}" + $"Total price: {payment.Price}", NotificationType.Payment);
             return Result<Iyzipay.Model.Payment>.Success(payment);
         }
         catch (Exception ex)
@@ -85,9 +89,9 @@ public class IyzicoPaymentService : IPaymentService
         return basketItems.Sum(item => item.UnitPrice * item.Quantity).ToString(CultureInfo.InvariantCulture);
     }
 
-    private PaymentCard MapToIyzicoPaymentCard(Domain.Model.PaymentCard paymentCard)
+    private Iyzipay.Model.PaymentCard MapToIyzicoPaymentCard(Domain.Model.PaymentCard paymentCard)
     {
-        return new PaymentCard
+        return new Iyzipay.Model.PaymentCard
         {
             CardHolderName = paymentCard.CardHolderName,
             CardNumber = paymentCard.CardNumber,
@@ -98,9 +102,9 @@ public class IyzicoPaymentService : IPaymentService
         };
     }
 
-    private Buyer MapToIyzicoBuyer(Domain.Model.Buyer buyer)
+    private Iyzipay.Model.Buyer MapToIyzicoBuyer(Domain.Model.Buyer buyer)
     {
-        return new Buyer
+        return new Iyzipay.Model.Buyer
         {
             Id = buyer.Id,
             Name = buyer.Name,
@@ -116,9 +120,9 @@ public class IyzicoPaymentService : IPaymentService
         };
     }
 
-    private Address MapToIyzicoAddress(Domain.Model.Address address, string description)
+    private Iyzipay.Model.Address MapToIyzicoAddress(Domain.Model.Address address, string description)
     {
-        return new Address
+        return new Iyzipay.Model.Address
         {
             ContactName = address.ContactName,
             City = address.City,

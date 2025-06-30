@@ -19,7 +19,7 @@ using ECommerce.API.SwaggerFilters;
 using ECommerce.API.Configurations;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Elastic.Clients.Elasticsearch;
-using ECommerce.Presentation.Hubs;
+using ECommerce.Application.Services.Notification;
 
 namespace ECommerce.API;
 
