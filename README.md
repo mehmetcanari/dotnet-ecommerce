@@ -2,22 +2,6 @@
 ## 📋 Overview
 Modern e-commerce RESTful API built with Clean Architecture and SOLID principles. Supports product management, user authentication, secure payment processing, and cloud file storage with AWS S3.
 
-## 🚀 Features
-
-### Core Features
-- 📦 **Product Management** - Full CRUD operations with inventory tracking
-- 🔐 **Authentication & Authorization** - JWT-based security with role management
-- 💳 **Payment Processing** - Integrated Iyzico payment gateway
-- ☁️ **Cloud Integration** - Secure and scalable file storage with AWS S3
-- 🔎 **Advanced Product Search** - Full-text and filtered product search powered by Elasticsearch
-
-### Additional Features
-- ⚡ **Performance** - Redis caching and optimized database queries
-- 🧾 **Observability** - Centralized logging with Serilog
-- 📜 **Documentation** - Interactive Swagger API docs
-- 🧪 **Testing** - Comprehensive test suite with xUnit
-- 🔄 **CQRS** - Command Query Responsibility Segregation with MediatR
-
 ## 🛠️ Tech Stack
 | Technology | Purpose |
 |-----------|---------|
@@ -45,8 +29,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **Result Pattern**           | Standardized response structure | Generic `Result<T>` wrapper for consistent success/error handling across endpoints |
 | **Rate Limiting**            | API abuse prevention | ASP.NET Core middleware |
 | **Security Headers**         | Enhanced protection against common attacks | Middleware adds HSTS, X-Frame-Options, CSP, and other security headers |
-| **BaseValidator**            | Service operations and validation | Base class with DTO validation |
-| **Transaction Management**   | Data consistency across operations | Unit of Work pattern with EF Core transactions for multi-repository operations |
+| **Distributed Transactions**   | Data consistency across operations | Unit of Work pattern with EF Core transactions for multi-repository operations |
 | **Background Jobs**          | Automated system maintenance | `BackgroundService` for token cleanup, cache refresh, and scheduled tasks |
 | **Cloud Storage**            | Secure and scalable file management | AWS S3 integration for file upload |
 | **Pagination**              | Efficient data retrieval and performance | Repository pattern with Skip/Take implementation, default page size of 50 items |
@@ -62,8 +45,7 @@ Clean Architecture implementation with clear separation of concerns:
   │   ├── Controllers
   │   ├── Logs
   │   ├── API
-  │   ├── DI Container
-  │   └── Program.cs
+  │   └── Configurations
   │
   ├── 📁 Application/        
   │   ├── DTO
@@ -97,9 +79,14 @@ Clean Architecture implementation with clear separation of concerns:
 - .NET 9 SDK
 - Docker & Docker Compose
 - PostgreSQL (if running locally)
+- Elasticsearch (if running locally)
 - Redis (if running locally)
 - RabbitMQ (if running locally)
 - AWS S3 account and bucket (for file storage)
+
+### IMPORTANT 
+ - In this project, Elasticsearch runs as a standalone Docker container, separate from Docker Compose. 
+ - Check the ELASTICSEARCH_SETUP.md file for more information.
 
 ### Option 1: Docker Compose (Recommended)
 ```bash

@@ -2,7 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace ECommerce.Presentation.Hubs;
+namespace ECommerce.Presentation.Controllers.Notification;
 
 [Authorize]
 public class NotificationHub : Hub
