@@ -13,5 +13,4 @@ public interface INotificationRepository
     Task<bool> MarkAsReadAsync(int id);
     Task<bool> MarkAllAsReadAsync(int id);
     Task<bool> DeleteOldNotificationsAsync(int daysToKeep = 30);
-    Task CreateBatchAsync(IEnumerable<Notification> notifications);
 }

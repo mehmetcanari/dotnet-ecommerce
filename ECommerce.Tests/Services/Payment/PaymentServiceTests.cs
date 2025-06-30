@@ -15,13 +15,15 @@ public class PaymentServiceTests
 {
     private readonly Mock<ILoggingService> _loggerMock;
     private readonly Mock<IPaymentProvider> _paymentProviderMock;
+    private readonly Mock<INotificationService> _notificationServiceMock;
     private readonly IPaymentService _paymentService;
 
     public PaymentServiceTests()
     {
         _loggerMock = new Mock<ILoggingService>();
         _paymentProviderMock = new Mock<IPaymentProvider>();
-        _paymentService = new IyzicoPaymentService(_loggerMock.Object, _paymentProviderMock.Object);
+        _notificationServiceMock = new Mock<INotificationService>();
+        _paymentService = new IyzicoPaymentService(_loggerMock.Object, _paymentProviderMock.Object, _notificationServiceMock.Object);
     }
 
     private Domain.Model.Order CreateOrder(decimal totalAmount = 100)

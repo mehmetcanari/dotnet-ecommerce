@@ -32,7 +32,7 @@ public class AdminCategoryController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Category created successfully", data = result });
+        return Ok(new { message = "Category created successfully" });
     }
 
     [HttpDelete("delete/{id}")]
@@ -44,7 +44,7 @@ public class AdminCategoryController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Category deleted successfully", data = result });
+        return Ok(new { message = "Category deleted successfully" });
     }
 
     [HttpPut("update/{id}")]
@@ -56,7 +56,7 @@ public class AdminCategoryController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Category updated successfully", data = result });
+        return Ok(new { message = "Category updated successfully" });
     }
 
     [HttpGet("{id}")]
@@ -68,6 +68,6 @@ public class AdminCategoryController : ControllerBase
         {
             return NotFound(new { message = category.Error });
         }
-        return Ok(new { message = "Category retrieved successfully", data = category });
+        return Ok(new { message = "Category retrieved successfully", data = category.Data });
     }
 }

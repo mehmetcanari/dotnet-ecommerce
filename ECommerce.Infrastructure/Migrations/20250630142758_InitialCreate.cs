@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ECommerce.Infrastructure.Migrations.StoreDb
+namespace ECommerce.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -38,7 +38,6 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Accounts", x => x.Id);
-                    table.UniqueConstraint("AK_Accounts_IdentityNumber", x => x.IdentityNumber);
                 });
 
             migrationBuilder.CreateTable(
@@ -98,24 +97,22 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(type: "text", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Message = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ReadAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    RelatedEntityId = table.Column<string>(type: "text", nullable: true),
-                    RelatedEntityType = table.Column<string>(type: "text", nullable: true)
+                    AccountId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Notifications", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Notifications_Accounts_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Notifications_Accounts_AccountId",
+                        column: x => x.AccountId,
                         principalTable: "Accounts",
-                        principalColumn: "IdentityNumber",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -178,9 +175,9 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Notifications_UserId",
+                name: "IX_Notifications_AccountId",
                 table: "Notifications",
-                column: "UserId");
+                column: "AccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryId",

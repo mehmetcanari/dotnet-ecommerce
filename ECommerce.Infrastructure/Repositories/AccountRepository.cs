@@ -33,7 +33,7 @@ public class AccountRepository : IAccountRepository
             throw new Exception("An unexpected error occurred while reading accounts", exception);
         }
     }
-    
+
     public async Task<Account?> GetAccountByEmail(string email)
     {
         try

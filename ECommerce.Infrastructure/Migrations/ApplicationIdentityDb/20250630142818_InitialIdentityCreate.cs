@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ECommerce.Infrastructure.Migrations
+namespace ECommerce.Infrastructure.Migrations.ApplicationIdentityDb
 {
     /// <inheritdoc />
     public partial class InitialIdentityCreate : Migration

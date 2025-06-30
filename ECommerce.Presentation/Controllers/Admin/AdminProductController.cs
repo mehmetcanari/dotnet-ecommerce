@@ -41,7 +41,7 @@ public class AdminProductController : ControllerBase
         {
             return NotFound(new { message = result.Error });
         }
-        return Ok(new { message = "All products fetched successfully", data = result });
+        return Ok(new { message = "All products fetched successfully", data = result.Data });
     }
 
     [HttpGet("{id}")]
@@ -53,7 +53,7 @@ public class AdminProductController : ControllerBase
         {
             return NotFound(new { message = result.Error });
         }
-        return Ok(new { message = $"Product with id {id} fetched successfully", data = result });
+        return Ok(new { message = $"Product with id {id} fetched successfully", data = result.Data });
     }
 
     [HttpPost("create")]
@@ -64,7 +64,7 @@ public class AdminProductController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Product created successfully", data = result });
+        return Ok(new { message = "Product created successfully" });
     }
     
     [HttpPost("upload-image")]
@@ -76,7 +76,7 @@ public class AdminProductController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Image uploaded successfully", data = result });
+        return Ok(new { message = "Image uploaded successfully" });
     }
     
     [HttpPut("update/{id}")]
@@ -88,7 +88,7 @@ public class AdminProductController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = $"Product with id {id} updated successfully", data = result });
+        return Ok(new { message = $"Product with id {id} updated successfully" });
     }
 
     [HttpDelete("delete/{id}")]
@@ -100,7 +100,7 @@ public class AdminProductController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = $"Product with id {id} deleted successfully", data = result });
+        return Ok(new { message = $"Product with id {id} deleted successfully" });
     }
 
     [HttpGet("search")]
@@ -111,6 +111,6 @@ public class AdminProductController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Product search completed successfully", data = result });
+        return Ok(new { message = "Product search completed successfully", data = result.Data });
     }
 }

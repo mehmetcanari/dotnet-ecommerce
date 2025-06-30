@@ -7,15 +7,15 @@ using MediatR;
 
 namespace ECommerce.Application.Queries.Account;
 
-public class GetAccountByEmailQuery : IRequest<Result<AccountResponseDto>>{}
+public class GetClientAccountQuery : IRequest<Result<AccountResponseDto>>{}
 
-public class GetAccountByEmailQueryHandler : IRequestHandler<GetAccountByEmailQuery, Result<AccountResponseDto>>
+public class GetClientAccountQueryHandler : IRequestHandler<GetClientAccountQuery, Result<AccountResponseDto>>
 {
     private readonly IAccountRepository _accountRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILoggingService _logger;
 
-    public GetAccountByEmailQueryHandler(
+    public GetClientAccountQueryHandler(
         IAccountRepository accountRepository,
         ILoggingService logger,
         ICurrentUserService currentUserService)
@@ -25,7 +25,7 @@ public class GetAccountByEmailQueryHandler : IRequestHandler<GetAccountByEmailQu
         _currentUserService = currentUserService;
     }
 
-    public async Task<Result<AccountResponseDto>> Handle(GetAccountByEmailQuery request, CancellationToken cancellationToken)
+    public async Task<Result<AccountResponseDto>> Handle(GetClientAccountQuery request, CancellationToken cancellationToken)
     {
         try
         {

@@ -34,7 +34,7 @@ public class AdminAccountController : ControllerBase
         {
             return NotFound(new { message = result.Error });
         }
-        return Ok(new { message = "All accounts fetched successfully", data = result });
+        return Ok(new { message = "All accounts fetched successfully", data = result.Data });
     }
 
     [HttpGet("{id}")]
@@ -46,7 +46,7 @@ public class AdminAccountController : ControllerBase
         {
             return NotFound(new { message = account.Error });
         }
-        return Ok(new { message = $"Account with id {id} fetched successfully", account });
+        return Ok(new { message = $"Account with id {id} fetched successfully", data = account.Data });
     }
 
     [HttpDelete("delete/{id}")]
@@ -58,7 +58,7 @@ public class AdminAccountController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = $"Account with id {id} deleted successfully", data = result });
+        return Ok(new { message = $"Account with id {id} deleted successfully" });
     }
   
     [HttpPost("revoke-token")]
@@ -69,7 +69,7 @@ public class AdminAccountController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = $"{request.Email} tokens revoked successfully", data = result });
+        return Ok(new { message = $"{request.Email} tokens revoked successfully" });
     }
 
     [HttpPost("ban")]
@@ -80,7 +80,7 @@ public class AdminAccountController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = $"{request.Email} account banned successfully", data = result });
+        return Ok(new { message = $"{request.Email} account banned successfully" });
     }
 
     [HttpPost("unban")]
@@ -91,6 +91,6 @@ public class AdminAccountController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = $"{request.Email} account unbanned successfully", data = result });
+        return Ok(new { message = $"{request.Email} account unbanned successfully" });
     }
 }

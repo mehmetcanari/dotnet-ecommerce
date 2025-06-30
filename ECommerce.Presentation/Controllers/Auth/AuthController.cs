@@ -23,11 +23,11 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
             var result = await _authService.RegisterAsync(accountRegisterRequestDto, "Admin");
-            if (result == null)
+            if (result.IsFailure)
             {
-                return BadRequest(new { message = "Failed to create admin user." });
+                return BadRequest(new { message = "Failed to create admin user.", error = result.Error });
             }
-            return Ok(new { message = "Admin user created successfully.", data = result });
+            return Ok(new { message = "Admin user created successfully." });
         }
 
         [HttpPost("create-user")]
@@ -35,11 +35,11 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {
             var result = await _authService.RegisterAsync(accountRegisterRequestDto, "User");
-            if (result == null)
+            if (result.IsFailure)
             {
-                return BadRequest(new { message = "Failed to create user." });
+                return BadRequest(new { message = "Failed to create user.", error = result.Error });
             }
-            return Ok(new { message = "User created successfully.", data = result });
+            return Ok(new { message = "User created successfully." });
         }
 
         [HttpPost("login")]
@@ -47,11 +47,11 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> Login([FromBody] AccountLoginRequestDto accountLoginRequestDto)
         {
             var loginResult = await _authService.LoginAsync(accountLoginRequestDto);
-            if (loginResult == null)
+            if (loginResult.IsFailure)
             {
-                return Unauthorized(new { message = "Invalid credentials" });
+                return Unauthorized(new { message = "Invalid credentials", error = loginResult.Error });
             }
-            return Ok(new { message = "Login successful", data = loginResult });
+            return Ok(new { message = "Login successful", data = loginResult.Data });
         }
 
         [HttpPost("logout")]
@@ -59,11 +59,11 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> Logout()
         {
             var result = await _authService.LogoutAsync("User logged out");
-            if (result == null)
+            if (result.IsFailure)
             {
-                return BadRequest(new { message = "Logout failed" });
+                return BadRequest(new { message = "Logout failed", error = result.Error });
             }
-            return Ok(new { message = "Logout successful", data = result });
+            return Ok(new { message = "Logout successful" });
         }
 
         [HttpPost("refresh-token")]
@@ -71,11 +71,11 @@ namespace ECommerce.API.Controllers.Auth
         public async Task<IActionResult> GetRefreshToken()
         {
             var authResponse = await _authService.GenerateAuthTokenAsync();
-            if (authResponse == null)
+            if (authResponse.IsFailure)
             {
-                return BadRequest(new { message = "Failed to refresh token" });
+                return BadRequest(new { message = "Failed to refresh token", error = authResponse.Error });
             }
-            return Ok(new { message = "Token refreshed successfully", authResponse });
+            return Ok(new { message = "Token refreshed successfully", data = authResponse.Data });
         }
     }
 }

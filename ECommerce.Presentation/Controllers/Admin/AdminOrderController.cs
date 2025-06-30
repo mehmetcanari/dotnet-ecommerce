@@ -33,7 +33,7 @@ public class AdminOrderController : ControllerBase
         {
             return NotFound(new { message = orders.Error });
         }
-        return Ok(new { message = "Orders fetched successfully", data = orders });
+        return Ok(new { message = "Orders fetched successfully", data = orders.Data });
     }
 
     [HttpGet("{id}")]
@@ -45,7 +45,7 @@ public class AdminOrderController : ControllerBase
         {
             return NotFound(new { message = order.Error });
         }
-        return Ok(new { message = "Order fetched successfully", data = order });
+        return Ok(new { message = "Order fetched successfully", data = order.Data });
     }
 
     [HttpDelete("delete/{id}")]
@@ -57,7 +57,7 @@ public class AdminOrderController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Order deleted successfully with id: " + id, data = result });
+        return Ok(new { message = "Order deleted successfully with id: " + id });
     }
 
     [HttpPut("update/{id}")]
@@ -69,6 +69,6 @@ public class AdminOrderController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Order status updated successfully with id: " + id, data = result });
+        return Ok(new { message = "Order status updated successfully with id: " + id });
     }
 }

@@ -4,50 +4,41 @@
 @ADMIN_TOKEN = {{$dotenv ADMIN_TOKEN}}
 @NOTIFICATION_ID = 1
 
-### GET NOTIFICATIONS (USER)
+### TEST NOTIFICATION
+POST {{baseUrl}}/{{route}}/test
+Authorization: Bearer {{ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+    "title": "signalR admin test notification",
+    "message": "This is a test notification",
+    "type": 5
+}
+
+### TEST SIGNALR HUB CONNECTION STATUS
+GET {{baseUrl}}/{{route}}/hub-status
+Authorization: Bearer {{USER_TOKEN}}
+
+### GET NOTIFICATIONS 
 GET {{baseUrl}}/{{route}}
-Authorization: Bearer {{USER_TOKEN}}
-
-### GET NOTIFICATIONS (ADMIN)
-GET {{baseUrl}}/{{route}}
 Authorization: Bearer {{ADMIN_TOKEN}}
 
-### GET UNREAD NOTIFICATIONS (USER)
-GET {{baseUrl}}/{{route}}/unread
-Authorization: Bearer {{USER_TOKEN}}
-
-### GET UNREAD NOTIFICATIONS (ADMIN)
+### GET UNREAD NOTIFICATIONS 
 GET {{baseUrl}}/{{route}}/unread
 Authorization: Bearer {{ADMIN_TOKEN}}
 
-### GET UNREAD NOTIFICATIONS COUNT (USER)
-GET {{baseUrl}}/{{route}}/unread-count
-Authorization: Bearer {{USER_TOKEN}}
-
-### GET UNREAD NOTIFICATIONS COUNT (ADMIN)
+### GET UNREAD NOTIFICATIONS COUNT 
 GET {{baseUrl}}/{{route}}/unread-count
 Authorization: Bearer {{ADMIN_TOKEN}}
 
-### MARK NOTIFICATION AS READ (USER)
-POST {{baseUrl}}/{{route}}/{{NOTIFICATION_ID}}/mark-read
-Authorization: Bearer {{USER_TOKEN}}
-
-### MARK NOTIFICATION AS READ (ADMIN)
+### MARK NOTIFICATION AS READ 
 POST {{baseUrl}}/{{route}}/{{NOTIFICATION_ID}}/mark-read
 Authorization: Bearer {{ADMIN_TOKEN}}
 
-### MARK ALL NOTIFICATIONS AS READ (USER)
-POST {{baseUrl}}/{{route}}/mark-all-read
-Authorization: Bearer {{USER_TOKEN}}
-
-### MARK ALL NOTIFICATIONS AS READ (ADMIN)
+### MARK ALL NOTIFICATIONS AS READ 
 POST {{baseUrl}}/{{route}}/mark-all-read
 Authorization: Bearer {{ADMIN_TOKEN}}
 
-### DELETE NOTIFICATION (USER)
-DELETE {{baseUrl}}/{{route}}/{{NOTIFICATION_ID}}
-Authorization: Bearer {{USER_TOKEN}}
-
-### DELETE NOTIFICATION (ADMIN)
+### DELETE NOTIFICATION 
 DELETE {{baseUrl}}/{{route}}/{{NOTIFICATION_ID}}
 Authorization: Bearer {{ADMIN_TOKEN}}

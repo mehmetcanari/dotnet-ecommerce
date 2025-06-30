@@ -28,7 +28,11 @@ public class UserOrderController : ControllerBase
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto orderCreateRequestDto)
     {
         var result = await _orderService.CreateOrderAsync(orderCreateRequestDto);
-        return Ok(new { message = "Order created successfully", data = result });
+        if (result.IsFailure)
+        {
+            return BadRequest(new { message = "Failed to create order", error = result.Error });
+        }
+        return Ok(new { message = "Order created successfully" });
     }
 
     [HttpGet]
@@ -39,7 +43,7 @@ public class UserOrderController : ControllerBase
         {
             return BadRequest(new { message = userOrders.Error });
         }
-        return Ok(new { message = "Order fetched successfully", data = userOrders });
+        return Ok(new { message = "Orders fetched successfully", data = userOrders.Data });
     }
 
     [HttpPost("cancel")]
@@ -50,6 +54,6 @@ public class UserOrderController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Order cancelled successfully", data = result });
+        return Ok(new { message = "Order cancelled successfully" });
     }
 }

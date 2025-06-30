@@ -24,11 +24,11 @@ public class AccountController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetProfile()
     {
-        var result = await _mediator.Send(new GetAccountByEmailQuery());
+        var result = await _mediator.Send(new GetClientAccountQuery());
         if (result.IsFailure)
         {
             return NotFound(new { message = "Failed to fetch profile", error = result.Error });
         }
-        return Ok(new { message = "result profile fetched successfully", data = result });
+        return Ok(new { message = "Profile fetched successfully", data = result.Data });
     }
 } 

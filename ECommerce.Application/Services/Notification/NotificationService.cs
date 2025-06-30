@@ -99,7 +99,7 @@ public class NotificationService : INotificationService
             if (account.IsFailure)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Error);
 
-            var notifications = await _notificationRepository.GetUnreadNotificationsAsync(account.Data.Id.ToString());
+            var notifications = await _notificationRepository.GetUnreadNotificationsAsync(account.Data.Id);
             if (notifications == null || !notifications.Any())
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure("Notifications not found");
 

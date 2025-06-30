@@ -45,7 +45,7 @@ public class NotificationController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Notification created", data = result });
+        return Ok(new { message = "Notification created" });
     }
 
     [HttpGet]
@@ -56,7 +56,7 @@ public class NotificationController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Notifications fetched successfully", data = result });
+        return Ok(new { message = "Notifications fetched successfully", data = result.Data });
     }
 
     [HttpGet("unread")]
@@ -67,7 +67,7 @@ public class NotificationController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Unread notifications fetched successfully", data = result });
+        return Ok(new { message = "Unread notifications fetched successfully", data = result.Data });
     }
 
     [HttpGet("unread-count")]
@@ -78,7 +78,7 @@ public class NotificationController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Unread count fetched successfully", data = result });
+        return Ok(new { message = "Unread count fetched successfully", data = result.Data });
     }
 
     [HttpPost("{id}/mark-read")]
@@ -90,7 +90,7 @@ public class NotificationController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Notification marked as read successfully", data = result });
+        return Ok(new { message = "Notification marked as read successfully" });
     }
 
     [HttpPost("mark-all-read")]
@@ -101,7 +101,7 @@ public class NotificationController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "All notifications marked as read successfully", data = result });
+        return Ok(new { message = "All notifications marked as read successfully" });
     }
 
     [HttpDelete("{id}")]
@@ -112,7 +112,7 @@ public class NotificationController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Notification deleted successfully", data = result });
+        return Ok(new { message = "Notification deleted successfully" });
     }
 
     [HttpGet("hub-status")]

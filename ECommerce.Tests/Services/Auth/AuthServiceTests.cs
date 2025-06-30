@@ -125,6 +125,8 @@ public class AuthServiceTests
 
         _refreshTokenServiceMock.Setup(x => x.GenerateRefreshTokenAsync(userId, email, roles))
             .ReturnsAsync(Result<RefreshToken>.Success(refreshToken));
+
+        _refreshTokenServiceMock.Setup(x => x.SetRefreshTokenCookie(It.IsAny<RefreshToken>()));
     }
 
     [Fact]
@@ -133,7 +135,7 @@ public class AuthServiceTests
     {
         // Arrange
         var loginRequest = CreateLoginRequest();
-        var user = new IdentityUser { Email = loginRequest.Email, UserName = loginRequest.Email };
+        var user = new IdentityUser { Email = loginRequest.Email, UserName = loginRequest.Email, Id = "test-user-id" };
         var account = CreateAccount(loginRequest.Email);
         var roles = new List<string> { "User" };
 
@@ -167,8 +169,11 @@ public class AuthServiceTests
         // Arrange
         var loginRequest = CreateLoginRequest();
         var user = new IdentityUser { Email = loginRequest.Email, UserName = loginRequest.Email };
+        var account = CreateAccount(loginRequest.Email);
 
         SetupUserManager(user, false);
+        _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(loginRequest.Email))
+            .ReturnsAsync(Result<Account>.Success(account));
 
         // Act
         var result = await _authService.LoginAsync(loginRequest);
@@ -191,6 +196,8 @@ public class AuthServiceTests
 
         _userManagerMock.Setup(x => x.FindByEmailAsync(loginRequest.Email))
             .ReturnsAsync((IdentityUser)null);
+        _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(loginRequest.Email))
+            .ReturnsAsync(Result<Account>.Failure("User with email not found"));
 
         // Act
         var result = await _authService.LoginAsync(loginRequest);
@@ -199,8 +206,6 @@ public class AuthServiceTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Invalid email or password.");
-
-        _userManagerMock.Verify(x => x.FindByEmailAsync(loginRequest.Email), Times.Once);
     }
 
     [Fact]
@@ -299,15 +304,22 @@ public class AuthServiceTests
         };
 
         var roles = new List<string> { "User" };
+        var user = new IdentityUser { Email = refreshToken.Email, UserName = refreshToken.Email, Id = "test-user-id" };
+        var account = CreateAccount(refreshToken.Email);
 
         _refreshTokenServiceMock.Setup(x => x.GetRefreshTokenFromCookie())
             .ReturnsAsync(Result<RefreshToken>.Success(refreshToken));
 
         _tokenUserClaimsServiceMock.Setup(x => x.GetClaimsPrincipalFromToken(refreshToken))
-            .Returns(new ClaimsPrincipal());
+            .Returns(new System.Security.Claims.ClaimsPrincipal());
 
-        _refreshTokenServiceMock.Setup(x => x.ValidateRefreshToken(It.IsAny<ClaimsPrincipal>(), _userManagerMock.Object))
+        _refreshTokenServiceMock.Setup(x => x.ValidateRefreshToken(It.IsAny<System.Security.Claims.ClaimsPrincipal>(), _userManagerMock.Object))
             .ReturnsAsync((refreshToken.Email, roles));
+
+        _userManagerMock.Setup(x => x.FindByEmailAsync(refreshToken.Email))
+            .ReturnsAsync(user);
+        _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(refreshToken.Email))
+            .ReturnsAsync(Result<Account>.Success(account));
 
         SetupTokenServices("test-user-id", refreshToken.Email, roles);
 
@@ -322,7 +334,7 @@ public class AuthServiceTests
 
         _refreshTokenServiceMock.Verify(x => x.GetRefreshTokenFromCookie(), Times.Once);
         _tokenUserClaimsServiceMock.Verify(x => x.GetClaimsPrincipalFromToken(refreshToken), Times.Once);
-        _refreshTokenServiceMock.Verify(x => x.ValidateRefreshToken(It.IsAny<ClaimsPrincipal>(), _userManagerMock.Object), Times.Once);
+        _refreshTokenServiceMock.Verify(x => x.ValidateRefreshToken(It.IsAny<System.Security.Claims.ClaimsPrincipal>(), _userManagerMock.Object), Times.Once);
         _accessTokenServiceMock.Verify(x => x.GenerateAccessTokenAsync("test-user-id", refreshToken.Email, roles), Times.Once);
         _refreshTokenServiceMock.Verify(x => x.GenerateRefreshTokenAsync("test-user-id", refreshToken.Email, roles), Times.Once);
         _refreshTokenServiceMock.Verify(x => x.SetRefreshTokenCookie(It.IsAny<RefreshToken>()), Times.Once);

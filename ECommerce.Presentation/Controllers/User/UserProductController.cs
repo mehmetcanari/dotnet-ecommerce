@@ -29,7 +29,7 @@ public class UserProductController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "All products fetched successfully", data = result });
+        return Ok(new { message = "All products fetched successfully", data = result.Data });
     }
 
     [HttpGet("{id}")]
@@ -41,7 +41,7 @@ public class UserProductController : ControllerBase
         {
             return NotFound(new { message = product.Error });
         }
-        return Ok(new { message = $"Product with id {id} fetched successfully", data = product });
+        return Ok(new { message = $"Product with id {id} fetched successfully", data = product.Data });
     }
 
     [HttpGet("search")]
@@ -52,6 +52,6 @@ public class UserProductController : ControllerBase
         {
             return BadRequest(new { message = result.Error });
         }
-        return Ok(new { message = "Product search completed successfully", data = result });
+        return Ok(new { message = "Product search completed successfully", data = result.Data });
     }
 }

@@ -3,17 +3,20 @@ using System;
 using ECommerce.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ECommerce.Infrastructure.Migrations.StoreDb
+namespace ECommerce.Infrastructure.Migrations
 {
     [DbContext(typeof(StoreDbContext))]
-    partial class StoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250630142758_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,6 +172,9 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -178,12 +184,6 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
 
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RelatedEntityId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RelatedEntityType")
-                        .HasColumnType("text");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -195,13 +195,9 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AccountId");
 
                     b.ToTable("Notifications");
                 });
@@ -334,10 +330,8 @@ namespace ECommerce.Infrastructure.Migrations.StoreDb
                 {
                     b.HasOne("ECommerce.Domain.Model.Account", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .HasPrincipalKey("IdentityNumber")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });

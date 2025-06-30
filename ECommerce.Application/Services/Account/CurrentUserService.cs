@@ -49,7 +49,6 @@ public class CurrentUserService : ICurrentUserService
     {
         try
         {
-            // First try to get user ID from NameIdentifier claim
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrEmpty(userId))
             {
@@ -57,7 +56,6 @@ public class CurrentUserService : ICurrentUserService
                 return Result<string>.Success(userId);
             }
 
-            // If NameIdentifier not found, try to get user ID from email
             var emailResult = GetCurrentUserEmail();
             if (emailResult.IsFailure || string.IsNullOrEmpty(emailResult.Data))
             {

@@ -3,13 +3,11 @@ using ECommerce.Application.Queries.Product;
 using ECommerce.Application.Commands.Product;
 using ECommerce.Application.Services.Token;
 using ECommerce.Application.Services.Queue;
-using ECommerce.Application.Services.Search;
 using ECommerce.Application.Events;
 using ECommerce.Infrastructure.Dependencies;
 using MediatR;
 using Serilog;
 using StackExchange.Redis;
-using Elastic.Clients.Elasticsearch;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Services.Search.Product;
 

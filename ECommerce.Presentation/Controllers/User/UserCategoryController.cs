@@ -29,7 +29,7 @@ public class UserCategoryController : ControllerBase
         {
             return NotFound(new { message = category.Error });
         }
-        return Ok(new { message = "Category retrieved successfully", data = category });
+        return Ok(new { message = "Category retrieved successfully", data = category.Data });
     }
 }
 

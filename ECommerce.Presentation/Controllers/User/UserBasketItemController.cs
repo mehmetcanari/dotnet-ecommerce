@@ -31,7 +31,7 @@ public class UserBasketItemController : ControllerBase
         {
             return NotFound(new { message = "Failed to fetch basket items", error = basketItems.Error });
         }
-        return Ok(new { message = "Basket items fetched successfully", data = basketItems });
+        return Ok(new { message = "Basket items fetched successfully", data = basketItems.Data });
     }
 
     [HttpPost("create")]
@@ -42,7 +42,7 @@ public class UserBasketItemController : ControllerBase
         {
             return BadRequest(new { message = "Failed to create basket item", error = result.Error });
         }
-        return Created("basket", new { message = "Basket item created successfully", data = result });
+        return Created("basket", new { message = "Basket item created successfully" });
     }
 
     [HttpPut("update")]
@@ -53,7 +53,7 @@ public class UserBasketItemController : ControllerBase
         {
             return BadRequest(new { message = "Failed to update basket item", error = result.Error });
         }
-        return Ok(new { message = "Basket item updated successfully", data = result });
+        return Ok(new { message = "Basket item updated successfully" });
     }
 
     [HttpDelete("delete")]
@@ -64,6 +64,6 @@ public class UserBasketItemController : ControllerBase
         {
             return BadRequest(new { message = "Failed to delete basket items", error = result.Error });
         }
-        return Ok(new { message = "All basket items deleted successfully", data = result });
+        return Ok(new { message = "All basket items deleted successfully" });
     }
 }

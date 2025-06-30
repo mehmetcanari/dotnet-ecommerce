@@ -59,13 +59,12 @@ public class OrderService : BaseValidator, IOrderService
     {
         try
         {
-            await _storeUnitOfWork.BeginTransactionAsync();
-
             var userInfoResult = await ValidateAndGetUserInfoAsync(orderCreateRequestDto);
             if (userInfoResult.IsFailure)
             {
                 return Result.Failure(userInfoResult.Error);
             }
+
 
             var (account, basketItems) = userInfoResult.Data;
             var order = CreateOrder(account.Id, account.Address, basketItems);
@@ -76,6 +75,8 @@ public class OrderService : BaseValidator, IOrderService
             Address shippingAddress = CreateAddress(account);
             Address billingAddress = CreateAddress(account);
 
+            await _storeUnitOfWork.BeginTransactionAsync();
+            
             var paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
 
             if (paymentResult.Data != null && paymentResult.Data.Status != "success")

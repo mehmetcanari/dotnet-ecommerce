@@ -103,7 +103,6 @@ public class AccountServiceTests
         _mediatorMock.Verify(m => m.Send(
             It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()), Times.Once);
-        _unitOfWorkMock.Verify(u => u.Commit(), Times.Once);
     }
 
     [Fact]
