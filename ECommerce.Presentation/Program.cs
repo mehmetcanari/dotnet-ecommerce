@@ -164,38 +164,47 @@ internal static class Program
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidIssuer = jwtSettings["Issuer"],
-                    ValidateAudience = true,
-                    ValidAudience = jwtSettings["Audience"],
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero,
-                    RoleClaimType = System.Security.Claims.ClaimTypes.Role,
-                    // Additional security
-                    RequireExpirationTime = true,
-                    RequireSignedTokens = true
-                };
-                
-                // JWT Bearer events for better error handling
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidateAudience = true,
+                ValidAudience = jwtSettings["Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero,
+                RoleClaimType = System.Security.Claims.ClaimTypes.Role,
+                RequireExpirationTime = true,
+                RequireSignedTokens = true,
+        };
+
                 options.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = context =>
-                    {
-                        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                        {
-                            context.Response.Headers.Append("Token-Expired", "true");
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
-            });
+            {
+            OnAuthenticationFailed = context =>
+        {
+            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            {
+                context.Response.Headers.Append("Token-Expired", "true");
+            }
+            return Task.CompletedTask;
+        },
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) &&
+                path.StartsWithSegments("/notificationHub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
 
         builder.Services.AddAuthorization();
 
@@ -377,6 +386,17 @@ internal static class Program
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("default", policy =>
+            {
+                policy.WithOrigins("http://localhost:3000")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            });
+        });
+
         var app = builder.Build();
 
         #region Database Migration
@@ -445,16 +465,16 @@ internal static class Program
         app.Use(async (context, next) =>
         {
             var response = context.Response;
-            
-            response.Headers.Append("Content-Security-Policy", 
+
+            response.Headers.Append("Content-Security-Policy",
                 "default-src 'none'; " +
                 "script-src 'self'; " +
-                "connect-src 'self'; " +
+                "connect-src 'self' http://localhost:3000 http://localhost:3002 http://localhost:5076 ws://localhost:5076; " +
                 "img-src 'self' data:; " +
                 "style-src 'self' 'unsafe-inline'; " +
                 "base-uri 'self'; " +
                 "form-action 'self'");
-            
+
             response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
             response.Headers.Append("X-Content-Type-Options", "nosniff");
             response.Headers.Append("X-Frame-Options", "DENY");
@@ -502,13 +522,15 @@ internal static class Program
             };
         });
 
+        app.UseCors();
+        app.UseWebSockets();
         app.UseAuthentication();
         app.UseAuthorization();
-    
-        app.MapHealthChecks("/health");
 
         app.MapControllers();
-        app.MapHub<NotificationHub>("/notificationHub");
+        app.MapHub<NotificationHub>("/notificationHub").RequireCors("default").RequireAuthorization();
+
+        app.MapHealthChecks("/health");
 
         #endregion
 

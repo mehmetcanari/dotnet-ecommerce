@@ -26,17 +26,6 @@ public class NotificationController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpPost("send-to-all")]
-    public async Task<IActionResult> SendToAll(SendNotificationRequestDto request)
-    {
-        var result = await _notificationService.SendNotificationToAllUsersAsync(request.Title, request.Message, request.Type);
-        if (result.IsFailure)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "Notification sent to all users", data = result });
-    }
-
     [HttpPost("test")]
     public async Task<IActionResult> Test(SendNotificationRequestDto request)
     {

@@ -1,4 +1,5 @@
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.DTO.Response.Notification;
 using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.SignalR;
 
@@ -8,26 +9,28 @@ public class RealtimeNotificationHandler : IRealtimeNotificationHandler
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ILoggingService _logger;
 
-    public RealtimeNotificationHandler(IHubContext<NotificationHub> hubContext, ICurrentUserService currentUserService)
+    public RealtimeNotificationHandler(IHubContext<NotificationHub> hubContext, ICurrentUserService currentUserService, ILoggingService logger)
     {
         _hubContext = hubContext;
         _currentUserService = currentUserService;
+        _logger = logger;
     }
-    public async Task HandleNotification(string title, string message, NotificationType type, string? userId = null)
+    public async Task HandleNotification(string title, string message, NotificationType type, Guid? userId = null, int? accountId = null)
     {
-        if (string.IsNullOrEmpty(userId))
+        if (userId == null)
         {
             var userIdResult = await _currentUserService.GetCurrentUserId();
             if (userIdResult.IsSuccess && !string.IsNullOrEmpty(userIdResult.Data))
             {
-                userId = userIdResult.Data;
+                userId = Guid.Parse(userIdResult.Data);
             }
         }
 
         var notification = new Domain.Model.Notification
         {
-            AccountId = int.Parse(userId!),
+            AccountId = accountId,
             Title = title,
             Message = message,
             Type = type,
@@ -35,6 +38,17 @@ public class RealtimeNotificationHandler : IRealtimeNotificationHandler
             CreatedAt = DateTime.UtcNow,
         };
 
-        await _hubContext.Clients.User(userId!).SendAsync("ReceiveNotification", notification);
+        await _hubContext.Clients.User(userId!.Value.ToString()).SendAsync("ReceiveNotification", MapToResponseDto(notification));
+        _logger.LogInformation("Realtime notification sent to user with id {UserId}", userId);
+    }
+
+    private static NotificationResponseDto MapToResponseDto(Domain.Model.Notification notification)
+    {
+        return new NotificationResponseDto
+        {
+            Title = notification.Title,
+            Message = notification.Message,
+            From = notification.Type.ToString()
+        };
     }
 }

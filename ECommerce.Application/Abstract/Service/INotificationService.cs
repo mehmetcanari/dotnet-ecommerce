@@ -14,5 +14,4 @@ public interface INotificationService
     Task<Result<bool>> MarkAsReadAsync(int notificationId);
     Task<Result<bool>> MarkAllAsReadAsync();
     Task<Result<bool>> DeleteNotificationAsync(int notificationId);
-    Task<Result<bool>> SendNotificationToAllUsersAsync(string title, string message, NotificationType type);
 } 

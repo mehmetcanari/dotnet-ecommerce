@@ -12,7 +12,6 @@ public class NotificationService : INotificationService
 {
     private readonly INotificationRepository _notificationRepository;
     private readonly IRealtimeNotificationHandler _realtimeNotificationHandler;
-    private readonly ICurrentUserService _currentUserService;
     private readonly ILoggingService _logger;
     private readonly IStoreUnitOfWork _storeUnitOfWork;
     private readonly IMediator _mediator;
@@ -20,14 +19,12 @@ public class NotificationService : INotificationService
     public NotificationService(
         INotificationRepository notificationRepository,
         IRealtimeNotificationHandler realtimeNotificationHandler,
-        ICurrentUserService currentUserService,
         ILoggingService logger,
         IStoreUnitOfWork storeUnitOfWork,
         IMediator mediator)
     {
         _notificationRepository = notificationRepository;
         _realtimeNotificationHandler = realtimeNotificationHandler;
-        _currentUserService = currentUserService;
         _logger = logger;
         _storeUnitOfWork = storeUnitOfWork;
         _mediator = mediator;
@@ -37,7 +34,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var account = await _mediator.Send(new GetClientAccountQuery());
+            var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
             if (account.IsFailure)
                 return Result<Domain.Model.Notification>.Failure(account.Error);
 
@@ -51,7 +48,7 @@ public class NotificationService : INotificationService
 
             await _notificationRepository.CreateAsync(notification);
             await _storeUnitOfWork.Commit();
-            await _realtimeNotificationHandler.HandleNotification(title, message, type, account.Data.Id.ToString());
+            await _realtimeNotificationHandler.HandleNotification(title, message, type, account.Data.IdentityId, account.Data.Id);
 
             _logger.LogInformation("Created notification {NotificationId} for user {UserId}", 
                 notification.Id, account.Data.Id);
@@ -74,7 +71,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var account = await _mediator.Send(new GetClientAccountQuery());
+            var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
             if (account.IsFailure)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Error);
 
@@ -95,7 +92,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var account = await _mediator.Send(new GetClientAccountQuery());
+            var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
             if (account.IsFailure)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Error);
 
@@ -116,7 +113,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var account = await _mediator.Send(new GetClientAccountQuery());
+            var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
             if (account.IsFailure)
                 return Result<int>.Failure(account.Error);
 
@@ -155,7 +152,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var account = await _mediator.Send(new GetClientAccountQuery());
+            var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
             if (account.IsFailure)
                 return Result<bool>.Failure(account.Error);
 
@@ -191,10 +188,5 @@ public class NotificationService : INotificationService
             _logger.LogError(exception, "An unexpected error occurred while deleting notification", exception);
             return Result<bool>.Failure(exception.Message);
         }
-    }
-
-    public Task<Result<bool>> SendNotificationToAllUsersAsync(string title, string message, NotificationType type)
-    {
-        throw new NotImplementedException();
     }
 } 

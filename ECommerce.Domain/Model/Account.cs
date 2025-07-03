@@ -3,6 +3,7 @@ namespace ECommerce.Domain.Model;
 public class Account
 {
     public int Id { get; init; }
+    public Guid IdentityId { get; set; }
     public required string Role { get; set; }
     public required string Name { get; set; }
     public required string Surname { get; set; }

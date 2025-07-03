@@ -25,6 +25,11 @@ public class NotificationHub : Hub
 
     public static int GetTotalConnections() => _userConnections.Count;
 
+    public async Task JoinUserGroup(string groupName)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+    }
+
     public override async Task OnConnectedAsync()
     {
         var result = await _currentUserService.GetCurrentUserId();
