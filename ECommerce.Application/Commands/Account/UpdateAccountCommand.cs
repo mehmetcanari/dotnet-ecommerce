@@ -29,7 +29,6 @@ public class UpdateAccountGuidCommandHandler : IRequestHandler<UpdateAccountGuid
         {
             var account = request.Account;
             account.IdentityId = TryParseGuid(request.User.Id);
-            _accountRepository.Update(account);
 
             return Task.FromResult(Result<Domain.Model.Account>.Success(account));
         }
