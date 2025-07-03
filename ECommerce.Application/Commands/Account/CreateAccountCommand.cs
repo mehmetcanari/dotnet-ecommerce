@@ -6,13 +6,13 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Account;
 
-public class CreateAccountCommand : IRequest<Result>
+public class CreateAccountCommand : IRequest<Result<Domain.Model.Account>>
 {
     public required AccountRegisterRequestDto AccountCreateRequest { get; set; }
     public required string Role { get; set; }
 }
 
-public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand, Result>
+public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand, Result<Domain.Model.Account>>
 {
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
@@ -25,18 +25,19 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
         _logger = logger;
     }
 
-    public async Task<Result> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Domain.Model.Account>> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
             var validationResult = await ValidateAccountExists(request);
             if (!validationResult.IsSuccess)
             {
-                return Result.Failure(validationResult.Error);
+                return Result<Domain.Model.Account>.Failure(validationResult.Error);
             }
             
             var newAccount = new Domain.Model.Account
             {
+                IdentityId = Guid.NewGuid(),
                 Name = request.AccountCreateRequest.Name,
                 Surname = request.AccountCreateRequest.Surname,
                 Email = request.AccountCreateRequest.Email,
@@ -53,33 +54,33 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
             await _accountRepository.Create(newAccount);
 
             _logger.LogInformation("Account created successfully for email: {Email}", request.AccountCreateRequest.Email);
-            return Result.Success();
+            return Result<Domain.Model.Account>.Success(newAccount);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while creating account for email: {Email}", request.AccountCreateRequest.Email);
-            return Result.Failure("An error occurred while processing your request. Please try again later.");
+            return Result<Domain.Model.Account>.Failure("An error occurred while processing your request. Please try again later.");
         }
     }
 
-    private async Task<Result> ValidateAccountExists(CreateAccountCommand request)
+    private async Task<Result<Domain.Model.Account>> ValidateAccountExists(CreateAccountCommand request)
     {
         var existingAccountByEmail = await _accountRepository.GetAccountByEmail(request.AccountCreateRequest.Email);
         if (existingAccountByEmail != null)
         {
             _logger.LogWarning("Email already exists: {Email}", request.AccountCreateRequest.Email);
-            return Result.Failure("Email already exists. Please use a different email address.");
+            return Result<Domain.Model.Account>.Failure("Email already exists. Please use a different email address.");
         }
 
         var existingAccountByIdentityNumber = await _accountRepository.GetAccountByIdentityNumber(request.AccountCreateRequest.IdentityNumber);
         if (existingAccountByIdentityNumber != null)
         {
             _logger.LogWarning("Identity number already exists: {IdentityNumber}", request.AccountCreateRequest.IdentityNumber);
-            return Result.Failure("Identity number already exists. Please use a different identity number.");
+            return Result<Domain.Model.Account>.Failure("Identity number already exists. Please use a different identity number.");
         }
 
         _logger.LogInformation("Validation passed for email: {Email}, identityNumber: {IdentityNumber}", 
             request.AccountCreateRequest.Email, request.AccountCreateRequest.IdentityNumber);
-        return Result.Success();
+        return Result<Domain.Model.Account>.Success(existingAccountByEmail);
     }
 }

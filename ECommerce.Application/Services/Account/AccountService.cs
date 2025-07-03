@@ -1,11 +1,8 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
-using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Application.DTO.Request.Token;
-using Microsoft.AspNetCore.Identity;
 using MediatR;
 using ECommerce.Application.Commands.Account;
 
@@ -16,7 +13,6 @@ public class AccountService : BaseValidator, IAccountService
     private readonly IMediator _mediator;
     private readonly ILoggingService _logger;
     private readonly IUnitOfWork _unitOfWork;
-
     public AccountService(
         IAccountRepository accountRepository, 
         IUnitOfWork unitOfWork,
@@ -34,16 +30,40 @@ public class AccountService : BaseValidator, IAccountService
     {
         try
         {
-            var result  = await _mediator.Send(new CreateAccountCommand
+            var accountResult = await _mediator.Send(new CreateAccountCommand
             {
                 AccountCreateRequest = createUserRequestDto,
                 Role = role
             });
 
-            if (result is { IsFailure: true, Error: not null })
+            if (accountResult is { IsFailure: true, Error: not null })
             {
-                _logger.LogWarning("Account registration failed: {Error}", result.Error);
-                return Result.Failure(result.Error);
+                _logger.LogWarning("Account creation failed: {Error}", accountResult.Error);
+                return Result.Failure(accountResult.Error);
+            }
+
+            var identityResult = await _mediator.Send(new CreateIdentityUserCommand
+            {
+                AccountRegisterRequestDto = createUserRequestDto,
+                Role = role
+            });
+
+            if (identityResult is { IsFailure: true, Error: not null })
+            {
+                _logger.LogWarning("Identity user creation failed: {Error}", identityResult.Error);
+                return Result.Failure(identityResult.Error);
+            }
+
+            var updateAccountGuidResult = await _mediator.Send(new UpdateAccountGuidCommand 
+            { 
+                Account = accountResult.Data!, 
+                User = identityResult.Data!
+            });
+            
+            if (updateAccountGuidResult is { IsFailure: true, Error: not null })
+            {
+                _logger.LogWarning("Account update failed: {Error}", updateAccountGuidResult.Error);
+                return Result.Failure(updateAccountGuidResult.Error);
             }
 
             return Result.Success();

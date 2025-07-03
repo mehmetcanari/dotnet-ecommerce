@@ -14,7 +14,6 @@ public class AuthService : BaseValidator, IAuthService
 {
     private readonly IAccountService _accountService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IAccessTokenService _accessTokenService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ITokenUserClaimsService _tokenUserClaimsService;
@@ -24,7 +23,6 @@ public class AuthService : BaseValidator, IAuthService
     public AuthService(
         IAccountService accountService,
         UserManager<IdentityUser> userManager,
-        RoleManager<IdentityRole> roleManager,
         IAccessTokenService accessTokenService,
         IRefreshTokenService refreshTokenService,
         ITokenUserClaimsService tokenUserClaimsService,
@@ -34,7 +32,6 @@ public class AuthService : BaseValidator, IAuthService
     {
         _accountService = accountService;
         _userManager = userManager;
-        _roleManager = roleManager;
         _accessTokenService = accessTokenService;
         _refreshTokenService = refreshTokenService;
         _tokenUserClaimsService = tokenUserClaimsService;
@@ -52,28 +49,12 @@ public class AuthService : BaseValidator, IAuthService
 
             await _crossContextUnitOfWork.BeginTransactionAsync();
 
-            var accountResult = await CreateAccountInStoreAsync(registerRequestDto, role);
+            var accountResult = await _accountService.RegisterAccountAsync(registerRequestDto, role);
             if (accountResult.IsFailure)
             {
                 _logger.LogError(new Exception("Transaction failed to commit"),"Transaction failed to commit: {Error}", accountResult.Error);
                 await _crossContextUnitOfWork.RollbackTransaction();
-                return accountResult;
-            }
-
-            var identityResult = await CreateIdentityUserAsync(registerRequestDto);
-            if (identityResult.IsFailure)
-            {
-                _logger.LogError(new Exception("Transaction failed to commit"),"Transaction failed to commit: {Error}", identityResult.Error);
-                await _crossContextUnitOfWork.RollbackTransaction();
-                return Result.Failure(identityResult.Error!);
-            }
-
-            var roleResult = await AssignUserRoleAsync(identityResult.Data!, role);
-            if (roleResult.IsFailure)
-            {
-                _logger.LogError(new Exception("Transaction failed to commit"),"Transaction failed to commit: {Error}", roleResult.Error);
-                await _crossContextUnitOfWork.RollbackTransaction();
-                return roleResult;
+                return accountResult.IsFailure ? Result.Failure(accountResult.Error) : Result.Success();
             }
 
             await _crossContextUnitOfWork.CommitTransactionAsync();
@@ -114,54 +95,6 @@ public class AuthService : BaseValidator, IAuthService
         return Result.Success();
     }
 
-    private async Task<Result> CreateAccountInStoreAsync(AccountRegisterRequestDto registerRequestDto, string role)
-    {
-        var accountResult = await _accountService.RegisterAccountAsync(registerRequestDto, role);
-        if (accountResult is { IsFailure: true, Error: not null })
-        {
-            return Result.Failure(accountResult.Error);
-        }
-
-        return Result.Success();
-    }
-
-    private async Task<Result<IdentityUser>> CreateIdentityUserAsync(AccountRegisterRequestDto registerRequestDto)
-    {
-        var user = new IdentityUser
-        {
-            UserName = registerRequestDto.Email,
-            Email = registerRequestDto.Email,
-            PhoneNumber = registerRequestDto.PhoneNumber,
-        };
-
-        var result = await _userManager.CreateAsync(user, registerRequestDto.Password);
-        if (!result.Succeeded)
-        {
-            return Result<IdentityUser>.Failure("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
-        }
-
-        return Result<IdentityUser>.Success(user);
-    }
-
-    private async Task<Result> AssignUserRoleAsync(IdentityUser user, string role)
-    {
-        if (!await _roleManager.RoleExistsAsync(role))
-        {
-            var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
-            if (!roleResult.Succeeded)
-            {
-                return Result.Failure($"Error creating {role} role.");
-            }
-        }
-
-        var addRoleResult = await _userManager.AddToRoleAsync(user, role);
-        if (!addRoleResult.Succeeded)
-        {
-            return Result.Failure("Error assigning role to user.");
-        }
-
-        return Result.Success();
-    }
 
     public async Task<Result<AuthResponseDto>> LoginAsync(AccountLoginRequestDto loginRequestDto)
     {
@@ -229,7 +162,6 @@ public class AuthService : BaseValidator, IAuthService
             var identifier = _tokenUserClaimsService.GetClaimsPrincipalFromToken(cookieRefreshToken.Data);
             var (email, roles) = await _refreshTokenService.ValidateRefreshToken(identifier, _userManager);
 
-            // Get user ID from claims or find by email
             var userId = identifier.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
