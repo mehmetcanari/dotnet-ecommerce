@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
-using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Validations.Attribute;
 using MediatR;
 using ECommerce.Application.Queries.Product;

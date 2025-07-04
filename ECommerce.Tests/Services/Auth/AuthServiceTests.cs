@@ -6,7 +6,6 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Model;
 using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 
 namespace ECommerce.Tests.Services.Auth;
 
@@ -16,7 +15,6 @@ public class AuthServiceTests
 {
     private readonly Mock<IAccountService> _accountServiceMock;
     private readonly Mock<UserManager<IdentityUser>> _userManagerMock;
-    private readonly Mock<RoleManager<IdentityRole>> _roleManagerMock;
     private readonly Mock<IAccessTokenService> _accessTokenServiceMock;
     private readonly Mock<IRefreshTokenService> _refreshTokenServiceMock;
     private readonly Mock<ITokenUserClaimsService> _tokenUserClaimsServiceMock;
@@ -31,9 +29,6 @@ public class AuthServiceTests
         _userManagerMock = new Mock<UserManager<IdentityUser>>(
             Mock.Of<IUserStore<IdentityUser>>(),
             null, null, null, null, null, null, null, null);
-        _roleManagerMock = new Mock<RoleManager<IdentityRole>>(
-            Mock.Of<IRoleStore<IdentityRole>>(),
-            null, null, null, null);
         _accessTokenServiceMock = new Mock<IAccessTokenService>();
         _refreshTokenServiceMock = new Mock<IRefreshTokenService>();
         _tokenUserClaimsServiceMock = new Mock<ITokenUserClaimsService>();
@@ -44,7 +39,6 @@ public class AuthServiceTests
         _authService = new AuthService(
             _accountServiceMock.Object,
             _userManagerMock.Object,
-            _roleManagerMock.Object,
             _accessTokenServiceMock.Object,
             _refreshTokenServiceMock.Object,
             _tokenUserClaimsServiceMock.Object,
@@ -241,17 +235,14 @@ public class AuthServiceTests
         _userManagerMock.Setup(x => x.FindByEmailAsync(registerRequest.Email))
             .ReturnsAsync((IdentityUser)null);
 
-        _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<IdentityUser>(), registerRequest.Password))
-            .ReturnsAsync(IdentityResult.Success);
-
-        _roleManagerMock.Setup(x => x.RoleExistsAsync(role))
-            .ReturnsAsync(true);
-
-        _userManagerMock.Setup(x => x.AddToRoleAsync(It.IsAny<IdentityUser>(), role))
-            .ReturnsAsync(IdentityResult.Success);
-
         _accountServiceMock.Setup(x => x.RegisterAccountAsync(registerRequest, role))
             .ReturnsAsync(Result.Success());
+
+        _unitOfWorkMock.Setup(x => x.BeginTransactionAsync())
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(x => x.CommitTransactionAsync())
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _authService.RegisterAsync(registerRequest, role);
@@ -261,10 +252,9 @@ public class AuthServiceTests
         result.IsSuccess.Should().BeTrue();
 
         _userManagerMock.Verify(x => x.FindByEmailAsync(registerRequest.Email), Times.Once);
-        _userManagerMock.Verify(x => x.CreateAsync(It.IsAny<IdentityUser>(), registerRequest.Password), Times.Once);
-        _roleManagerMock.Verify(x => x.RoleExistsAsync(role), Times.Once);
-        _userManagerMock.Verify(x => x.AddToRoleAsync(It.IsAny<IdentityUser>(), role), Times.Once);
         _accountServiceMock.Verify(x => x.RegisterAccountAsync(registerRequest, role), Times.Once);
+        _unitOfWorkMock.Verify(x => x.BeginTransactionAsync(), Times.Once);
+        _unitOfWorkMock.Verify(x => x.CommitTransactionAsync(), Times.Once);
     }
 
     [Fact]

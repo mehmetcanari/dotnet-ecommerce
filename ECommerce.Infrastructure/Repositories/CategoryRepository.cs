@@ -34,7 +34,6 @@ public class CategoryRepository : ICategoryRepository
 
             var categories = await query
                 .AsNoTracking()
-                .Include(c => c.Products)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -75,7 +74,6 @@ public class CategoryRepository : ICategoryRepository
             var category = await query
                 .AsNoTracking()
                 .Where(c => c.CategoryId == id)
-                .Include(c => c.Products)
                 .FirstOrDefaultAsync();
 
             return category;

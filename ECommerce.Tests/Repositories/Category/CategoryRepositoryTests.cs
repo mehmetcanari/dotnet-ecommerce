@@ -2,6 +2,8 @@ using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Infrastructure.Context;
 using ECommerce.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using FluentAssertions;
+using Xunit;
 
 namespace ECommerce.Tests.Repositories.Category;
 
@@ -71,37 +73,6 @@ public class CategoryRepositoryTests
         // Assert
         result.Should().HaveCount(2);
         result.Select(c => c.Name).Should().Contain(new[] {"Category 1", "Category 2"});
-    }
-
-    [Fact]
-    [Trait("Operation", "Read")]
-    public async Task Read_Should_Include_Products()
-    {
-        // Arrange
-        var category = CreateCategory();
-        var product = new Domain.Model.Product
-        {
-            ProductId = 1,
-            Name = "Test Product",
-            Description = "Test Description",
-            Price = 100,
-            StockQuantity = 10,
-            CategoryId = category.CategoryId,
-            DiscountRate = 0,
-            ImageUrl = "test.jpg"
-        };
-
-        await _context.Categories.AddAsync(category);
-        await _context.Products.AddAsync(product);
-        await _context.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.Read();
-
-        // Assert
-        result.Should().HaveCount(1);
-        result[0].Products.Should().HaveCount(1);
-        result[0].Products.First().Name.Should().Be(product.Name);
     }
 
     [Fact]

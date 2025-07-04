@@ -2,7 +2,7 @@ namespace ECommerce.Application.Utility;
 
 public static class MathService
 {
-    public static decimal CalculateDiscount(decimal price, decimal discountRate)
+    public static double CalculateDiscount(double price, double discountRate)
     {
         try
         {

@@ -8,6 +8,8 @@ public interface IProductRepository
     Task<List<Product>> Read(int pageNumber = 1, int pageSize = 50);
     Task<Product?> GetProductById(int id);
     Task<bool> CheckProductExistsWithName(string name);
-    void Update(Product product);
-    void Delete(Product product);
+    Task Update(Product product);
+    Task Delete(Product product);
+    Task<List<Product>> GetProductsByCategoryId(int categoryId, int pageNumber = 1, int pageSize = 50);
+    Task UpdateStock(int productId, int newStock);
 }

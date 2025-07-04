@@ -98,7 +98,7 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
     {
         product.StockQuantity -= quantity;
         product.ProductUpdated = DateTime.UtcNow;
-        _productRepository.Update(product);
+        _productRepository.UpdateStock(product.ProductId, product.StockQuantity);
 
         _logger.LogInformation(
             "Product stock updated. ProductId: {ProductId}, Name: {Name}, NewStock: {NewStock}",

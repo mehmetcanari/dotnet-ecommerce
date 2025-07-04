@@ -89,10 +89,23 @@ public class AccountServiceTests
     {
         // Arrange
         var request = CreateRegisterRequest("test@example.com");
+        var account = CreateAccount("test@example.com", 1);
+        var identityUser = new IdentityUser { Id = "test-user-id", Email = "test@example.com", UserName = "test@example.com" };
+        
         _mediatorMock.Setup(m => m.Send(
             It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success());
+            .ReturnsAsync(Result<Domain.Model.Account>.Success(account));
+
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<CreateIdentityUserCommand>(cmd => cmd.AccountRegisterRequestDto == request && cmd.Role == "User"),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IdentityUser>.Success(identityUser));
+
+        _mediatorMock.Setup(m => m.Send(
+            It.Is<UpdateAccountGuidCommand>(cmd => cmd.Account == account && cmd.User == identityUser),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Domain.Model.Account>.Success(account));
 
         // Act
         var result = await _sut.RegisterAccountAsync(request, "User");
@@ -102,6 +115,12 @@ public class AccountServiceTests
         Assert.Null(result.Error);
         _mediatorMock.Verify(m => m.Send(
             It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<CreateIdentityUserCommand>(cmd => cmd.AccountRegisterRequestDto == request && cmd.Role == "User"),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _mediatorMock.Verify(m => m.Send(
+            It.Is<UpdateAccountGuidCommand>(cmd => cmd.Account == account && cmd.User == identityUser),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -114,7 +133,7 @@ public class AccountServiceTests
         _mediatorMock.Setup(m => m.Send(
             It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Failure("Email is already in use."));
+            .ReturnsAsync(Result<Domain.Model.Account>.Failure("Email is already in use."));
 
         // Act
         var result = await _sut.RegisterAccountAsync(request, "User");

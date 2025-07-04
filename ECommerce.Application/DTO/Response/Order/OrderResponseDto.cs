@@ -6,7 +6,7 @@ public record OrderResponseDto
 {
     public int AccountId { get; init; }
     public ICollection<BasketItemResponseDto> BasketItems { get; init; } = new List<BasketItemResponseDto>();
-    public decimal TotalPrice => BasketItems.Sum(oi => oi.UnitPrice * oi.Quantity);
+    public double TotalPrice => BasketItems.Sum(oi => oi.UnitPrice * oi.Quantity);
     public DateTime OrderDate { get; init; }
     public required string ShippingAddress { get; init; }
     public required string BillingAddress { get; init; }

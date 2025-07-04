@@ -5,7 +5,7 @@ namespace ECommerce.Domain.Model
         public int OrderId { get; init; }
         public int AccountId { get; init; }
         public ICollection<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
-        public decimal TotalPrice => BasketItems.Sum(oi => oi.TotalPrice);
+        public double TotalPrice => BasketItems.Sum(oi => oi.TotalPrice);
         public DateTime OrderDate { get; init; } = DateTime.UtcNow;
         public required string ShippingAddress { get; init; }
         public required string BillingAddress { get; init; }

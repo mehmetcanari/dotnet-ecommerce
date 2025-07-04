@@ -7,7 +7,6 @@ namespace ECommerce.Infrastructure.Context;
 public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContext(options)
 {
     public DbSet<Account> Accounts => Set<Account>();
-    public DbSet<Product> Products => Set<Product>();
     public DbSet<BasketItem> BasketItems => Set<BasketItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
@@ -29,20 +28,6 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContex
                 .WithMany(o => o.BasketItems)
                 .HasForeignKey(oi => oi.OrderId)
                 .IsRequired(false); 
-        });
-
-        modelBuilder.Entity<Category>(entity =>
-        {
-            entity.HasMany(c => c.Products)
-                .WithOne(p => p.Category)
-                .HasForeignKey(p => p.CategoryId);
-        });
-
-        modelBuilder.Entity<Product>(entity =>
-        {
-            entity.HasOne(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryId);
         });
 
         modelBuilder.Entity<Notification>(entity =>

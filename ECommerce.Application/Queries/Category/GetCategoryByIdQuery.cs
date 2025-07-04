@@ -15,15 +15,17 @@ public class GetCategoryByIdQuery : IRequest<Result<CategoryResponseDto>>
 public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery, Result<CategoryResponseDto>>
 {
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IProductRepository _productRepository;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
     private const string CategoryCacheKey = "category:{0}";
     private const int CacheExpirationMinutes = 60;
 
-    public GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository, ILoggingService logger, ICacheService cacheService)
+    public GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository, IProductRepository productRepository, ILoggingService logger, ICacheService cacheService)
     {
         _cacheService = cacheService;
         _categoryRepository = categoryRepository;
+        _productRepository = productRepository;
         _logger = logger;
     }
 
@@ -37,15 +39,28 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
                 return Result<CategoryResponseDto>.Success(cachedCategory);
             }
 
-            var category = await _categoryRepository.GetCategoryById(request.CategoryId);
+            var categoryTask = _categoryRepository.GetCategoryById(request.CategoryId);
+            var productsTask = _productRepository.GetProductsByCategoryId(request.CategoryId);
+
+            await Task.WhenAll(categoryTask, productsTask);
+
+            var category = await categoryTask;
+            var categoryProducts = await productsTask;
+
             if (category == null)
             {
                 return Result<CategoryResponseDto>.Failure("Category not found");
             }
 
-            var categoryResponseDto = MapToResponseDto(category);
-            await CacheCategory(request.CategoryId, categoryResponseDto);
+            if (categoryProducts.Count == 0)
+            {
+                return Result<CategoryResponseDto>.Failure("No products found for this category");
+            }
 
+            var categoryResponseDto = MapToResponseDto(category, categoryProducts);
+
+            await CacheCategory(request.CategoryId, categoryResponseDto);
+    
             _logger.LogInformation("Category retrieved successfully");
             return Result<CategoryResponseDto>.Success(categoryResponseDto);
         }
@@ -67,14 +82,14 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
         await _cacheService.SetAsync(string.Format(CategoryCacheKey, categoryId), categoryDto, expirationTime);
     }
 
-    private static CategoryResponseDto MapToResponseDto(Domain.Model.Category category)
+    private static CategoryResponseDto MapToResponseDto(Domain.Model.Category category, List<Domain.Model.Product> products)
     {
         return new CategoryResponseDto
         {
             CategoryId = category.CategoryId,
             Name = category.Name,
             Description = category.Description,
-            Products = category.Products.Select(MapToProductDto).ToList()
+            Products = products.Select(MapToProductDto).ToList()
         };
     }
 

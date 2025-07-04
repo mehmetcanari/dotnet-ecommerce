@@ -1,29 +1,46 @@
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
+
 namespace ECommerce.Domain.Model;
 
 public class Product
 {
-    public int ProductId {get; init;}
+    [BsonId]
+    [JsonPropertyName("productId")]
+    public int ProductId { get; set; }
+
+    [BsonElement("name")]
     [JsonPropertyName("name")]
+    public required string Name { get; set; }
 
-    public required string Name {get;set;}
+    [BsonElement("description")]
     [JsonPropertyName("description")]
+    public required string Description { get; set; }
 
-    public required string Description {get;set;}
+    [BsonElement("price")]
     [JsonPropertyName("price")]
+    public required double Price { get; set; }
 
-    public required decimal Price {get;set;}
+    [BsonElement("discountRate")]
     [JsonPropertyName("discountRate")]
+    public required double DiscountRate { get; set; }
 
-    public required decimal DiscountRate {get;set;}
+    [BsonElement("imageUrl")]
     [JsonPropertyName("imageUrl")]
+    public required string? ImageUrl { get; set; }
 
-    public required string? ImageUrl {get;set;}
+    [BsonElement("stockQuantity")]
     [JsonPropertyName("stockQuantity")]
-    
-    public required int StockQuantity {get;set;}
+    public required int StockQuantity { get; set; }
+
+    [BsonElement("productCreated")]
     public DateTime ProductCreated { get; init; } = DateTime.UtcNow;
-    public DateTime ProductUpdated { get; set; }
+
+    [BsonElement("productUpdated")]
+    public DateTime ProductUpdated { get; set; } = DateTime.UtcNow;
+
+    [BsonElement("categoryId")]
     public int CategoryId { get; set; }
-    public Category? Category { get; set; }
 }
+

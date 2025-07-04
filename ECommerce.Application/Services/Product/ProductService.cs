@@ -107,7 +107,7 @@ public class ProductService : BaseValidator, IProductService
                 return Result.Failure("Product not found");
             }
 
-            _productRepository.Delete(product);
+            await _productRepository.Delete(product);
             
             var domainEvent = new ProductDeletedEvent
             {
@@ -190,3 +190,4 @@ public class ProductService : BaseValidator, IProductService
         }
     }
 }
+
