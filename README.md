@@ -7,6 +7,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 |-----------|---------|
 | **.NET 9** | Core framework |
 | **PostgreSQL** | Primary database |
+| **MongoDB** | NoSQL database for product data |
 | **Redis** | Caching layer |
 | **JWT & Identity** | Authentication/authorization |
 | **AWS S3** | File storage and management |
@@ -30,6 +31,7 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **Result Pattern**           | Standardized response structure | Generic `Result<T>` wrapper for consistent success/error handling across endpoints |
 | **Rate Limiting**            | API abuse prevention | ASP.NET Core middleware |
 | **Security Headers**         | Enhanced protection against common attacks | Middleware adds HSTS, X-Frame-Options, CSP, and other security headers |
+| **CORS**                     | Cross-origin resource sharing for web clients | 
 | **Distributed Transactions**   | Data consistency across operations | Unit of Work pattern with EF Core transactions for multi-repository operations |
 | **Background Jobs**          | Automated system maintenance | `BackgroundService` for token cleanup, cache refresh, and scheduled tasks |
 | **Cloud Storage**            | Secure and scalable file management | AWS S3 integration for file upload |
@@ -65,7 +67,7 @@ Clean Architecture implementation with clear separation of concerns:
   │   ├── Entities
   │
   ├── 📁 Infrastructure/     
-  │   ├── Context
+  │   ├── Contexts
   │   ├── Repositories
   │   ├── Dependencies  #Infrastructure Dependencies  
   │   ├── Migrations
@@ -80,6 +82,7 @@ Clean Architecture implementation with clear separation of concerns:
 - .NET 9 SDK
 - Docker & Docker Compose
 - PostgreSQL (if running locally)
+- MongoDB (if running locally)
 - Elasticsearch (if running locally)
 - Redis (if running locally)
 - RabbitMQ (if running locally)
@@ -120,6 +123,10 @@ JWT_ISSUER=OnlineStoreWebAPI
 JWT_AUDIENCE=OnlineStoreClient
 JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
+
+# MongoDB
+MONGODB_CONNECTION_STRING=mongodb://localhost:27017
+MONGODB_DATABASE_NAME=ECommerceStore
 
 # Database
 DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
