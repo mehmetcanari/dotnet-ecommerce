@@ -33,16 +33,24 @@ public class ProductRepository : IProductRepository
         _products.Indexes.CreateOneAsync(new CreateIndexModel<Product>(stockIndexKeys));
     }
 
+    protected virtual IFindFluent<Product, Product> GetProductQuery(FilterDefinition<Product> filter)
+    {
+        return _products.Find(filter);
+    }
+
     public async Task<List<Product>> Read(int pageNumber = 1, int pageSize = 50)
     {
         try
         {
-            return await _products
-                .Find(_ => true)
-                .Skip((pageNumber - 1) * pageSize)
-                .Limit(pageSize)
-                .SortByDescending(p => p.ProductCreated)
-                .ToListAsync();
+            var options = new FindOptions<Product>
+            {
+                Skip = (pageNumber - 1) * pageSize,
+                Limit = pageSize,
+                Sort = Builders<Product>.Sort.Descending(p => p.ProductCreated)
+            };
+            
+            var cursor = await _products.FindAsync(_ => true, options);
+            return await cursor.ToListAsync();
         }
         catch (Exception exception)
         {
@@ -54,9 +62,8 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            return await _products
-                .Find(p => p.ProductId == id)
-                .FirstOrDefaultAsync();
+            var cursor = await _products.FindAsync(p => p.ProductId == id);
+            return await cursor.FirstOrDefaultAsync();
         }
         catch (Exception exception)
         {
@@ -120,16 +127,31 @@ public class ProductRepository : IProductRepository
         }
     }
 
+    public async Task DeleteById(int id)
+    {
+        try
+        {
+            await _products.DeleteOneAsync(p => p.ProductId == id);
+        }
+        catch (Exception exception)
+        {
+            throw new Exception("An unexpected error occurred while deleting product by id", exception);
+        }
+    }
+
     public async Task<List<Product>> GetProductsByCategoryId(int categoryId, int pageNumber = 1, int pageSize = 50)
     {
         try
         {
-            return await _products
-                .Find(p => p.CategoryId == categoryId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Limit(pageSize)
-                .SortByDescending(p => p.ProductCreated)
-                .ToListAsync();
+            var options = new FindOptions<Product>
+            {
+                Skip = (pageNumber - 1) * pageSize,
+                Limit = pageSize,
+                Sort = Builders<Product>.Sort.Descending(p => p.ProductCreated)
+            };
+
+            var cursor = await _products.FindAsync(p => p.CategoryId == categoryId, options);
+            return await cursor.ToListAsync();
         }
         catch (Exception exception)
         {

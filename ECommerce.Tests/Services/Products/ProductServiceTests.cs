@@ -88,8 +88,8 @@ public class ProductServiceTests
         {
             Name = "Test Product",
             Description = "Test Description",
-            Price = 100.00m,
-            DiscountRate = 0.10m,
+            Price = 100.00,
+            DiscountRate = 0.10,
             ImageUrl = "http://example.com/image.jpg",
             StockQuantity = 10,
             CategoryId = 1
@@ -100,8 +100,8 @@ public class ProductServiceTests
         {
             Name = "Updated Product",
             Description = "Updated Description",
-            Price = 150.00m,
-            DiscountRate = 0.20m,
+            Price = 150.00,
+            DiscountRate = 0.20,
             ImageUrl = "http://example.com/updated-image.jpg",
             StockQuantity = 25,
             CategoryId = 2
@@ -113,8 +113,8 @@ public class ProductServiceTests
             ProductId = id,
             Name = "Test Product",
             Description = "Test Description",
-            Price = 100.00m,
-            DiscountRate = 0.10m,
+            Price = 100,
+            DiscountRate = 0.10,
             ImageUrl = "http://example.com/image.jpg",
             StockQuantity = 10,
             CategoryId = 1

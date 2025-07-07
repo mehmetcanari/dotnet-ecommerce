@@ -27,7 +27,7 @@ public class MongoDbContext
         return _database.GetCollection<T>(collectionName);
     }
 
-    public async Task<int> GetNextSequenceValue(string sequenceName)
+    public virtual async Task<int> GetNextSequenceValue(string sequenceName)
     {
         var counters = GetCollection<Counter>("counters");
         

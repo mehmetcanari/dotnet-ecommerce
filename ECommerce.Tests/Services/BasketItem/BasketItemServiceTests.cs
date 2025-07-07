@@ -111,7 +111,7 @@ public class BasketItemServiceTests
             DateOfBirth = new DateTime(1990, 1, 1)
         };
 
-    private Domain.Model.Product CreateProduct(int id = 1, int stock = 10, decimal price = 100)
+    private Domain.Model.Product CreateProduct(int id = 1, int stock = 10, double price = 100)
         => new Domain.Model.Product
         {
             ProductId = id,

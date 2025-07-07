@@ -26,7 +26,7 @@ public class PaymentServiceTests
         _paymentService = new IyzicoPaymentService(_loggerMock.Object, _paymentProviderMock.Object, _notificationServiceMock.Object);
     }
 
-    private Domain.Model.Order CreateOrder(decimal totalAmount = 100)
+    private Domain.Model.Order CreateOrder(double totalAmount = 100)
     {
         var basketItems = new List<Domain.Model.BasketItem>
         {

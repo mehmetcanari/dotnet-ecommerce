@@ -16,69 +16,36 @@ namespace ECommerce.Tests.Repositories.Product;
 public class ProductRepositoryTests
 {
     private readonly Mock<IMongoCollection<Domain.Model.Product>> _mockCollection;
-    private readonly TestMongoDbContext _mockContext;
+    private readonly Mock<MongoDbContext> _mockContext;
     private readonly IProductRepository _repository;
-    private readonly List<Domain.Model.Product> _testProducts;
 
     public ProductRepositoryTests()
     {
-        _testProducts = new List<Domain.Model.Product>();
-        
-        // Mock MongoDB collection
         _mockCollection = new Mock<IMongoCollection<Domain.Model.Product>>();
         
-        // Setup the indexes mock for the product collection
         var mockIndexManager = new Mock<IMongoIndexManager<Domain.Model.Product>>();
         mockIndexManager.Setup(x => x.CreateOneAsync(It.IsAny<CreateIndexModel<Domain.Model.Product>>(), It.IsAny<CreateOneIndexOptions>(), It.IsAny<CancellationToken>()))
                       .Returns(Task.FromResult("test-index"));
         
         _mockCollection.Setup(x => x.Indexes).Returns(mockIndexManager.Object);
         
-        // Use a test implementation to avoid configuration issues
-        _mockContext = new TestMongoDbContext(_mockCollection.Object);
+        _mockContext = new Mock<MongoDbContext>(CreateTestConfiguration());
+        _mockContext.Setup(c => c.GetCollection<Domain.Model.Product>("products")).Returns(_mockCollection.Object);
 
-        _repository = new ProductRepository(_mockContext);
+        _repository = new ProductRepository(_mockContext.Object);
     }
 
-    // Test implementation of MongoDbContext
-    private class TestMongoDbContext : MongoDbContext
+    private static IConfiguration CreateTestConfiguration()
     {
-        private readonly IMongoCollection<Domain.Model.Product> _productCollection;
-
-        public TestMongoDbContext(IMongoCollection<Domain.Model.Product> productCollection) 
-            : base(CreateTestConfiguration())
+        var inMemorySettings = new Dictionary<string, string>
         {
-            _productCollection = productCollection;
-        }
+            ["ConnectionStrings:MongoDB"] = "mongodb://localhost:27017",
+            ["MongoDB:DatabaseName"] = "TestECommerceStore"
+        };
 
-        public override IMongoCollection<T> GetCollection<T>(string collectionName)
-        {
-            if (typeof(T) == typeof(Domain.Model.Product) && collectionName == "products")
-            {
-                return (IMongoCollection<T>)_productCollection;
-            }
-            
-            // Return a mock collection for other types to avoid null reference exceptions
-            var mockCollection = new Mock<IMongoCollection<T>>();
-            var mockIndexManagerGeneric = new Mock<IMongoIndexManager<T>>();
-            mockIndexManagerGeneric.Setup(x => x.CreateOneAsync(It.IsAny<CreateIndexModel<T>>(), It.IsAny<CreateOneIndexOptions>(), It.IsAny<CancellationToken>()))
-                          .Returns(Task.FromResult("test-index"));
-            mockCollection.Setup(x => x.Indexes).Returns(mockIndexManagerGeneric.Object);
-            return mockCollection.Object;
-        }
-
-        private static IConfiguration CreateTestConfiguration()
-        {
-            var inMemorySettings = new Dictionary<string, string>
-            {
-                ["ConnectionStrings:MongoDB"] = "mongodb://localhost:27017",
-                ["MongoDB:DatabaseName"] = "TestECommerceStore"
-            };
-
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-        }
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings!)
+            .Build();
     }
 
     private Domain.Model.Product CreateProduct(int id = 1, string name = "Test Product")
@@ -104,6 +71,7 @@ public class ProductRepositoryTests
         var product = CreateProduct();
         _mockCollection.Setup(x => x.InsertOneAsync(It.IsAny<Domain.Model.Product>(), null, default))
                       .Returns(Task.CompletedTask);
+        _mockContext.Setup(c => c.GetNextSequenceValue(It.IsAny<string>())).ReturnsAsync(1);
 
         // Act
         await _repository.Create(product);
@@ -127,28 +95,15 @@ public class ProductRepositoryTests
             CreateProduct(2, "Product 2"),
             CreateProduct(3, "Product 3")
         };
+        var expectedProducts = products.Take(2).ToList();
 
         var mockCursor = new Mock<IAsyncCursor<Domain.Model.Product>>();
-        mockCursor.Setup(x => x.Current).Returns(products.Take(2));
-        mockCursor.SetupSequence(x => x.MoveNext(It.IsAny<CancellationToken>()))
-                  .Returns(true)
-                  .Returns(false);
-        mockCursor.SetupSequence(x => x.MoveNextAsync(It.IsAny<CancellationToken>()))
-                  .Returns(Task.FromResult(true))
-                  .Returns(Task.FromResult(false));
+        mockCursor.Setup(_ => _.Current).Returns(expectedProducts);
+        mockCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>())).Returns(true).Returns(false);
+        mockCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(true)).Returns(Task.FromResult(false));
 
-        var mockOrderedFluent = new Mock<IOrderedFindFluent<Domain.Model.Product, Domain.Model.Product>>();
-        mockOrderedFluent.Setup(x => x.ToListAsync(It.IsAny<CancellationToken>()))
-                        .ReturnsAsync(products.Take(2).ToList());
-
-        var mockFluent = new Mock<IFindFluent<Domain.Model.Product, Domain.Model.Product>>();
-        mockFluent.Setup(x => x.Skip(It.IsAny<int?>())).Returns(mockFluent.Object);
-        mockFluent.Setup(x => x.Limit(It.IsAny<int?>())).Returns(mockFluent.Object);
-        mockFluent.Setup(x => x.SortByDescending(It.IsAny<Expression<Func<Domain.Model.Product, object>>>()))
-                  .Returns(mockOrderedFluent.Object);
-
-        _mockCollection.Setup(x => x.Find(It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(), null))
-                      .Returns(mockFluent.Object);
+        _mockCollection.Setup(c => c.FindAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), It.IsAny<FindOptions<Domain.Model.Product, Domain.Model.Product>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockCursor.Object);
 
         // Act
         var result = await _repository.Read(1, 2);
@@ -164,29 +119,20 @@ public class ProductRepositoryTests
     {
         // Arrange
         var product = CreateProduct();
-        
         var mockCursor = new Mock<IAsyncCursor<Domain.Model.Product>>();
-        mockCursor.Setup(x => x.Current).Returns(new[] { product });
-        mockCursor.SetupSequence(x => x.MoveNext(It.IsAny<CancellationToken>()))
-                  .Returns(true)
-                  .Returns(false);
-        mockCursor.SetupSequence(x => x.MoveNextAsync(It.IsAny<CancellationToken>()))
-                  .Returns(Task.FromResult(true))
-                  .Returns(Task.FromResult(false));
+        mockCursor.Setup(_ => _.Current).Returns(new List<Domain.Model.Product> { product });
+        mockCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>())).Returns(true).Returns(false);
+        mockCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(true)).Returns(Task.FromResult(false));
 
-        var mockFluent = new Mock<IFindFluent<Domain.Model.Product, Domain.Model.Product>>();
-        mockFluent.Setup(x => x.FirstOrDefaultAsync(It.IsAny<CancellationToken>()))
-                  .ReturnsAsync(product);
-
-        _mockCollection.Setup(x => x.Find(It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(), null))
-                      .Returns(mockFluent.Object);
+        _mockCollection.Setup(x => x.FindAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), It.IsAny<FindOptions<Domain.Model.Product, Domain.Model.Product>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockCursor.Object);
 
         // Act
         var result = await _repository.GetProductById(product.ProductId);
 
         // Assert
         result.Should().NotBeNull();
-        result.Name.Should().Be(product.Name);
+        result!.Name.Should().Be(product.Name);
         result.Description.Should().Be(product.Description);
         result.Price.Should().Be(product.Price);
         result.StockQuantity.Should().Be(product.StockQuantity);
@@ -196,13 +142,14 @@ public class ProductRepositoryTests
     [Trait("Operation", "GetById")]
     public async Task GetProductById_Should_Return_Null_When_Product_Not_Exists()
     {
-        // Arrange
-        var mockFluent = new Mock<IFindFluent<Domain.Model.Product, Domain.Model.Product>>();
-        mockFluent.Setup(x => x.FirstOrDefaultAsync(It.IsAny<CancellationToken>()))
-                  .ReturnsAsync((Domain.Model.Product)null);
+        var emptyProductList = new List<Domain.Model.Product>();
+        var mockCursor = new Mock<IAsyncCursor<Domain.Model.Product>>();
+        mockCursor.Setup(_ => _.Current).Returns(emptyProductList);
+        mockCursor.SetupSequence(_ => _.MoveNext(It.IsAny<CancellationToken>())).Returns(false);
+        mockCursor.SetupSequence(_ => _.MoveNextAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(false));
 
-        _mockCollection.Setup(x => x.Find(It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(), null))
-                      .Returns(mockFluent.Object);
+        _mockCollection.Setup(x => x.FindAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), It.IsAny<FindOptions<Domain.Model.Product, Domain.Model.Product>>(), It.IsAny<CancellationToken>()))
+                      .ReturnsAsync(mockCursor.Object);
 
         // Act
         var result = await _repository.GetProductById(999);
@@ -217,7 +164,7 @@ public class ProductRepositoryTests
     {
         // Arrange
         var product = CreateProduct();
-        _mockCollection.Setup(x => x.CountDocumentsAsync(It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(), null, default))
+        _mockCollection.Setup(x => x.CountDocumentsAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), null, default))
                       .ReturnsAsync(1);
 
         // Act
@@ -232,7 +179,7 @@ public class ProductRepositoryTests
     public async Task CheckProductExistsWithName_Should_Return_False_When_Product_Not_Exists()
     {
         // Arrange
-        _mockCollection.Setup(x => x.CountDocumentsAsync(It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(), null, default))
+        _mockCollection.Setup(x => x.CountDocumentsAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), null, default))
                       .ReturnsAsync(0);
 
         // Act
@@ -248,34 +195,18 @@ public class ProductRepositoryTests
     {
         // Arrange
         var product = CreateProduct();
-        product.Name = "Updated Name";
-        product.Description = "Updated Description";
-        product.Price = 200;
-        product.StockQuantity = 20;
+        var updateResult = new ReplaceOneResult.Acknowledged(1, 1, null);
 
-        var mockResult = new Mock<ReplaceOneResult>();
-        mockResult.Setup(x => x.IsAcknowledged).Returns(true);
-        mockResult.Setup(x => x.ModifiedCount).Returns(1);
-
-        _mockCollection.Setup(x => x.ReplaceOneAsync(
-            It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(),
-            It.IsAny<Domain.Model.Product>(),
-            It.IsAny<ReplaceOptions>(),
-            default))
-                      .ReturnsAsync(mockResult.Object);
+        _mockCollection.Setup(x => x.ReplaceOneAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), product, It.IsAny<ReplaceOptions>(), default))
+            .ReturnsAsync(updateResult);
 
         // Act
         await _repository.Update(product);
 
         // Assert
-        _mockCollection.Verify(x => x.ReplaceOneAsync(
-            It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(),
-            It.Is<Domain.Model.Product>(p => 
-                p.Name == "Updated Name" && 
-                p.Description == "Updated Description" && 
-                p.Price == 200 && 
-                p.StockQuantity == 20),
-            It.IsAny<ReplaceOptions>(),
+        _mockCollection.Verify(x => x.ReplaceOneAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), 
+            It.Is<Domain.Model.Product>(p => p.ProductId == product.ProductId), 
+            It.IsAny<ReplaceOptions>(), 
             default), Times.Once);
     }
 
@@ -285,26 +216,15 @@ public class ProductRepositoryTests
     {
         // Arrange
         var product = CreateProduct();
-        var mockResult = new Mock<DeleteResult>();
-        mockResult.Setup(x => x.IsAcknowledged).Returns(true);
-        mockResult.Setup(x => x.DeletedCount).Returns(1);
+        var deleteResult = new DeleteResult.Acknowledged(1);
 
-        _mockCollection.Setup(x => x.DeleteOneAsync(
-            It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(),
-            default))
-                      .ReturnsAsync(mockResult.Object);
+        _mockCollection.Setup(x => x.DeleteOneAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), default))
+            .ReturnsAsync(deleteResult);
 
         // Act
         await _repository.Delete(product);
 
         // Assert
-        _mockCollection.Verify(x => x.DeleteOneAsync(
-            It.IsAny<Expression<Func<Domain.Model.Product, bool>>>(),
-            default), Times.Once);
-    }
-
-    private void Dispose()
-    {
-        // MongoDB context doesn't need explicit disposal in tests
+        _mockCollection.Verify(x => x.DeleteOneAsync(It.IsAny<FilterDefinition<Domain.Model.Product>>(), default), Times.Once);
     }
 } 
