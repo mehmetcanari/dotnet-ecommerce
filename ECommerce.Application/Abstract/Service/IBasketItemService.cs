@@ -9,4 +9,5 @@ public interface IBasketItemService
     Task<Result> UpdateBasketItemAsync(UpdateBasketItemRequestDto updateBasketItemRequestDto);
     Task<Result> DeleteAllNonOrderedBasketItemsAsync();
     Task ClearBasketItemsIncludeOrderedProductAsync(Domain.Model.Product updatedProduct);
+    Task ClearBasketItemsCacheAsync();
 }

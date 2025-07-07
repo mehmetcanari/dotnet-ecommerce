@@ -53,3 +53,10 @@ Desktop.ini
 *.bak
 *.dump
 /pgdata/
+
+# Entity Framework Migrations
+**/Migrations/*.cs
+**/Migrations/*.Designer.cs
+**/Migrations/*ModelSnapshot.cs
+**/Migrations/*/*.cs
+**/Migrations/*/*.Designer.cs

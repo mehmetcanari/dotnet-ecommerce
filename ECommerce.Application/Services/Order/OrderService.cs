@@ -89,6 +89,7 @@ public class OrderService : BaseValidator, IOrderService
 
             await _orderRepository.Create(order);
             await _basketItemService.DeleteAllNonOrderedBasketItemsAsync();
+            await _basketItemService.ClearBasketItemsCacheAsync();
             await _productService.UpdateProductStockAsync(basketItems);
             await _messageBroker.PublishAsync(new OrderCreatedEvent
             {

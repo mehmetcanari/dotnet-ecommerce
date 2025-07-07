@@ -136,7 +136,7 @@ public class BasketItemService : BaseValidator, IBasketItemService
         }
     }
 
-    private async Task ClearBasketItemsCacheAsync()
+    public async Task ClearBasketItemsCacheAsync()
     {
         await _cacheService.RemoveAsync(GetAllBasketItemsCacheKey);
     }
