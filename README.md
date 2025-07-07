@@ -1,6 +1,6 @@
 # E-Commerce API
 ## 📋 Overview
-Modern e-commerce RESTful API built with Clean Architecture and SOLID principles. Supports product management, user authentication, secure payment processing, and cloud file storage with AWS S3.
+Modern, scalable e-commerce RESTful API built with Clean Architecture and SOLID principles. Supports product management, user authentication, secure payment processing, and other essential online store capabilities.
 
 ## 🛠️ Tech Stack
 | Technology | Purpose |
@@ -31,8 +31,9 @@ Modern e-commerce RESTful API built with Clean Architecture and SOLID principles
 | **Result Pattern**           | Standardized response structure | Generic `Result<T>` wrapper for consistent success/error handling across endpoints |
 | **Rate Limiting**            | API abuse prevention | ASP.NET Core middleware |
 | **Security Headers**         | Enhanced protection against common attacks | Middleware adds HSTS, X-Frame-Options, CSP, and other security headers |
-| **CORS**                     | Cross-origin resource sharing for web clients | 
-| **Distributed Transactions**   | Data consistency across operations | Unit of Work pattern with EF Core transactions for multi-repository operations |
+| **CORS**                     | Cross-origin resource sharing for web clients | Policy-based configuration with environment-specific origins, credentials support for authenticated requests |
+| **Polyglot Persistence**      | Multi-database architecture for scalability | PostgreSQL for relational data, MongoDB for non-relational product data storage optimized for read-heavy operations |
+| **Transactions**   | Data consistency across operations | Unit of Work pattern with EF Core transactions for multi-repository operations |
 | **Background Jobs**          | Automated system maintenance | `BackgroundService` for token cleanup, cache refresh, and scheduled tasks |
 | **Cloud Storage**            | Secure and scalable file management | AWS S3 integration for file upload |
 | **Pagination**              | Efficient data retrieval and performance | Repository pattern with Skip/Take implementation, default page size of 50 items |
@@ -46,7 +47,6 @@ Clean Architecture implementation with clear separation of concerns:
 📁 Solution
   ├── 📁 Presentation/                
   │   ├── Controllers
-  │   ├── Logs
   │   ├── API
   │   └── Configurations
   │
@@ -56,24 +56,26 @@ Clean Architecture implementation with clear separation of concerns:
   │   ├── Services
   │   ├── Queue
   │   ├── Commands
+  │   ├── Events
   │   ├── Queries
   │   ├── Abstract/Services
   │   ├── Utility
-  │   ├── Depdendencies  #Service Dependencies
+  │   ├── Dependencies  #Service Dependencies
   │   └── Validations
   │
   ├── 📁 Domain/        
   │   ├── Abstract/Repository       
-  │   ├── Entities
+  │   └── Entities
   │
   ├── 📁 Infrastructure/     
-  │   ├── Contexts
+  │   ├── Context
   │   ├── Repositories
   │   ├── Dependencies  #Infrastructure Dependencies  
-  │   ├── Migrations
+  │   └── Migrations
   │
   └── 📁 ECommerce.Tests/    
       ├── Services
+      └── Repositories
 ```
 
 ## 🚀 Quick Start
@@ -85,7 +87,6 @@ Clean Architecture implementation with clear separation of concerns:
 - MongoDB (if running locally)
 - Elasticsearch (if running locally)
 - Redis (if running locally)
-- RabbitMQ (if running locally)
 - AWS S3 account and bucket (for file storage)
 
 ### IMPORTANT 
@@ -124,12 +125,10 @@ JWT_AUDIENCE=OnlineStoreClient
 JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
 
-# MongoDB
-MONGODB_CONNECTION_STRING=mongodb://localhost:27017
-MONGODB_DATABASE_NAME=ECommerceStore
-
 # Database
 DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
+MONGODB_CONNECTION_STRING=mongodb://localhost:27017
+MONGODB_DATABASE_NAME=ECommerceStore
 
 # AWS S3
 AWS_ACCESS_KEY=your-aws-access-key
@@ -151,7 +150,18 @@ ADMIN_TOKEN=
 - All product images and file uploads are securely stored in AWS S3.
 - S3 credentials and bucket info are managed via environment variables for security and flexibility.
 
-## 📖 API Documentation
+## 📚 API Documentation
+
+### Swagger/OpenAPI
+Interactive API documentation and testing interface:
+- **Local Development**: [http://localhost:5076](http://localhost:5076)
+- **Docker**: [http://localhost:8080](http://localhost:8080)
+
+The Swagger UI provides:
+- Complete endpoint documentation
+- Request/response schemas
+- Interactive API testing
+- Authentication support (JWT Bearer tokens)
 
 ### Authentication
 ```http
@@ -182,8 +192,6 @@ Content-Type: application/json
     "password": "SecurePassword123!"
 }
 
-# Refresh Token
-POST /api/v1/auth/refresh-token
 ```
 
 ### Product Management
@@ -199,11 +207,12 @@ Content-Type: application/json
     "price": 499.99,
     "stockQuantity": 100,
     "discountRate": 10,
-    "imageUrl": "https://example.com/ps5.jpg"
+    "imageUrl": "https://your-bucket-name.s3.region.amazonaws.com/products/sample-product.jpg"
 }
 
 # Get Products
-GET /api/v1/products?page=1&size=10
+GET api/v1/admin/products
+Authorization: Bearer {{ADMIN_TOKEN}}
 ```
 
 ## 🧪 Testing
