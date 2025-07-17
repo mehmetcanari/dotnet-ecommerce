@@ -14,11 +14,11 @@ public class NotificationRepository : INotificationRepository
         _context = context;
     }
 
-    public async Task CreateAsync(Notification notification)
+    public async Task CreateAsync(Notification notification, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.Notifications.AddAsync(notification);
+            await _context.Notifications.AddAsync(notification, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -26,7 +26,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(int accountId, int page = 1, int size = 50)
+    public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(int accountId, int page = 1, int size = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -38,7 +38,7 @@ public class NotificationRepository : INotificationRepository
                 .OrderByDescending(n => n.CreatedAt)
                 .Skip((page - 1) * size)
                 .Take(size)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return notifications;
         }
@@ -48,7 +48,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(int accountId)
+    public async Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -58,7 +58,7 @@ public class NotificationRepository : INotificationRepository
             .AsNoTracking()
             .Where(n => n.AccountId == accountId && n.Status == NotificationStatus.Unread)
             .OrderByDescending(n => n.CreatedAt)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
             return notifications;
         }
@@ -68,7 +68,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<int> GetUnreadCountAsync(string userId)
+    public async Task<int> GetUnreadCountAsync(string userId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -76,7 +76,7 @@ public class NotificationRepository : INotificationRepository
 
             var count = await query
                 .AsNoTracking()
-                .CountAsync(n => n.AccountId == int.Parse(userId) && n.Status == NotificationStatus.Unread);
+                .CountAsync(n => n.AccountId == int.Parse(userId) && n.Status == NotificationStatus.Unread, cancellationToken);
 
             return count;
         }
@@ -98,11 +98,11 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
-            var notification = await _context.Notifications.FindAsync(id);
+            var notification = await _context.Notifications.FindAsync(id, cancellationToken);
             if (notification == null) return false;
             
             _context.Notifications.Remove(notification);
@@ -114,11 +114,11 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<bool> MarkAsReadAsync(int id)
+    public async Task<bool> MarkAsReadAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
-            var notification = await _context.Notifications.FindAsync(id);
+            var notification = await _context.Notifications.FindAsync(id, cancellationToken);
             if (notification == null) return false;
             
             notification.MarkAsRead();
@@ -131,7 +131,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<bool> MarkAllAsReadAsync(int id)
+    public async Task<bool> MarkAllAsReadAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -139,7 +139,7 @@ public class NotificationRepository : INotificationRepository
             var unreadNotifications = await query
                 .AsNoTracking()
                 .Where(n => n.AccountId == id && n.Status == NotificationStatus.Unread)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             foreach (var notification in unreadNotifications)
             {
@@ -155,7 +155,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<bool> DeleteOldNotificationsAsync(int daysToKeep = 30)
+    public async Task<bool> DeleteOldNotificationsAsync(int daysToKeep = 30, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -163,7 +163,7 @@ public class NotificationRepository : INotificationRepository
             var oldNotifications = await _context.Notifications
                 .AsNoTracking()
                 .Where(n => n.CreatedAt < cutoffDate)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             _context.Notifications.RemoveRange(oldNotifications);
             return true;

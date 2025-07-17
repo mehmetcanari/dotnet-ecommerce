@@ -14,11 +14,11 @@ public class BasketItemRepository : IBasketItemRepository
         _context = context;
     }
 
-    public async Task Create(BasketItem basketItem)
+    public async Task Create(BasketItem basketItem, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.BasketItems.AddAsync(basketItem);
+            await _context.BasketItems.AddAsync(basketItem, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -26,7 +26,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
     }
 
-    public async Task<List<BasketItem>> GetNonOrderedBasketItems(Account account)
+    public async Task<List<BasketItem>> GetNonOrderedBasketItems(Account account, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -35,7 +35,7 @@ public class BasketItemRepository : IBasketItemRepository
             var items = await query
                 .AsNoTracking()
                 .Where(b => b.AccountId == account.Id && b.IsOrdered == false)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             
             return items;
         }
@@ -45,14 +45,14 @@ public class BasketItemRepository : IBasketItemRepository
         }
     }
     
-    public async Task<BasketItem?> GetSpecificAccountBasketItemWithId(int id, Account account)
+    public async Task<BasketItem?> GetSpecificAccountBasketItemWithId(int id, Account account, CancellationToken cancellationToken = default)
     {
         try
         {
             var basketItem = await _context.BasketItems
                 .AsNoTracking()
                 .Where(b => b.BasketItemId == id && b.AccountId == account.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return basketItem;
         }
@@ -62,7 +62,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
     }
     
-    public async Task<List<BasketItem>?> GetNonOrderedBasketItemIncludeSpecificProduct(int productId)
+    public async Task<List<BasketItem>?> GetNonOrderedBasketItemIncludeSpecificProduct(int productId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -71,7 +71,7 @@ public class BasketItemRepository : IBasketItemRepository
             var items = await query
                 .AsNoTracking()
                 .Where(b => b.ProductId == productId && b.IsOrdered == false)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             
             return items;
         }

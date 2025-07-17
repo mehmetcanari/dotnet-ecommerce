@@ -14,11 +14,11 @@ public class CategoryRepository : ICategoryRepository
         _context = context;
     }
 
-    public async Task Create(Category category)
+    public async Task Create(Category category, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.Categories.AddAsync(category);
+            await _context.Categories.AddAsync(category, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -26,7 +26,7 @@ public class CategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task<List<Category>> Read(int pageNumber = 1, int pageSize = 50)
+    public async Task<List<Category>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -36,7 +36,7 @@ public class CategoryRepository : ICategoryRepository
                 .AsNoTracking()
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return categories;
         }
@@ -46,7 +46,7 @@ public class CategoryRepository : ICategoryRepository
         }
     }
     
-    public async Task<bool> CheckCategoryExistsWithName(string name)
+    public async Task<bool> CheckCategoryExistsWithName(string name, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -55,7 +55,7 @@ public class CategoryRepository : ICategoryRepository
             var category = await query
                 .AsNoTracking()
                 .Where(c => c.Name == name)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return category != null;
         }
@@ -65,7 +65,7 @@ public class CategoryRepository : ICategoryRepository
         }
     }
     
-    public async Task<Category> GetCategoryById(int id)
+    public async Task<Category> GetCategoryById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -74,7 +74,7 @@ public class CategoryRepository : ICategoryRepository
             var category = await query
                 .AsNoTracking()
                 .Where(c => c.CategoryId == id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return category;
         }

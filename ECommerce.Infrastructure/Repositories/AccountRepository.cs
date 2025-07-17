@@ -14,7 +14,7 @@ public class AccountRepository : IAccountRepository
         _context = context;
     }
 
-    public async Task<List<Account>> Read(int pageNumber = 1, int pageSize = 50)
+    public async Task<List<Account>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -24,7 +24,7 @@ public class AccountRepository : IAccountRepository
                 .AsNoTracking()
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return accounts;
         }
@@ -34,7 +34,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<Account?> GetAccountByEmail(string email)
+    public async Task<Account?> GetAccountByEmail(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -42,7 +42,7 @@ public class AccountRepository : IAccountRepository
             var account = await _context.Accounts
                 .AsNoTracking()
                 .Where(a => a.Email == email)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return account;
         }
@@ -52,14 +52,14 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<Account?> GetAccountById(int id)
+    public async Task<Account?> GetAccountById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             var account = await _context.Accounts
                 .AsNoTracking()
                 .Where(a => a.Id == id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return account;
         }
@@ -69,14 +69,14 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<Account?> GetAccountByIdentityNumber(string identityNumber)
+    public async Task<Account?> GetAccountByIdentityNumber(string identityNumber, CancellationToken cancellationToken = default)
     {
         try
         {
             var account = await _context.Accounts
                 .AsNoTracking()
                 .Where(a => a.IdentityNumber == identityNumber)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return account;
         }
@@ -86,11 +86,11 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Create(Account userAccount)
+    public async Task Create(Account userAccount, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.Accounts.AddAsync(userAccount);
+            await _context.Accounts.AddAsync(userAccount, cancellationToken);
         }
         catch (Exception exception)
         {

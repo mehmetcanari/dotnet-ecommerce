@@ -38,7 +38,7 @@ public class ProductRepository : IProductRepository
         return _products.Find(filter);
     }
 
-    public async Task<List<Product>> Read(int pageNumber = 1, int pageSize = 50)
+    public async Task<List<Product>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -50,7 +50,7 @@ public class ProductRepository : IProductRepository
             };
             
             var cursor = await _products.FindAsync(_ => true, options);
-            return await cursor.ToListAsync();
+            return await cursor.ToListAsync(cancellationToken);
         }
         catch (Exception exception)
         {
@@ -58,12 +58,12 @@ public class ProductRepository : IProductRepository
         }
     }
     
-    public async Task<Product?> GetProductById(int id)
+    public async Task<Product?> GetProductById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             var cursor = await _products.FindAsync(p => p.ProductId == id);
-            return await cursor.FirstOrDefaultAsync();
+            return await cursor.FirstOrDefaultAsync(cancellationToken);
         }
         catch (Exception exception)
         {
@@ -71,7 +71,7 @@ public class ProductRepository : IProductRepository
         }
     }
     
-    public async Task<bool> CheckProductExistsWithName(string name)
+    public async Task<bool> CheckProductExistsWithName(string name, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -84,7 +84,7 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Create(Product product)
+    public async Task Create(Product product, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -94,7 +94,7 @@ public class ProductRepository : IProductRepository
                 product.ProductId = await _context.GetNextSequenceValue("product_id");
             }
             
-            await _products.InsertOneAsync(product);
+            await _products.InsertOneAsync(product, new InsertOneOptions(), cancellationToken);
         }
         catch (Exception exception)
         {
@@ -102,12 +102,12 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Update(Product product)
+    public async Task Update(Product product, CancellationToken cancellationToken = default)
     {
         try
         {
             product.ProductUpdated = DateTime.UtcNow;
-            await _products.ReplaceOneAsync(p => p.ProductId == product.ProductId, product);
+            await _products.ReplaceOneAsync(p => p.ProductId == product.ProductId, product, new ReplaceOptions(), cancellationToken);
         }
         catch (Exception exception)
         {
@@ -115,11 +115,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task Delete(Product product)
+    public async Task Delete(Product product, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _products.DeleteOneAsync(p => p.ProductId == product.ProductId);
+            await _products.DeleteOneAsync(p => p.ProductId == product.ProductId, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -127,11 +127,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task DeleteById(int id)
+    public async Task DeleteById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _products.DeleteOneAsync(p => p.ProductId == id);
+            await _products.DeleteOneAsync(p => p.ProductId == id, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -139,7 +139,7 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task<List<Product>> GetProductsByCategoryId(int categoryId, int pageNumber = 1, int pageSize = 50)
+    public async Task<List<Product>> GetProductsByCategoryId(int categoryId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -151,7 +151,7 @@ public class ProductRepository : IProductRepository
             };
 
             var cursor = await _products.FindAsync(p => p.CategoryId == categoryId, options);
-            return await cursor.ToListAsync();
+            return await cursor.ToListAsync(cancellationToken);
         }
         catch (Exception exception)
         {
@@ -159,7 +159,7 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task UpdateStock(int productId, int newStock)
+    public async Task UpdateStock(int productId, int newStock, CancellationToken cancellationToken = default)
     {
         try
         {

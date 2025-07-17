@@ -14,7 +14,7 @@ public class OrderRepository : IOrderRepository
         _context = context;
     }
 
-    public async Task<List<Order>> Read(int pageNumber = 1, int pageSize = 50)
+    public async Task<List<Order>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -25,7 +25,7 @@ public class OrderRepository : IOrderRepository
             .Include(o => o.BasketItems)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
             return orders;
         }
@@ -35,7 +35,7 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<List<Order>> GetAccountPendingOrders(int accountId)
+    public async Task<List<Order>> GetAccountPendingOrders(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -44,7 +44,7 @@ public class OrderRepository : IOrderRepository
             var orders = await query
                 .AsNoTracking()
                 .Where(o => o.AccountId == accountId && o.Status == OrderStatus.Pending)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return orders;
         }
@@ -54,7 +54,7 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<Order?> GetOrderById(int id)
+    public async Task<Order?> GetOrderById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -62,7 +62,7 @@ public class OrderRepository : IOrderRepository
                 .AsNoTracking()
                 .Where(o => o.OrderId == id)
                 .Include(o => o.BasketItems)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return order;
         }
@@ -72,14 +72,14 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<Order?> GetOrderByAccountId(int accountId)
+    public async Task<Order?> GetOrderByAccountId(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
             var order = await _context.Orders
                 .AsNoTracking()
                 .Where(o => o.AccountId == accountId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return order;
         }
@@ -89,7 +89,7 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<List<Order?>> GetAccountOrders(int accountId)
+    public async Task<List<Order?>> GetAccountOrders(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -101,7 +101,7 @@ public class OrderRepository : IOrderRepository
                 .Where(o => o.AccountId == accountId)
                 .Where(o => o.BasketItems.Any(oi => oi.IsOrdered))
                 .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return orders;
         }
@@ -111,11 +111,11 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task Create(Order order)
+    public async Task Create(Order order, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.Orders.AddAsync(order);
+            await _context.Orders.AddAsync(order, cancellationToken);
         }
         catch (Exception exception)
         {

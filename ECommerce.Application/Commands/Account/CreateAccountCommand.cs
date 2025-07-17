@@ -51,7 +51,7 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
                 Role = request.Role
             };
 
-            await _accountRepository.Create(newAccount);
+            await _accountRepository.Create(newAccount, cancellationToken);
 
             _logger.LogInformation("Account created successfully for email: {Email}", request.AccountCreateRequest.Email);
             return Result<Domain.Model.Account>.Success(newAccount);

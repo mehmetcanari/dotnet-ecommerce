@@ -14,11 +14,11 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         _context = context;
     }
 
-    public async Task CreateAsync(RefreshToken refreshToken)
+    public async Task CreateAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.RefreshTokens.AddAsync(refreshToken);
+            await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -26,7 +26,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
     }
     
-    public async Task<RefreshToken?> GetActiveUserTokenAsync(string email)
+    public async Task<RefreshToken?> GetActiveUserTokenAsync(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -35,7 +35,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             var refreshToken = await query
                 .AsNoTracking()
                 .Where(rt => rt.Email == email && rt.Expires > DateTime.UtcNow && rt.Revoked == null)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
             
             return refreshToken;
         }
@@ -45,7 +45,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
     }
 
-    public async Task<RefreshToken?> GetByTokenAsync(string token)
+    public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -53,7 +53,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             var refreshToken = await query
                 .AsNoTracking()
-                .FirstOrDefaultAsync(rt => rt.Token == token && rt.Expires > DateTime.UtcNow && rt.Revoked == null);
+                .FirstOrDefaultAsync(rt => rt.Token == token && rt.Expires > DateTime.UtcNow && rt.Revoked == null, cancellationToken);
 
             return refreshToken;
         }
@@ -76,7 +76,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
     }
 
-    public async Task CleanupExpiredTokensAsync()
+    public async Task CleanupExpiredTokensAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -85,7 +85,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             var expiredTokens = await query
                 .AsNoTracking()
                 .Where(rt => rt.Expires < DateTime.UtcNow || rt.Revoked != null)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             _context.RefreshTokens.RemoveRange(expiredTokens);
         }
