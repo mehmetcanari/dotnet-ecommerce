@@ -21,7 +21,7 @@ public class RealtimeNotificationHandler : IRealtimeNotificationHandler
     {
         if (userId == null)
         {
-            var userIdResult = await _currentUserService.GetCurrentUserId();
+            var userIdResult = await _currentUserService.GetUserId();
             if (userIdResult.IsSuccess && !string.IsNullOrEmpty(userIdResult.Data))
             {
                 userId = Guid.Parse(userIdResult.Data);

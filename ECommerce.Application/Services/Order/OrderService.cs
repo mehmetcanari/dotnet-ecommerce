@@ -251,7 +251,7 @@ public class OrderService : BaseValidator, IOrderService
 
     private async Task<Result<Domain.Model.Account>> GetCurrentUserAccountAsync()
     {
-        var emailResult = _currentUserService.GetCurrentUserEmail();
+        var emailResult = _currentUserService.GetUserEmail();
         if (emailResult is { IsSuccess: false, Error: not null })
         {
             _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);

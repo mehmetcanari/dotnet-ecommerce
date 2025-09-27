@@ -58,7 +58,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
 
     private async Task<Result<string>> GetValidatedUserEmail()
     {
-        var emailResult = await Task.FromResult(_currentUserService.GetCurrentUserEmail());
+        var emailResult = await Task.FromResult(_currentUserService.GetUserEmail());
         if (emailResult.IsFailure)
         {
             _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);

@@ -36,7 +36,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
     {
         try
         {
-            var emailResult = _currentUserService.GetCurrentUserEmail();
+            var emailResult = _currentUserService.GetUserEmail();
             if (emailResult is { IsSuccess: false, Error: not null })
             {
                 _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
@@ -81,11 +81,11 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
 
     private async Task<List<BasketItemResponseDto>?> GetCachedBasketItems()
     {
-        var cacheKey = $"{GetAllBasketItemsCacheKeyPrefix}_{_currentUserService.GetCurrentUserEmail().Data}";
+        var cacheKey = $"{GetAllBasketItemsCacheKeyPrefix}_{_currentUserService.GetUserEmail().Data}";
         var cachedItems = await _cacheService.GetAsync<List<BasketItemResponseDto>>(cacheKey);
         if (cachedItems != null)
         {
-            _logger.LogInformation("Basket items fetched from cache for user: {Email}", _currentUserService.GetCurrentUserEmail().Data);
+            _logger.LogInformation("Basket items fetched from cache for user: {Email}", _currentUserService.GetUserEmail().Data);
         }
         return cachedItems;
     }
@@ -97,7 +97,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
 
     private async Task CacheBasketItems(List<BasketItemResponseDto> items)
     {
-        var cacheKey = $"{GetAllBasketItemsCacheKeyPrefix}_{_currentUserService.GetCurrentUserEmail().Data}";
+        var cacheKey = $"{GetAllBasketItemsCacheKeyPrefix}_{_currentUserService.GetUserEmail().Data}";
         TimeSpan cacheDuration = TimeSpan.FromMinutes(_cacheDurationInMinutes);
         await _cacheService.SetAsync(cacheKey, items, cacheDuration);
     }

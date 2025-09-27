@@ -53,7 +53,7 @@ public class GetClientAccountQueryHandler : IRequestHandler<GetClientAccountQuer
 
     private Result<string> ValidateUser()
     {
-        var emailResult = _currentUserService.GetCurrentUserEmail();
+        var emailResult = _currentUserService.GetUserEmail();
         if (emailResult is { IsSuccess: false, Error: not null })
         {
             _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);

@@ -63,7 +63,7 @@ public class OrderServiceTests
 
     private void SetupCurrentUser(string email)
     {
-        _currentUserServiceMock.Setup(c => c.GetCurrentUserEmail())
+        _currentUserServiceMock.Setup(c => c.GetUserEmail())
             .Returns(Result<string>.Success(email));
     }
 

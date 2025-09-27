@@ -70,7 +70,7 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
 
     private async Task<Result<string>> GetValidatedUserEmail()
     {
-        var emailResult = _currentUserService.GetCurrentUserEmail();
+        var emailResult = _currentUserService.GetUserEmail();
         if (emailResult is { IsSuccess: false, Error: not null })
         {
             _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);

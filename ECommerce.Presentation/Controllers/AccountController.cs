@@ -1,4 +1,3 @@
-using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Commands.Account;
 using ECommerce.Application.DTO.Request.Account;
@@ -9,23 +8,25 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ECommerce.API.Controllers.Admin;
+namespace ECommerce.API.Controllers;
+
 [ApiController]
-[Route("api/v1/admin/accounts")]
-[Authorize(Roles = "Admin")]
-[ApiVersion("1.0")]
-public class AdminAccountController : ControllerBase
+[Route("api/[Controller]")]
+public class AccountController(IMediator _mediator, IAccountService _accountService, IRefreshTokenService _refreshTokenService) : ControllerBase
 {
-    private readonly IAccountService _accountService;
-    private readonly IRefreshTokenService _refreshTokenService;
-    private readonly IMediator _mediator;
-    public AdminAccountController(IAccountService accountService, IRefreshTokenService refreshTokenService, IMediator mediator)
+    [HttpGet("profile")]
+    [Authorize]
+    public async Task<IActionResult> GetProfile()
     {
-        _accountService = accountService;
-        _refreshTokenService = refreshTokenService;
-        _mediator = mediator;
+        var result = await _mediator.Send(new GetClientAccountQuery());
+        if (result.IsFailure)
+        {
+            return NotFound(new { message = "Failed to fetch profile", error = result.Error });
+        }
+        return Ok(new { message = "Profile fetched successfully", data = result.Data });
     }
-    
+
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllAccounts()
     {
@@ -37,6 +38,7 @@ public class AdminAccountController : ControllerBase
         return Ok(new { message = "All accounts fetched successfully", data = result.Data });
     }
 
+    [Authorize("Admin")]
     [HttpGet("{id}")]
     [ValidateId]
     public async Task<IActionResult> GetAccountById([FromRoute] int id)
@@ -49,6 +51,7 @@ public class AdminAccountController : ControllerBase
         return Ok(new { message = $"Account with id {id} fetched successfully", data = account.Data });
     }
 
+    [Authorize("Admin")]
     [HttpDelete("delete/{id}")]
     [ValidateId]
     public async Task<IActionResult> DeleteAccount([FromRoute] int id)
@@ -60,7 +63,8 @@ public class AdminAccountController : ControllerBase
         }
         return Ok(new { message = $"Account with id {id} deleted successfully" });
     }
-  
+
+    [Authorize("Admin")]
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] TokenRevokeRequestDto request)
     {
@@ -72,7 +76,8 @@ public class AdminAccountController : ControllerBase
         return Ok(new { message = $"{request.Email} tokens revoked successfully" });
     }
 
-    [HttpPost("ban")]
+    [Authorize("Admin")]
+    [HttpPost("restrict")]
     public async Task<IActionResult> BanAccount([FromBody] AccountBanRequestDto request)
     {
         var result = await _accountService.BanAccountAsync(request);
@@ -83,7 +88,8 @@ public class AdminAccountController : ControllerBase
         return Ok(new { message = $"{request.Email} account banned successfully" });
     }
 
-    [HttpPost("unban")]
+    [Authorize("Admin")]
+    [HttpPost("unrestrict")]
     public async Task<IActionResult> UnbanAccount([FromBody] AccountUnbanRequestDto request)
     {
         var result = await _accountService.UnbanAccountAsync(request);
@@ -93,4 +99,4 @@ public class AdminAccountController : ControllerBase
         }
         return Ok(new { message = $"{request.Email} account unbanned successfully" });
     }
-}
+} 

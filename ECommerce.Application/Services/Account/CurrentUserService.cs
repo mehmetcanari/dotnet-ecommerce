@@ -19,7 +19,7 @@ public class CurrentUserService : ICurrentUserService
         _userManager = userManager;
     }
 
-    public Result<string> GetCurrentUserEmail()
+    public Result<string> GetUserEmail()
     {
         try
         {
@@ -45,7 +45,7 @@ public class CurrentUserService : ICurrentUserService
 
     }
 
-    public async Task<Result<string>> GetCurrentUserId()
+    public async Task<Result<string>> GetUserId()
     {
         try
         {
@@ -56,7 +56,7 @@ public class CurrentUserService : ICurrentUserService
                 return Result<string>.Success(userId);
             }
 
-            var emailResult = GetCurrentUserEmail();
+            var emailResult = GetUserEmail();
             if (emailResult.IsFailure || string.IsNullOrEmpty(emailResult.Data))
             {
                 _logger.LogWarning("User email not found in claims.");

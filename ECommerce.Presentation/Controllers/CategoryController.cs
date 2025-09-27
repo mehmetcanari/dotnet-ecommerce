@@ -1,4 +1,3 @@
-using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Queries.Category;
@@ -7,23 +6,13 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ECommerce.API.Controllers.Admin;
+namespace ECommerce.API.Controllers;
 
 [ApiController]
-[Route("api/v1/admin/categories")]
-[Authorize(Roles = "Admin")]
-[ApiVersion("1.0")]
-public class AdminCategoryController : ControllerBase
+[Route("api/[Controller]")]
+public class CategoryController(IMediator _mediator, ICategoryService _categoryService) : ControllerBase
 {
-    private readonly ICategoryService _categoryService;
-    private readonly IMediator _mediator;
-
-    public AdminCategoryController(ICategoryService categoryService, IMediator mediator)
-    {
-        _categoryService = categoryService;
-        _mediator = mediator;
-    }
-
+    [Authorize("Admin")]
     [HttpPost("create")]
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequestDto request)
     {
@@ -35,6 +24,7 @@ public class AdminCategoryController : ControllerBase
         return Ok(new { message = "Category created successfully" });
     }
 
+    [Authorize("Admin")]
     [HttpDelete("delete/{id}")]
     [ValidateId]
     public async Task<IActionResult> DeleteCategory([FromRoute] int id)
@@ -47,6 +37,7 @@ public class AdminCategoryController : ControllerBase
         return Ok(new { message = "Category deleted successfully" });
     }
 
+    [Authorize("Admin")]
     [HttpPut("update/{id}")]
     [ValidateId]
     public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] UpdateCategoryRequestDto request)
@@ -59,6 +50,7 @@ public class AdminCategoryController : ControllerBase
         return Ok(new { message = "Category updated successfully" });
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     [ValidateId]
     public async Task<IActionResult> GetCategoryById([FromRoute] int id)
@@ -71,3 +63,5 @@ public class AdminCategoryController : ControllerBase
         return Ok(new { message = "Category retrieved successfully", data = category.Data });
     }
 }
+
+

@@ -6,18 +6,17 @@ using ECommerce.Application.Abstract.Service;
 using MediatR;
 using ECommerce.Application.Queries.Basket;
 
-namespace ECommerce.API.Controllers.User;
+namespace ECommerce.API.Controllers;
 
 [ApiController]
-[Route("api/v1/user/basket")]
+[Route("api/[Controller]")]
 [Authorize(Roles = "User")]
-[ApiVersion("1.0")]
-public class UserBasketItemController : ControllerBase
+public class CartItemsController : ControllerBase
 {
     private readonly IBasketItemService _basketItemService;
     private readonly IMediator _mediator;
 
-    public UserBasketItemController(IBasketItemService basketItemService, IMediator mediator)
+    public CartItemsController(IBasketItemService basketItemService, IMediator mediator)
     {
         _basketItemService = basketItemService;
         _mediator = mediator;

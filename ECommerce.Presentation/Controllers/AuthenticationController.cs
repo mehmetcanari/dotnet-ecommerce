@@ -1,23 +1,14 @@
-using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ECommerce.API.Controllers.Auth
+namespace ECommerce.API.Controllers
 {
-    [Route("api/v1/auth")]
+    [Route("api/[Controller]")]
     [ApiController]
-    [ApiVersion("1.0")]
-    public class AuthController : ControllerBase
+    public class AuthenticationController(IAuthService _authService) : ControllerBase
     {
-        private readonly IAuthService _authService;
-
-        public AuthController(IAuthService authService)
-        {
-            _authService = authService;
-        }
-
         [HttpPost("create-admin")]
         [AllowAnonymous]
         public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
@@ -55,7 +46,6 @@ namespace ECommerce.API.Controllers.Auth
         }
 
         [HttpPost("logout")]
-        //[Authorize]
         public async Task<IActionResult> Logout()
         {
             var result = await _authService.LogoutAsync("User logged out");

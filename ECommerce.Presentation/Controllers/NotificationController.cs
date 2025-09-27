@@ -1,31 +1,17 @@
-using Asp.Versioning;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Notification;
 using ECommerce.Application.Services.Notification;
 using ECommerce.Application.Validations.Attribute;
-using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ECommerce.Presentation.Controllers.Notification;
+namespace ECommerce.API.Controllers;
 
 [ApiController]
-[Route("api/v1/notifications")]
-[ApiVersion("1.0")]
+[Route("api/[Controller]")]
 [Authorize]
-public class NotificationController : ControllerBase
+public class NotificationController(INotificationService _notificationService, ICurrentUserService _currentUserService) : ControllerBase
 {
-    private readonly INotificationService _notificationService;
-    private readonly ICurrentUserService _currentUserService;
-
-    public NotificationController(
-        INotificationService notificationService, 
-        ICurrentUserService currentUserService)
-    {
-        _notificationService = notificationService;
-        _currentUserService = currentUserService;
-    }
-
     [HttpPost("test")]
     public async Task<IActionResult> Test(SendNotificationRequestDto request)
     {
@@ -70,6 +56,7 @@ public class NotificationController : ControllerBase
         return Ok(new { message = "Unread count fetched successfully", data = result.Data });
     }
 
+    [ValidateId]
     [HttpPost("{id}/mark-read")]
     [ValidateId]
     public async Task<IActionResult> MarkAsRead(int id)
@@ -93,6 +80,7 @@ public class NotificationController : ControllerBase
         return Ok(new { message = "All notifications marked as read successfully" });
     }
 
+    [ValidateId]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteNotification(int id)
     {
@@ -109,7 +97,7 @@ public class NotificationController : ControllerBase
     {
         try
         {
-            var currentUserResult = await _currentUserService.GetCurrentUserId();
+            var currentUserResult = await _currentUserService.GetUserId();
             if (currentUserResult.IsFailure)
             {
                 return BadRequest(new { message = "User not found", hubConnected = false });
@@ -127,9 +115,9 @@ public class NotificationController : ControllerBase
                 data = new
                 {
                     hubConnected = isConnected,
-                    connectionId = connectionId,
-                    userId = userId,
-                    totalConnections = totalConnections
+                    connectionId,
+                    userId,
+                    totalConnections
                 }
             });
         }
