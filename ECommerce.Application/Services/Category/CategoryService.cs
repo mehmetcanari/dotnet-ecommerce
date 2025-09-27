@@ -133,7 +133,7 @@ public class CategoryService : BaseValidator, ICategoryService
             var categories = await _categoryRepository.Read();
             foreach (var category in categories)
             {
-                await _cacheService.RemoveAsync(string.Format(CategoryCacheKey, category.CategoryId));
+                await _cacheService.RemoveAsync(CategoryCacheKey);
             }
         }
         catch (Exception ex)

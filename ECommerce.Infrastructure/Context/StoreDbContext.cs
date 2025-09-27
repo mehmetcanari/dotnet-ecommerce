@@ -44,10 +44,7 @@ public class StoreDbContextFactory : IDesignTimeDbContextFactory<StoreDbContext>
 {
     public StoreDbContext CreateDbContext(string[] args)
     {
-        var projectDir = Directory.GetCurrentDirectory();
-        var rootDir = Path.Combine(projectDir, "..");
-        var envPath = Path.Combine(rootDir, ".env");
-        DotNetEnv.Env.Load(envPath);
+        EnvConfig.LoadEnv();
 
         var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
         if (string.IsNullOrEmpty(connectionString))

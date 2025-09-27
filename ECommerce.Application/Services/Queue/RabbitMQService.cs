@@ -12,21 +12,13 @@ public class RabbitMQService : IMessageBroker, IDisposable
     private readonly IModel _channel;
     private readonly ILoggingService _logger;
 
-    public RabbitMQService(IConfiguration configuration, ILoggingService logger)
+    public RabbitMQService(IConnectionFactory connectionFactory, ILoggingService logger)
     {
         _logger = logger;
-        
-        var factory = new ConnectionFactory
-        {
-            HostName = configuration["RabbitMQ:HostName"],
-            UserName = configuration["RabbitMQ:UserName"],
-            Password = configuration["RabbitMQ:Password"],
-            Port = int.Parse(configuration["RabbitMQ:Port"] ?? "5672")
-        };
 
         try
         {
-            _connection = factory.CreateConnection();
+            _connection = connectionFactory.CreateConnection();
             _channel = _connection.CreateModel();
             _logger.LogInformation("Connected to RabbitMQ");
         }

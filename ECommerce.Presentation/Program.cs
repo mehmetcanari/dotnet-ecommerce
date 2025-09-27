@@ -354,19 +354,19 @@ internal static class Program
         //======================================================
         // REDIS CACHE CONFIGURATION
         //======================================================
-        var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost:6379";
-        
+        var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost:6380";
+        var configurationOptions = new StackExchange.Redis.ConfigurationOptions
+        {
+            EndPoints = { redisConnectionString },
+            AbortOnConnectFail = false,
+            ConnectRetry = 3,
+            ConnectTimeout = 5000
+        };
+
         builder.Services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = redisConnectionString;
+            options.ConfigurationOptions = configurationOptions;
             options.InstanceName = "ECommerce.Cache";
-            options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions
-            {
-                EndPoints = { redisConnectionString },
-                AbortOnConnectFail = false,
-                ConnectRetry = 3,
-                ConnectTimeout = 5000
-            };
         });
 
         #endregion

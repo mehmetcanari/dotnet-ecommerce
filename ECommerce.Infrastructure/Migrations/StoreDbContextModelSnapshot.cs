@@ -58,6 +58,9 @@ namespace ECommerce.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("IdentityId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("IdentityNumber")
                         .IsRequired()
                         .HasColumnType("text");
@@ -124,8 +127,8 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric");
+                    b.Property<double>("UnitPrice")
+                        .HasColumnType("double precision");
 
                     b.HasKey("BasketItemId");
 
@@ -229,56 +232,6 @@ namespace ECommerce.Infrastructure.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("ECommerce.Domain.Model.Product", b =>
-                {
-                    b.Property<int>("ProductId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProductId"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasAnnotation("Relational:JsonPropertyName", "description");
-
-                    b.Property<decimal>("DiscountRate")
-                        .HasColumnType("numeric")
-                        .HasAnnotation("Relational:JsonPropertyName", "discountRate");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text")
-                        .HasAnnotation("Relational:JsonPropertyName", "imageUrl");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasAnnotation("Relational:JsonPropertyName", "name");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric")
-                        .HasAnnotation("Relational:JsonPropertyName", "price");
-
-                    b.Property<DateTime>("ProductCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ProductUpdated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("StockQuantity")
-                        .HasColumnType("integer")
-                        .HasAnnotation("Relational:JsonPropertyName", "stockQuantity");
-
-                    b.HasKey("ProductId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Products");
-                });
-
             modelBuilder.Entity("ECommerce.Domain.Model.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -331,22 +284,6 @@ namespace ECommerce.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ECommerce.Domain.Model.Product", b =>
-                {
-                    b.HasOne("ECommerce.Domain.Model.Category", "Category")
-                        .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("ECommerce.Domain.Model.Category", b =>
-                {
-                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("ECommerce.Domain.Model.Order", b =>

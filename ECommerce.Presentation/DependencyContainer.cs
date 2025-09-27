@@ -1,16 +1,17 @@
-﻿using ECommerce.Application.Dependencies;
-using ECommerce.Application.Queries.Product;
+﻿using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Commands.Account;
 using ECommerce.Application.Commands.Product;
-using ECommerce.Application.Services.Token;
-using ECommerce.Application.Services.Queue;
+using ECommerce.Application.Dependencies;
 using ECommerce.Application.Events;
+using ECommerce.Application.Queries.Product;
+using ECommerce.Application.Services.Queue;
+using ECommerce.Application.Services.Search.Product;
+using ECommerce.Application.Services.Token;
 using ECommerce.Infrastructure.Dependencies;
 using MediatR;
+using RabbitMQ.Client;
 using Serilog;
 using StackExchange.Redis;
-using ECommerce.Application.Abstract.Service;
-using ECommerce.Application.Services.Search.Product;
-using ECommerce.Application.Commands.Account;
 
 namespace ECommerce.API;
 
@@ -25,12 +26,22 @@ public class DependencyContainer : IDependencyContainer
 
     public void RegisterDependencies()
     {
-        
-        _builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect("localhost:6379"));
+        EnvConfig.LoadEnv();
+
+        var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
+        var rabbitMqConnection = Environment.GetEnvironmentVariable("RABBITMQ_CONNECTION");
+
+        _builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString));
+        _builder.Services.AddSingleton<IConnectionFactory>(_ => new ConnectionFactory
+        {
+            Uri = new Uri(rabbitMqConnection),
+            DispatchConsumersAsync = true
+        });
+
+        _builder.Services.AddSingleton<IMessageBroker, RabbitMQService>();
         _builder.Services.AddSingleton(Log.Logger);
         _builder.Services.AddHostedService<TokenCleanupBackgroundService>();
         _builder.Services.AddHttpContextAccessor();
-        _builder.Services.AddSingleton<IMessageBroker, RabbitMQService>();
 
         _builder.Services.AddApplicationDependencies();
         _builder.Services.AddInfrastructureDependencies();

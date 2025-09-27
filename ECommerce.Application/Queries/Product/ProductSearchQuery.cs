@@ -32,22 +32,30 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
     {
         try
         {
+            if (string.IsNullOrEmpty(request.Query))
+            {
+                return Result<List<ProductResponseDto>>.Failure("Query cannot be null or empty");
+            }
+
             var result = await _productSearchService.SearchProductsAsync(request.Query, request.Page, request.PageSize);
 
-            if (result.Data == null || !result.Data.Any())
+            if (result == null || !result.Hits.Any())
             {
-                _logger.LogInformation("No products found for query: {Query}", request.Query);
                 return Result<List<ProductResponseDto>>.Success(new List<ProductResponseDto>());
             }
 
-            if (!result.IsSuccess)
+            var elasticProductResponse = Result<List<ProductResponseDto>>.Success(result.Hits.Select(d => new ProductResponseDto
             {
-                _logger.LogWarning("Product search failed: {Error}", result.Error);
-                return Result<List<ProductResponseDto>>.Failure(result.Error);
-            }
+                ProductName = d.Source.Name,
+                Description = d.Source.Description,
+                Price = d.Source.Price,
+                DiscountRate = d.Source.DiscountRate,
+                ImageUrl = d.Source.ImageUrl,
+                StockQuantity = d.Source.StockQuantity,
+                CategoryId = d.Source.CategoryId
+            }).ToList());
 
-            _logger.LogInformation("Product search completed successfully. Found {Count} products", result.Data.Count);
-            return result;
+            return elasticProductResponse;
         }
         catch (Exception ex)
         {

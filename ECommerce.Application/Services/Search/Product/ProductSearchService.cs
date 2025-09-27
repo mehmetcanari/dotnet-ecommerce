@@ -10,9 +10,9 @@ public class ProductSearchService : IProductSearchService
     private readonly ElasticsearchClient _elasticClient;
     private readonly ILoggingService _logger;
     private const string ProductIndexName = "products";
-    
+
     public ProductSearchService(
-    ElasticsearchClient elasticClient, 
+    ElasticsearchClient elasticClient,
     ILoggingService loggingService)
     {
         _elasticClient = elasticClient;
@@ -28,7 +28,6 @@ public class ProductSearchService : IProductSearchService
                 return Result.Failure("Product cannot be null");
             }
 
-            // Index yoksa oluştur
             var existsResponse = await _elasticClient.Indices.ExistsAsync(ProductIndexName);
             if (!existsResponse.IsValidResponse || (existsResponse.ApiCallDetails?.HttpStatusCode != 200))
             {
@@ -77,92 +76,46 @@ public class ProductSearchService : IProductSearchService
         }
     }
 
-    public async Task<Result<List<ProductResponseDto>>> SearchProductsAsync(string query, int page = 1, int pageSize = 10)
+    public async Task<SearchResponse<Domain.Model.Product>> SearchProductsAsync(string query, int page = 1, int pageSize = 10)
     {
-        try
-        {
-            if (string.IsNullOrEmpty(query))
-            {
-                return Result<List<ProductResponseDto>>.Failure("Query cannot be null or empty");
-            }
-
-            _logger.LogInformation("Elasticsearch query: {Query}", query.ToLower());
-            _logger.LogInformation("Elasticsearch index: {Index}", ProductIndexName);
-            _logger.LogInformation("Elasticsearch client endpoint: {Endpoint}", _elasticClient.ElasticsearchClientSettings?.NodePool?.Nodes?.FirstOrDefault()?.Uri?.ToString() ?? "unknown");
-
-            var searchResponse = await _elasticClient.SearchAsync<Domain.Model.Product>(s => s
-                .Indices(ProductIndexName)
-                .Query(q => q
-                    .Bool(b => b
-                        .Should(
-                            sh => sh.Term(t => t
-                                .Field("name.keyword")
-                                .Value(query)
-                                .Boost(3.0f)
-                            ),
-                            sh => sh.Match(m => m
-                                .Field("name")
-                                .Query(query)
-                                .Boost(2.5f)
-                            ),
-                            sh => sh.Prefix(p => p
-                                .Field("name.keyword")
-                                .Value(query.ToLower())
-                                .Boost(2.0f)
-                            ),
-                            sh => sh.Wildcard(w => w
-                                .Field("name.keyword")
-                                .Value($"*{query.ToLower()}*")
-                                .Boost(1.5f)
-                            ),
-                            sh => sh.Wildcard(w => w
-                                .Field("description")
-                                .Value($"*{query.ToLower()}*")
-                                .Boost(0.5f)
-                            )
+        var searchResponse = await _elasticClient.SearchAsync<Domain.Model.Product>(s => s
+            .Indices(ProductIndexName)
+            .Query(q => q
+                .Bool(b => b
+                    .Should(
+                        sh => sh.Match(m => m
+                            .Field(f => f.Name)
+                            .Query(query)
+                            .Boost(3.0f)
+                        ),
+                        sh => sh.Fuzzy(fz => fz
+                            .Field(f => f.Name)
+                            .Value(query)
+                            .Fuzziness(new Fuzziness(2))   
+                            .Transpositions(true)
+                            .Boost(3.0f)
+                        ),
+                        sh => sh.Prefix(p => p
+                            .Field(f => f.Name)
+                            .Value(query)
+                            .CaseInsensitive(true)
+                            .Boost(2.0f)
+                        ),
+                        sh => sh.Wildcard(w => w
+                            .Field(f => f.Name)
+                            .Value($"*{query}*")
+                            .CaseInsensitive(true)
+                            .Boost(1.5f)
                         )
-                        .MinimumShouldMatch(1)
                     )
+                    .MinimumShouldMatch(1)
                 )
-                .From((page - 1) * pageSize)
-                .Size(pageSize));
+            )
+            .From((page - 1) * pageSize)
+            .Size(pageSize)
+        );
 
-            _logger.LogInformation("Elasticsearch response: {@Response}", searchResponse);
-
-            if (searchResponse == null)
-            {
-                _logger.LogError(null, "Elasticsearch searchResponse is null!");
-                return Result<List<ProductResponseDto>>.Failure("Elasticsearch response is null");
-            }
-
-            if (!searchResponse.IsValidResponse)
-            {
-                _logger.LogError(null, "Elasticsearch search failed: {Error}", searchResponse.ElasticsearchServerError?.Error?.Reason ?? "Unknown error");
-                return Result<List<ProductResponseDto>>.Failure("Elasticsearch search failed");
-            }
-
-            if (searchResponse.Documents == null || !searchResponse.Documents.Any())
-            {
-                _logger.LogInformation("No products found for query: {Query}", query);
-                return Result<List<ProductResponseDto>>.Success(new List<ProductResponseDto>());
-            }
-
-            return Result<List<ProductResponseDto>>.Success(searchResponse.Documents.Select(d => new ProductResponseDto
-            {
-                ProductName = d.Name,
-                Description = d.Description,
-                Price = d.Price,
-                DiscountRate = d.DiscountRate,
-                ImageUrl = d.ImageUrl,
-                StockQuantity = d.StockQuantity,
-                CategoryId = d.CategoryId
-            }).ToList());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while searching products: {Message}", ex.Message);
-            return Result<List<ProductResponseDto>>.Failure("Unexpected error while searching products");
-        }
+        return searchResponse;
     }
 
     public async Task<Result> UpdateProductAsync(Domain.Model.Product product)
@@ -276,50 +229,6 @@ public class ProductSearchService : IProductSearchService
         {
             _logger.LogError(ex, "Unexpected error while creating product index: {Message}", ex.Message);
             return Result.Failure("Unexpected error while creating product index");
-        }
-    }
-
-    public async Task<Result> InitializeIndexAsync(IEnumerable<Domain.Model.Product> products)
-    {
-        try
-        {
-            var existsResponse = await _elasticClient.Indices.ExistsAsync(ProductIndexName);
-            
-            if (existsResponse.IsValidResponse && existsResponse.ApiCallDetails != null && existsResponse.ApiCallDetails.HttpStatusCode == 200)
-            {
-                _logger.LogInformation("Index already exists, clearing and reindexing products");
-                var reindexResult = await ReindexAllProductsAsync(products);
-                if (!reindexResult.IsSuccess)
-                {
-                    return Result.Failure($"Failed to reindex products: {reindexResult.Error}");
-                }
-            }
-            else
-            {
-                _logger.LogInformation("Creating new index and indexing products");
-                var indexResult = await CreateProductIndexWithNGramAsync();
-                if (!indexResult.IsSuccess)
-                {
-                    return Result.Failure($"Failed to create index: {indexResult.Error}");
-                }
-
-                if (products != null && products.Any())
-                {
-                    var bulkResult = await BulkIndexProductsAsync(products);
-                    if (!bulkResult.IsSuccess)
-                    {
-                        return Result.Failure($"Failed to bulk index products: {bulkResult.Error}");
-                    }
-                }
-            }
-
-            _logger.LogInformation("Elasticsearch index initialized successfully");
-            return Result.Success();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while initializing index: {Message}", ex.Message);
-            return Result.Failure("Unexpected error while initializing index");
         }
     }
 }
