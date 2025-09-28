@@ -5,6 +5,7 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 using ECommerce.Application.Commands.Basket;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Services.BasketItem;
 
@@ -14,8 +15,8 @@ public class BasketItemService : BaseValidator, IBasketItemService
     private readonly ICacheService _cacheService;
     private readonly ILoggingService _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUserService;
     private IMediator _mediator;
-    private const string GetAllBasketItemsCacheKey = "GetAllBasketItems";
 
     public BasketItemService(
         IBasketItemRepository basketItemRepository, 
@@ -23,12 +24,14 @@ public class BasketItemService : BaseValidator, IBasketItemService
         ICacheService cacheService,
         IUnitOfWork unitOfWork,
         IServiceProvider serviceProvider, 
+        ICurrentUserService currentUserService,
         IMediator mediator) : base(serviceProvider)
     {
         _basketItemRepository = basketItemRepository;
         _logger = logger;
         _cacheService = cacheService;
         _unitOfWork = unitOfWork;
+        _currentUserService = currentUserService;
         _mediator = mediator;
     }
 
@@ -66,7 +69,6 @@ public class BasketItemService : BaseValidator, IBasketItemService
             if (validationResult is { IsSuccess: false, Error: not null }) 
                 return Result.Failure(validationResult.Error);
 
-            //mediatr process
             var result = await _mediator.Send(new UpdateBasketItemCommand { UpdateBasketItemRequestDto = updateBasketItemRequestDto });
             if (result is { IsSuccess: false, Error: not null })
             {
@@ -138,6 +140,6 @@ public class BasketItemService : BaseValidator, IBasketItemService
 
     public async Task ClearBasketItemsCacheAsync()
     {
-        await _cacheService.RemoveAsync(GetAllBasketItemsCacheKey);
+        await _cacheService.RemoveAsync($"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail().Data}");
     }
 }

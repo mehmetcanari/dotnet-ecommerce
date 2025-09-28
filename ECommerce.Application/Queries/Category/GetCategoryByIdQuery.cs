@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Category;
@@ -18,7 +19,6 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
     private readonly IProductRepository _productRepository;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
-    private const string CategoryCacheKey = "category:{0}";
     private const int CacheExpirationMinutes = 60;
 
     public GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository, IProductRepository productRepository, ILoggingService logger, ICacheService cacheService)
@@ -73,13 +73,13 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
 
     private async Task<CategoryResponseDto?> GetCachedCategory(int categoryId)
     {
-        return await _cacheService.GetAsync<CategoryResponseDto>(string.Format(CategoryCacheKey, categoryId));
+        return await _cacheService.GetAsync<CategoryResponseDto>(string.Format(CacheKeys.CategoryById, categoryId));
     }
 
     private async Task CacheCategory(int categoryId, CategoryResponseDto categoryDto)
     {
         var expirationTime = TimeSpan.FromMinutes(CacheExpirationMinutes);
-        await _cacheService.SetAsync(string.Format(CategoryCacheKey, categoryId), categoryDto, expirationTime);
+        await _cacheService.SetAsync(string.Format(CacheKeys.CategoryById, categoryId), categoryDto, expirationTime);
     }
 
     private static CategoryResponseDto MapToResponseDto(Domain.Model.Category category, List<Domain.Model.Product> products)

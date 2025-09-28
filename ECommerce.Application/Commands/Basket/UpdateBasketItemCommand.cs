@@ -18,8 +18,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
     private readonly ICurrentUserService _currentUserService;
     private readonly IProductRepository _productRepository;
     private readonly ILoggingService _logger;
-    private readonly ICacheService _cacheService;
-    private const string GetAllBasketItemsCacheKey = "GetAllBasketItems";
+    private readonly IBasketItemService _basketItemService;
 
     public UpdateBasketItemCommandHandler(
         IBasketItemRepository basketItemRepository,
@@ -27,14 +26,15 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         ILoggingService logger,
         ICacheService cacheService,
         IAccountRepository accountRepository,
-        IProductRepository productRepository)
+        IProductRepository productRepository,
+        IBasketItemService basketItemService)
     {
         _basketItemRepository = basketItemRepository;
         _currentUserService = currentUserService;
         _logger = logger;
-        _cacheService = cacheService;
         _accountRepository = accountRepository;
         _productRepository = productRepository;
+        _basketItemService = basketItemService;
     }
 
     public async Task<Result> Handle(UpdateBasketItemCommand request, CancellationToken cancellationToken)
@@ -143,10 +143,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         return Result.Success();
     }
 
-    private async Task UpdateBasketItem(
-        Domain.Model.BasketItem basketItem,
-        Domain.Model.Product product,
-        UpdateBasketItemCommand request)
+    private async Task UpdateBasketItem(Domain.Model.BasketItem basketItem, Domain.Model.Product product, UpdateBasketItemCommand request)
     {
         basketItem.Quantity = request.UpdateBasketItemRequestDto.Quantity;
         basketItem.ProductId = request.UpdateBasketItemRequestDto.ProductId;
@@ -155,13 +152,8 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         basketItem.IsOrdered = false;
 
         _basketItemRepository.Update(basketItem);
-        await ClearBasketItemsCacheAsync();
-        
-        _logger.LogInformation("Basket item updated successfully: {BasketItemId}", basketItem.BasketItemId);
-    }
+        await _basketItemService.ClearBasketItemsCacheAsync();
 
-    private async Task ClearBasketItemsCacheAsync()
-    {
-        await _cacheService.RemoveAsync(GetAllBasketItemsCacheKey);
+        _logger.LogInformation("Basket item updated successfully: {BasketItemId}", basketItem.BasketItemId);
     }
 }

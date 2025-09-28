@@ -5,12 +5,12 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 using ECommerce.Application.Commands.Category;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Services.Category;
 
 public class CategoryService : BaseValidator, ICategoryService
 {
-    private const string CategoryCacheKey = "category:{0}";
     private readonly ICategoryRepository _categoryRepository;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
@@ -18,13 +18,8 @@ public class CategoryService : BaseValidator, ICategoryService
     private readonly IMediator _mediator;
 
 
-    public CategoryService(
-        IServiceProvider serviceProvider, 
-        ICategoryRepository categoryRepository, 
-        ILoggingService logger, 
-        ICacheService cacheService, 
-        IUnitOfWork unitOfWork, 
-        IMediator mediator) : base(serviceProvider)
+    public CategoryService(IServiceProvider serviceProvider, ICategoryRepository categoryRepository, ILoggingService logger, ICacheService cacheService, 
+        IUnitOfWork unitOfWork, IMediator mediator) : base(serviceProvider)
     {
         _unitOfWork = unitOfWork;
         _categoryRepository = categoryRepository;
@@ -133,7 +128,7 @@ public class CategoryService : BaseValidator, ICategoryService
             var categories = await _categoryRepository.Read();
             foreach (var category in categories)
             {
-                await _cacheService.RemoveAsync(CategoryCacheKey);
+                await _cacheService.RemoveAsync(string.Format(CacheKeys.CategoryById, category.CategoryId));
             }
         }
         catch (Exception ex)

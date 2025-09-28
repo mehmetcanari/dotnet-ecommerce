@@ -7,6 +7,7 @@ using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Services.Product;
 
@@ -18,7 +19,6 @@ public class ProductService : BaseValidator, IProductService
     private readonly ICacheService _cacheService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMediator _mediator;
-    private const string AllProductsCacheKey = "products";
 
     public ProductService(
         IProductRepository productRepository, 
@@ -155,7 +155,7 @@ public class ProductService : BaseValidator, IProductService
     {   
         try
         {
-            await _cacheService.RemoveAsync(AllProductsCacheKey);
+            await _cacheService.RemoveAsync(CacheKeys.AllProducts);
         }
         catch (Exception ex)
         {
@@ -180,7 +180,7 @@ public class ProductService : BaseValidator, IProductService
                 CategoryId = p.CategoryId
             }).ToList();
 
-            await _cacheService.SetAsync(AllProductsCacheKey, productResponses, TimeSpan.FromMinutes(60));
+            await _cacheService.SetAsync(CacheKeys.AllProducts, productResponses, TimeSpan.FromMinutes(60));
             _logger.LogInformation("Successfully cached {Count} products", productResponses.Count);
         }
         catch (Exception ex)

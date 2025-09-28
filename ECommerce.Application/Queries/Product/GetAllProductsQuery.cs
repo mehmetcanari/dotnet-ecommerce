@@ -3,6 +3,7 @@ using MediatR;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Queries.Product;
 
@@ -13,13 +14,9 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
     private readonly IProductRepository _productRepository;
     private readonly ICacheService _cacheService;
     private readonly ILoggingService _logger;
-    private const string AllProductsCacheKey = "products";
     private const int CacheDurationInMinutes = 60;
 
-    public GetAllProductsQueryHandler(
-        IProductRepository productRepository,
-        ICacheService cacheService,
-        ILoggingService logger)
+    public GetAllProductsQueryHandler(IProductRepository productRepository, ICacheService cacheService, ILoggingService logger)
     {
         _productRepository = productRepository;
         _cacheService = cacheService;
@@ -31,7 +28,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
         try
         {
             var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
-            var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(AllProductsCacheKey);
+            var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(CacheKeys.AllProducts);
 
             if (cachedProducts is { Count: > 0 })
             {
@@ -56,7 +53,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
                 CategoryId = p.CategoryId
             }).ToList();
 
-            await _cacheService.SetAsync(AllProductsCacheKey, productResponses, expirationTime);
+            await _cacheService.SetAsync(CacheKeys.AllProducts, productResponses, expirationTime);
             _logger.LogInformation("Successfully cached {Count} products", productResponses.Count);
             
             return Result<List<ProductResponseDto>>.Success(productResponses);

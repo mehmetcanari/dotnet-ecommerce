@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
@@ -19,7 +20,6 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
-    private const string GetAllBasketItemsCacheKey = "GetAllBasketItems";
     private const int CacheDurationInMinutes = 30;
 
     public CreateBasketItemCommandHandler(
@@ -128,8 +128,8 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
     private async Task SaveBasketItem(Domain.Model.BasketItem basketItem)
     {
         await _basketItemRepository.Create(basketItem);
-        await _cacheService.SetAsync(GetAllBasketItemsCacheKey, basketItem,
-            TimeSpan.FromMinutes(CacheDurationInMinutes));
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail().Data}";
+        await _cacheService.SetAsync(cacheKey, basketItem, TimeSpan.FromMinutes(CacheDurationInMinutes));
         _logger.LogInformation("Basket item created successfully: {BasketItem}", basketItem);
     }
 }

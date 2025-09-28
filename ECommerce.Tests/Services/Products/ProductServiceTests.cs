@@ -5,6 +5,7 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 using ECommerce.Application.Commands.Product;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Tests.Services.Product;
 
@@ -20,8 +21,6 @@ public class ProductServiceTests
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<IMediator> _mediatorMock;
     private readonly IProductService _sut;
-
-    private const string AllProductsCacheKey = "products";
 
     public ProductServiceTests()
     {
@@ -250,7 +249,7 @@ public class ProductServiceTests
         result.Error.Should().BeNull();
         _productRepositoryMock.Verify(x => x.Delete(It.Is<Domain.Model.Product>(p => 
             p.ProductId == product.ProductId)), Times.Once);
-        _cacheServiceMock.Verify(x => x.RemoveAsync(AllProductsCacheKey), Times.Once);
+        _cacheServiceMock.Verify(x => x.RemoveAsync(CacheKeys.AllProducts), Times.Once);
         _categoryServiceMock.Verify(x => x.CategoryCacheInvalidateAsync(), Times.Once);
         _unitOfWorkMock.Verify(x => x.Commit(), Times.Once);
         _loggerMock.Verify(x => x.LogInformation(
@@ -273,7 +272,7 @@ public class ProductServiceTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Product not found");
         _productRepositoryMock.Verify(x => x.Delete(It.IsAny<Domain.Model.Product>()), Times.Never);
-        _cacheServiceMock.Verify(x => x.RemoveAsync(AllProductsCacheKey), Times.Never);
+        _cacheServiceMock.Verify(x => x.RemoveAsync(CacheKeys.AllProducts), Times.Never);
         _categoryServiceMock.Verify(x => x.CategoryCacheInvalidateAsync(), Times.Never);
         _unitOfWorkMock.Verify(x => x.Commit(), Times.Never);
     }

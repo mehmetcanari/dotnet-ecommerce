@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Product;
@@ -16,7 +17,6 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
     private readonly IProductRepository _productRepository;
     private readonly ICacheService _cacheService;
     private readonly ILoggingService _logger;
-    private const string ProductCacheKey = "product:{0}";
     private const int CacheDurationInMinutes = 60;
 
     public GetProductWithIdQueryHandler(
@@ -60,13 +60,13 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
 
     private async Task<ProductResponseDto?> GetCachedProduct(int productId)
     {
-        return await _cacheService.GetAsync<ProductResponseDto>(string.Format(ProductCacheKey, productId));
+        return await _cacheService.GetAsync<ProductResponseDto>(string.Format(CacheKeys.ProductById, productId));
     }
 
     private async Task CacheProduct(int productId, ProductResponseDto productDto)
     {
         var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
-        await _cacheService.SetAsync(string.Format(ProductCacheKey, productId), productDto, expirationTime);
+        await _cacheService.SetAsync(string.Format(CacheKeys.ProductById, productId), productDto, expirationTime);
     }
 
     private static ProductResponseDto MapToResponseDto(Domain.Model.Product product)

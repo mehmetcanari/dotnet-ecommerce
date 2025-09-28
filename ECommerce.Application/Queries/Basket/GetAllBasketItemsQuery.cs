@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Basket;
@@ -15,7 +16,6 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
     private readonly ICurrentUserService _currentUserService;
     private readonly ILoggingService _logger;
     private readonly ICacheService _cacheService;
-    private const string GetAllBasketItemsCacheKeyPrefix = "GetAllBasketItems";
     private const int _cacheDurationInMinutes = 10;
 
     public GetAllBasketItemsQueryHandler(
@@ -81,7 +81,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
 
     private async Task<List<BasketItemResponseDto>?> GetCachedBasketItems()
     {
-        var cacheKey = $"{GetAllBasketItemsCacheKeyPrefix}_{_currentUserService.GetUserEmail().Data}";
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail().Data}";
         var cachedItems = await _cacheService.GetAsync<List<BasketItemResponseDto>>(cacheKey);
         if (cachedItems != null)
         {
@@ -97,7 +97,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
 
     private async Task CacheBasketItems(List<BasketItemResponseDto> items)
     {
-        var cacheKey = $"{GetAllBasketItemsCacheKeyPrefix}_{_currentUserService.GetUserEmail().Data}";
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail().Data}";
         TimeSpan cacheDuration = TimeSpan.FromMinutes(_cacheDurationInMinutes);
         await _cacheService.SetAsync(cacheKey, items, cacheDuration);
     }
