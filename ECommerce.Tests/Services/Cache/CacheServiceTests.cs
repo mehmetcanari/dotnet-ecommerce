@@ -27,7 +27,7 @@ public class CacheServiceTests
         _redisMock.Setup(x => x.GetDatabase(-1, null))
             .Returns(_databaseMock.Object);
 
-        _cacheService = new RedisCacheService(_redisMock.Object, _loggerMock.Object);
+        _cacheService = new CacheService(_redisMock.Object, _loggerMock.Object);
     }
 
     private TestObject CreateTestObject(int id = 1, string name = "Test")

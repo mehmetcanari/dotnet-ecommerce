@@ -112,7 +112,7 @@ public class AuthService : BaseValidator, IAuthService
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            var authResponseDto = await RequestGenerateTokensAsync(user.Id, user.Email ?? throw new InvalidOperationException("User email cannot be null"), roles);
+            var authResponseDto = await RequestGenerateTokensAsync(user.Id, user.Email, roles);
             _logger.LogInformation("Login successful for user: {Email}", loginRequestDto.Email);
             return Result<AuthResponseDto>.Success(authResponseDto);
         }
@@ -203,7 +203,6 @@ public class AuthService : BaseValidator, IAuthService
             }
 
             _refreshTokenService.SetRefreshTokenCookie(refreshToken.Data);
-            Console.WriteLine( $"Refresh token: {refreshToken.Data.Token}");
 
             return new AuthResponseDto
             {

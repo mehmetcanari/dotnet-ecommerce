@@ -3,11 +3,11 @@ using ILogger = Serilog.ILogger;
 
 namespace ECommerce.Application.Services.Logging;
 
-public class LogService : ILoggingService
+public class LoggingService : ILoggingService
 {
     private readonly ILogger _logger;
 
-    public LogService(ILogger logger)
+    public LoggingService(ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }

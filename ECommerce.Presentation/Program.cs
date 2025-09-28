@@ -44,7 +44,6 @@ internal static class Program
         // APPLY ENVIRONMENT VARIABLES
         //======================================================
         
-        // Validate required environment variables
         var requiredEnvVars = new Dictionary<string, string?>
         {
             ["JWT_SECRET"] = Environment.GetEnvironmentVariable("JWT_SECRET"),
@@ -268,7 +267,7 @@ internal static class Program
         builder.Services.AddSignalR(options =>
         {
             options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-            options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
+            options.MaximumReceiveMessageSize = 1024 * 1024; 
             options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
             options.KeepAliveInterval = TimeSpan.FromSeconds(15);
         });
@@ -305,7 +304,6 @@ internal static class Program
 
         builder.Services.AddRateLimiter(options =>
         {
-            // Global rate limit
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: context.User.Identity?.Name ?? 
@@ -314,11 +312,10 @@ internal static class Program
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
-                        PermitLimit = 100,
+                        PermitLimit = 30,
                         Window = TimeSpan.FromMinutes(1)
                     }));
 
-            // Specific policies for different endpoints
             options.AddFixedWindowLimiter("AuthPolicy", configureOptions =>
             {
                 configureOptions.AutoReplenishment = true;
@@ -457,7 +454,7 @@ internal static class Program
         #region Middleware Pipeline 
 
         //======================================================
-        // MIDDLEWARE PIPELINE - PROPER ORDER
+        // MIDDLEWARE PIPELINE 
         //======================================================
         
         app.UseMiddleware<ExceptionHandlingMiddleware>();

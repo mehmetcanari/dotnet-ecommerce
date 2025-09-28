@@ -9,19 +9,7 @@ namespace ECommerce.API.Controllers
     [ApiController]
     public class AuthenticationController(IAuthService _authService) : ControllerBase
     {
-        [HttpPost("create-admin")]
-        [AllowAnonymous]
-        public async Task<IActionResult> RegisterAdmin([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
-        {
-            var result = await _authService.RegisterAsync(accountRegisterRequestDto, "Admin");
-            if (result.IsFailure)
-            {
-                return BadRequest(new { message = "Failed to create admin user.", error = result.Error });
-            }
-            return Ok(new { message = "Admin user created successfully." });
-        }
-
-        [HttpPost("create-user")]
+        [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
         {

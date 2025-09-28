@@ -1,6 +1,4 @@
 using ECommerce.Application.Abstract.Service;
-using ECommerce.Application.DTO.Response.Product;
-using ECommerce.Application.Utility;
 using Elastic.Clients.Elasticsearch;
 using Result = ECommerce.Application.Utility.Result;
 
@@ -11,9 +9,7 @@ public class ProductSearchService : IProductSearchService
     private readonly ILoggingService _logger;
     private const string ProductIndexName = "products";
 
-    public ProductSearchService(
-    ElasticsearchClient elasticClient,
-    ILoggingService loggingService)
+    public ProductSearchService(ElasticsearchClient elasticClient, ILoggingService loggingService)
     {
         _elasticClient = elasticClient;
         _logger = loggingService;
@@ -23,27 +19,20 @@ public class ProductSearchService : IProductSearchService
     {
         try
         {
-            if (product == null)
-            {
-                return Result.Failure("Product cannot be null");
-            }
-
             var existsResponse = await _elasticClient.Indices.ExistsAsync(ProductIndexName);
-            if (!existsResponse.IsValidResponse || (existsResponse.ApiCallDetails?.HttpStatusCode != 200))
+            if (!existsResponse.IsValidResponse || existsResponse.ApiCallDetails?.HttpStatusCode != 200)
             {
-                _logger.LogInformation("Index {IndexName} does not exist, creating it", ProductIndexName);
-                var createResult = await CreateProductIndexWithNGramAsync();
-                if (!createResult.IsSuccess)
-                {
-                    return Result.Failure($"Failed to create index: {createResult.Error}");
-                }
+                var createIndexResponse = await _elasticClient.Indices.CreateAsync(ProductIndexName);
+                _logger.LogInformation("Index creation response: {@Response}", createIndexResponse);
+
+                if (!createIndexResponse.IsValidResponse)
+                    return Result.Failure($"Failed to create index: {createIndexResponse.ElasticsearchServerError?.Error?.Reason}");
             }
 
             var response = await _elasticClient.IndexAsync(product, ProductIndexName, i => i.Id(product.ProductId.ToString()));
             if (!response.IsValidResponse)
-            {
                 return Result.Failure($"Failed to index product: {response.ElasticsearchServerError?.Error?.Reason}");
-            }
+
             return Result.Success();
         }
         catch (Exception ex)
@@ -52,6 +41,7 @@ public class ProductSearchService : IProductSearchService
             return Result.Failure("Unexpected error while indexing product");
         }
     }
+
 
     public async Task<Result> DeleteProductAsync(string productId)
     {
@@ -138,97 +128,6 @@ public class ProductSearchService : IProductSearchService
         {
             _logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
             return Result.Failure("Unexpected error while updating product");
-        }
-    }
-
-    public async Task<Result> DeleteAllProductsFromIndexAsync()
-    {
-        try
-        {
-            var response = await _elasticClient.DeleteByQueryAsync<Domain.Model.Product>(ProductIndexName, d => d.Query(q => q.MatchAll(_ => { })));
-            if (!response.IsValidResponse)
-            {
-                return Result.Failure($"Failed to delete all products from index: {response.ElasticsearchServerError?.Error?.Reason}");
-            }
-            _logger.LogInformation("All products deleted from Elasticsearch index");
-            return Result.Success();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while deleting all products from index: {Message}", ex.Message);
-            return Result.Failure("Unexpected error while deleting all products from index");
-        }
-    }
-
-    public async Task<Result> BulkIndexProductsAsync(IEnumerable<Domain.Model.Product> products)
-    {
-        try
-        {
-            if (products == null || !products.Any())
-            {
-                return Result.Failure("Product list cannot be null or empty");
-            }
-
-            var response = await _elasticClient.BulkAsync(b => b
-                .Index(ProductIndexName)
-                .IndexMany(products));
-
-            if (!response.IsValidResponse)
-            {
-                return Result.Failure($"Failed to bulk index products: {response.ElasticsearchServerError?.Error?.Reason}");
-            }
-            _logger.LogInformation("Successfully bulk indexed {Count} products", products.Count());
-            return Result.Success();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while bulk indexing products: {Message}", ex.Message);
-            return Result.Failure("Unexpected error while bulk indexing products");
-        }
-    }
-
-    public async Task<Result> ReindexAllProductsAsync(IEnumerable<Domain.Model.Product> products)
-    {
-        try
-        {
-            var deleteResult = await DeleteAllProductsFromIndexAsync();
-            if (!deleteResult.IsSuccess)
-            {
-                return Result.Failure($"Failed to clear index before reindexing: {deleteResult.Error}");
-            }
-
-            var bulkResult = await BulkIndexProductsAsync(products);
-            if (!bulkResult.IsSuccess)
-            {
-                return Result.Failure($"Failed to bulk index products: {bulkResult.Error}");
-            }
-
-            return Result.Success();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while reindexing products: {Message}", ex.Message);
-            return Result.Failure("Unexpected error while reindexing products");
-        }
-    }
-
-    public async Task<Result> CreateProductIndexWithNGramAsync()
-    {
-        try
-        {
-            var existsResponse = await _elasticClient.Indices.ExistsAsync(ProductIndexName);
-            if (existsResponse.IsValidResponse && existsResponse.ApiCallDetails != null && existsResponse.ApiCallDetails.HttpStatusCode == 200)
-                return Result.Success();
-
-            // Mapping olmadan, otomatik mapping ile index oluştur
-            var createIndexResponse = await _elasticClient.Indices.CreateAsync(ProductIndexName);
-            _logger.LogInformation("Index creation response: {@Response}", createIndexResponse);
-            return createIndexResponse.IsValidResponse ? Result.Success() : Result.Failure($"Failed to create index: {createIndexResponse.ElasticsearchServerError?.Error?.Reason}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while creating product index: {Message}", ex.Message);
-            return Result.Failure("Unexpected error while creating product index");
         }
     }
 }

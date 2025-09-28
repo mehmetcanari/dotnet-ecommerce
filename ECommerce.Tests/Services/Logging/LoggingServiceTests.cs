@@ -17,7 +17,7 @@ public class LoggingServiceTests
     public LoggingServiceTests()
     {
         _loggerMock = new Mock<ILogger>();
-        _loggingService = new LogService(_loggerMock.Object);
+        _loggingService = new LoggingService(_loggerMock.Object);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class LoggingServiceTests
     public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
     {
         // Arrange & Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => new LogService(null));
+        var exception = Assert.Throws<ArgumentNullException>(() => new LoggingService(null));
         exception.ParamName.Should().Be("logger");
     }
 } 

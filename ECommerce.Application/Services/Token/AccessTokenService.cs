@@ -44,23 +44,23 @@ public class AccessTokenService : IAccessTokenService
 
     private string GenerateAccessJwtToken(string userId, string email, IList<string> roles)
     {
-        try
-        {
-            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey
-            ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
+        var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
+        var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+        var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+        var expirationMinutes = Environment.GetEnvironmentVariable("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES");
 
-            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
-            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
-            var expirationMinutes = Environment.GetEnvironmentVariable("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES");
+        if (secretKey is not null)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
             var claims = new List<Claim>
-            {
-                new(NameIdentifier, userId),
-                new(Email, email),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new("tokenType", "access")
-            };
+                {
+                     new(NameIdentifier, userId),
+                     new(Email, email),
+                     new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                     new("tokenType", "access")
+                };
+
             claims.AddRange(roles.Select(role => new Claim(Role, role)));
 
             var token = new JwtSecurityToken(
@@ -73,10 +73,7 @@ public class AccessTokenService : IAccessTokenService
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating access token");
-            throw;
-        }
+
+        return string.Empty;
     }
 }

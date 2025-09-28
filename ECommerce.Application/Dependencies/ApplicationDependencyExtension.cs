@@ -34,7 +34,7 @@ public static class ApplicationDependencyExtension
 {
     public static void AddApplicationDependencies(this IServiceCollection services)
     {
-        services.AddSingleton<ILoggingService, LogService>();
+        services.AddSingleton<ILoggingService, LoggingService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IProductService, ProductService>();
@@ -42,7 +42,7 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAccessTokenService, AccessTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-        services.AddScoped<ICacheService, RedisCacheService>();
+        services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<ITokenUserClaimsService, TokenUserClaimsService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ITokenCleanupService, TokenCleanupService>();

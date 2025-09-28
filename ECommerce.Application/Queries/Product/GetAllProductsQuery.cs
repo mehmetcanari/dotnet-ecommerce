@@ -35,7 +35,6 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
 
             if (cachedProducts is { Count: > 0 })
             {
-                _logger.LogInformation("Retrieved {Count} products from cache", cachedProducts.Count);
                 return Result<List<ProductResponseDto>>.Success(cachedProducts);
             }
 

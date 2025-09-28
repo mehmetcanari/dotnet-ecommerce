@@ -17,9 +17,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
 {
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ILoggingService _logger;
-    private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IUnitOfWork _unitOfWork;
 
     public RefreshTokenService(
@@ -33,10 +31,8 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
     {
         _refreshTokenRepository = refreshTokenRepository;
         _logger = logger;
-        _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
         _unitOfWork = unitOfWork;
-        _currentUserService = currentUserService;
     }
 
     public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(string userId, string email, IList<string> roles)
@@ -57,7 +53,6 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
 
             await _refreshTokenRepository.CreateAsync(refreshToken);
             await _unitOfWork.Commit();
-            _logger.LogInformation("Refresh token created successfully: {RefreshToken}", refreshToken);
             return Result<RefreshToken>.Success(refreshToken);
         }
         catch (Exception ex)
@@ -107,7 +102,6 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
             var token = await _refreshTokenRepository.GetActiveUserTokenAsync(request.Email);
             if (token == null)
             {
-                _logger.LogWarning("No active refresh token found for user: {Email}", request.Email);
                 return Result.Failure("No active refresh token found");
             }
 
@@ -115,7 +109,6 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
             _refreshTokenRepository.Revoke(token, request.Reason);
             await _unitOfWork.Commit();
             
-            _logger.LogInformation("User tokens revoked successfully: {Email}", request.Email);
             return Result.Success();
         }
         catch (Exception ex)
@@ -131,8 +124,8 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         {
             var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException("JWT_SECRET is not configured")));
-            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
-            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _configuration["Jwt:Audience"];
+            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
             var claims = new List<Claim>
             {
@@ -169,7 +162,6 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         try
         {
             _httpContextAccessor.HttpContext?.Response.Cookies.Delete("refreshToken");
-            _logger.LogInformation("Refresh token cookie deleted");
         }
         catch (Exception ex)
         {
@@ -187,8 +179,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
             {
                 HttpOnly = true,
                 Secure = !string.Equals(
-                    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? _configuration["ASPNETCORE_ENVIRONMENT"],
-                    "Development",
+                    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development",
                     StringComparison.OrdinalIgnoreCase),
                 SameSite = SameSiteMode.Lax,
                 Path = "/",
@@ -199,8 +190,6 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
                 "refreshToken",
                 refreshToken.Token,
                 cookieOptions);
-
-            _logger.LogInformation("Refresh token cookie set for user: {Email}", refreshToken.Email);
         }
         catch (Exception ex)
         {
