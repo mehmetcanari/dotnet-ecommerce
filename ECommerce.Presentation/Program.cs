@@ -1,25 +1,25 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using DotNetEnv;
-using System.Threading.RateLimiting;
+using Amazon.Runtime;
+using Amazon.S3;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using DotNetEnv;
+using ECommerce.API.Configurations;
+using ECommerce.API.SwaggerFilters;
 using ECommerce.Application.Exceptions;
+using ECommerce.Application.Services.Notification;
 using ECommerce.Infrastructure.Context;
+using Elastic.Clients.Elasticsearch;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
-using Microsoft.AspNetCore.RateLimiting;
-using Amazon.S3;
-using Amazon.Runtime;
-using ECommerce.API.SwaggerFilters;
-using ECommerce.API.Configurations;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using Elastic.Clients.Elasticsearch;
-using ECommerce.Application.Services.Notification;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using System.Threading.RateLimiting;
 
 namespace ECommerce.API;
 
@@ -43,7 +43,7 @@ internal static class Program
         //======================================================
         // APPLY ENVIRONMENT VARIABLES
         //======================================================
-        
+
         var requiredEnvVars = new Dictionary<string, string?>
         {
             ["JWT_SECRET"] = Environment.GetEnvironmentVariable("JWT_SECRET"),
@@ -60,7 +60,7 @@ internal static class Program
         {
             throw new InvalidOperationException($"Required environment variable '{envVar.Key}' is not set.");
         }
-            
+
         builder.Configuration["Jwt:Key"] = requiredEnvVars["JWT_SECRET"];
         builder.Configuration["Jwt:Issuer"] = requiredEnvVars["JWT_ISSUER"];
         builder.Configuration["Jwt:Audience"] = requiredEnvVars["JWT_AUDIENCE"];
@@ -69,7 +69,7 @@ internal static class Program
         builder.Configuration["AWS:Region"] = requiredEnvVars["AWS_REGION"];
         builder.Configuration["ConnectionStrings:DefaultConnection"] = requiredEnvVars["DB_CONNECTION_STRING"];
         builder.Configuration["AWS:BucketName"] = requiredEnvVars["AWS_BUCKET_NAME"];
-            
+
         _dependencyContainer = new DependencyContainer(builder);
         _dependencyContainer.RegisterDependencies();
 
@@ -134,10 +134,10 @@ internal static class Program
             options.Password.RequireUppercase = true;
             options.Password.RequireNonAlphanumeric = true;
             options.Password.RequiredLength = 8;
-            
+
             // User settings
             options.User.RequireUniqueEmail = true;
-            
+
             // Lockout settings
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             options.Lockout.MaxFailedAccessAttempts = 5;
@@ -179,33 +179,46 @@ internal static class Program
                 RoleClaimType = System.Security.Claims.ClaimTypes.Role,
                 RequireExpirationTime = true,
                 RequireSignedTokens = true,
-        };
+            };
 
-                options.Events = new JwtBearerEvents
+            options.Events = new JwtBearerEvents
             {
-            OnAuthenticationFailed = context =>
-        {
-            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                OnAuthenticationFailed = context =>
             {
-                context.Response.Headers.Append("Token-Expired", "true");
-            }
-            return Task.CompletedTask;
-        },
-        OnMessageReceived = context =>
-        {
-            var accessToken = context.Request.Query["access_token"];
-            var path = context.HttpContext.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) &&
-                path.StartsWithSegments("/notificationHub"))
-            {
-                context.Token = accessToken;
-            }
-            return Task.CompletedTask;
-        }
-    };
-});
+                if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                {
+                    context.Response.Headers.Append("Token-Expired", "true");
+                }
+                return Task.CompletedTask;
+            },
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        path.StartsWithSegments("/notificationHub"))
+                    {
+                        context.Token = accessToken;
+                    }
+                    return Task.CompletedTask;
+                }
+            };
+        });
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("User", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole("User", "Admin"); 
+            });
+
+            options.AddPolicy("Admin", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole("Admin"); 
+            });
+        });
 
         #endregion
 
@@ -228,12 +241,12 @@ internal static class Program
         // SERILOG IMPLEMENTATION
         //======================================================
         builder.Host.UseSerilog((context, _, configuration) => configuration
-            .MinimumLevel.Debug()                           
+            .MinimumLevel.Debug()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .MinimumLevel.Override("System", LogEventLevel.Warning)
             .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-            .WriteTo.File("Logs/log-{Date}.log", 
+            .WriteTo.File("Logs/log-{Date}.log",
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 30,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
@@ -267,7 +280,7 @@ internal static class Program
         builder.Services.AddSignalR(options =>
         {
             options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-            options.MaximumReceiveMessageSize = 1024 * 1024; 
+            options.MaximumReceiveMessageSize = 1024 * 1024;
             options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
             options.KeepAliveInterval = TimeSpan.FromSeconds(15);
         });
@@ -306,8 +319,8 @@ internal static class Program
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: context.User.Identity?.Name ?? 
-                                 context.Connection.RemoteIpAddress?.ToString() ?? 
+                    partitionKey: context.User.Identity?.Name ??
+                                 context.Connection.RemoteIpAddress?.ToString() ??
                                  context.Request.Headers.Host.ToString(),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
@@ -329,7 +342,7 @@ internal static class Program
                 configureOptions.PermitLimit = 60;
                 configureOptions.Window = TimeSpan.FromMinutes(1);
             });
-                
+
             options.OnRejected = async (context, cancellationToken) =>
             {
                 context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -419,7 +432,7 @@ internal static class Program
                     await command.ExecuteNonQueryAsync();
                     await identityContext.Database.MigrateAsync();
                     await storeContext.Database.MigrateAsync();
-                    
+
                     Console.WriteLine("Database migration completed successfully.");
                 }
                 catch (Exception ex)
@@ -456,7 +469,7 @@ internal static class Program
         //======================================================
         // MIDDLEWARE PIPELINE 
         //======================================================
-        
+
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 
         app.Use(async (context, next) =>
@@ -490,18 +503,21 @@ internal static class Program
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
+
             app.UseSwaggerUI(options =>
             {
-                var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+                var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
-                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions.Reverse())
+                foreach (var description in provider.ApiVersionDescriptions.Reverse())
                 {
-                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
-                        description.GroupName.ToUpperInvariant());
+                    options.SwaggerEndpoint(
+                        $"/swagger/{description.GroupName}/swagger.json",
+                        $"E-Commerce API {description.GroupName.ToUpperInvariant()}"
+                    );
                 }
                 options.RoutePrefix = string.Empty;
                 options.DisplayRequestDuration();
-                options.DocExpansion(DocExpansion.None);
+                options.DocExpansion(DocExpansion.List);
                 options.DefaultModelsExpandDepth(-1);
             });
         }
@@ -533,7 +549,7 @@ internal static class Program
 
         Console.WriteLine($"E-Commerce API starting on {app.Environment.EnvironmentName} environment");
         Console.WriteLine($"Health checks available at: /health");
-        
+
         if (app.Environment.IsDevelopment())
         {
             Console.WriteLine($"API Documentation available at the root URL (e.g., http://localhost:5076/swagger)");

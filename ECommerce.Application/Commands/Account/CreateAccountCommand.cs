@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Account;
@@ -17,9 +18,7 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
 
-    public CreateAccountCommandHandler(
-        IAccountRepository accountRepository,
-        ILoggingService logger)
+    public CreateAccountCommandHandler(IAccountRepository accountRepository, ILoggingService logger)
     {
         _accountRepository = accountRepository;
         _logger = logger;
@@ -30,11 +29,11 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
         try
         {
             var validationResult = await ValidateAccountExists(request);
-            if (!validationResult.IsSuccess)
+            if (validationResult.IsFailure && validationResult.Error is not null)
             {
                 return Result<Domain.Model.Account>.Failure(validationResult.Error);
             }
-            
+
             var newAccount = new Domain.Model.Account
             {
                 IdentityId = Guid.NewGuid(),
@@ -53,34 +52,30 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
 
             await _accountRepository.Create(newAccount, cancellationToken);
 
-            _logger.LogInformation("Account created successfully for email: {Email}", request.AccountCreateRequest.Email);
+            _logger.LogInformation(ErrorMessages.AccountCreated, request.AccountCreateRequest.Email);
             return Result<Domain.Model.Account>.Success(newAccount);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while creating account for email: {Email}", request.AccountCreateRequest.Email);
-            return Result<Domain.Model.Account>.Failure("An error occurred while processing your request. Please try again later.");
+            _logger.LogError(ex, ErrorMessages.AccountCreationFailed, request.AccountCreateRequest.Email);
+            return Result<Domain.Model.Account>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
-    private async Task<Result<Domain.Model.Account>> ValidateAccountExists(CreateAccountCommand request)
+    private async Task<Result<bool>> ValidateAccountExists(CreateAccountCommand request)
     {
         var existingAccountByEmail = await _accountRepository.GetAccountByEmail(request.AccountCreateRequest.Email);
         if (existingAccountByEmail != null)
         {
-            _logger.LogWarning("Email already exists: {Email}", request.AccountCreateRequest.Email);
-            return Result<Domain.Model.Account>.Failure("Email already exists. Please use a different email address.");
+            return Result<bool>.Failure(ErrorMessages.AccountEmailAlreadyExists);
         }
 
         var existingAccountByIdentityNumber = await _accountRepository.GetAccountByIdentityNumber(request.AccountCreateRequest.IdentityNumber);
         if (existingAccountByIdentityNumber != null)
         {
-            _logger.LogWarning("Identity number already exists: {IdentityNumber}", request.AccountCreateRequest.IdentityNumber);
-            return Result<Domain.Model.Account>.Failure("Identity number already exists. Please use a different identity number.");
+            return Result<bool>.Failure(ErrorMessages.IdentityNumberAlreadyExists);
         }
 
-        _logger.LogInformation("Validation passed for email: {Email}, identityNumber: {IdentityNumber}", 
-            request.AccountCreateRequest.Email, request.AccountCreateRequest.IdentityNumber);
-        return Result<Domain.Model.Account>.Success(existingAccountByEmail);
+        return Result<bool>.Success(true);
     }
 }

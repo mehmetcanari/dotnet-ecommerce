@@ -62,7 +62,7 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IValidator<AccountLoginRequestDto>, AccountLoginValidation>();
         services.AddScoped<IValidator<ProductCreateRequestDto>, ProductCreateValidation>();
         services.AddScoped<IValidator<ProductUpdateRequestDto>, ProductUpdateValidation>();
-        services.AddScoped<IValidator<OrderUpdateRequestDto>, OrderUpdateValidation>();
+        services.AddScoped<IValidator<UpdateOrderStatusRequestDto>, OrderUpdateValidation>();
         services.AddScoped<IValidator<OrderCreateRequestDto>, OrderCreateValidation>();
         services.AddScoped<IValidator<CreateBasketItemRequestDto>, BasketItemCreateValidation>();
         services.AddScoped<IValidator<UpdateBasketItemRequestDto>, BasketItemUpdateValidation>();

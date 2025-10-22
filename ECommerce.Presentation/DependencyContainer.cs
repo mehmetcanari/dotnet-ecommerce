@@ -38,7 +38,7 @@ public class DependencyContainer : IDependencyContainer
             DispatchConsumersAsync = true
         });
 
-        _builder.Services.AddSingleton<IMessageBroker, RabbitMQService>();
+        _builder.Services.AddSingleton<IMessageBroker, QueueService>();
         _builder.Services.AddSingleton(Log.Logger);
         _builder.Services.AddHostedService<TokenCleanupBackgroundService>();
         _builder.Services.AddHttpContextAccessor();

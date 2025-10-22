@@ -90,7 +90,7 @@ public class OrderController(IOrderService _orderService, IMediator _mediator) :
     [Authorize("Admin")]
     [HttpPut("update/{id}")]
     [ValidateId]
-    public async Task<IActionResult> UpdateOrderStatus([FromRoute] int id, [FromBody] OrderUpdateRequestDto orderUpdateRequestDto)
+    public async Task<IActionResult> UpdateOrderStatus([FromRoute] int id, [FromBody] UpdateOrderStatusRequestDto orderUpdateRequestDto)
     {
         var result = await _orderService.UpdateOrderStatusByAccountIdAsync(id, orderUpdateRequestDto);
         if (result.IsFailure)

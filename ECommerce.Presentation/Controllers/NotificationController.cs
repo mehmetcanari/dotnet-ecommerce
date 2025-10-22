@@ -97,14 +97,7 @@ public class NotificationController(INotificationService _notificationService, I
     {
         try
         {
-            var currentUserResult = await _currentUserService.GetUserId();
-            if (currentUserResult.IsFailure)
-            {
-                return BadRequest(new { message = "User not found", hubConnected = false });
-            }
-
-            var userId = currentUserResult.Data;
-            
+            var userId = _currentUserService.GetUserId();            
             var isConnected = NotificationHub.IsUserConnected(userId);
             var connectionId = NotificationHub.GetUserConnectionId(userId);
             var totalConnections = NotificationHub.GetTotalConnections();

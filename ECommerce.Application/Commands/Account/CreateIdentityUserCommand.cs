@@ -1,5 +1,6 @@
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.Utility;
+using ECommerce.Shared.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -51,14 +52,14 @@ public class CreateIdentityUserCommandHandler : IRequestHandler<CreateIdentityUs
             var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
             if (!roleResult.Succeeded)
             {
-                return Result.Failure($"Error creating {role} role.");
+                return Result.Failure(ErrorMessages.ErrorCreatingRole);
             }
         }
 
         var addRoleResult = await _userManager.AddToRoleAsync(user, role);
         if (!addRoleResult.Succeeded)
         {
-            return Result.Failure("Error assigning role to user.");
+            return Result.Failure(ErrorMessages.ErrorAssigningRole);
         }
 
         return Result.Success();

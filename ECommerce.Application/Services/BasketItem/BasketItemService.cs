@@ -46,7 +46,7 @@ public class BasketItemService : BaseValidator, IBasketItemService
             var result = await _mediator.Send(new CreateBasketItemCommand { CreateBasketItemRequestDto = createBasketItemRequestDto });
             if (result is { IsSuccess: false, Error: not null })
             {
-                _logger.LogWarning("Failed to create basket item: {Error}", result.Error);
+                _logger.LogWarning(ErrorMessages.ErrorAddingItemToBasket, result.Error);
                 return Result.Failure(result.Error);
             }
 
@@ -54,10 +54,10 @@ public class BasketItemService : BaseValidator, IBasketItemService
             await _unitOfWork.Commit();
             return Result.Success();
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "Unexpected error while creating basket item");
-            return Result.Failure(exception.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError);
+            return Result.Failure(ex.Message);
         }
     }
 
@@ -72,7 +72,7 @@ public class BasketItemService : BaseValidator, IBasketItemService
             var result = await _mediator.Send(new UpdateBasketItemCommand { UpdateBasketItemRequestDto = updateBasketItemRequestDto });
             if (result is { IsSuccess: false, Error: not null })
             {
-                _logger.LogWarning("Failed to update basket item: {Error}", result.Error);
+                _logger.LogWarning(ErrorMessages.ErrorUpdatingBasketItem, result.Error);
                 return Result.Failure(result.Error);
             }
 
@@ -81,10 +81,10 @@ public class BasketItemService : BaseValidator, IBasketItemService
 
             return Result.Success();
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "Unexpected error while updating basket item");
-            throw;
+            _logger.LogError(ex, ErrorMessages.UnexpectedError);
+            return Result.Failure(ex.Message);
         }
     }
 
@@ -94,20 +94,16 @@ public class BasketItemService : BaseValidator, IBasketItemService
         {
             var result = await _mediator.Send(new DeleteAllNonOrderedBasketItemsCommand());
             if (result is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to delete all non-ordered basket items: {Error}", result.Error);
                 return Result.Failure(result.Error);
-            }
 
             await ClearBasketItemsCacheAsync();
             await _unitOfWork.Commit();
-
             return Result.Success();
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "Unexpected error while deleting basket items");
-            throw;
+            _logger.LogError(ex, ErrorMessages.UnexpectedError);
+            return Result.Failure(ex.Message);
         }
     }
 
@@ -117,10 +113,7 @@ public class BasketItemService : BaseValidator, IBasketItemService
         {
             var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItemIncludeSpecificProduct(updatedProduct.ProductId);
             if (nonOrderedBasketItems == null || nonOrderedBasketItems.Count == 0)
-            {
-                _logger.LogInformation("No non-ordered basket items found for product: {ProductId}", updatedProduct.ProductId);
                 return;
-            }
 
             foreach (var basketItem in nonOrderedBasketItems)
             {
@@ -129,17 +122,16 @@ public class BasketItemService : BaseValidator, IBasketItemService
 
             await ClearBasketItemsCacheAsync();
             await _unitOfWork.Commit();
-            _logger.LogInformation("Basket items cleared successfully for product: {ProductId}", updatedProduct.ProductId);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "Unexpected error while clearing basket items include product");
+            _logger.LogError(ex, ErrorMessages.UnexpectedError);
             throw;
         }
     }
 
     public async Task ClearBasketItemsCacheAsync()
     {
-        await _cacheService.RemoveAsync($"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail().Data}");
+        await _cacheService.RemoveAsync($"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail()}");
     }
 }

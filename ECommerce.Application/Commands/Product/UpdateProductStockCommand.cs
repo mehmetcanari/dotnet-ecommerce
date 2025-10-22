@@ -3,6 +3,7 @@ using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Product;
@@ -18,10 +19,7 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
     private readonly IMediator _mediator;
     private readonly ILoggingService _logger;
 
-    public UpdateProductStockCommandHandler(
-        IProductRepository productRepository,
-        IMediator mediator,
-        ILoggingService logger)
+    public UpdateProductStockCommandHandler(IProductRepository productRepository, IMediator mediator, ILoggingService logger)
     {
         _productRepository = productRepository;
         _mediator = mediator;
@@ -53,7 +51,7 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
                     Description = product.Description,
                     Price = product.Price,
                     DiscountRate = product.DiscountRate,
-                    ImageUrl = product.ImageUrl,
+                    ImageUrl = product.ImageUrl ?? string.Empty,
                     StockQuantity = product.StockQuantity,
                     CategoryId = product.CategoryId,
                     ProductCreated = product.ProductCreated,
@@ -63,13 +61,13 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
                 await _mediator.Publish(domainEvent, cancellationToken);
             }
 
-            _logger.LogInformation("Product stock updated successfully for {Count} items. Events published for Elasticsearch updating.", request.BasketItems.Count);
+            _logger.LogInformation(ErrorMessages.UpdateProductStockSuccess, request.BasketItems.Count);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating product stock: {Message}", ex.Message);
-            return Result.Failure("An error occurred while updating product stock");
+            _logger.LogError(ex, ErrorMessages.ErrorUpdatingProductStock, ex.Message);
+            return Result.Failure(ErrorMessages.ErrorUpdatingProductStock);
         }
     }
 
@@ -77,18 +75,11 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
     {
         var product = await _productRepository.GetProductById(item.ProductId);
         if (product == null)
-        {
-            _logger.LogWarning("Product stock update failed. Product with ID {ProductId} not found", item.ProductId);
-            return (Result.Failure($"Product with ID {item.ProductId} not found"), null!);
-        }
-
+            return (Result.Failure(ErrorMessages.ProductNotFound), null!);
+        
         if (product.StockQuantity < item.Quantity)
-        {
-            _logger.LogWarning(
-                "Product stock update failed. Insufficient stock for product {ProductName}. Available: {Available}, Requested: {Requested}",
-                product.Name, product.StockQuantity, item.Quantity);
-            return (Result.Failure($"Insufficient stock for product {product.Name}"), null!);
-        }
+            return (Result.Failure(ErrorMessages.StockNotAvailable), null!);
+        
 
         UpdateProductStock(product, item.Quantity);
         return (Result.Success(), product);
@@ -100,8 +91,6 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
         product.ProductUpdated = DateTime.UtcNow;
         _productRepository.UpdateStock(product.ProductId, product.StockQuantity);
 
-        _logger.LogInformation(
-            "Product stock updated. ProductId: {ProductId}, Name: {Name}, NewStock: {NewStock}",
-            product.ProductId, product.Name, product.StockQuantity);
+        _logger.LogInformation(ErrorMessages.UpdateProductStockSuccess, product.ProductId, product.Name, product.StockQuantity);
     }
 }

@@ -31,16 +31,12 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
             var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(CacheKeys.AllProducts);
 
             if (cachedProducts is { Count: > 0 })
-            {
                 return Result<List<ProductResponseDto>>.Success(cachedProducts);
-            }
 
             var products = await _productRepository.Read();
 
             if (products.Count == 0)
-            {
-                throw new Exception("No products found");
-            }
+                throw new Exception(ErrorMessages.ProductNotFound);
 
             var productResponses = products.Select(p => new ProductResponseDto
             {
@@ -54,13 +50,12 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
             }).ToList();
 
             await _cacheService.SetAsync(CacheKeys.AllProducts, productResponses, expirationTime);
-            _logger.LogInformation("Successfully cached {Count} products", productResponses.Count);
             
             return Result<List<ProductResponseDto>>.Success(productResponses);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching all products: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result<List<ProductResponseDto>>.Failure(ex.Message);
         }
     }

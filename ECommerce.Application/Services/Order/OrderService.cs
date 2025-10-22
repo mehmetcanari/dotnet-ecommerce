@@ -3,11 +3,11 @@ using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.Events;
 using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Domain.Model;
-using Microsoft.AspNetCore.Http;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using MediatR;
 using ECommerce.Application.Commands.Order;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Services.Order;
 
@@ -20,7 +20,6 @@ public class OrderService : BaseValidator, IOrderService
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
     private readonly IStoreUnitOfWork _storeUnitOfWork;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPaymentService _paymentService;
     private readonly IMessageBroker _messageBroker;
     private ICurrentUserService _currentUserService;
@@ -34,7 +33,6 @@ public class OrderService : BaseValidator, IOrderService
         IProductService productService,
         IAccountRepository accountRepository,
         ILoggingService logger,
-        IHttpContextAccessor httpContextAccessor,
         IPaymentService paymentService,
         IServiceProvider serviceProvider, 
         ICurrentUserService currentUserService,
@@ -48,7 +46,6 @@ public class OrderService : BaseValidator, IOrderService
         _basketItemService = basketItemService;
         _productService = productService;
         _logger = logger;
-        _httpContextAccessor = httpContextAccessor;
         _paymentService = paymentService;
         _currentUserService = currentUserService;
         _mediator = mediator;
@@ -60,16 +57,13 @@ public class OrderService : BaseValidator, IOrderService
         try
         {
             var userInfoResult = await ValidateAndGetUserInfoAsync(orderCreateRequestDto);
-            if (userInfoResult.IsFailure)
-            {
+            if (userInfoResult.IsFailure && userInfoResult.Error is not null)
                 return Result.Failure(userInfoResult.Error);
-            }
-
 
             var (account, basketItems) = userInfoResult.Data;
             var order = CreateOrder(account.Id, account.Address, basketItems);
 
-            string ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            string ipAddress = _currentUserService.GetIpAdress();
             Buyer buyer = CreateBuyer(account, ipAddress);
             PaymentCard paymentCard = CreatePaymentCard(orderCreateRequestDto);
             Address shippingAddress = CreateAddress(account);
@@ -78,13 +72,11 @@ public class OrderService : BaseValidator, IOrderService
             await _storeUnitOfWork.BeginTransactionAsync();
             
             var paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
-
             if (paymentResult.Data != null && paymentResult.Data.Status != "success")
             {
-                _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
-                    paymentResult.Data.ErrorCode, paymentResult.Data.ErrorMessage);
+                _logger.LogWarning(ErrorMessages.PaymentFailed, paymentResult.Data.ErrorCode, paymentResult.Data.ErrorMessage);
                 await _storeUnitOfWork.RollbackTransaction();
-                return Result.Failure($"Payment failed: {paymentResult.Data.ErrorMessage}");
+                return Result.Failure($"{ErrorMessages.PaymentFailed}: {paymentResult.Data.ErrorMessage}");
             }
 
             await _orderRepository.Create(order);
@@ -103,14 +95,12 @@ public class OrderService : BaseValidator, IOrderService
             }, "order_exchange", "order.created");
 
             await _storeUnitOfWork.CommitTransactionAsync();
-
-            _logger.LogInformation("Order added successfully: {Order}", order);
             return Result.Success();
         }
         catch (Exception ex)
         {
             await _storeUnitOfWork.RollbackTransaction();
-            _logger.LogError(ex, "Unexpected error while adding order: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
@@ -122,15 +112,18 @@ public class OrderService : BaseValidator, IOrderService
             return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(validationResult.Error);
 
         var accountResult = await GetCurrentUserAccountAsync();
-        if (accountResult.IsFailure)
+        if (accountResult is { IsSuccess: false, Error: not null }) 
             return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(accountResult.Error);
 
+        if(accountResult.Data == null)
+            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.AccountNotFound);
+
         var basketItems = await GetUserBasketItemsAsync(accountResult.Data.Email);
-        if (basketItems.IsFailure)
-        {
-            _logger.LogWarning("Failed to get basket items: {ErrorMessage}", basketItems.Error);
+        if (basketItems is { IsSuccess: false, Error: not null})
             return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(basketItems.Error);
-        }
+
+        if(basketItems.Data == null || basketItems.Data.Count == 0)
+            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.BasketItemNotFound);
 
         return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Success((accountResult.Data, basketItems.Data));
     }
@@ -139,17 +132,11 @@ public class OrderService : BaseValidator, IOrderService
     {
         var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
-        {
-            _logger.LogWarning("Account not found: {Email}", email);
-            return Result<List<Domain.Model.BasketItem>>.Failure("Account not found");
-        }
+            return Result<List<Domain.Model.BasketItem>>.Failure(ErrorMessages.AccountNotFound);
         
         var userBasketItems = await _basketItemRepository.GetNonOrderedBasketItems(account);
         if (userBasketItems.Count == 0)
-        {
-            _logger.LogWarning("No basket items found for this user: {Email}", email);
-            return Result<List<Domain.Model.BasketItem>>.Failure("No basket items found for this user");
-        }
+            return Result<List<Domain.Model.BasketItem>>.Failure(ErrorMessages.BasketItemNotFound);
 
         var items = userBasketItems.Select(basketItem => new Domain.Model.BasketItem
         {
@@ -165,61 +152,49 @@ public class OrderService : BaseValidator, IOrderService
         return Result<List<Domain.Model.BasketItem>>.Success(items);
     }
 
-    private PaymentCard CreatePaymentCard(OrderCreateRequestDto orderCreateRequestDto)
+    private PaymentCard CreatePaymentCard(OrderCreateRequestDto orderCreateRequestDto) => new PaymentCard
     {
-        return new PaymentCard
-        {
-            CardHolderName = orderCreateRequestDto.PaymentCard.CardHolderName,
-            CardNumber = orderCreateRequestDto.PaymentCard.CardNumber,
-            ExpirationMonth = orderCreateRequestDto.PaymentCard.ExpirationMonth,
-            ExpirationYear = orderCreateRequestDto.PaymentCard.ExpirationYear,
-            CVC = orderCreateRequestDto.PaymentCard.CVC,
-            RegisterCard = orderCreateRequestDto.PaymentCard.RegisterCard
-        };
-    }
+        CardHolderName = orderCreateRequestDto.PaymentCard.CardHolderName,
+        CardNumber = orderCreateRequestDto.PaymentCard.CardNumber,
+        ExpirationMonth = orderCreateRequestDto.PaymentCard.ExpirationMonth,
+        ExpirationYear = orderCreateRequestDto.PaymentCard.ExpirationYear,
+        CVC = orderCreateRequestDto.PaymentCard.CVC,
+        RegisterCard = orderCreateRequestDto.PaymentCard.RegisterCard
+    };
 
-    private Domain.Model.Order CreateOrder(int accountId, string address, List<Domain.Model.BasketItem> basketItems)
+    private Domain.Model.Order CreateOrder(int accountId, string address, List<Domain.Model.BasketItem> basketItems) => new Domain.Model.Order
     {
-        return new Domain.Model.Order
-        {
-            AccountId = accountId,
-            ShippingAddress = address,
-            BillingAddress = address,
-            BasketItems = basketItems
-        };
-    }
+        AccountId = accountId,
+        ShippingAddress = address,
+        BillingAddress = address,
+        BasketItems = basketItems
+    };
 
-    private Buyer CreateBuyer(Domain.Model.Account account, string ipAddress)
+    private Buyer CreateBuyer(Domain.Model.Account account, string ipAddress) => new Buyer
     {
-        return new Buyer
-        {
-            Id = account.Id.ToString(),
-            Name = account.Name,
-            Surname = account.Surname,
-            Email = account.Email,
-            GsmNumber = account.PhoneNumber,
-            IdentityNumber = account.IdentityNumber,
-            RegistrationAddress = account.Address,
-            Ip = ipAddress,
-            City = account.City,
-            Country = account.Country,
-            ZipCode = account.ZipCode
-        };
-    }
+        Id = account.Id.ToString(),
+        Name = account.Name,
+        Surname = account.Surname,
+        Email = account.Email,
+        GsmNumber = account.PhoneNumber,
+        IdentityNumber = account.IdentityNumber,
+        RegistrationAddress = account.Address,
+        Ip = ipAddress,
+        City = account.City,
+        Country = account.Country,
+        ZipCode = account.ZipCode
+    };
 
-    private Address CreateAddress(Domain.Model.Account account)
+    private Address CreateAddress(Domain.Model.Account account) => new Address
     {
-        return new Address
-        {
-            ContactName = $"{account.Name} {account.Surname}",
-            Description = account.Address,
-            City = account.City,
-            Country = account.Country,
-            ZipCode = account.ZipCode
-        };
-    }
+        ContactName = $"{account.Name} {account.Surname}",
+        Description = account.Address,
+        City = account.City,
+        Country = account.Country,
+        ZipCode = account.ZipCode
+    };
 
-    public async Task<Result> UpdateOrderStatusByAccountIdAsync(int accountId, OrderUpdateRequestDto orderUpdateRequestDto)
+    public async Task<Result> UpdateOrderStatusByAccountIdAsync(int accountId, UpdateOrderStatusRequestDto orderUpdateRequestDto)
     {
         try
         {
@@ -227,49 +202,34 @@ public class OrderService : BaseValidator, IOrderService
             if (validationResult is { IsSuccess: false, Error: not null }) 
                 return Result.Failure(validationResult.Error);
 
-            var result = await _mediator.Send(new UpdateOrderStatusByAccountIdCommand 
+            var result = await _mediator.Send(new UpdateOrderStatusCommand 
             {
                 AccountId = accountId,
-                OrderUpdateRequestDto = orderUpdateRequestDto
+                Request = orderUpdateRequestDto
             });
-            if (result.IsFailure)
-            {
-                _logger.LogWarning("Failed to update order status: {ErrorMessage}", result.Error);
-                return Result.Failure(result.Error);
-            }
-            
-            await _storeUnitOfWork.Commit();
 
+            if (result is { IsFailure: true, Error: not null})
+                return Result.Failure(result.Error);
+
+            await _storeUnitOfWork.Commit();
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating order status: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
 
     private async Task<Result<Domain.Model.Account>> GetCurrentUserAccountAsync()
     {
-        var emailResult = _currentUserService.GetUserEmail();
-        if (emailResult is { IsSuccess: false, Error: not null })
-        {
-            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-            return Result<Domain.Model.Account>.Failure(emailResult.Error);
-        }
+        var email = _currentUserService.GetUserEmail();
+        if(string.IsNullOrEmpty(email))
+            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountEmailNotFound);
         
-        if (emailResult.Data == null)
-        {
-            _logger.LogWarning("User email is null or empty");
-            return Result<Domain.Model.Account>.Failure("User email is null or empty");
-        }
-        
-        var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
+        var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
-        {
-            _logger.LogWarning("Account not found: {Email}", emailResult.Data);
-            return Result<Domain.Model.Account>.Failure("Account not found");
-        }
+            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountNotFound);
 
         return Result<Domain.Model.Account>.Success(account);
     }

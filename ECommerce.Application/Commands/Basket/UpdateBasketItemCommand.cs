@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
@@ -20,14 +21,8 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
     private readonly ILoggingService _logger;
     private readonly IBasketItemService _basketItemService;
 
-    public UpdateBasketItemCommandHandler(
-        IBasketItemRepository basketItemRepository,
-        ICurrentUserService currentUserService,
-        ILoggingService logger,
-        ICacheService cacheService,
-        IAccountRepository accountRepository,
-        IProductRepository productRepository,
-        IBasketItemService basketItemService)
+    public UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILoggingService logger, ICacheService cacheService,
+        IAccountRepository accountRepository, IProductRepository productRepository, IBasketItemService basketItemService)
     {
         _basketItemRepository = basketItemRepository;
         _currentUserService = currentUserService;
@@ -41,25 +36,32 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
     {
         try
         {
-            var emailResult = await GetValidatedUserEmail();
-            if (emailResult.IsFailure)
-                return Result.Failure(emailResult.Error);
+            var emailResult = GetValidatedUserEmail();
 
-            var accountResult = await ValidateAndGetAccount(emailResult.Data);
-            if (accountResult.IsFailure)
+            var accountResult = await ValidateAndGetAccount(emailResult);
+            if (accountResult.IsFailure && accountResult.Error is not null)
                 return Result.Failure(accountResult.Error);
 
+            if (accountResult.Data == null)
+                return Result.Failure(ErrorMessages.AccountNotFound);
+
             var basketItemResult = await ValidateAndGetBasketItem(request, accountResult.Data);
-            if (basketItemResult.IsFailure)
+            if (basketItemResult.IsFailure && basketItemResult.Error is not null)
                 return Result.Failure(basketItemResult.Error);
 
             var productResult = await ValidateAndGetProduct(request);
-            if (productResult.IsFailure)
+            if (productResult.IsFailure && productResult.Error is not null)
                 return Result.Failure(productResult.Error);
+
+            if (productResult.Data == null)
+                return Result.Failure(ErrorMessages.ProductNotFound);
 
             var stockValidationResult = ValidateStock(request, productResult.Data);
             if (stockValidationResult.IsFailure)
-                return stockValidationResult;
+                return Result.Failure(ErrorMessages.StockNotAvailable);
+
+            if (basketItemResult.Data == null)
+                return Result.Failure(ErrorMessages.BasketItemNotFound);
 
             await UpdateBasketItem(basketItemResult.Data, productResult.Data, request);
 
@@ -67,27 +69,18 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while updating the basket item");
-            return Result.Failure("An error occurred while updating the basket item");
+            _logger.LogError(ex, ErrorMessages.UnexpectedError);
+            return Result.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
-    private async Task<Result<string>> GetValidatedUserEmail()
+    private string GetValidatedUserEmail()
     {
-        var emailResult = await Task.FromResult(_currentUserService.GetUserEmail());
-        if (emailResult.IsFailure)
-        {
-            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-            return Result<string>.Failure(emailResult.Error);
-        }
+        var email = _currentUserService.GetUserEmail();
+        if (string.IsNullOrEmpty(email))
+            return string.Empty;
 
-        if (string.IsNullOrEmpty(emailResult.Data))
-        {
-            _logger.LogWarning("User email is null or empty");
-            return Result<string>.Failure("Email is not available");
-        }
-
-        return Result<string>.Success(emailResult.Data);
+        return email;
     }
 
     private async Task<Result<Domain.Model.Account>> ValidateAndGetAccount(string email)
@@ -95,25 +88,19 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
         {
-            _logger.LogWarning("Account not found for email: {Email}", email);
-            return Result<Domain.Model.Account>.Failure("Account not found");
+            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountNotFound);
         }
 
         return Result<Domain.Model.Account>.Success(account);
     }
 
-    private async Task<Result<Domain.Model.BasketItem>> ValidateAndGetBasketItem(
-        UpdateBasketItemCommand request,
-        Domain.Model.Account account)
+    private async Task<Result<Domain.Model.BasketItem>> ValidateAndGetBasketItem(UpdateBasketItemCommand request, Domain.Model.Account account)
     {
-        var basketItem = await _basketItemRepository.GetSpecificAccountBasketItemWithId(
-            request.UpdateBasketItemRequestDto.BasketItemId, account);
+        var basketItem = await _basketItemRepository.GetSpecificAccountBasketItemWithId(request.UpdateBasketItemRequestDto.BasketItemId, account);
 
         if (basketItem == null)
         {
-            _logger.LogWarning("Basket item not found with ID: {BasketItemId} for account: {AccountId}",
-                request.UpdateBasketItemRequestDto.BasketItemId, account.Id);
-            return Result<Domain.Model.BasketItem>.Failure("Basket item not found");
+            return Result<Domain.Model.BasketItem>.Failure(ErrorMessages.BasketItemNotFound);
         }
 
         return Result<Domain.Model.BasketItem>.Success(basketItem);
@@ -124,8 +111,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         var product = await _productRepository.GetProductById(request.UpdateBasketItemRequestDto.ProductId);
         if (product == null)
         {
-            _logger.LogWarning("Product not found with ID: {ProductId}", request.UpdateBasketItemRequestDto.ProductId);
-            return Result<Domain.Model.Product>.Failure("Product not found");
+            return Result<Domain.Model.Product>.Failure(ErrorMessages.ProductNotFound);
         }
 
         return Result<Domain.Model.Product>.Success(product);
@@ -135,9 +121,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
     {
         if (request.UpdateBasketItemRequestDto.Quantity > product.StockQuantity)
         {
-            _logger.LogWarning("Insufficient stock for product {ProductId}. Requested: {Quantity}, Available: {StockQuantity}",
-                product.ProductId, request.UpdateBasketItemRequestDto.Quantity, product.StockQuantity);
-            return Result.Failure("Not enough stock");
+            return Result.Failure(ErrorMessages.StockNotAvailable);
         }
 
         return Result.Success();
@@ -153,7 +137,5 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
         _basketItemRepository.Update(basketItem);
         await _basketItemService.ClearBasketItemsCacheAsync();
-
-        _logger.LogInformation("Basket item updated successfully: {BasketItemId}", basketItem.BasketItemId);
     }
 }

@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 using Result = ECommerce.Application.Utility.Result;
 
@@ -22,13 +23,8 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     private readonly ILoggingService _logger;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateProductCommandHandler(
-        IProductRepository productRepository,
-        ICategoryRepository categoryRepository,
-        ILoggingService logger,
-        IMessageBroker messageBroker,
-        IMediator mediator,
-        IUnitOfWork unitOfWork)
+    public CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILoggingService logger, IMessageBroker messageBroker,
+        IMediator mediator, IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
@@ -42,13 +38,19 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     {
         try
         {
-            var validationResult = await ValidateRequest(request.ProductCreateRequest);
-            if (!validationResult.IsSuccess)
+            var productValidationResult = await ValidateProductCreateRequest(request.ProductCreateRequest);
+            if (productValidationResult.IsFailure && productValidationResult.Error is not null)
             {
-                return Result.Failure(validationResult.Error);
+                return Result.Failure(productValidationResult.Error);
             }
 
-            var product = CreateProductEntity(request.ProductCreateRequest, validationResult.Data);
+            var categoryValidationResult = await ValidateCategory(request.ProductCreateRequest.CategoryId);
+            if (categoryValidationResult.IsFailure && categoryValidationResult.Error is not null)
+            {
+                return Result.Failure(categoryValidationResult.Error);
+            }
+
+            var product = CreateProductEntity(request.ProductCreateRequest);
             await _productRepository.Create(product);
             
             await _unitOfWork.Commit();
@@ -73,33 +75,36 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while creating the product: {Message}", ex.Message);
-            return Result.Failure("An error occurred while creating the product");
+            _logger.LogError(ex, ErrorMessages.ErrorCreatingProduct, ex.Message);
+            return Result.Failure(ErrorMessages.ErrorCreatingProduct);
         }
     }
 
-    private async Task<Result<Domain.Model.Category>> ValidateRequest(ProductCreateRequestDto request)
+    private async Task<Result> ValidateProductCreateRequest(ProductCreateRequestDto request)
     {
         var existingProduct = await _productRepository.CheckProductExistsWithName(request.Name);
         if (existingProduct)
         {
-            _logger.LogWarning("Product creation failed. Product with name '{Name}' already exists", request.Name);
-            return Result<Domain.Model.Category>.Failure("Product with this name already exists");
+            _logger.LogWarning(ErrorMessages.ProductExists, request.Name);
+            return Result.Failure(ErrorMessages.ProductExists);
         }
 
-        var category = await _categoryRepository.GetCategoryById(request.CategoryId);
-        if (category == null)
+        return Result.Success();
+    }
+
+    private async Task<Result<Domain.Model.Category>> ValidateCategory(int categoryId)
+    {
+        var category = await _categoryRepository.GetCategoryById(categoryId);
+        if (category is null)
         {
-            _logger.LogWarning("Product creation failed. Category with ID {CategoryId} not found", request.CategoryId);
-            return Result<Domain.Model.Category>.Failure("Category not found");
+            return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
         }
-
+        
         return Result<Domain.Model.Category>.Success(category);
     }
 
-    private static Domain.Model.Product CreateProductEntity(
-        ProductCreateRequestDto request,
-        Domain.Model.Category category)
+
+    private static Domain.Model.Product CreateProductEntity(ProductCreateRequestDto request)
     {
         var product = new Domain.Model.Product
         {
@@ -109,9 +114,9 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             DiscountRate = request.DiscountRate,
             ImageUrl = request.ImageUrl,
             StockQuantity = request.StockQuantity,
-            ProductCreated = DateTime.UtcNow,
-            ProductUpdated = DateTime.UtcNow,
-            CategoryId = category.CategoryId
+            ProductCreated = DateTime.UtcNow.ToLocalTime(),
+            ProductUpdated = DateTime.UtcNow.ToLocalTime(),
+            CategoryId = request.CategoryId
         };
 
         product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);

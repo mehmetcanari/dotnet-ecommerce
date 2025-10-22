@@ -35,9 +35,7 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
         {
             var cachedCategory = await GetCachedCategory(request.CategoryId);
             if (cachedCategory != null)
-            {
                 return Result<CategoryResponseDto>.Success(cachedCategory);
-            }
 
             var categoryTask = _categoryRepository.GetCategoryById(request.CategoryId);
             var productsTask = _productRepository.GetProductsByCategoryId(request.CategoryId);
@@ -48,26 +46,20 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
             var categoryProducts = await productsTask;
 
             if (category == null)
-            {
-                return Result<CategoryResponseDto>.Failure("Category not found");
-            }
+                return Result<CategoryResponseDto>.Failure(ErrorMessages.CategoryNotFound);
 
             if (categoryProducts.Count == 0)
-            {
-                return Result<CategoryResponseDto>.Failure("No products found for this category");
-            }
+                return Result<CategoryResponseDto>.Failure(ErrorMessages.ProductNotFound);
 
             var categoryResponseDto = MapToResponseDto(category, categoryProducts);
-
             await CacheCategory(request.CategoryId, categoryResponseDto);
     
-            _logger.LogInformation("Category retrieved successfully");
             return Result<CategoryResponseDto>.Success(categoryResponseDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving category with ID {CategoryId}", request.CategoryId);
-            return Result<CategoryResponseDto>.Failure("An unexpected error occurred while retrieving the category");
+            _logger.LogError(ex, ErrorMessages.CategoryNotFound, request.CategoryId);
+            return Result<CategoryResponseDto>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 

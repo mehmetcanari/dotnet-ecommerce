@@ -1,6 +1,7 @@
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -22,7 +23,7 @@ public class CategoryRepository : ICategoryRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while creating category", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -42,7 +43,7 @@ public class CategoryRepository : ICategoryRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while reading categories", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -61,7 +62,7 @@ public class CategoryRepository : ICategoryRepository
         }
         catch (Exception exception)
         {
-            throw new Exception($"An unexpected error occurred while checking category existence with name: {name}", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -80,7 +81,7 @@ public class CategoryRepository : ICategoryRepository
         }
         catch (Exception exception)
         {
-            throw new Exception($"An unexpected error occurred while retrieving category by id", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -92,7 +93,7 @@ public class CategoryRepository : ICategoryRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while updating category", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -104,7 +105,7 @@ public class CategoryRepository : ICategoryRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while deleting category", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 }

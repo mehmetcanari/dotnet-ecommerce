@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Utility;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Product;
@@ -33,16 +34,12 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
         try
         {
             if (string.IsNullOrEmpty(request.Query))
-            {
-                return Result<List<ProductResponseDto>>.Failure("Query cannot be null or empty");
-            }
+                return Result<List<ProductResponseDto>>.Failure(ErrorMessages.QueryCannotBeEmpty);
 
             var result = await _productSearchService.SearchProductsAsync(request.Query, request.Page, request.PageSize);
 
             if (result == null || !result.Hits.Any())
-            {
                 return Result<List<ProductResponseDto>>.Success(new List<ProductResponseDto>());
-            }
 
             var elasticProductResponse = Result<List<ProductResponseDto>>.Success(result.Hits.Select(d => new ProductResponseDto
             {
@@ -59,8 +56,8 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while searching for products: {Message}", ex.Message);
-            return Result<List<ProductResponseDto>>.Failure("An error occurred while searching for products");
+            _logger.LogError(ex, ErrorMessages.NoSearchResults, ex.Message);
+            return Result<List<ProductResponseDto>>.Failure(ErrorMessages.NoSearchResults);
         }
     }
 }

@@ -1,5 +1,6 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Services.Token;
 public class TokenCleanupService : ITokenCleanupService
@@ -21,12 +22,11 @@ public class TokenCleanupService : ITokenCleanupService
         {
             await _refreshTokenRepository.CleanupExpiredTokensAsync();
             await _unitOfWork.Commit();
-            _logger.LogInformation("Expired tokens cleaned up successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to cleanup expired tokens");
-            throw new Exception("Failed to cleanup expired tokens", ex);
+            _logger.LogError(ex, ErrorMessages.FailedToCleanupExpiredTokens, ex.Message);
+            return;
         }
     }
 }

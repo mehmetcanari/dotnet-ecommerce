@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Account;
@@ -18,10 +19,7 @@ public class BanAccountCommandHandler : IRequestHandler<BanAccountCommand, Resul
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ILoggingService _logger;
 
-    public BanAccountCommandHandler(
-        IAccountRepository accountRepository,
-        IRefreshTokenService refreshTokenService,
-        ILoggingService logger)
+    public BanAccountCommandHandler(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, ILoggingService logger)
     {
         _accountRepository = accountRepository;
         _refreshTokenService = refreshTokenService;
@@ -35,23 +33,22 @@ public class BanAccountCommandHandler : IRequestHandler<BanAccountCommand, Resul
             var account = await _accountRepository.GetAccountByEmail(request.AccountBanRequestDto.Email);
             if (account == null)
             {
-                _logger.LogWarning("Account not found: {Email}", request.AccountBanRequestDto.Email);
-                return Result.Failure($"Account with email {request.AccountBanRequestDto.Email} does not exist.");
+                return Result.Failure(ErrorMessages.AccountEmailNotFound);
             }
             
-            var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.AccountBanRequestDto.Email, Reason = "Account banned" };
+            var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.AccountBanRequestDto.Email, Reason = ErrorMessages.AccountBanned };
             await _refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
 
             account.BanAccount(request.AccountBanRequestDto.Until, request.AccountBanRequestDto.Reason);
             _accountRepository.Update(account);
 
-            _logger.LogInformation("Account banned successfully: {Email}", request.AccountBanRequestDto.Email);
+            _logger.LogInformation(ErrorMessages.AccountBanned, request.AccountBanRequestDto.Email);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while banning the account: {Message}", ex.Message);
-            return Result.Failure($"An unexpected error occurred while banning the account: {ex.Message}");
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            return Result.Failure(ex.Message);
         }
     }
 }

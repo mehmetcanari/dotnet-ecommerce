@@ -47,22 +47,18 @@ public class ProductService : BaseValidator, IProductService
             
             var result = await _mediator.Send(new CreateProductCommand { ProductCreateRequest = productCreateRequest });
             if (result is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Product creation failed: {Error}", result.Error);
                 return Result.Failure(result.Error);
-            }
 
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
             await SetProductCacheAsync();
             await _unitOfWork.Commit();
             
-            _logger.LogInformation("Product created successfully: {ProductName}", productCreateRequest.Name);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while adding product: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
@@ -77,22 +73,18 @@ public class ProductService : BaseValidator, IProductService
             
             var result = await _mediator.Send(new UpdateProductCommand { Id = id, ProductUpdateRequest = productUpdateRequest });
             if (result is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Product update failed: {Error}", result.Error);
                 return Result.Failure(result.Error);
-            }
             
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
             await SetProductCacheAsync();
             await _unitOfWork.Commit();
 
-            _logger.LogInformation("Product updated successfully: {ProductName}", productUpdateRequest.Name);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating product: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
@@ -103,28 +95,24 @@ public class ProductService : BaseValidator, IProductService
         {
             var product = await _productRepository.GetProductById(id);
             if (product == null)
-            {
-                return Result.Failure("Product not found");
-            }
+                return Result.Failure(ErrorMessages.ProductNotFound);
 
             await _productRepository.Delete(product);
-            
-            var domainEvent = new ProductDeletedEvent
+            var productDeleteEvent = new ProductDeletedEvent
             {
                 ProductId = product.ProductId,
                 ProductName = product.Name
             };
 
-            await _mediator.Publish(domainEvent);
+            await _mediator.Publish(productDeleteEvent);
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
-            _logger.LogInformation("Product deleted successfully: {Product}", product);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting product: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
@@ -135,10 +123,7 @@ public class ProductService : BaseValidator, IProductService
         {
             var result = await _mediator.Send(new UpdateProductStockCommand { BasketItems = basketItems });
             if (result is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Product stock update failed: {Error}", result.Error);
                 return Result.Failure(result.Error);
-            }
 
             await _unitOfWork.Commit();
             await ProductCacheInvalidateAsync();
@@ -146,8 +131,8 @@ public class ProductService : BaseValidator, IProductService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while updating product");
-            return Result.Failure("An unexpected error occurred while updating product");
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            return Result.Failure(ex.Message);
         }
     }
 
@@ -159,8 +144,8 @@ public class ProductService : BaseValidator, IProductService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while invalidating cache: {Message}", ex.Message);
-            throw;
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            return;
         }
     }
 
@@ -181,12 +166,11 @@ public class ProductService : BaseValidator, IProductService
             }).ToList();
 
             await _cacheService.SetAsync(CacheKeys.AllProducts, productResponses, TimeSpan.FromMinutes(60));
-            _logger.LogInformation("Successfully cached {Count} products", productResponses.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while setting product cache: {Message}", ex.Message);
-            throw;   
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            return;  
         }
     }
 }

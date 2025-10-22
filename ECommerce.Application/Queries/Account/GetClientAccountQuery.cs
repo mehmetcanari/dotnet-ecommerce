@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Account;
@@ -29,44 +30,33 @@ public class GetClientAccountQueryHandler : IRequestHandler<GetClientAccountQuer
         try
         {
             var validationResult = ValidateUser();
-            if (!validationResult.IsSuccess)
-            {
+            if (validationResult.IsFailure && validationResult.Error is not null)
                 return Result<AccountResponseDto>.Failure(validationResult.Error);
-            }
+
+            if (string.IsNullOrEmpty(validationResult.Data))
+                return Result<AccountResponseDto>.Failure(ErrorMessages.AccountEmailNotFound);
 
             var account = await _accountRepository.GetAccountByEmail(validationResult.Data);
             if (account == null)
-            {
-                _logger.LogWarning("Account not found for email: {Email}", validationResult.Data);
-                return Result<AccountResponseDto>.Failure($"User with email {validationResult.Data} not found");
-            }
-
+                return Result<AccountResponseDto>.Failure(ErrorMessages.AccountEmailNotFound);
+            
             var responseDto = MapToResponseDto(account);
             return Result<AccountResponseDto>.Success(responseDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching account by email: {Message}", ex.Message);
-            return Result<AccountResponseDto>.Failure("An unexpected error occurred");
+            _logger.LogError(ex, ErrorMessages.AccountNotFound, ex.Message);
+            return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotFound);
         }
     }
 
     private Result<string> ValidateUser()
     {
-        var emailResult = _currentUserService.GetUserEmail();
-        if (emailResult is { IsSuccess: false, Error: not null })
-        {
-            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-            return Result<string>.Failure(emailResult.Error);
-        }
+        var email = _currentUserService.GetUserEmail();
+        if (string.IsNullOrEmpty(email))
+            return Result<string>.Failure(ErrorMessages.AccountEmailNotFound);
 
-        if (string.IsNullOrEmpty(emailResult.Data))
-        {
-            _logger.LogWarning("User email is null or empty");
-            return Result<string>.Failure("Email is not available");
-        }
-
-        return Result<string>.Success(emailResult.Data);
+        return Result<string>.Success(email);
     }
 
     private static AccountResponseDto MapToResponseDto(Domain.Model.Account account)

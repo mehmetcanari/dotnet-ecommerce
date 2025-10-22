@@ -33,18 +33,13 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
     {
         try
         {
-            var cachedProduct = await GetCachedProduct(request.ProductId);
+            var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(CacheKeys.ProductById, request.ProductId));
             if (cachedProduct != null)
-            {
                 return Result<ProductResponseDto>.Success(cachedProduct);
-            }
 
             var product = await _productRepository.GetProductById(request.ProductId);
             if (product == null)
-            {
-                _logger.LogWarning("Product with id {Id} not found", request.ProductId);
-                return Result<ProductResponseDto>.Failure("Product not found");
-            }
+                return Result<ProductResponseDto>.Failure(ErrorMessages.ProductNotFound);
             
             var productResponse = MapToResponseDto(product);
             await CacheProduct(request.ProductId, productResponse);
@@ -53,14 +48,9 @@ public class GetProductWithIdQueryHandler : IRequestHandler<GetProductWithIdQuer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching product with id: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result<ProductResponseDto>.Failure(ex.Message);
         }
-    }
-
-    private async Task<ProductResponseDto?> GetCachedProduct(int productId)
-    {
-        return await _cacheService.GetAsync<ProductResponseDto>(string.Format(CacheKeys.ProductById, productId));
     }
 
     private async Task CacheProduct(int productId, ProductResponseDto productDto)

@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Category;
@@ -37,8 +38,8 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating category");
-            return Result.Failure("An unexpected error occurred while creating the category");   
+            _logger.LogError(ex, ErrorMessages.ErrorCreatingCategory);
+            return Result.Failure(ErrorMessages.ErrorCreatingCategory);   
         }
     }
 
@@ -48,8 +49,8 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.CreateCategoryRequestDto.Name);
         if (categoryExists)
         {
-            _logger.LogWarning("Category already exists with name: {CategoryName}", request.CreateCategoryRequestDto.Name);
-            return Result.Failure("Category already exists");
+            _logger.LogWarning(ErrorMessages.CategoryExists, request.CreateCategoryRequestDto.Name);
+            return Result.Failure(ErrorMessages.CategoryExists);
         }
 
         return Result.Success();
@@ -67,6 +68,6 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
     private async Task SaveCategory(Domain.Model.Category category)
     {
         await _categoryRepository.Create(category);
-        _logger.LogInformation("Category created successfully: {CategoryName}", category.Name);
+        _logger.LogInformation(ErrorMessages.CategoryCreated, category.Name);
     }
 }

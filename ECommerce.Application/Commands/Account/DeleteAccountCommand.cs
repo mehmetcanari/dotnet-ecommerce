@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -18,11 +19,7 @@ public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand,
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILoggingService _logger;
 
-    public DeleteAccountCommandHandler(
-        IAccountRepository accountRepository,
-        UserManager<IdentityUser> userManager,
-        IUnitOfWork unitOfWork,
-        ILoggingService logger)
+    public DeleteAccountCommandHandler(IAccountRepository accountRepository, UserManager<IdentityUser> userManager, IUnitOfWork unitOfWork, ILoggingService logger)
     {
         _accountRepository = accountRepository;
         _userManager = userManager;
@@ -36,22 +33,24 @@ public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand,
         {
             var account = await _accountRepository.GetAccountById(request.Id);
             if (account == null)
-            {
-                return Result.Failure("Account not found");
-            }
+                return Result.Failure(ErrorMessages.AccountNotFound);
             
-            var user = await _userManager.FindByEmailAsync(account.Email) ?? throw new Exception("User not found");
+
+            var user = await _userManager.FindByEmailAsync(account.Email);
+            if (user == null)
+                return Result.Failure(ErrorMessages.IdentityUserNotFound);
             
+
             _accountRepository.Delete(account);
             await _userManager.DeleteAsync(user);
             await _unitOfWork.Commit();
 
-            _logger.LogInformation("Account deleted successfully: {Account}", account);
+            _logger.LogInformation(ErrorMessages.AccountDeleted, account);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting account: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }

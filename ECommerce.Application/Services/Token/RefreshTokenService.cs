@@ -11,6 +11,7 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Validations.BaseValidator;
+using ECommerce.Shared.Constants;
 namespace ECommerce.Application.Services.Token;
 
 public class RefreshTokenService : BaseValidator, IRefreshTokenService
@@ -19,6 +20,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
     private readonly ILoggingService _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUnitOfWork _unitOfWork;
+    public const string Reason = "New refresh token generated";
 
     public RefreshTokenService(
         IRefreshTokenRepository refreshTokenRepository, 
@@ -39,7 +41,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
     {
         try
         {
-            var request = new TokenRevokeRequestDto { Email = email, Reason = "New refresh token generated" };
+            var request = new TokenRevokeRequestDto { Email = email, Reason = Reason };
             await RevokeUserTokens(request);
             var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
 
@@ -57,34 +59,30 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate refresh token");
+            _logger.LogError(ex, ErrorMessages.FailedToGenerateRefreshToken);
             throw;
         }
     }
 
-    public async Task<(string, IList<string>)> ValidateRefreshToken(ClaimsPrincipal principal, UserManager<IdentityUser> userManager)
+    public async Task<Result<(string, IList<string>)>> ValidateRefreshToken(ClaimsPrincipal principal, UserManager<IdentityUser> userManager)
     {
         try
         {
             var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (string.IsNullOrEmpty(email))
-            {
-                throw new Exception("Email claim not found in token");
-            }
+                return Result<(string, IList<string>)>.Failure(ErrorMessages.InvalidToken);
 
             var user = await userManager.FindByEmailAsync(email);
             if (user == null)
-            {
-                throw new Exception("User not found");
-            }
+                return Result<(string, IList<string>)>.Failure(ErrorMessages.IdentityUserNotFound);
 
             var roles = await userManager.GetRolesAsync(user);
 
-            return (email, roles);
+            return Result<(string, IList<string>)>.Success((user.Id, roles));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating refresh token");
+            _logger.LogError(ex, ErrorMessages.ErrorValidatingToken);
             throw;
         }
     }
@@ -95,17 +93,13 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         {
             var validationResult = await ValidateAsync(request);
             if (validationResult is { IsSuccess: false, Error: not null })
-            {
                 return Result.Failure(validationResult.Error);
-            }
 
             var token = await _refreshTokenRepository.GetActiveUserTokenAsync(request.Email);
             if (token == null)
-            {
-                return Result.Failure("No active refresh token found");
-            }
+                return Result.Failure(ErrorMessages.NoActiveTokensFound);
 
-            DeleteRefreshTokenCookie();
+            _httpContextAccessor.HttpContext?.Response.Cookies.Delete("refreshToken");
             _refreshTokenRepository.Revoke(token, request.Reason);
             await _unitOfWork.Commit();
             
@@ -113,7 +107,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to revoke user tokens");
+            _logger.LogError(ex, ErrorMessages.FailedToRevokeToken);
             return Result.Failure(ex.Message);
         }
     }
@@ -152,20 +146,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate refresh token");
-            throw;
-        }
-    }
-
-    private void DeleteRefreshTokenCookie()
-    {
-        try
-        {
-            _httpContextAccessor.HttpContext?.Response.Cookies.Delete("refreshToken");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to delete refresh token cookie");
+            _logger.LogError(ex, ErrorMessages.FailedToGenerateRefreshToken);
             throw;
         }
     }
@@ -186,14 +167,11 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
                 Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry))
             };
 
-            _httpContextAccessor.HttpContext?.Response.Cookies.Append(
-                "refreshToken",
-                refreshToken.Token,
-                cookieOptions);
+            _httpContextAccessor.HttpContext?.Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to set refresh token cookie");
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             throw;
         }
     }
@@ -203,23 +181,18 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         try
         {
             var refreshToken = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
-
             if (string.IsNullOrEmpty(refreshToken))
-            {
-                return Result<RefreshToken>.Failure("User is not logged in");
-            }
+                return Result<RefreshToken>.Failure(ErrorMessages.FailedToFetchUserTokens);
 
             var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
             if (token == null)
-            {
-                return Result<RefreshToken>.Failure("Refresh token not found");
-            }
+                return Result<RefreshToken>.Failure(ErrorMessages.FailedToFetchUserTokens);
             
             return Result<RefreshToken>.Success(token);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get refresh token from cookie");
+            _logger.LogError(ex, ErrorMessages.FailedToFetchUserTokens, ex.Message);
             return Result<RefreshToken>.Failure(ex.Message);
         }
     }

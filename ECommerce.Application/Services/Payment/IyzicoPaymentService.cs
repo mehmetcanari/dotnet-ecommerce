@@ -5,6 +5,7 @@ using System.Globalization;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Model;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Services.Payment;
 
@@ -40,18 +41,17 @@ public class IyzicoPaymentService : IPaymentService
         {
             CreatePaymentRequest request = CreatePaymentRequest(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
             Iyzipay.Model.Payment payment = await _paymentProvider.CreateAsync(request, _options);
-            _logger.LogInformation("Payment processed: {PaymentStatus}", payment.Status);
             if (payment.Status != "success")
             {
-                _logger.LogError(new Exception(payment.ErrorMessage), "Payment failed: {ErrorMessage}", payment.ErrorMessage);
-                return Result<Iyzipay.Model.Payment>.Failure(payment.ErrorMessage ?? "Payment failed");
+                _logger.LogWarning(ErrorMessages.PaymentFailed, payment.ErrorMessage);
+                return Result<Iyzipay.Model.Payment>.Failure(payment.ErrorMessage ?? ErrorMessages.PaymentFailed);
             }
             await _notificationService.CreateNotificationAsync("Payment Success", $"Payment successful for order {order.OrderId}" + $"Total price: {payment.Price}", NotificationType.Payment);
             return Result<Iyzipay.Model.Payment>.Success(payment);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Payment processing failed: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.PaymentFailed, ex.Message);
             return Result<Iyzipay.Model.Payment>.Failure(ex.Message);
         }
     }
@@ -62,11 +62,9 @@ public class IyzicoPaymentService : IPaymentService
         Domain.Model.Address shippingAddress,
         Domain.Model.Address billingAddress,
         Domain.Model.PaymentCard paymentCard,
-        List<Domain.Model.BasketItem> basketItems)
-    {
-        return new CreatePaymentRequest
+        List<Domain.Model.BasketItem> basketItems) => new CreatePaymentRequest
         {
-            
+
             Locale = Locale.TR.ToString(),
             ConversationId = Guid.NewGuid().ToString(),
             Price = CalculateTotalPrice(basketItems),
@@ -82,65 +80,49 @@ public class IyzicoPaymentService : IPaymentService
             BillingAddress = MapToIyzicoAddress(billingAddress, order.BillingAddress),
             BasketItems = MapToIyzicoBasketItems(basketItems)
         };
-    }
 
-    private string CalculateTotalPrice(List<Domain.Model.BasketItem> basketItems)
-    {
-        return basketItems.Sum(item => item.UnitPrice * item.Quantity).ToString(CultureInfo.InvariantCulture);
-    }
+    private string CalculateTotalPrice(List<Domain.Model.BasketItem> basketItems) => basketItems.Sum(item => item.UnitPrice * item.Quantity).ToString(CultureInfo.InvariantCulture);
 
-    private Iyzipay.Model.PaymentCard MapToIyzicoPaymentCard(Domain.Model.PaymentCard paymentCard)
+    private Iyzipay.Model.PaymentCard MapToIyzicoPaymentCard(Domain.Model.PaymentCard paymentCard) => new Iyzipay.Model.PaymentCard
     {
-        return new Iyzipay.Model.PaymentCard
-        {
-            CardHolderName = paymentCard.CardHolderName,
-            CardNumber = paymentCard.CardNumber,
-            ExpireMonth = paymentCard.ExpirationMonth.ToString(),
-            ExpireYear = paymentCard.ExpirationYear.ToString(),
-            Cvc = paymentCard.CVC,
-            RegisterCard = paymentCard.RegisterCard
-        };
-    }
+        CardHolderName = paymentCard.CardHolderName,
+        CardNumber = paymentCard.CardNumber,
+        ExpireMonth = paymentCard.ExpirationMonth.ToString(),
+        ExpireYear = paymentCard.ExpirationYear.ToString(),
+        Cvc = paymentCard.CVC,
+        RegisterCard = paymentCard.RegisterCard
+    };
 
-    private Iyzipay.Model.Buyer MapToIyzicoBuyer(Domain.Model.Buyer buyer)
+    private Iyzipay.Model.Buyer MapToIyzicoBuyer(Domain.Model.Buyer buyer) => new Iyzipay.Model.Buyer
     {
-        return new Iyzipay.Model.Buyer
-        {
-            Id = buyer.Id,
-            Name = buyer.Name,
-            Surname = buyer.Surname,
-            GsmNumber = buyer.GsmNumber,
-            Email = buyer.Email,
-            IdentityNumber = buyer.IdentityNumber,
-            RegistrationAddress = buyer.RegistrationAddress,
-            Ip = buyer.Ip,
-            City = buyer.City,
-            Country = buyer.Country,
-            ZipCode = buyer.ZipCode
-        };
-    }
+        Id = buyer.Id,
+        Name = buyer.Name,
+        Surname = buyer.Surname,
+        GsmNumber = buyer.GsmNumber,
+        Email = buyer.Email,
+        IdentityNumber = buyer.IdentityNumber,
+        RegistrationAddress = buyer.RegistrationAddress,
+        Ip = buyer.Ip,
+        City = buyer.City,
+        Country = buyer.Country,
+        ZipCode = buyer.ZipCode
+    };
 
-    private Iyzipay.Model.Address MapToIyzicoAddress(Domain.Model.Address address, string description)
+    private Iyzipay.Model.Address MapToIyzicoAddress(Domain.Model.Address address, string description) => new Iyzipay.Model.Address
     {
-        return new Iyzipay.Model.Address
-        {
-            ContactName = address.ContactName,
-            City = address.City,
-            Country = address.Country,
-            Description = description,
-            ZipCode = address.ZipCode
-        };
-    }
+        ContactName = address.ContactName,
+        City = address.City,
+        Country = address.Country,
+        Description = description,
+        ZipCode = address.ZipCode
+    };
 
-    private List<Iyzipay.Model.BasketItem> MapToIyzicoBasketItems(List<Domain.Model.BasketItem> basketItems)
+    private List<Iyzipay.Model.BasketItem> MapToIyzicoBasketItems(List<Domain.Model.BasketItem> basketItems) => basketItems.Select(item => new Iyzipay.Model.BasketItem
     {
-        return basketItems.Select(item => new Iyzipay.Model.BasketItem
-        {
-            Id = item.ExternalId,
-            Name = item.ProductName,
-            Category1 = "Physical",
-            ItemType = nameof(BasketItemType.PHYSICAL),
-            Price = CalculateTotalPrice(basketItems),
-        }).ToList();
-    }
+        Id = item.ExternalId,
+        Name = item.ProductName,
+        Category1 = "Physical",
+        ItemType = nameof(BasketItemType.PHYSICAL),
+        Price = CalculateTotalPrice(basketItems),
+    }).ToList();
 }

@@ -1,23 +1,20 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Model;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using static System.Security.Claims.ClaimTypes;
 
 namespace ECommerce.Application.Services.Token;
 
 public class AccessTokenService : IAccessTokenService
 {
-    private readonly IConfiguration _configuration;
     private readonly ILoggingService _logger;
 
-    public AccessTokenService(IConfiguration configuration, ILoggingService logger)
+    public AccessTokenService(ILoggingService logger)
     {
-        _configuration = configuration;
         _logger = logger;
     }
 
@@ -54,12 +51,12 @@ public class AccessTokenService : IAccessTokenService
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
             var claims = new List<Claim>
-                {
-                     new(NameIdentifier, userId),
-                     new(Email, email),
-                     new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                     new("tokenType", "access")
-                };
+            {
+                new(NameIdentifier, userId),
+                new(Email, email),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new("tokenType", "access")
+            };
 
             claims.AddRange(roles.Select(role => new Claim(Role, role)));
 

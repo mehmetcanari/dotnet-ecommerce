@@ -3,6 +3,7 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using Microsoft.AspNetCore.Identity;
 using MediatR;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Commands.Account;
 
@@ -14,12 +15,10 @@ public class UpdateAccountGuidCommand : IRequest<Result<Domain.Model.Account>>
 
 public class UpdateAccountGuidCommandHandler : IRequestHandler<UpdateAccountGuidCommand, Result<Domain.Model.Account>>
 {
-    private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
 
     public UpdateAccountGuidCommandHandler(IAccountRepository accountRepository, ILoggingService logger)
     {
-        _accountRepository = accountRepository;
         _logger = logger;
     }
 
@@ -34,7 +33,7 @@ public class UpdateAccountGuidCommandHandler : IRequestHandler<UpdateAccountGuid
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating account guid: {Message}", ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Task.FromResult(Result<Domain.Model.Account>.Failure(ex.Message));
         }
     }

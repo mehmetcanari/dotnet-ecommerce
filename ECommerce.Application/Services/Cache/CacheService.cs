@@ -1,6 +1,7 @@
 using StackExchange.Redis;
 using System.Text.Json;
 using ECommerce.Application.Abstract.Service;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Services.Cache;
 
@@ -29,10 +30,7 @@ public class CacheService : ICacheService
             {
                 var value = await _database.StringGetAsync(key);
                 if (value.IsNull) 
-                {
-                    _logger.LogWarning("Cache value for key: {Key} is null", key);
                     return default;
-                }
 
                 var result = JsonSerializer.Deserialize<T>(value!, _jsonOptions);
                 return result;
@@ -41,8 +39,8 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while getting cache value for key: {Key}", key);
-            throw;
+            _logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
+            return default;
         }
     }
 
@@ -55,7 +53,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while setting cache value for key: {Key}", key);
+            _logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
             throw;
         }
     }
@@ -71,7 +69,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while removing cache value for key: {Key}", key);
+            _logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
             throw;
         }
     }

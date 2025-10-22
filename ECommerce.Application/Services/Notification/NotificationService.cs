@@ -1,9 +1,9 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Notification;
-using ECommerce.Application.Queries.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Services.Notification;
@@ -34,13 +34,16 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure)
-                return Result<Domain.Model.Notification>.Failure(account.Error);
+            var accountResult = await _mediator.Send(new GetClientAccountAsEntityQuery());
+            if (accountResult.IsFailure && accountResult.Error is not null)
+                return Result<Domain.Model.Notification>.Failure(accountResult.Error);
+
+            if(accountResult.Data == null)
+                return Result<Domain.Model.Notification>.Failure(ErrorMessages.AccountNotFound);
 
             var notification = new Domain.Model.Notification
             {
-                AccountId = account.Data.Id,
+                AccountId = accountResult.Data.Id,
                 Title = title,
                 Message = message,
                 Type = type,
@@ -48,16 +51,13 @@ public class NotificationService : INotificationService
 
             await _notificationRepository.CreateAsync(notification);
             await _storeUnitOfWork.Commit();
-            await _realtimeNotificationHandler.HandleNotification(title, message, type, account.Data.IdentityId, account.Data.Id);
-
-            _logger.LogInformation("Created notification {NotificationId} for user {UserId}", 
-                notification.Id, account.Data.Id);
+            await _realtimeNotificationHandler.HandleNotification(title, message, type, accountResult.Data.IdentityId, accountResult.Data.Id);
 
             return Result<Domain.Model.Notification>.Success(notification);
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred while creating notification", exception);
+            _logger.LogError(exception, ErrorMessages.UnexpectedHubError, exception);
             return Result<Domain.Model.Notification>.Failure(exception.Message);
         }
     }
@@ -72,19 +72,22 @@ public class NotificationService : INotificationService
         try
         {
             var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure)
+            if (account.IsFailure && account.Error is not null)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Error);
+
+            if(account.Data == null)
+                return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.AccountNotFound);
 
             var notifications = await _notificationRepository.GetUserNotificationsAsync(account.Data.Id, page, size);
             if (notifications == null || !notifications.Any())
-                return Result<IEnumerable<Domain.Model.Notification>>.Failure("Notifications not found");
+                return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.NotificationsNotFound);
 
             return Result<IEnumerable<Domain.Model.Notification>>.Success(notifications);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "An unexpected error occurred while getting user notifications", exception);
-            return Result<IEnumerable<Domain.Model.Notification>>.Failure(exception.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedHubError, ex);
+            return Result<IEnumerable<Domain.Model.Notification>>.Failure(ex.Message);
         }
     }
 
@@ -93,19 +96,22 @@ public class NotificationService : INotificationService
         try
         {
             var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure)
+            if (account.IsFailure && account.Error is not null)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Error);
+
+            if (account.Data == null)
+                return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.AccountNotFound);
 
             var notifications = await _notificationRepository.GetUnreadNotificationsAsync(account.Data.Id);
             if (notifications == null || !notifications.Any())
-                return Result<IEnumerable<Domain.Model.Notification>>.Failure("Notifications not found");
+                return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.NotificationsNotFound);
 
             return Result<IEnumerable<Domain.Model.Notification>>.Success(notifications);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "An unexpected error occurred while getting unread notifications", exception);
-            return Result<IEnumerable<Domain.Model.Notification>>.Failure(exception.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedHubError, ex);
+            return Result<IEnumerable<Domain.Model.Notification>>.Failure(ex.Message);
         }
     }
 
@@ -114,18 +120,21 @@ public class NotificationService : INotificationService
         try
         {
             var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure)
+            if (account.IsFailure && account.Error is not null)
                 return Result<int>.Failure(account.Error);
+
+            if (account.Data == null)
+                return Result<int>.Failure(ErrorMessages.AccountNotFound);
 
             var count = await _notificationRepository.GetUnreadCountAsync(account.Data.Id.ToString());
             if (count == 0)
-                return Result<int>.Failure("No unread notifications found");
+                return Result<int>.Failure(ErrorMessages.NoUnreadNotifications);
 
             return Result<int>.Success(count);
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred while getting unread count", exception);
+            _logger.LogError(exception, ErrorMessages.UnexpectedHubError, exception);
             return Result<int>.Failure(exception.Message);
         }
     }
@@ -137,14 +146,14 @@ public class NotificationService : INotificationService
             var result = await _notificationRepository.MarkAsReadAsync(notificationId);
             await _storeUnitOfWork.Commit();
             if (result is false)
-                return Result<bool>.Failure("Failed to mark notification as read");
+                return Result<bool>.Failure(ErrorMessages.ErrorMarkingNotificationsAsRead);
 
             return Result<bool>.Success(result);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "An unexpected error occurred while marking notification as read", exception);
-            return Result<bool>.Failure(exception.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedHubError, ex);
+            return Result<bool>.Failure(ex.Message);
         }
     }
 
@@ -153,22 +162,24 @@ public class NotificationService : INotificationService
         try
         {
             var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure)
+            if (account.IsFailure && account.Error is not null)
                 return Result<bool>.Failure(account.Error);
+
+            if (account.Data == null)
+                return Result<bool>.Failure(ErrorMessages.AccountNotFound);
 
             var result = await _notificationRepository.MarkAllAsReadAsync(account.Data.Id);
             if (result is false)
-                return Result<bool>.Failure("Failed to mark all notifications as read");
+                return Result<bool>.Failure(ErrorMessages.ErrorMarkingNotificationsAsRead);
 
-            _logger.LogInformation("Marked all notifications as read for user {UserId}", account.Data.Id);
             await _storeUnitOfWork.Commit();
 
             return Result<bool>.Success(result);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "An unexpected error occurred while marking all notifications as read", exception);
-            return Result<bool>.Failure(exception.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedHubError, ex);
+            return Result<bool>.Failure(ex.Message);
         }
     }
 
@@ -179,13 +190,13 @@ public class NotificationService : INotificationService
             var result = await _notificationRepository.DeleteAsync(notificationId);
             await _storeUnitOfWork.Commit();
             if (result is false)
-                return Result<bool>.Failure("Failed to delete notification");
+                return Result<bool>.Failure(ErrorMessages.FailedToDeleteNotification);
 
             return Result<bool>.Success(result);
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unexpected error occurred while deleting notification", exception);
+            _logger.LogError(exception, ErrorMessages.UnexpectedHubError, exception);
             return Result<bool>.Failure(exception.Message);
         }
     }

@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Account;
@@ -29,8 +30,7 @@ public class GetAccountWithIdQueryHandler : IRequestHandler<GetAccountWithIdQuer
             var account = await _accountRepository.GetAccountById(request.Id);
             if (account == null)
             {
-                _logger.LogWarning("Account with ID {Id} not found.", request.Id);
-                return Result<AccountResponseDto>.Failure($"Account with ID {request.Id} not found.");
+                return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotFound);
             }
 
             var responseDto = MapToResponseDto(account);
@@ -38,8 +38,8 @@ public class GetAccountWithIdQueryHandler : IRequestHandler<GetAccountWithIdQuer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching account by ID: {Message}", ex.Message);
-            return Result<AccountResponseDto>.Failure("An unexpected error occurred while fetching the account.");
+            _logger.LogError(ex, ErrorMessages.AccountNotFound, ex.Message);
+            return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotFound);
         }
     }
 

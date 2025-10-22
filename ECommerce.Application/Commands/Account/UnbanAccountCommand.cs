@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Account;
@@ -18,10 +19,7 @@ public class UnbanAccountCommandHandler : IRequestHandler<UnbanAccountCommand, R
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ILoggingService _logger;
 
-    public UnbanAccountCommandHandler(
-        IAccountRepository accountRepository,
-        IRefreshTokenService refreshTokenService,
-        ILoggingService logger)
+    public UnbanAccountCommandHandler(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, ILoggingService logger)
     {
         _accountRepository = accountRepository;
         _refreshTokenService = refreshTokenService;
@@ -34,24 +32,25 @@ public class UnbanAccountCommandHandler : IRequestHandler<UnbanAccountCommand, R
         {
             var account = await _accountRepository.GetAccountByEmail(request.AccountUnbanRequestDto.Email);
             if (account == null)
-            {
-                return Result.Failure("Account not found");
-            }
+                return Result.Failure(ErrorMessages.AccountNotFound);
+            
             account.UnbanAccount();
             _accountRepository.Update(account);
+
             var tokenRevokeRequest = new TokenRevokeRequestDto
             {
-                Email = request.AccountUnbanRequestDto.Email, Reason = "Account unbanned successfully by Admin."
+                Email = request.AccountUnbanRequestDto.Email, Reason = ErrorMessages.AccountUnrestricted
             };
+
             await _refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
 
-            _logger.LogInformation("Account unbanned successfully: {Email}", request.AccountUnbanRequestDto.Email);
+            _logger.LogInformation(ErrorMessages.AccountUnrestricted, request.AccountUnbanRequestDto.Email);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while unbanning the account: {Message}", ex.Message);
-            return Result.Failure($"An unexpected error occurred while unbanning the account: {ex.Message}");
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            return Result.Failure(ex.Message);
         }
     }
 }

@@ -36,36 +36,21 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
     {
         try
         {
-            var emailResult = _currentUserService.GetUserEmail();
-            if (emailResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-                return Result<List<BasketItemResponseDto>>.Failure(emailResult.Error);
-            }
+            var email = _currentUserService.GetUserEmail();
+            if (email is null)
+                return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.AccountEmailNotFound);
 
             var cachedItems = await GetCachedBasketItems();
             if (cachedItems != null)
-            {
                 return Result<List<BasketItemResponseDto>>.Success(cachedItems);
-            }
 
-            if (emailResult.Data == null)
-            {
-                _logger.LogWarning("User email is null");
-                return Result<List<BasketItemResponseDto>>.Failure("Email is not available");
-            }
-
-            var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
+            var account = await _accountRepository.GetAccountByEmail(email);
             if (account == null)
-            {
-                return Result<List<BasketItemResponseDto>>.Failure("Account not found");
-            }
+                return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.AccountNotFound);
 
             var basketItems = await GetBasketItems(account);
             if (basketItems.Count == 0)
-            {
-                return Result<List<BasketItemResponseDto>>.Failure("No basket items found.");
-            }
+                return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.BasketItemNotFound);
 
             var responseItems = basketItems.Select(MapToResponseDto).ToList();
             await CacheBasketItems(responseItems);
@@ -74,19 +59,16 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Unexpected error while fetching all basket items");
-            return Result<List<BasketItemResponseDto>>.Failure("An unexpected error occurred");
+            _logger.LogError(exception, ErrorMessages.UnexpectedError);
+            return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
     private async Task<List<BasketItemResponseDto>?> GetCachedBasketItems()
     {
-        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail().Data}";
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail()}";
         var cachedItems = await _cacheService.GetAsync<List<BasketItemResponseDto>>(cacheKey);
-        if (cachedItems != null)
-        {
-            _logger.LogInformation("Basket items fetched from cache for user: {Email}", _currentUserService.GetUserEmail().Data);
-        }
+
         return cachedItems;
     }
 
@@ -97,7 +79,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
 
     private async Task CacheBasketItems(List<BasketItemResponseDto> items)
     {
-        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail().Data}";
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail()}";
         TimeSpan cacheDuration = TimeSpan.FromMinutes(_cacheDurationInMinutes);
         await _cacheService.SetAsync(cacheKey, items, cacheDuration);
     }

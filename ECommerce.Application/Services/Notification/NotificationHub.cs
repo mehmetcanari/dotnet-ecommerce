@@ -7,13 +7,11 @@ namespace ECommerce.Application.Services.Notification;
 [Authorize]
 public class NotificationHub : Hub
 {
-    private readonly ILoggingService _logger;
     private readonly ICurrentUserService _currentUserService;
-    private static readonly Dictionary<string, string> _userConnections = new();
+    private static readonly Dictionary<string, string> _userConnections = [];
 
-    public NotificationHub(ILoggingService logger, ICurrentUserService currentUserService)
+    public NotificationHub(ICurrentUserService currentUserService)
     {
-        _logger = logger;
         _currentUserService = currentUserService;
     }
 
@@ -32,12 +30,10 @@ public class NotificationHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        var result = await _currentUserService.GetUserId();
-        if (result.IsSuccess && !string.IsNullOrEmpty(result.Data))
+        var userId = _currentUserService.GetUserId();
+        if (!string.IsNullOrEmpty(userId))
         {
-            _userConnections[result.Data] = Context.ConnectionId;
-            _logger.LogInformation("User {UserId} connected to notification hub with connection {ConnectionId}", 
-                result.Data, Context.ConnectionId);
+            _userConnections[userId] = Context.ConnectionId;
         }
         
         await base.OnConnectedAsync();
@@ -45,11 +41,10 @@ public class NotificationHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var result = await _currentUserService.GetUserId();
-        if (result.IsSuccess && !string.IsNullOrEmpty(result.Data))
+        var userId = _currentUserService.GetUserId();
+        if (!string.IsNullOrEmpty(userId))
         {
-            _userConnections.Remove(result.Data);
-            _logger.LogInformation("User {UserId} disconnected from notification hub", result.Data);
+            _userConnections.Remove(userId);
         }
         
         await base.OnDisconnectedAsync(exception);

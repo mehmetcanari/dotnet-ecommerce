@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Order;
@@ -24,25 +25,18 @@ public class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery, Resul
     {
         try
         {
-            var orders = await GetOrders();
+            var orders = await _orderRepository.Read();
             if (orders.Count == 0)
-            {
-                return Result<List<OrderResponseDto>>.Failure("No orders found");
-            }
+                return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
 
             var orderDtos = orders.Select(MapToResponseDto).ToList();
             return Result<List<OrderResponseDto>>.Success(orderDtos);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching all orders: {Message}", ex.Message);
-            return Result<List<OrderResponseDto>>.Failure("An unexpected error occurred");
+            _logger.LogError(ex, ErrorMessages.OrderNotFound, ex.Message);
+            return Result<List<OrderResponseDto>>.Failure(ErrorMessages.UnexpectedError);
         }
-    }
-
-    private async Task<List<Domain.Model.Order>> GetOrders()
-    {
-        return await _orderRepository.Read();
     }
 
     private static OrderResponseDto MapToResponseDto(Domain.Model.Order order)

@@ -5,6 +5,7 @@ using ECommerce.Application.Abstract.Service;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ECommerce.Domain.Model;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Application.Services.Token;
 
@@ -47,15 +48,15 @@ public class TokenUserClaimsService : ITokenUserClaimsService
             if (!(validatedToken is JwtSecurityToken jwtToken) ||
                 !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
-                throw new SecurityTokenException("Invalid token algorithm");
+                throw new SecurityTokenException(ErrorMessages.InvalidTokenAlgorithm);
             }
 
             return principal;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating refresh token");
-            throw new SecurityTokenException("Invalid refresh token", ex);
+            _logger.LogError(ex, ErrorMessages.ErrorValidatingToken, ex.Message);
+            throw new SecurityTokenException(ErrorMessages.ErrorValidatingToken, ex);
         }
     }
 }

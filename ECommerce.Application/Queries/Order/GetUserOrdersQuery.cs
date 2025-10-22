@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Order;
@@ -33,47 +34,38 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
         try
         {
             var accountResult = await GetCurrentUserAccountAsync();
-            if (accountResult.IsFailure)
+            if (accountResult.IsFailure && accountResult.Error is not null)
                 return Result<List<OrderResponseDto>>.Failure(accountResult.Error);
 
-            var userOrders = await GetUserOrders(accountResult.Data.Id);
-            if (userOrders.Count == 0)
+            if (accountResult.Data is not null)
             {
-                _logger.LogWarning("No orders found for this user: {Email}", accountResult.Data.Email);
-                return Result<List<OrderResponseDto>>.Failure("No orders found for this user");
+                var userOrders = await GetUserOrders(accountResult.Data.Id);
+                if (userOrders.Count == 0)
+                    return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
+
+                var orderDtos = userOrders.Select(MapToResponseDto).ToList();
+                return Result<List<OrderResponseDto>>.Success(orderDtos);
             }
 
-            var orderDtos = userOrders.Select(MapToResponseDto).ToList();
-            return Result<List<OrderResponseDto>>.Success(orderDtos);
+            return Result<List<OrderResponseDto>>.Failure(ErrorMessages.AccountNotFound);
+
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching user orders: {Message}", ex.Message);
-            return Result<List<OrderResponseDto>>.Failure("An unexpected error occurred");
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            return Result<List<OrderResponseDto>>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
     private async Task<Result<Domain.Model.Account>> GetCurrentUserAccountAsync()
     {
-        var emailResult = _currentUserService.GetUserEmail();
-        if (emailResult is { IsSuccess: false, Error: not null })
-        {
-            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-            return Result<Domain.Model.Account>.Failure(emailResult.Error);
-        }
+        var email = _currentUserService.GetUserEmail();        
+        if (string.IsNullOrEmpty(email))
+            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountEmailNotFound);
         
-        if (emailResult.Data == null)
-        {
-            _logger.LogWarning("User email is null or empty");
-            return Result<Domain.Model.Account>.Failure("User email is null or empty");
-        }
-        
-        var account = await _accountRepository.GetAccountByEmail(emailResult.Data);
+        var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
-        {
-            _logger.LogWarning("Account not found: {Email}", emailResult.Data);
-            return Result<Domain.Model.Account>.Failure("Account not found");
-        }
+            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountNotFound);
 
         return Result<Domain.Model.Account>.Success(account);
     }
@@ -82,36 +74,27 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
     {
         var orders = await _orderRepository.GetAccountOrders(accountId);
         if (orders == null || orders.Count == 0)
-        {
-            _logger.LogWarning("No orders found for account ID: {AccountId}", accountId);
             return new List<Domain.Model.Order>();
-        }
 
         return orders;
     }
 
-    private static OrderResponseDto MapToResponseDto(Domain.Model.Order order)
+    private static OrderResponseDto MapToResponseDto(Domain.Model.Order order) => new OrderResponseDto
     {
-        return new OrderResponseDto
-        {
-            AccountId = order.AccountId,
-            BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
-            OrderDate = order.OrderDate,
-            ShippingAddress = order.ShippingAddress,
-            BillingAddress = order.BillingAddress,
-            Status = order.Status
-        };
-    }
+        AccountId = order.AccountId,
+        BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
+        OrderDate = order.OrderDate,
+        ShippingAddress = order.ShippingAddress,
+        BillingAddress = order.BillingAddress,
+        Status = order.Status
+    };
 
-    private static BasketItemResponseDto MapToBasketItemDto(Domain.Model.BasketItem basketItem)
+    private static BasketItemResponseDto MapToBasketItemDto(Domain.Model.BasketItem basketItem) => new BasketItemResponseDto
     {
-        return new BasketItemResponseDto
-        {
-            AccountId = basketItem.AccountId,
-            ProductId = basketItem.ProductId,
-            Quantity = basketItem.Quantity,
-            UnitPrice = basketItem.UnitPrice,
-            ProductName = basketItem.ProductName
-        };
-    }
+        AccountId = basketItem.AccountId,
+        ProductId = basketItem.ProductId,
+        Quantity = basketItem.Quantity,
+        UnitPrice = basketItem.UnitPrice,
+        ProductName = basketItem.ProductName
+    };
 }

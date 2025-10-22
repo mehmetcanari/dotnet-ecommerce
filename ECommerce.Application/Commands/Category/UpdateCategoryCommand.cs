@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Category;
@@ -28,12 +29,15 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         try
         {
             var categoryResult = await ValidateAndGetCategory(request);
-            if (categoryResult.IsFailure)
+            if (categoryResult.IsFailure && categoryResult.Error is not null)
                 return Result.Failure(categoryResult.Error);
 
             var nameValidationResult = await ValidateCategoryName(request);
             if (nameValidationResult.IsFailure)
                 return nameValidationResult;
+
+            if (categoryResult.Data is null)
+                return Result.Failure(ErrorMessages.CategoryNotFound);
 
             UpdateCategory(categoryResult.Data, request);
 
@@ -41,8 +45,8 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating category with ID: {CategoryId}", request.CategoryId);
-            return Result.Failure("An unexpected error occurred while updating the category");
+            _logger.LogError(ex, ErrorMessages.ErrorUpdatingCategory, request.CategoryId);
+            return Result.Failure(ErrorMessages.ErrorUpdatingCategory);
         }
     }
 
@@ -51,8 +55,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         var category = await _categoryRepository.GetCategoryById(request.CategoryId);
         if (category == null)
         {
-            _logger.LogWarning("Category not found with ID: {CategoryId}", request.CategoryId);
-            return Result<Domain.Model.Category>.Failure("Category not found");
+            return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
         }
 
         return Result<Domain.Model.Category>.Success(category);
@@ -63,8 +66,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.UpdateCategoryRequestDto.Name);
         if (categoryExists)
         {
-            _logger.LogWarning("Category already exists with name: {CategoryName}", request.UpdateCategoryRequestDto.Name);
-            return Result.Failure("Category already exists");
+            return Result.Failure(ErrorMessages.CategoryExists);
         }
 
         return Result.Success();
@@ -76,7 +78,5 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         category.Description = request.UpdateCategoryRequestDto.Description;
 
         _categoryRepository.Update(category);
-        _logger.LogInformation("Category updated successfully: {CategoryId}, {CategoryName}", 
-            category.CategoryId, category.Name);
     }
 }

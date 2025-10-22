@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace ECommerce.Application.Validations.Order;
 
-public class OrderUpdateValidation : AbstractValidator<OrderUpdateRequestDto>
+public class OrderUpdateValidation : AbstractValidator<UpdateOrderStatusRequestDto>
 {
     public OrderUpdateValidation()
     {

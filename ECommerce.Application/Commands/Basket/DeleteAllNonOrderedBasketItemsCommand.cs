@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
@@ -14,11 +15,7 @@ public class DeleteAllNonOrderedBasketItemsCommandHandler : IRequestHandler<Dele
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
 
-    public DeleteAllNonOrderedBasketItemsCommandHandler(
-        IBasketItemRepository basketItemRepository,
-        ICurrentUserService currentUserService,
-        ILoggingService logger,
-        IAccountRepository accountRepository)
+    public DeleteAllNonOrderedBasketItemsCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILoggingService logger, IAccountRepository accountRepository)
     {
         _basketItemRepository = basketItemRepository;
         _currentUserService = currentUserService;
@@ -30,17 +27,23 @@ public class DeleteAllNonOrderedBasketItemsCommandHandler : IRequestHandler<Dele
     {
         try
         {
-            var emailResult = await GetValidatedUserEmail();
-            if (emailResult.IsFailure)
-                return Result.Failure(emailResult.Error);
+            var emailResult = GetValidatedUserEmail();
+            if (emailResult == null)
+                return Result.Failure(ErrorMessages.AccountEmailNotFound);
 
-            var accountResult = await ValidateAndGetAccount(emailResult.Data);
+            var accountResult = await ValidateAndGetAccount(emailResult);
             if (accountResult.IsFailure)
-                return Result.Failure(accountResult.Error);
+                return Result.Failure(ErrorMessages.AccountNotFound);
+
+            if(accountResult.Data == null)
+                return Result.Failure(ErrorMessages.AccountNotFound);
 
             var basketItemsResult = await GetAndValidateNonOrderedBasketItems(accountResult.Data);
             if (basketItemsResult.IsFailure)
-                return Result.Failure(basketItemsResult.Error);
+                return Result.Failure(ErrorMessages.BasketItemNotFound);
+
+            if(basketItemsResult.Data == null || !basketItemsResult.Data.Any())
+                return Result.Failure(ErrorMessages.BasketItemNotFound);
 
             DeleteBasketItems(basketItemsResult.Data);
 
@@ -48,27 +51,18 @@ public class DeleteAllNonOrderedBasketItemsCommandHandler : IRequestHandler<Dele
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while deleting non-ordered basket items");
-            return Result.Failure("An error occurred while processing your request");
+            _logger.LogError(ex, ErrorMessages.UnexpectedError);
+            return Result.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
-    private async Task<Result<string>> GetValidatedUserEmail()
+    private string GetValidatedUserEmail()
     {
-        var emailResult = await Task.FromResult(_currentUserService.GetUserEmail());
-        if (emailResult.IsFailure)
-        {
-            _logger.LogWarning("Failed to get current user email: {Error}", emailResult.Error);
-            return Result<string>.Failure(emailResult.Error);
-        }
+        var email = _currentUserService.GetUserEmail();
+        if (string.IsNullOrEmpty(email))
+            return string.Empty;
 
-        if (string.IsNullOrEmpty(emailResult.Data))
-        {
-            _logger.LogWarning("User email is null or empty");
-            return Result<string>.Failure("Email is not available");
-        }
-
-        return Result<string>.Success(emailResult.Data);
+        return email;
     }
 
     private async Task<Result<Domain.Model.Account>> ValidateAndGetAccount(string email)
@@ -76,8 +70,7 @@ public class DeleteAllNonOrderedBasketItemsCommandHandler : IRequestHandler<Dele
         var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
         {
-            _logger.LogWarning("Account not found for email: {Email}", email);
-            return Result<Domain.Model.Account>.Failure("Account not found");
+            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountNotFound);
         }
 
         return Result<Domain.Model.Account>.Success(account);
@@ -88,8 +81,7 @@ public class DeleteAllNonOrderedBasketItemsCommandHandler : IRequestHandler<Dele
         var basketItems = await _basketItemRepository.GetNonOrderedBasketItems(account);
         if (!basketItems.Any())
         {
-            _logger.LogInformation("No basket items found to delete for account: {AccountId}", account.Id);
-            return Result<List<Domain.Model.BasketItem>>.Failure("No basket items found to delete");
+            return Result<List<Domain.Model.BasketItem>>.Failure(ErrorMessages.BasketItemNotFound);
         }
 
         return Result<List<Domain.Model.BasketItem>>.Success(basketItems);
@@ -101,7 +93,5 @@ public class DeleteAllNonOrderedBasketItemsCommandHandler : IRequestHandler<Dele
         {
             _basketItemRepository.Delete(basketItem);
         }
-
-        _logger.LogInformation("Successfully deleted {Count} basket items", basketItems.Count);
     }
 }

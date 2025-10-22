@@ -1,31 +1,32 @@
 using System.Text;
 using System.Text.Json;
 using ECommerce.Application.Abstract.Service;
-using Microsoft.Extensions.Configuration;
+using ECommerce.Shared.Constants;
 using RabbitMQ.Client;
 
 namespace ECommerce.Application.Services.Queue;
 
-public class RabbitMQService : IMessageBroker, IDisposable
+public class QueueService : IMessageBroker, IDisposable
 {
-    private readonly IConnection _connection;
-    private readonly IModel _channel;
+    private readonly IConnection? _connection;
+    private readonly IModel? _channel;
     private readonly ILoggingService _logger;
 
-    public RabbitMQService(IConnectionFactory connectionFactory, ILoggingService logger)
+    public QueueService(IConnectionFactory connectionFactory, ILoggingService logger)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         try
         {
             _connection = connectionFactory.CreateConnection();
             _channel = _connection.CreateModel();
-            _logger.LogInformation("Connected to RabbitMQ");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to connect to RabbitMQ");
-            throw;
+            _logger.LogError(ex, ErrorMessages.QueueConnectionFailed, ex.Message);
+            _connection = null;
+            _channel = null;
+            return;
         }
     }
 
@@ -36,29 +37,19 @@ public class RabbitMQService : IMessageBroker, IDisposable
             await Task.Run(() =>
             {
                 _channel.ExchangeDeclare(exchange, ExchangeType.Direct, true);
-                
                 var json = JsonSerializer.Serialize(message);
                 var body = Encoding.UTF8.GetBytes(json);
-
                 var properties = _channel.CreateBasicProperties();
                 properties.Persistent = true;
-
-                _channel.BasicPublish(
-                    exchange: exchange,
-                    routingKey: routingKey,
-                    basicProperties: properties,
-                    body: body);
+                _channel.BasicPublish(exchange: exchange, routingKey: routingKey, basicProperties: properties, body: body);
             });
-
-            _logger.LogInformation($"Message published to exchange: {exchange}, routing key: {routingKey}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error publishing message to RabbitMQ");
-            throw;
+            _logger.LogError(ex, ErrorMessages.QueueMessagePublishFailed, ex.Message);
+            return;
         }
     }
-
 
     public void Dispose()
     {

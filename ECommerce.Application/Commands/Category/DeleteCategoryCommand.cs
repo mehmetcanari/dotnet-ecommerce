@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Category;
@@ -26,8 +27,13 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         try
         {
             var categoryResult = await ValidateAndGetCategory(request);
-            if (categoryResult.IsFailure)
+            if (categoryResult.IsFailure && categoryResult.Error is not null)
                 return Result.Failure(categoryResult.Error);
+
+            if (categoryResult.Data is null)
+            {
+                return Result.Failure(ErrorMessages.CategoryNotFound);
+            }
 
             DeleteCategory(categoryResult.Data);
 
@@ -35,8 +41,8 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting category with ID: {CategoryId}", request.CategoryId);
-            return Result.Failure("An unexpected error occurred while deleting the category");
+            _logger.LogError(ex, ErrorMessages.ErrorDeletingCategory, request.CategoryId);
+            return Result.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
@@ -45,8 +51,8 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         var category = await _categoryRepository.GetCategoryById(request.CategoryId);
         if (category == null)
         {
-            _logger.LogWarning("Category not found with ID: {CategoryId}", request.CategoryId);
-            return Result<Domain.Model.Category>.Failure("Category not found");
+            _logger.LogWarning(ErrorMessages.CategoryNotFound, request.CategoryId);
+            return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
         }
 
         return Result<Domain.Model.Category>.Success(category);
@@ -55,7 +61,6 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
     private void DeleteCategory(Domain.Model.Category category)
     {
         _categoryRepository.Delete(category);
-        _logger.LogInformation("Category deleted successfully: {CategoryId}, {CategoryName}", 
-            category.CategoryId, category.Name);
+        _logger.LogInformation(ErrorMessages.CategoryDeleted, category.CategoryId, category.Name);
     }
 }

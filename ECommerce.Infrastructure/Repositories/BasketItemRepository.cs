@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -22,7 +23,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while creating basket item", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -41,7 +42,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting non-ordered basket items", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -49,7 +50,9 @@ public class BasketItemRepository : IBasketItemRepository
     {
         try
         {
-            var basketItem = await _context.BasketItems
+            IQueryable<BasketItem> query = _context.BasketItems;
+
+            var basketItem = await query
                 .AsNoTracking()
                 .Where(b => b.BasketItemId == id && b.AccountId == account.Id)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -58,7 +61,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting specific account basket item", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -77,7 +80,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting non-ordered basket item with specific product", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -89,7 +92,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while updating basket item", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -101,7 +104,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while deleting basket item", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 }

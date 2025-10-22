@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Order;
@@ -29,18 +30,15 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
         {
             var order = await _orderRepository.GetOrderById(request.OrderId);
             if (order == null)
-            {
-                _logger.LogWarning("Order not found: {Id}", request.OrderId);
-                return Result<OrderResponseDto>.Failure("Order not found");
-            }
+                return Result<OrderResponseDto>.Failure(ErrorMessages.OrderNotFound);
 
             var orderResponseDto = MapToResponseDto(order);
             return Result<OrderResponseDto>.Success(orderResponseDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching order with id: {Message}", ex.Message);
-            return Result<OrderResponseDto>.Failure("An unexpected error occurred");
+            _logger.LogError(ex, ErrorMessages.OrderNotFound, ex.Message);
+            return Result<OrderResponseDto>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 

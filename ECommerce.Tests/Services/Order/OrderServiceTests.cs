@@ -249,7 +249,7 @@ public class OrderServiceTests
         _mediatorMock.Setup(m => m.Send(It.IsAny<IRequest<Result>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success())
             .Callback<IRequest<Result>, CancellationToken>((request, token) => {
-                if (request is UpdateOrderStatusByAccountIdCommand)
+                if (request is UpdateOrderStatusCommand)
                 {
                     _orderRepositoryMock.Object.Update(order);
                     _loggerMock.Object.LogInformation(It.IsAny<string>(), It.IsAny<object[]>());
@@ -258,7 +258,7 @@ public class OrderServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.UpdateOrderStatusByAccountIdAsync(account.Id, new OrderUpdateRequestDto { Status = OrderStatus.Cancelled });
+        var result = await service.UpdateOrderStatusByAccountIdAsync(account.Id, new UpdateOrderStatusRequestDto { Status = OrderStatus.Cancelled });
 
         // Assert
         result.Should().NotBeNull();
@@ -304,7 +304,7 @@ public class OrderServiceTests
         _mediatorMock.Setup(m => m.Send(It.IsAny<IRequest<Result>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success())
             .Callback<IRequest<Result>, CancellationToken>((request, token) => {
-                if (request is UpdateOrderStatusByAccountIdCommand)
+                if (request is UpdateOrderStatusCommand)
                 {
                     _orderRepositoryMock.Object.Delete(order);
                     _loggerMock.Object.LogInformation(It.IsAny<string>(), It.IsAny<object[]>());
@@ -313,7 +313,7 @@ public class OrderServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.UpdateOrderStatusByAccountIdAsync(order.AccountId, new OrderUpdateRequestDto { Status = OrderStatus.Cancelled });
+        var result = await service.UpdateOrderStatusByAccountIdAsync(order.AccountId, new UpdateOrderStatusRequestDto { Status = OrderStatus.Cancelled });
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -517,7 +517,7 @@ public class OrderServiceTests
     {
         // Arrange
         var order = CreateOrder();
-        var request = new OrderUpdateRequestDto { Status = OrderStatus.Delivered };
+        var request = new UpdateOrderStatusRequestDto { Status = OrderStatus.Delivered };
         _orderRepositoryMock.Setup(r => r.GetOrderByAccountId(It.IsAny<int>()))
             .ReturnsAsync(order);
         _orderRepositoryMock.Setup(r => r.Update(It.IsAny<Domain.Model.Order>()))
@@ -525,7 +525,7 @@ public class OrderServiceTests
         _mediatorMock.Setup(m => m.Send(It.IsAny<IRequest<Result>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success())
             .Callback<IRequest<Result>, CancellationToken>((request, token) => {
-                if (request is UpdateOrderStatusByAccountIdCommand)
+                if (request is UpdateOrderStatusCommand)
                 {
                     _orderRepositoryMock.Object.Update(order);
                     _loggerMock.Object.LogInformation(It.IsAny<string>(), It.IsAny<object[]>());
@@ -549,10 +549,10 @@ public class OrderServiceTests
     public async Task UpdateOrderStatusByAccountIdAsync_Should_Return_Failure_When_Order_Not_Found()
     {
         // Arrange
-        var request = new OrderUpdateRequestDto { Status = OrderStatus.Delivered };
+        var request = new UpdateOrderStatusRequestDto { Status = OrderStatus.Delivered };
         _orderRepositoryMock.Setup(r => r.GetOrderByAccountId(It.IsAny<int>()))
             .ReturnsAsync((Domain.Model.Order)null);
-        _mediatorMock.Setup(m => m.Send(It.IsAny<UpdateOrderStatusByAccountIdCommand>(), It.IsAny<CancellationToken>()))
+        _mediatorMock.Setup(m => m.Send(It.IsAny<UpdateOrderStatusCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure("Order not found"));
         var service = CreateService();
 

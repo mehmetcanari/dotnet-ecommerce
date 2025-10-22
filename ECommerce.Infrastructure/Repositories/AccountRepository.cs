@@ -2,6 +2,7 @@ using ECommerce.Domain.Abstract.Repository;
 using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -30,11 +31,11 @@ public class AccountRepository : IAccountRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while reading accounts", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
-    public async Task<Account?> GetAccountByEmail(string email, CancellationToken cancellationToken = default)
+    public async Task<Account> GetAccountByEmail(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -48,11 +49,11 @@ public class AccountRepository : IAccountRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting account by email", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
-    public async Task<Account?> GetAccountById(int id, CancellationToken cancellationToken = default)
+    public async Task<Account> GetAccountById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -65,11 +66,11 @@ public class AccountRepository : IAccountRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting account by id", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
-    public async Task<Account?> GetAccountByIdentityNumber(string identityNumber, CancellationToken cancellationToken = default)
+    public async Task<Account> GetAccountByIdentityNumber(string identityNumber, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -82,7 +83,7 @@ public class AccountRepository : IAccountRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting account by identity number", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -94,7 +95,7 @@ public class AccountRepository : IAccountRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while creating account", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -106,7 +107,7 @@ public class AccountRepository : IAccountRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while updating account", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -118,7 +119,7 @@ public class AccountRepository : IAccountRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while deleting account", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 }

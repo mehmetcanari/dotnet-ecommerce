@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -31,7 +32,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while reading orders", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -50,7 +51,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting account pending orders", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -68,7 +69,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while retrieving order by id", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -85,7 +86,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            throw new Exception($"An unexpected error occurred while retrieving order by account id", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -107,7 +108,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting account orders", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -119,7 +120,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while creating order", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -131,7 +132,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while updating order", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -143,7 +144,7 @@ public class OrderRepository : IOrderRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while deleting order", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 }

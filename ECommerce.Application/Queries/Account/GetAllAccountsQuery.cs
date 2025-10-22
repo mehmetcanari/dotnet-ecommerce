@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Account;
@@ -27,7 +28,7 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, R
             var accountCount = accounts.Count;
             if (accountCount == 0)
             {
-                return Result<List<AccountResponseDto>>.Failure("No accounts found");
+                return Result<List<AccountResponseDto>>.Failure(ErrorMessages.AccountNotFound);
             }
             
             var accountList = accounts.Select(MapToResponseDto).ToList();
@@ -35,8 +36,8 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, R
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while fetching accounts: {Message}", ex.Message);
-            return Result<List<AccountResponseDto>>.Failure("An unexpected error occurred");
+            _logger.LogError(ex, ErrorMessages.AccountNotFound, ex.Message);
+            return Result<List<AccountResponseDto>>.Failure(ErrorMessages.AccountNotFound);
         }
     }
 

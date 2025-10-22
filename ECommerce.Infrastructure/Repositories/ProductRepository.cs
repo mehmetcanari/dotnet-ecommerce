@@ -1,6 +1,7 @@
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
 using MongoDB.Driver;
 
 namespace ECommerce.Infrastructure.Repositories;
@@ -54,11 +55,11 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while reading products", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
-    public async Task<Product?> GetProductById(int id, CancellationToken cancellationToken = default)
+    public async Task<Product> GetProductById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -67,7 +68,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while retrieving product by id", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -80,7 +81,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while checking product existence with name", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -88,7 +89,6 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            // Generate auto-increment ID if not set
             if (product.ProductId == 0)
             {
                 product.ProductId = await _context.GetNextSequenceValue("product_id");
@@ -98,7 +98,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while creating product", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -111,7 +111,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while updating product", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -123,7 +123,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while deleting product", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -135,7 +135,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while deleting product by id", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -155,7 +155,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while retrieving products by category", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -171,7 +171,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while updating product stock", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 }

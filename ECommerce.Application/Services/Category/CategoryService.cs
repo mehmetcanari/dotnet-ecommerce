@@ -34,9 +34,7 @@ public class CategoryService : BaseValidator, ICategoryService
         {
             var validationResult = await ValidateAsync(request);
             if (!validationResult.IsSuccess)
-            {
                 return validationResult;
-            }
             
             var commandResult = await _mediator.Send(new CreateCategoryCommand
             {
@@ -44,19 +42,15 @@ public class CategoryService : BaseValidator, ICategoryService
             });
 
             if (commandResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to create category: {Error}", commandResult.Error);
                 return Result.Failure(commandResult.Error);
-            }
 
             await _unitOfWork.Commit();
             await CategoryCacheInvalidateAsync();
-            _logger.LogInformation("Category created successfully");
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating category");
+            _logger.LogError(ex, ErrorMessages.ErrorCreatingCategory, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
@@ -69,20 +63,17 @@ public class CategoryService : BaseValidator, ICategoryService
             {
                 CategoryId = categoryId
             });
+
             if (result is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to delete category: {Error}", result.Error);
                 return Result.Failure(result.Error);
-            }
 
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
-            _logger.LogInformation("Category deleted successfully");
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting category");
+            _logger.LogError(ex, ErrorMessages.ErrorDeletingCategory, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
@@ -104,19 +95,15 @@ public class CategoryService : BaseValidator, ICategoryService
             });
             
             if (commandResult is { IsSuccess: false, Error: not null })
-            {
-                _logger.LogWarning("Failed to update category: {Error}", commandResult.Error);
                 return Result.Failure(commandResult.Error);
-            }
 
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
-            _logger.LogInformation("Category updated successfully");
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating category");
+            _logger.LogError(ex, ErrorMessages.ErrorUpdatingCategory, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
@@ -133,8 +120,8 @@ public class CategoryService : BaseValidator, ICategoryService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error invalidating category cache");
-            throw;
+            _logger.LogError(ex, ErrorMessages.UnexpectedCacheError, ex.Message);
+            return;
         }
     }
 }

@@ -3,6 +3,7 @@ using Amazon.S3.Transfer;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.FileUpload;
 using ECommerce.Application.Utility;
+using ECommerce.Shared.Constants;
 using Microsoft.Extensions.Configuration;
 
 namespace ECommerce.Application.Services.AWS;
@@ -27,7 +28,6 @@ public class S3Service : IS3Service
         try
         {
             var key = $"{keyPrefix}/{Guid.NewGuid()}_{request.File.FileName}";
-
             await using var stream = request.File.OpenReadStream();
 
             var uploadRequest = new TransferUtilityUploadRequest
@@ -41,14 +41,12 @@ public class S3Service : IS3Service
             var fileTransferUtility = new TransferUtility(_s3Client);
             await fileTransferUtility.UploadAsync(uploadRequest);
 
-            _loggingService.LogInformation($"File uploaded successfully to S3: {key}");
-
             var fileUrl = $"https://{_bucketName}.s3.{_configuration["AWS:Region"]}.amazonaws.com/{key}";
             return Result<string>.Success(fileUrl);
         }
         catch (Exception ex)
         {
-            _loggingService.LogError(ex, "Error uploading file to S3: {Message}", ex.Message);
+            _loggingService.LogError(ex, ErrorMessages.FileUploadFailed, ex.Message);
             return Result<string>.Failure(ex.Message);
         }
     }
