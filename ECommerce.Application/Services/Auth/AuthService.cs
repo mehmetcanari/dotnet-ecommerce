@@ -123,7 +123,7 @@ public class AuthService : BaseValidator, IAuthService
         }
     }
 
-    public async Task<Result> LogoutAsync(string reason)
+    public async Task<Result> LogoutAsync()
     {
         try
         {
@@ -134,7 +134,7 @@ public class AuthService : BaseValidator, IAuthService
             var refreshToken = cookieResult.Data;
             if (refreshToken != null)
             {
-                var request = new TokenRevokeRequestDto { Email = refreshToken.Email, Reason = reason };
+                var request = new TokenRevokeRequestDto { Email = refreshToken.Email, Reason = string.Empty };
                 await _refreshTokenService.RevokeUserTokens(request);
             }
 

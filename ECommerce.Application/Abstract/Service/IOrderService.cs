@@ -6,5 +6,5 @@ namespace ECommerce.Application.Abstract.Service;
 public interface IOrderService
 {
     Task<Result> CreateOrderAsync(OrderCreateRequestDto orderCreateRequestDto);
-    Task<Result> UpdateOrderStatusByAccountIdAsync(int accountId, UpdateOrderStatusRequestDto orderUpdateRequestDto);
+    Task<Result> UpdateOrderStatus(int accountId, UpdateOrderStatusRequestDto orderUpdateRequestDto);
 }

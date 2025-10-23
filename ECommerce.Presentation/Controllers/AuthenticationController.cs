@@ -7,53 +7,21 @@ namespace ECommerce.API.Controllers
 {
     [Route("api/[Controller]")]
     [ApiController]
-    public class AuthenticationController(IAuthService _authService) : ControllerBase
+    public class AuthenticationController(IAuthService _authService) : ApiBaseController
     {
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto)
-        {
-            var result = await _authService.RegisterAsync(accountRegisterRequestDto, "User");
-            if (result.IsFailure)
-            {
-                return BadRequest(new { message = "Failed to create user.", error = result.Error });
-            }
-            return Ok(new { message = "User created successfully." });
-        }
+        public async Task<IActionResult> RegisterUser([FromBody] AccountRegisterRequestDto accountRegisterRequestDto) => HandleResult(await _authService.RegisterAsync(accountRegisterRequestDto, "User"));
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] AccountLoginRequestDto accountLoginRequestDto)
-        {
-            var loginResult = await _authService.LoginAsync(accountLoginRequestDto);
-            if (loginResult.IsFailure)
-            {
-                return Unauthorized(new { message = "Invalid credentials", error = loginResult.Error });
-            }
-            return Ok(new { message = "Login successful", data = loginResult.Data });
-        }
+        public async Task<IActionResult> Login([FromBody] AccountLoginRequestDto accountLoginRequestDto) => HandleResult(await _authService.LoginAsync(accountLoginRequestDto));
 
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
-        {
-            var result = await _authService.LogoutAsync("User logged out");
-            if (result.IsFailure)
-            {
-                return BadRequest(new { message = "Logout failed", error = result.Error });
-            }
-            return Ok(new { message = "Logout successful" });
-        }
+        public async Task<IActionResult> Logout() => HandleResult(await _authService.LogoutAsync());
 
         [HttpPost("refresh-token")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetRefreshToken()
-        {
-            var authResponse = await _authService.GenerateAuthTokenAsync();
-            if (authResponse.IsFailure)
-            {
-                return BadRequest(new { message = "Failed to refresh token", error = authResponse.Error });
-            }
-            return Ok(new { message = "Token refreshed successfully", data = authResponse.Data });
-        }
+        public async Task<IActionResult> GetRefreshToken() => HandleResult(await _authService.GenerateAuthTokenAsync());
     }
 }

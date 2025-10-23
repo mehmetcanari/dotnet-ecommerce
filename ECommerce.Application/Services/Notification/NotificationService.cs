@@ -115,7 +115,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<Result<int>> GetUnreadCountAsync()
+    public async Task<Result<int>> GetUnreadNotificationsCountAsync()
     {
         try
         {

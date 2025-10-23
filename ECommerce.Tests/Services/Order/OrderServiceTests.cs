@@ -258,7 +258,7 @@ public class OrderServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.UpdateOrderStatusByAccountIdAsync(account.Id, new UpdateOrderStatusRequestDto { Status = OrderStatus.Cancelled });
+        var result = await service.UpdateOrderStatus(account.Id, new UpdateOrderStatusRequestDto { Status = OrderStatus.Cancelled });
 
         // Assert
         result.Should().NotBeNull();
@@ -313,7 +313,7 @@ public class OrderServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.UpdateOrderStatusByAccountIdAsync(order.AccountId, new UpdateOrderStatusRequestDto { Status = OrderStatus.Cancelled });
+        var result = await service.UpdateOrderStatus(order.AccountId, new UpdateOrderStatusRequestDto { Status = OrderStatus.Cancelled });
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -534,7 +534,7 @@ public class OrderServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.UpdateOrderStatusByAccountIdAsync(order.AccountId, request);
+        var result = await service.UpdateOrderStatus(order.AccountId, request);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -557,7 +557,7 @@ public class OrderServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.UpdateOrderStatusByAccountIdAsync(1, request);
+        var result = await service.UpdateOrderStatus(1, request);
 
         // Assert
         Assert.False(result.IsSuccess);

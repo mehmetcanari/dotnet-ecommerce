@@ -7,7 +7,7 @@ namespace ECommerce.Application.Abstract.Service;
 public interface IAuthService
 {
     Task<Result<AuthResponseDto>> LoginAsync(AccountLoginRequestDto loginRequestDto);
-    Task <Result> LogoutAsync(string reason);
+    Task <Result> LogoutAsync();
     Task<Result<AuthResponseDto>> GenerateAuthTokenAsync();
     Task<Result> RegisterAsync(AccountRegisterRequestDto registerRequestDto, string role);
 } 

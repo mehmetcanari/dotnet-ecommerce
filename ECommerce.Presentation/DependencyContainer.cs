@@ -52,7 +52,7 @@ public class DependencyContainer : IDependencyContainer
     private void RegisterMediatR()
     {
         _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllProductsQuery).Assembly));
-        _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductWithIdQuery).Assembly));
+        _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductByIdQuery).Assembly));
         _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateProductCommand).Assembly));
         _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UpdateProductCommand).Assembly));
         _builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UpdateProductStockCommand).Assembly));

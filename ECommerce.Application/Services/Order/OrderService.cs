@@ -194,7 +194,7 @@ public class OrderService : BaseValidator, IOrderService
         ZipCode = account.ZipCode
     };
 
-    public async Task<Result> UpdateOrderStatusByAccountIdAsync(int accountId, UpdateOrderStatusRequestDto orderUpdateRequestDto)
+    public async Task<Result> UpdateOrderStatus(int accountId, UpdateOrderStatusRequestDto orderUpdateRequestDto)
     {
         try
         {

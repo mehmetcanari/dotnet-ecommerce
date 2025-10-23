@@ -43,6 +43,8 @@ public class BasketItemService : BaseValidator, IBasketItemService
             if (validationResult is { IsSuccess: false, Error: not null }) 
                 return Result.Failure(validationResult.Error);
 
+            await ClearBasketItemsCacheAsync();
+            
             var result = await _mediator.Send(new CreateBasketItemCommand { CreateBasketItemRequestDto = createBasketItemRequestDto });
             if (result is { IsSuccess: false, Error: not null })
             {
@@ -50,7 +52,6 @@ public class BasketItemService : BaseValidator, IBasketItemService
                 return Result.Failure(result.Error);
             }
 
-            await ClearBasketItemsCacheAsync();
             await _unitOfWork.Commit();
             return Result.Success();
         }

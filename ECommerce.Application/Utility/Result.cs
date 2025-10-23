@@ -4,7 +4,7 @@ public class Result<T>
 {
     public bool IsSuccess { get; private set; }
     public bool IsFailure => !IsSuccess;
-    public T? Data { get; private set; }
+    public T? Data { get; private set; } = default;
     public string? Error { get; private set; }
 
     public static Result<T> Success(T data) => new()

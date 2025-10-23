@@ -1,5 +1,4 @@
 using ECommerce.Application.Abstract.Service;
-using ECommerce.Application.DTO.Request.Notification;
 using ECommerce.Application.Services.Notification;
 using ECommerce.Application.Validations.Attribute;
 using Microsoft.AspNetCore.Authorization;
@@ -10,87 +9,28 @@ namespace ECommerce.API.Controllers;
 [ApiController]
 [Route("api/[Controller]")]
 [Authorize]
-public class NotificationController(INotificationService _notificationService, ICurrentUserService _currentUserService) : ControllerBase
+public class NotificationController(INotificationService _notificationService, ICurrentUserService _currentUserService) : ApiBaseController
 {
-    [HttpPost("test")]
-    public async Task<IActionResult> Test(SendNotificationRequestDto request)
-    {
-        var result = await _notificationService.TestCreateNotificationAsync(request);
-        if (result.IsFailure)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "Notification created" });
-    }
-
     [HttpGet]
-    public async Task<IActionResult> GetNotifications([FromQuery] int page = 1, [FromQuery] int size = 50)
-    {
-        var result = await _notificationService.GetUserNotificationsAsync(page, size);
-        if (result.IsFailure)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "Notifications fetched successfully", data = result.Data });
-    }
+    public async Task<IActionResult> GetNotifications([FromQuery] int page = 1, [FromQuery] int size = 50) => HandleResult(await _notificationService.GetUserNotificationsAsync(page, size));
 
     [HttpGet("unread")]
-    public async Task<IActionResult> GetUnreadNotifications()
-    {
-        var result = await _notificationService.GetUnreadNotificationsAsync();
-        if (result.IsFailure)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "Unread notifications fetched successfully", data = result.Data });
-    }
+    public async Task<IActionResult> GetUnreadNotifications() => HandleResult(await _notificationService.GetUnreadNotificationsAsync());
 
     [HttpGet("unread-count")]
-    public async Task<IActionResult> GetUnreadCount()
-    {
-        var result = await _notificationService.GetUnreadCountAsync();
-        if (result.IsFailure)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "Unread count fetched successfully", data = result.Data });
-    }
+    public async Task<IActionResult> GetUnreadCount() => HandleResult(await _notificationService.GetUnreadNotificationsCountAsync());
 
     [ValidateId]
     [HttpPost("{id}/mark-read")]
     [ValidateId]
-    public async Task<IActionResult> MarkAsRead(int id)
-    {
-        var result = await _notificationService.MarkAsReadAsync(id);
-        if (result.IsFailure)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "Notification marked as read successfully" });
-    }
+    public async Task<IActionResult> MarkAsRead(int id) => HandleResult(await _notificationService.MarkAsReadAsync(id));
 
     [HttpPost("mark-all-read")]
-    public async Task<IActionResult> MarkAllAsRead()
-    {
-        var result = await _notificationService.MarkAllAsReadAsync();
-        if (result.IsFailure)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "All notifications marked as read successfully" });
-    }
+    public async Task<IActionResult> MarkAllAsRead() => HandleResult(await _notificationService.MarkAllAsReadAsync());
 
     [ValidateId]
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteNotification(int id)
-    {
-        var result = await _notificationService.DeleteNotificationAsync(id);
-        if (result.IsFailure)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "Notification deleted successfully" });
-    }
+    public async Task<IActionResult> DeleteNotification(int id) => HandleResult(await _notificationService.DeleteNotificationAsync(id));
 
     [HttpGet("hub-status")]
     public async Task<IActionResult> GetHubStatus()
