@@ -16,7 +16,6 @@ Modern, scalable e-commerce RESTful API built with Clean Architecture and SOLID 
 | **FluentValidation** | Input validation |
 | **Serilog** | Structured logging |
 | **Docker** | Containerization |
-| **xUnit** | Unit testing |
 | **MediatR** | CQRS implementation |
 | **Elasticsearch** | Advanced product search and filtering |
 | **SignalR** | Action based notifications |
@@ -73,9 +72,8 @@ Clean Architecture implementation with clear separation of concerns:
   │   ├── Dependencies  #Infrastructure Dependencies  
   │   └── Migrations
   │
-  └── 📁 ECommerce.Tests/    
-      ├── Services
-      └── Repositories
+  └── 📁 ECommerce.Shared/    
+      ├── Constants
 ```
 
 ## 🚀 Quick Start
@@ -110,42 +108,6 @@ cd ECommerce.Presentation
 dotnet watch run
 ```
 
-## ⚙️ Configuration
-
-### Required Environment Variables
-```env
-# Application
-ASPNETCORE_ENVIRONMENT=Development
-ASPNETCORE_URLS=http://localhost:5076
-
-# JWT Configuration
-JWT_SECRET=YourSecretKeyHere12345678901234567890
-JWT_ISSUER=OnlineStoreWebAPI
-JWT_AUDIENCE=OnlineStoreClient
-JWT_ACCESS_TOKEN_EXPIRATION_MINUTES=30
-JWT_REFRESH_TOKEN_EXPIRATION_DAYS=30
-
-# Database
-DB_CONNECTION_STRING=Server=localhost;Port=5432;Database=ECommerceDB;User Id=postgres;Password=your_password;
-MONGODB_CONNECTION_STRING=mongodb://localhost:27017
-MONGODB_DATABASE_NAME=ECommerceStore
-
-# AWS S3
-AWS_ACCESS_KEY=your-aws-access-key
-AWS_SECRET_KEY=your-aws-secret-key
-AWS_REGION=eu-central-1
-AWS_BUCKET_NAME=your-bucket-name
-
-# Payment Gateway (Iyzipay Sandbox)
-IYZICO_API_KEY=your-sandbox-api-key-here
-IYZICO_SECRET_KEY=your-sandbox-secret-key-here
-IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
-
-# Tokens - For testing purpose
-USER_TOKEN=
-ADMIN_TOKEN=
-```
-
 ## ☁️ AWS S3 Integration
 - All product images and file uploads are securely stored in AWS S3.
 - S3 credentials and bucket info are managed via environment variables for security and flexibility.
@@ -162,64 +124,6 @@ The Swagger UI provides:
 - Request/response schemas
 - Interactive API testing
 - Authentication support (JWT Bearer tokens)
-
-### Authentication
-```http
-# Register New User
-POST /api/v1/auth/register
-Content-Type: application/json
-
-{
-    "name": "John",
-    "surname": "Doe",
-    "email": "john.doe@example.com",
-    "password": "SecurePassword123!",
-    "phoneNumber": "1234567890",
-    "identityNumber": "12345678901",
-    "address": "123 Main St",
-    "city": "Istanbul",
-    "country": "TR",
-    "zipCode": "34000",
-    "dateOfBirth": "1990-01-01"
-}
-
-# Login
-POST /api/v1/auth/login
-Content-Type: application/json
-
-{
-    "email": "john.doe@example.com",
-    "password": "SecurePassword123!"
-}
-
-```
-
-### Product Management
-```http
-# Create Product (Admin)
-POST /api/v1/admin/products
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
-{
-    "name": "PlayStation 5",
-    "description": "Next-gen gaming console",
-    "price": 499.99,
-    "stockQuantity": 100,
-    "discountRate": 10,
-    "imageUrl": "https://your-bucket-name.s3.region.amazonaws.com/products/sample-product.jpg"
-}
-
-# Get Products
-GET api/v1/admin/products
-Authorization: Bearer {{ADMIN_TOKEN}}
-```
-
-## 🧪 Testing
-```bash
-# Run all tests
-dotnet test
-```
 
 ## 📧 Contact
 **Mehmet Can Arı** - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)
