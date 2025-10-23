@@ -4,6 +4,7 @@ using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using DotNetEnv;
 using ECommerce.API.Configurations;
+using ECommerce.API.Extensions;
 using ECommerce.API.SwaggerFilters;
 using ECommerce.Application.Exceptions;
 using ECommerce.Application.Services.Notification;
@@ -459,6 +460,10 @@ internal static class Program
             await InitializeRoles(services);
         }
 
+        #endregion
+
+        #region Database Seeding
+        DatabaseSeeder.SeedDatabaseAsync(app).GetAwaiter().GetResult();
         #endregion
 
         #region Middleware Pipeline 

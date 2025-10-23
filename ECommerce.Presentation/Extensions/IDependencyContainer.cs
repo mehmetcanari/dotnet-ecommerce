@@ -1,4 +1,4 @@
-﻿namespace ECommerce.API;
+﻿namespace ECommerce.API.Extensions;
 
 public interface IDependencyContainer
 {

@@ -15,12 +15,13 @@ using ECommerce.Application.Services.Queue;
 using ECommerce.Application.Services.Search.Product;
 using ECommerce.Application.Services.Token;
 using ECommerce.Infrastructure.Dependencies;
+using ECommerce.Shared.Constants;
 using MediatR;
 using RabbitMQ.Client;
 using Serilog;
 using StackExchange.Redis;
 
-namespace ECommerce.API;
+namespace ECommerce.API.Extensions;
 
 public class DependencyContainer : IDependencyContainer
 {
@@ -37,6 +38,12 @@ public class DependencyContainer : IDependencyContainer
 
         var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
         var rabbitMqConnection = Environment.GetEnvironmentVariable("RABBITMQ_CONNECTION");
+
+        if(string.IsNullOrEmpty(redisConnectionString))
+            throw new InvalidOperationException(ErrorMessages.CacheConnectionStringNotConfigured);
+
+        if(string.IsNullOrEmpty(rabbitMqConnection))
+            throw new InvalidOperationException(ErrorMessages.QueueConnectionStringNotConfigured);
 
         _builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString));
         _builder.Services.AddSingleton<IConnectionFactory>(_ => new ConnectionFactory

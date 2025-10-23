@@ -23,6 +23,11 @@
         #region Queue
         public const string QueueConnectionFailed = "queue.connection.failed";
         public const string QueueMessagePublishFailed = "queue.message.publish.failed";
+        public const string QueueConnectionStringNotConfigured = "queue.connection.string.not.configured";
+        #endregion
+
+        #region Cache
+        public const string CacheConnectionStringNotConfigured = "cache.connection.string.not.configured";
         #endregion
 
         #region Hub
@@ -47,6 +52,8 @@
         public const string AccountUnrestricted = "account.unrestricted";
         public const string UserNotAuthenticated = "account.user.not.authenticated";
         public const string InvalidEmailOrPassword = "account.invalid.email.or.password";
+        public const string ErrorSeedingAdminUser = "account.error.seeding.admin.user";
+        public const string AdminAccountAlreadyExists = "account.admin.already.exists";
         #endregion
 
         #region Authentication
