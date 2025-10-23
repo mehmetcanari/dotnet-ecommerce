@@ -1,5 +1,6 @@
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ECommerce.Infrastructure.Repositories;
@@ -18,7 +19,7 @@ public class StoreUnitOfWork(StoreDbContext storeContext) : IStoreUnitOfWork
         try
         {
             if (_transaction == null)
-                throw new InvalidOperationException("No transaction to commit");
+                throw new InvalidOperationException(ErrorMessages.NoTransactionInProgress);
 
             await storeContext.SaveChangesAsync();
             await _transaction.CommitAsync();
@@ -45,7 +46,7 @@ public class StoreUnitOfWork(StoreDbContext storeContext) : IStoreUnitOfWork
         }
         catch (Exception ex)
         {
-            throw new Exception("An unexpected error occurred while rolling back transaction", ex);
+            throw new Exception(ErrorMessages.UnexpectedError, ex);
         }
         finally
         {
@@ -61,7 +62,7 @@ public class StoreUnitOfWork(StoreDbContext storeContext) : IStoreUnitOfWork
         }
         catch (Exception ex)
         {
-            throw new Exception("An unexpected error occurred while committing changes", ex);
+            throw new Exception(ErrorMessages.UnexpectedError, ex);
         }
     }
 

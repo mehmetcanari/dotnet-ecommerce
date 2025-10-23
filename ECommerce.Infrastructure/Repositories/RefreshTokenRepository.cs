@@ -1,7 +1,8 @@
-using ECommerce.Domain.Model;
-using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -22,7 +23,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while creating refresh token", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
     
@@ -41,7 +42,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting active user token", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -59,7 +60,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
         catch (Exception ex)
         {
-            throw new Exception("An unexpected error occurred", ex);
+            throw new Exception(ErrorMessages.UnexpectedError, ex);
         }
     }
 
@@ -72,7 +73,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while revoking token", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -91,7 +92,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while cleaning up expired tokens", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 }

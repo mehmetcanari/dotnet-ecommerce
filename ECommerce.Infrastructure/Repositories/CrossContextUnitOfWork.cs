@@ -1,5 +1,6 @@
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ECommerce.Infrastructure.Repositories;
@@ -21,7 +22,7 @@ public class CrossContextUnitOfWork(StoreDbContext storeContext, ApplicationIden
         try
         {
             if (_storeTransaction == null || _identityTransaction == null)
-                throw new InvalidOperationException("No transactions to commit");
+                throw new InvalidOperationException(ErrorMessages.NoTransactionInProgress);
 
             await storeContext.SaveChangesAsync();
             await identityContext.SaveChangesAsync();
@@ -56,7 +57,7 @@ public class CrossContextUnitOfWork(StoreDbContext storeContext, ApplicationIden
         }
         catch (Exception ex)
         {
-            throw new Exception("An unexpected error occurred while rolling back transactions", ex);
+            throw new Exception(ErrorMessages.UnexpectedError, ex);
         }
         finally
         {
@@ -73,7 +74,7 @@ public class CrossContextUnitOfWork(StoreDbContext storeContext, ApplicationIden
         }
         catch (Exception ex)
         {
-            throw new Exception("An unexpected error occurred while committing changes", ex);
+            throw new Exception(ErrorMessages.UnexpectedError, ex);
         }
     }
 

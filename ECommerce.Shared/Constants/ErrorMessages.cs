@@ -7,6 +7,7 @@
         public const string UnexpectedAuthenticationError = "authentication.unexpected.error";
         public const string UnexpectedCacheError = "cache.unexpected.error";
         public const string UnexpectedHubError = "hub.unexpected.error";
+        public const string NoTransactionInProgress = "global.no.transaction.in.progress";
         #endregion
 
         #region Utility
@@ -36,6 +37,8 @@
         public const string AccountNotFound = "account.not.found";
         public const string AccountEmailNotFound = "account.email.not.found";
         public const string AccountBanned = "account.banned";
+        public const string AccountAlreadyBanned = "account.already.banned";
+        public const string AccountAlreadyUnbanned = "account.already.unbanned";
         public const string AccountCreated = "account.created";
         public const string AccountCreationFailed = "account.creation.failed";
         public const string AccountEmailAlreadyExists = "account.email.already.exists";

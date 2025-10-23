@@ -1,6 +1,7 @@
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories;
@@ -22,7 +23,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while creating notification", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -44,7 +45,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting user notifications", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -64,7 +65,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting unread notifications", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -82,7 +83,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while getting unread count", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -94,7 +95,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while updating notification", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -110,7 +111,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while deleting notification", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -127,7 +128,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while marking notification as read", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -151,7 +152,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while marking all notifications as read", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 
@@ -170,7 +171,7 @@ public class NotificationRepository : INotificationRepository
         }
         catch (Exception exception)
         {
-            throw new Exception("An unexpected error occurred while deleting old notifications", exception);
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
 } 

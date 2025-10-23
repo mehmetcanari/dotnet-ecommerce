@@ -1,3 +1,4 @@
+using ECommerce.Shared.Constants;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Domain.Model;
@@ -34,7 +35,7 @@ public class User : IdentityUser
     {
         if (IsBanned)
         {
-            throw new InvalidOperationException("Account is already banned");
+            throw new InvalidOperationException(ErrorMessages.AccountAlreadyBanned);
         }
         BannedAt = DateTime.UtcNow;
         BannedUntil = until.ToUniversalTime();
@@ -45,7 +46,7 @@ public class User : IdentityUser
     {
         if (!IsBanned)
         {
-            throw new InvalidOperationException("Account is not banned");
+            throw new InvalidOperationException(ErrorMessages.AccountAlreadyUnbanned);
         }
         BannedAt = null;
         BannedUntil = null;
