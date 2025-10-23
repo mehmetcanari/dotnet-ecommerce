@@ -42,12 +42,12 @@ public class ProductService : BaseValidator, IProductService
         try
         {
             var validationResult = await ValidateAsync(productCreateRequest);
-            if (validationResult is { IsSuccess: false, Error: not null }) 
-                return Result.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null }) 
+                return Result.Failure(validationResult.Message);
             
             var result = await _mediator.Send(new CreateProductCommand { ProductCreateRequest = productCreateRequest });
-            if (result is { IsSuccess: false, Error: not null })
-                return Result.Failure(result.Error);
+            if (result is { IsSuccess: false, Message: not null })
+                return Result.Failure(result.Message);
 
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
@@ -68,12 +68,12 @@ public class ProductService : BaseValidator, IProductService
         try
         {
             var validationResult = await ValidateAsync(productUpdateRequest);
-            if (validationResult is { IsSuccess: false, Error: not null }) 
-                return Result.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null }) 
+                return Result.Failure(validationResult.Message);
             
             var result = await _mediator.Send(new UpdateProductCommand { Id = id, ProductUpdateRequest = productUpdateRequest });
-            if (result is { IsSuccess: false, Error: not null })
-                return Result.Failure(result.Error);
+            if (result is { IsSuccess: false, Message: not null })
+                return Result.Failure(result.Message);
             
             await ProductCacheInvalidateAsync();
             await _categoryService.CategoryCacheInvalidateAsync();
@@ -122,8 +122,8 @@ public class ProductService : BaseValidator, IProductService
         try
         {
             var result = await _mediator.Send(new UpdateProductStockCommand { BasketItems = basketItems });
-            if (result is { IsSuccess: false, Error: not null })
-                return Result.Failure(result.Error);
+            if (result is { IsSuccess: false, Message: not null })
+                return Result.Failure(result.Message);
 
             await _unitOfWork.Commit();
             await ProductCacheInvalidateAsync();

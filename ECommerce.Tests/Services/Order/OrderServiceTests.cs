@@ -136,7 +136,7 @@ public class OrderServiceTests
         => new Domain.Model.BasketItem
         {
             BasketItemId = 1,
-            AccountId = accountId,
+            UserId = accountId,
             ProductId = productId,
             Quantity = quantity,
             UnitPrice = 100,
@@ -149,7 +149,7 @@ public class OrderServiceTests
         => new Domain.Model.Order
         {
             OrderId = 1,
-            AccountId = accountId,
+            UserId = accountId,
             BasketItems = new List<Domain.Model.BasketItem> { CreateBasketItem() },
             OrderDate = DateTime.UtcNow,
             ShippingAddress = "Test Shipping Address",
@@ -313,7 +313,7 @@ public class OrderServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.UpdateOrderStatus(order.AccountId, new UpdateOrderStatusRequestDto { Status = OrderStatus.Cancelled });
+        var result = await service.UpdateOrderStatus(order.UserId, new UpdateOrderStatusRequestDto { Status = OrderStatus.Cancelled });
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -354,7 +354,7 @@ public class OrderServiceTests
         _mediatorMock.Setup(m => m.Send(It.IsAny<GetAllOrdersQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<List<OrderResponseDto>>.Success(new List<OrderResponseDto> { new OrderResponseDto 
             { 
-                AccountId = order.AccountId,
+                UserId = order.UserId,
                 OrderDate = order.OrderDate,
                 ShippingAddress = order.ShippingAddress,
                 BillingAddress = order.BillingAddress,
@@ -369,7 +369,7 @@ public class OrderServiceTests
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
         Assert.Single(result.Data);
-        Assert.Equal(order.AccountId, result.Data[0].AccountId);
+        Assert.Equal(order.UserId, result.Data[0].UserId);
         Assert.Equal(order.OrderDate, result.Data[0].OrderDate);
         Assert.Equal(order.ShippingAddress, result.Data[0].ShippingAddress);
         Assert.Equal(order.BillingAddress, result.Data[0].BillingAddress);
@@ -414,7 +414,7 @@ public class OrderServiceTests
         _mediatorMock.Setup(m => m.Send(It.IsAny<GetUserOrdersQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<List<OrderResponseDto>>.Success(new List<OrderResponseDto> { new OrderResponseDto 
             { 
-                AccountId = order.AccountId,
+                UserId = order.UserId,
                 OrderDate = order.OrderDate,
                 ShippingAddress = order.ShippingAddress,
                 BillingAddress = order.BillingAddress,
@@ -429,7 +429,7 @@ public class OrderServiceTests
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
         Assert.Single(result.Data);
-        Assert.Equal(order.AccountId, result.Data[0].AccountId);
+        Assert.Equal(order.UserId, result.Data[0].UserId);
         Assert.Equal(order.OrderDate, result.Data[0].OrderDate);
         Assert.Equal(order.ShippingAddress, result.Data[0].ShippingAddress);
         Assert.Equal(order.BillingAddress, result.Data[0].BillingAddress);
@@ -470,7 +470,7 @@ public class OrderServiceTests
         _mediatorMock.Setup(m => m.Send(It.IsAny<GetOrderByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<OrderResponseDto>.Success(new OrderResponseDto 
             { 
-                AccountId = order.AccountId,
+                UserId = order.UserId,
                 OrderDate = order.OrderDate,
                 ShippingAddress = order.ShippingAddress,
                 BillingAddress = order.BillingAddress,
@@ -484,7 +484,7 @@ public class OrderServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
-        Assert.Equal(order.AccountId, result.Data.AccountId);
+        Assert.Equal(order.UserId, result.Data.UserId);
         Assert.Equal(order.OrderDate, result.Data.OrderDate);
         Assert.Equal(order.ShippingAddress, result.Data.ShippingAddress);
         Assert.Equal(order.BillingAddress, result.Data.BillingAddress);
@@ -534,7 +534,7 @@ public class OrderServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.UpdateOrderStatus(order.AccountId, request);
+        var result = await service.UpdateOrderStatus(order.UserId, request);
 
         // Assert
         Assert.True(result.IsSuccess);

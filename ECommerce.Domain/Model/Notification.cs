@@ -12,7 +12,7 @@ public class Notification
 
     // Navigation property
     public User? User { get; set; }
-    public int? AccountId { get; set; }
+    public required string UserId { get; set; }
 
     
     public void MarkAsRead()

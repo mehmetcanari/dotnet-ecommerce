@@ -41,8 +41,8 @@ public class CategoryService : BaseValidator, ICategoryService
                 CreateCategoryRequestDto = request
             });
 
-            if (commandResult is { IsSuccess: false, Error: not null })
-                return Result.Failure(commandResult.Error);
+            if (commandResult is { IsSuccess: false, Message: not null })
+                return Result.Failure(commandResult.Message);
 
             await _unitOfWork.Commit();
             await CategoryCacheInvalidateAsync();
@@ -64,8 +64,8 @@ public class CategoryService : BaseValidator, ICategoryService
                 CategoryId = categoryId
             });
 
-            if (result is { IsSuccess: false, Error: not null })
-                return Result.Failure(result.Error);
+            if (result is { IsSuccess: false, Message: not null })
+                return Result.Failure(result.Message);
 
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();
@@ -94,8 +94,8 @@ public class CategoryService : BaseValidator, ICategoryService
                 UpdateCategoryRequestDto = request
             });
             
-            if (commandResult is { IsSuccess: false, Error: not null })
-                return Result.Failure(commandResult.Error);
+            if (commandResult is { IsSuccess: false, Message: not null })
+                return Result.Failure(commandResult.Message);
 
             await CategoryCacheInvalidateAsync();
             await _unitOfWork.Commit();

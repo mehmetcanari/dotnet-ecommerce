@@ -84,15 +84,12 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
         await _cacheService.SetAsync(cacheKey, items, cacheDuration);
     }
 
-    private static BasketItemResponseDto MapToResponseDto(Domain.Model.BasketItem basketItem)
+    private static BasketItemResponseDto MapToResponseDto(Domain.Model.BasketItem basketItem) => new BasketItemResponseDto
     {
-        return new BasketItemResponseDto
-        {
-            AccountId = basketItem.AccountId,
-            Quantity = basketItem.Quantity,
-            UnitPrice = basketItem.UnitPrice,
-            ProductId = basketItem.ProductId,
-            ProductName = basketItem.ProductName
-        };
-    }
+        UserId = basketItem.UserId,
+        Quantity = basketItem.Quantity,
+        UnitPrice = basketItem.UnitPrice,
+        ProductId = basketItem.ProductId,
+        ProductName = basketItem.ProductName
+    };
 }

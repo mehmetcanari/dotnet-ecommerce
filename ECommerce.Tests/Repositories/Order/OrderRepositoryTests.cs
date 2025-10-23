@@ -26,7 +26,7 @@ public class OrderRepositoryTests
         => new Domain.Model.Order
         {
             OrderId = orderId,
-            AccountId = accountId,
+            UserId = accountId,
             OrderDate = DateTime.UtcNow,
             ShippingAddress = "Test Shipping Address",
             BillingAddress = "Test Billing Address",
@@ -36,7 +36,7 @@ public class OrderRepositoryTests
                 new Domain.Model.BasketItem
                 {
                     BasketItemId = basketItemId,
-                    AccountId = accountId,
+                    UserId = accountId,
                     ProductId = 1,
                     Quantity = 1,
                     UnitPrice = 100,
@@ -61,7 +61,7 @@ public class OrderRepositoryTests
         // Assert
         var result = await _context.Orders.FindAsync(order.OrderId);
         result.Should().NotBeNull();
-        result.AccountId.Should().Be(order.AccountId);
+        result.UserId.Should().Be(order.UserId);
         result.Status.Should().Be(order.Status);
     }
 
@@ -143,7 +143,7 @@ public class OrderRepositoryTests
 
         // Assert
         result.Should().NotBeNull();
-        result.AccountId.Should().Be(order.AccountId);
+        result.UserId.Should().Be(order.UserId);
         result.Status.Should().Be(order.Status);
         result.BasketItems.Should().HaveCount(1);
     }
@@ -169,11 +169,11 @@ public class OrderRepositoryTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetOrderByAccountId(order.AccountId);
+        var result = await _repository.GetOrderByAccountId(order.UserId);
 
         // Assert
         result.Should().NotBeNull();
-        result.AccountId.Should().Be(order.AccountId);
+        result.UserId.Should().Be(order.UserId);
         result.Status.Should().Be(order.Status);
     }
 
@@ -208,7 +208,7 @@ public class OrderRepositoryTests
 
         // Assert
         result.Should().HaveCount(2);
-        result.Should().AllSatisfy(o => o.AccountId.Should().Be(1));
+        result.Should().AllSatisfy(o => o.UserId.Should().Be(1));
     }
 
     [Fact]

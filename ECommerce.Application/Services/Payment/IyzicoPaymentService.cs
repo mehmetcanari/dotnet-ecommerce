@@ -1,11 +1,11 @@
-using Iyzipay;
-using Iyzipay.Model;
-using Iyzipay.Request;
-using System.Globalization;
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using Iyzipay;
+using Iyzipay.Model;
+using Iyzipay.Request;
+using System.Globalization;
 
 namespace ECommerce.Application.Services.Payment;
 
@@ -30,9 +30,9 @@ public class IyzicoPaymentService : IPaymentService
     }
 
     public async Task<Result<Iyzipay.Model.Payment>> ProcessPaymentAsync(
-        Domain.Model.Order order, 
-        Domain.Model.Buyer buyer, 
-        Domain.Model.Address shippingAddress, 
+        Domain.Model.Order order,
+        Domain.Model.Buyer buyer,
+        Domain.Model.Address shippingAddress,
         Domain.Model.Address billingAddress,
         Domain.Model.PaymentCard paymentCard,
         List<Domain.Model.BasketItem> basketItems)
@@ -56,30 +56,23 @@ public class IyzicoPaymentService : IPaymentService
         }
     }
 
-    private CreatePaymentRequest CreatePaymentRequest(
-        Domain.Model.Order order,
-        Domain.Model.Buyer buyer,
-        Domain.Model.Address shippingAddress,
-        Domain.Model.Address billingAddress,
-        Domain.Model.PaymentCard paymentCard,
-        List<Domain.Model.BasketItem> basketItems) => new CreatePaymentRequest
-        {
-
-            Locale = Locale.TR.ToString(),
-            ConversationId = Guid.NewGuid().ToString(),
-            Price = CalculateTotalPrice(basketItems),
-            PaidPrice = CalculateTotalPrice(basketItems),
-            Currency = Currency.TRY.ToString(),
-            Installment = 1,
-            BasketId = order.OrderId.ToString(),
-            PaymentChannel = nameof(PaymentChannel.WEB),
-            PaymentGroup = nameof(PaymentGroup.PRODUCT),
-            PaymentCard = MapToIyzicoPaymentCard(paymentCard),
-            Buyer = MapToIyzicoBuyer(buyer),
-            ShippingAddress = MapToIyzicoAddress(shippingAddress, order.ShippingAddress),
-            BillingAddress = MapToIyzicoAddress(billingAddress, order.BillingAddress),
-            BasketItems = MapToIyzicoBasketItems(basketItems)
-        };
+    private CreatePaymentRequest CreatePaymentRequest(Domain.Model.Order order, Domain.Model.Buyer buyer, Domain.Model.Address shippingAddress, Domain.Model.Address billingAddress, Domain.Model.PaymentCard paymentCard, List<Domain.Model.BasketItem> basketItems) => new CreatePaymentRequest
+    {
+        Locale = Locale.TR.ToString(),
+        ConversationId = Guid.NewGuid().ToString(),
+        Price = CalculateTotalPrice(basketItems),
+        PaidPrice = CalculateTotalPrice(basketItems),
+        Currency = Currency.TRY.ToString(),
+        Installment = 1,
+        BasketId = order.OrderId.ToString(),
+        PaymentChannel = nameof(PaymentChannel.WEB),
+        PaymentGroup = nameof(PaymentGroup.PRODUCT),
+        PaymentCard = MapToIyzicoPaymentCard(paymentCard),
+        Buyer = MapToIyzicoBuyer(buyer),
+        ShippingAddress = MapToIyzicoAddress(shippingAddress, order.ShippingAddress),
+        BillingAddress = MapToIyzicoAddress(billingAddress, order.BillingAddress),
+        BasketItems = MapToIyzicoBasketItems(basketItems)
+    };
 
     private string CalculateTotalPrice(List<Domain.Model.BasketItem> basketItems) => basketItems.Sum(item => item.UnitPrice * item.Quantity).ToString(CultureInfo.InvariantCulture);
 

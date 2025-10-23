@@ -29,8 +29,8 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         try
         {
             var categoryResult = await ValidateAndGetCategory(request);
-            if (categoryResult.IsFailure && categoryResult.Error is not null)
-                return Result.Failure(categoryResult.Error);
+            if (categoryResult.IsFailure && categoryResult.Message is not null)
+                return Result.Failure(categoryResult.Message);
 
             var nameValidationResult = await ValidateCategoryName(request);
             if (nameValidationResult.IsFailure)

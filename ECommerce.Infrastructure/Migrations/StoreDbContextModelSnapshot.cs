@@ -17,84 +17,10 @@ namespace ECommerce.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ECommerce.Domain.Model.Account", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BanReason")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("BannedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("BannedUntil")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("IdentityId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("IdentityNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Surname")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UserCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("UserUpdated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ZipCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Accounts");
-                });
 
             modelBuilder.Entity("ECommerce.Domain.Model.BasketItem", b =>
                 {
@@ -103,9 +29,6 @@ namespace ECommerce.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("BasketItemId"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("ExternalId")
                         .IsRequired()
@@ -127,8 +50,12 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<double>("UnitPrice")
-                        .HasColumnType("double precision");
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("BasketItemId");
 
@@ -172,9 +99,6 @@ namespace ECommerce.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -195,9 +119,13 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Notifications");
                 });
@@ -209,9 +137,6 @@ namespace ECommerce.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("OrderId"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("BillingAddress")
                         .IsRequired()
@@ -226,6 +151,10 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("OrderId");
 
@@ -266,6 +195,104 @@ namespace ECommerce.Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Model.User", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BanReason")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("BannedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("BannedUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("IdentityNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UserCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UserUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ZipCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Accounts");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Model.BasketItem", b =>
                 {
                     b.HasOne("ECommerce.Domain.Model.Order", "Order")
@@ -278,10 +305,11 @@ namespace ECommerce.Infrastructure.Migrations
 
             modelBuilder.Entity("ECommerce.Domain.Model.Notification", b =>
                 {
-                    b.HasOne("ECommerce.Domain.Model.Account", "User")
+                    b.HasOne("ECommerce.Domain.Model.User", "User")
                         .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

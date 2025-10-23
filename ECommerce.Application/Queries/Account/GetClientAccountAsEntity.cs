@@ -25,8 +25,8 @@ public class GetClientAccountAsEntityQueryHandler : IRequestHandler<GetClientAcc
         try
         {
             var validEmailResult = ValidateUser();
-            if (validEmailResult.IsFailure && validEmailResult.Error is not null)
-                return Result<User>.Failure(validEmailResult.Error);
+            if (validEmailResult.IsFailure && validEmailResult.Message is not null)
+                return Result<User>.Failure(validEmailResult.Message);
             
             if (string.IsNullOrEmpty(validEmailResult.Data))
                 return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);

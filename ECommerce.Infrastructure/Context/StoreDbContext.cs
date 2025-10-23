@@ -34,7 +34,7 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContex
         {
             entity.HasOne(n => n.User)
                 .WithMany()
-                .HasForeignKey(n => n.AccountId)
+                .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

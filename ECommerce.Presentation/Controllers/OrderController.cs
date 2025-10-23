@@ -42,5 +42,5 @@ public class OrderController(IOrderService _orderService, IMediator _mediator) :
     [Authorize("Admin")]
     [HttpPut("update/{id}")]
     [ValidateId]
-    public async Task<IActionResult> UpdateOrderStatus([FromRoute] int id, [FromBody] UpdateOrderStatusRequestDto orderUpdateRequestDto) => HandleResult(await _orderService.UpdateOrderStatus(id, orderUpdateRequestDto));
+    public async Task<IActionResult> UpdateOrderStatus([FromRoute] string id, [FromBody] UpdateOrderStatusRequestDto orderUpdateRequestDto) => HandleResult(await _orderService.UpdateOrderStatus(id, orderUpdateRequestDto));
 }

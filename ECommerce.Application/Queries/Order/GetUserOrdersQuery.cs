@@ -34,8 +34,8 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
         try
         {
             var accountResult = await GetCurrentUserAccountAsync();
-            if (accountResult.IsFailure && accountResult.Error is not null)
-                return Result<List<OrderResponseDto>>.Failure(accountResult.Error);
+            if (accountResult.IsFailure && accountResult.Message is not null)
+                return Result<List<OrderResponseDto>>.Failure(accountResult.Message);
 
             if (accountResult.Data is not null)
             {
@@ -70,9 +70,9 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
         return Result<Domain.Model.User>.Success(account);
     }
 
-    private async Task<List<Domain.Model.Order>> GetUserOrders(int accountId)
+    private async Task<List<Domain.Model.Order>> GetUserOrders(string userId)
     {
-        var orders = await _orderRepository.GetAccountOrders(accountId);
+        var orders = await _orderRepository.GetAccountOrders(userId);
         if (orders == null || orders.Count == 0)
             return new List<Domain.Model.Order>();
 
@@ -81,7 +81,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
 
     private static OrderResponseDto MapToResponseDto(Domain.Model.Order order) => new OrderResponseDto
     {
-        AccountId = order.AccountId,
+        UserId = order.UserId,
         BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
         OrderDate = order.OrderDate,
         ShippingAddress = order.ShippingAddress,
@@ -91,7 +91,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
 
     private static BasketItemResponseDto MapToBasketItemDto(Domain.Model.BasketItem basketItem) => new BasketItemResponseDto
     {
-        AccountId = basketItem.AccountId,
+        UserId = basketItem.UserId,
         ProductId = basketItem.ProductId,
         Quantity = basketItem.Quantity,
         UnitPrice = basketItem.UnitPrice,

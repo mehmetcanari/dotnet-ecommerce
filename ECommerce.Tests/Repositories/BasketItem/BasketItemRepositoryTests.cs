@@ -43,7 +43,7 @@ public class BasketItemRepositoryTests
         => new Domain.Model.BasketItem
         {
             BasketItemId = basketItemId,
-            AccountId = accountId,
+            UserId = accountId,
             ProductId = productId,
             Quantity = 1,
             UnitPrice = 100,
@@ -66,7 +66,7 @@ public class BasketItemRepositoryTests
         // Assert
         var result = await _context.BasketItems.FindAsync(basketItem.BasketItemId);
         result.Should().NotBeNull();
-        result.AccountId.Should().Be(basketItem.AccountId);
+        result.UserId.Should().Be(basketItem.UserId);
         result.ProductId.Should().Be(basketItem.ProductId);
         result.IsOrdered.Should().Be(basketItem.IsOrdered);
     }
@@ -93,7 +93,7 @@ public class BasketItemRepositoryTests
         // Assert
         result.Should().HaveCount(2);
         result.Should().AllSatisfy(b => b.IsOrdered.Should().BeFalse());
-        result.Should().AllSatisfy(b => b.AccountId.Should().Be(account.Id));
+        result.Should().AllSatisfy(b => b.UserId.Should().Be(account.Id));
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class BasketItemRepositoryTests
         // Assert
         result.Should().NotBeNull();
         result.BasketItemId.Should().Be(basketItem.BasketItemId);
-        result.AccountId.Should().Be(account.Id);
+        result.UserId.Should().Be(account.Id);
     }
 
     [Fact]

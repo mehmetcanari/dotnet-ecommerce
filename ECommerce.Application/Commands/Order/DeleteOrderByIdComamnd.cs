@@ -29,8 +29,8 @@ public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdComm
         try
         {
             var orderResult = await ValidateAndGetOrder(request);
-            if (orderResult.IsFailure && orderResult.Error is not null)
-                return Result.Failure(orderResult.Error);
+            if (orderResult.IsFailure && orderResult.Message is not null)
+                return Result.Failure(orderResult.Message);
 
             if (orderResult.Data is null)
                 return Result.Failure(ErrorMessages.OrderNotFound);

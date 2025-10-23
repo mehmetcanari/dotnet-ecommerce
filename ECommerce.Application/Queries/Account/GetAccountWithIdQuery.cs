@@ -9,7 +9,7 @@ namespace ECommerce.Application.Queries.Account;
 
 public class GetAccountWithIdQuery : IRequest<Result<AccountResponseDto>>
 {
-    public int Id { get; set; }
+    public required string UserId { get; set; }
 }
 
 public class GetAccountWithIdQueryHandler : IRequestHandler<GetAccountWithIdQuery, Result<AccountResponseDto>>
@@ -27,7 +27,7 @@ public class GetAccountWithIdQueryHandler : IRequestHandler<GetAccountWithIdQuer
     {
         try
         {
-            var account = await _accountRepository.GetAccountById(request.Id);
+            var account = await _accountRepository.GetAccountById(request.UserId);
             if (account == null)
             {
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotFound);
@@ -43,18 +43,14 @@ public class GetAccountWithIdQueryHandler : IRequestHandler<GetAccountWithIdQuer
         }
     }
 
-    private static AccountResponseDto MapToResponseDto(Domain.Model.User account)
+    private static AccountResponseDto MapToResponseDto(Domain.Model.User account) => new AccountResponseDto
     {
-        return new AccountResponseDto
-        {
-            Id = account.Id,
-            Name = account.Name,
-            Surname = account.Surname,
-            Email = account.Email,
-            Address = account.Address,
-            PhoneNumber = account.PhoneNumber,
-            DateOfBirth = account.DateOfBirth,
-            Role = account.Role
-        };
-    }
+        Id = account.Id,
+        Name = account.Name,
+        Surname = account.Surname,
+        Email = account.Email ?? string.Empty,
+        Address = account.Address,
+        PhoneNumber = account.PhoneNumber ?? string.Empty,
+        DateOfBirth = account.DateOfBirth,
+    };
 }

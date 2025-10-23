@@ -39,9 +39,9 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         try
         {
             var validationResult = await ValidateRequest(request.Id, request.ProductUpdateRequest);
-            if (validationResult.IsFailure && validationResult.Error is not null)
+            if (validationResult.IsFailure && validationResult.Message is not null)
             {
-                return Result.Failure(validationResult.Error);
+                return Result.Failure(validationResult.Message);
             }
 
             var (product, category) = validationResult.Data;

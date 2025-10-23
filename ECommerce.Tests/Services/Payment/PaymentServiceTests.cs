@@ -32,7 +32,7 @@ public class PaymentServiceTests
         {
             new Domain.Model.BasketItem
             {
-                AccountId = 1,
+                UserId = 1,
                 ExternalId = Guid.NewGuid().ToString(),
                 Quantity = 1,
                 UnitPrice = totalAmount,
@@ -45,7 +45,7 @@ public class PaymentServiceTests
         return new Domain.Model.Order
         {
             OrderId = 1,
-            AccountId = 1,
+            UserId = 1,
             BasketItems = basketItems,
             ShippingAddress = "Test Shipping Address",
             BillingAddress = "Test Billing Address"

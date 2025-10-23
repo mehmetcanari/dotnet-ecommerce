@@ -53,13 +53,13 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<User> GetAccountById(int id, CancellationToken cancellationToken = default)
+    public async Task<User> GetAccountById(string userId, CancellationToken cancellationToken = default)
     {
         try
         {
             var account = await _context.Accounts
                 .AsNoTracking()
-                .Where(a => a.Id == id)
+                .Where(a => a.Id == userId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return account;
@@ -87,7 +87,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Create(User userAccount, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(User userAccount, CancellationToken cancellationToken = default)
     {
         try
         {

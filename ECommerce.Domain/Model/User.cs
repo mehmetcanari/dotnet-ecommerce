@@ -1,19 +1,16 @@
+using Microsoft.AspNetCore.Identity;
+
 namespace ECommerce.Domain.Model;
 
-public class User
+public class User : IdentityUser
 {
-    public int Id { get; init; }
-    public Guid IdentityId { get; set; }
-    public required string Role { get; set; }
     public required string Name { get; set; }
     public required string Surname { get; set; }
-    public required string Email { get; set; }
     public required string IdentityNumber { get; set; }
     public required string City { get; set; }
     public required string Country { get; set; }
     public required string ZipCode { get; set; }
     public required string Address { get; set; }
-    public required string PhoneNumber { get; set; }
     public required DateTime DateOfBirth { get; init; }
     public DateTime UserCreated { get; init; } = DateTime.UtcNow;
     public DateTime UserUpdated { get; set; }

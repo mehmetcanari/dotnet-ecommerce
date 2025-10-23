@@ -9,17 +9,17 @@ namespace ECommerce.Application.Commands.Account;
 
 public class DeleteAccountCommand : IRequest<Result>
 {
-    public int Id { get; set; }
+    public required string UserId { get; set; }
 }
 
 public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand, Result>
 {
     private readonly IAccountRepository _accountRepository;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<Domain.Model.User> _userManager;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILoggingService _logger;
 
-    public DeleteAccountCommandHandler(IAccountRepository accountRepository, UserManager<IdentityUser> userManager, IUnitOfWork unitOfWork, ILoggingService logger)
+    public DeleteAccountCommandHandler(IAccountRepository accountRepository, UserManager<Domain.Model.User> userManager, IUnitOfWork unitOfWork, ILoggingService logger)
     {
         _accountRepository = accountRepository;
         _userManager = userManager;
@@ -31,10 +31,12 @@ public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand,
     {
         try
         {
-            var account = await _accountRepository.GetAccountById(request.Id);
+            var account = await _accountRepository.GetAccountById(request.UserId);
             if (account == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
-            
+
+            if(account.Email is null)
+                return Result.Failure(ErrorMessages.IdentityUserNotFound);
 
             var user = await _userManager.FindByEmailAsync(account.Email);
             if (user == null)

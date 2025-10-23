@@ -127,7 +127,7 @@ public class BasketItemServiceTests
         => new Domain.Model.BasketItem
         {
             BasketItemId = 1,
-            AccountId = accountId,
+            UserId = accountId,
             ProductId = productId,
             Quantity = quantity,
             UnitPrice = 100,
@@ -144,7 +144,7 @@ public class BasketItemServiceTests
         var cachedItems = new List<BasketItemResponseDto> { new() { 
             ProductId = 1,
             ProductName = "Test Product",
-            AccountId = 1,
+            UserId = 1,
             Quantity = 1,
             UnitPrice = 100
         } };
@@ -178,7 +178,7 @@ public class BasketItemServiceTests
         var basketItems = new List<BasketItemResponseDto> { new() {
             ProductId = basketItem.ProductId,
             ProductName = basketItem.ProductName,
-            AccountId = basketItem.AccountId,
+            UserId = basketItem.UserId,
             Quantity = basketItem.Quantity,
             UnitPrice = basketItem.UnitPrice
         }};

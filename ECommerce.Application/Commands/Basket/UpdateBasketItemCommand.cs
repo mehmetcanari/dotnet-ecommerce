@@ -39,19 +39,19 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
             var emailResult = GetValidatedUserEmail();
 
             var accountResult = await ValidateAndGetAccount(emailResult);
-            if (accountResult.IsFailure && accountResult.Error is not null)
-                return Result.Failure(accountResult.Error);
+            if (accountResult.IsFailure && accountResult.Message is not null)
+                return Result.Failure(accountResult.Message);
 
             if (accountResult.Data == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
 
             var basketItemResult = await ValidateAndGetBasketItem(request, accountResult.Data);
-            if (basketItemResult.IsFailure && basketItemResult.Error is not null)
-                return Result.Failure(basketItemResult.Error);
+            if (basketItemResult.IsFailure && basketItemResult.Message is not null)
+                return Result.Failure(basketItemResult.Message);
 
             var productResult = await ValidateAndGetProduct(request);
-            if (productResult.IsFailure && productResult.Error is not null)
-                return Result.Failure(productResult.Error);
+            if (productResult.IsFailure && productResult.Message is not null)
+                return Result.Failure(productResult.Message);
 
             if (productResult.Data == null)
                 return Result.Failure(ErrorMessages.ProductNotFound);

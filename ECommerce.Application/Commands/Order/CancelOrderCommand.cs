@@ -34,15 +34,15 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
                 return Result.Failure(ErrorMessages.AccountEmailNotFound);
 
             var accountResult = await ValidateAndGetAccount(emailResult);
-            if (accountResult.IsFailure && accountResult.Error is not null)
-                return Result.Failure(accountResult.Error);
+            if (accountResult.IsFailure && accountResult.Message is not null)
+                return Result.Failure(accountResult.Message);
 
             if (accountResult.Data is null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
 
             var ordersResult = await ValidateAndGetPendingOrders(accountResult.Data);
-            if (ordersResult.IsFailure && ordersResult.Error is not null)
-                return Result.Failure(ordersResult.Error);
+            if (ordersResult.IsFailure && ordersResult.Message is not null)
+                return Result.Failure(ordersResult.Message);
 
             if (ordersResult.Data is null || !ordersResult.Data.Any())
                 return Result.Failure(ErrorMessages.NoPendingOrders);

@@ -92,7 +92,7 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
 
     private Domain.Model.BasketItem CreateBasketItem(CreateBasketItemCommand request, Domain.Model.Product product, Domain.Model.User userAccount) => new Domain.Model.BasketItem
     {
-        AccountId = userAccount.Id,
+        UserId = userAccount.Id,
         ExternalId = Guid.NewGuid().ToString(),
         Quantity = request.CreateBasketItemRequestDto.Quantity,
         ProductId = product.ProductId,

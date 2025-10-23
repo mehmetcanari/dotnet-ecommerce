@@ -40,16 +40,16 @@ public class BasketItemService : BaseValidator, IBasketItemService
         try
         {
             var validationResult = await ValidateAsync(createBasketItemRequestDto);
-            if (validationResult is { IsSuccess: false, Error: not null }) 
-                return Result.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null }) 
+                return Result.Failure(validationResult.Message);
 
             await ClearBasketItemsCacheAsync();
             
             var result = await _mediator.Send(new CreateBasketItemCommand { CreateBasketItemRequestDto = createBasketItemRequestDto });
-            if (result is { IsSuccess: false, Error: not null })
+            if (result is { IsSuccess: false, Message: not null })
             {
-                _logger.LogWarning(ErrorMessages.ErrorAddingItemToBasket, result.Error);
-                return Result.Failure(result.Error);
+                _logger.LogWarning(ErrorMessages.ErrorAddingItemToBasket, result.Message);
+                return Result.Failure(result.Message);
             }
 
             await _unitOfWork.Commit();
@@ -67,14 +67,14 @@ public class BasketItemService : BaseValidator, IBasketItemService
         try
         {
             var validationResult = await ValidateAsync(updateBasketItemRequestDto);
-            if (validationResult is { IsSuccess: false, Error: not null }) 
-                return Result.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null }) 
+                return Result.Failure(validationResult.Message);
 
             var result = await _mediator.Send(new UpdateBasketItemCommand { UpdateBasketItemRequestDto = updateBasketItemRequestDto });
-            if (result is { IsSuccess: false, Error: not null })
+            if (result is { IsSuccess: false, Message: not null })
             {
-                _logger.LogWarning(ErrorMessages.ErrorUpdatingBasketItem, result.Error);
-                return Result.Failure(result.Error);
+                _logger.LogWarning(ErrorMessages.ErrorUpdatingBasketItem, result.Message);
+                return Result.Failure(result.Message);
             }
 
             await ClearBasketItemsCacheAsync();
@@ -94,8 +94,8 @@ public class BasketItemService : BaseValidator, IBasketItemService
         try
         {
             var result = await _mediator.Send(new DeleteAllNonOrderedBasketItemsCommand());
-            if (result is { IsSuccess: false, Error: not null })
-                return Result.Failure(result.Error);
+            if (result is { IsSuccess: false, Message: not null })
+                return Result.Failure(result.Message);
 
             await ClearBasketItemsCacheAsync();
             await _unitOfWork.Commit();

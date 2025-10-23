@@ -30,8 +30,8 @@ public class GetClientAccountQueryHandler : IRequestHandler<GetClientAccountQuer
         try
         {
             var validationResult = ValidateUser();
-            if (validationResult.IsFailure && validationResult.Error is not null)
-                return Result<AccountResponseDto>.Failure(validationResult.Error);
+            if (validationResult.IsFailure && validationResult.Message is not null)
+                return Result<AccountResponseDto>.Failure(validationResult.Message);
 
             if (string.IsNullOrEmpty(validationResult.Data))
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountEmailNotFound);
@@ -59,18 +59,14 @@ public class GetClientAccountQueryHandler : IRequestHandler<GetClientAccountQuer
         return Result<string>.Success(email);
     }
 
-    private static AccountResponseDto MapToResponseDto(Domain.Model.User account)
+    private static AccountResponseDto MapToResponseDto(Domain.Model.User account) => new AccountResponseDto
     {
-        return new AccountResponseDto
-        {
-            Id = account.Id,
-            Name = account.Name,
-            Surname = account.Surname,
-            Email = account.Email,
-            Address = account.Address,
-            PhoneNumber = account.PhoneNumber,
-            DateOfBirth = account.DateOfBirth,
-            Role = account.Role
-        };
-    }
+        Id = account.Id,
+        Name = account.Name,
+        Surname = account.Surname,
+        Email = account.Email ?? string.Empty,
+        Address = account.Address,
+        PhoneNumber = account.PhoneNumber ?? string.Empty,
+        DateOfBirth = account.DateOfBirth,
+    };
 }

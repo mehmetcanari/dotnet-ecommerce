@@ -13,11 +13,11 @@ public class RealtimeNotificationHandler : IRealtimeNotificationHandler
     {
         _hubContext = hubContext;
     }
-    public async Task HandleNotification(string title, string message, NotificationType type, Guid? userId = null, int? accountId = null)
+    public async Task HandleNotification(string title, string message, NotificationType type, string userId)
     {
         var notification = new Domain.Model.Notification
         {
-            AccountId = accountId,
+            UserId = userId,
             Title = title,
             Message = message,
             Type = type,
@@ -25,16 +25,13 @@ public class RealtimeNotificationHandler : IRealtimeNotificationHandler
             CreatedAt = DateTime.UtcNow,
         };
 
-        await _hubContext.Clients.User(userId!.Value.ToString()).SendAsync("ReceiveNotification", MapToResponseDto(notification));
+        await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", MapToResponseDto(notification));
     }
 
-    private static NotificationResponseDto MapToResponseDto(Domain.Model.Notification notification)
+    private static NotificationResponseDto MapToResponseDto(Domain.Model.Notification notification) => new NotificationResponseDto
     {
-        return new NotificationResponseDto
-        {
-            Title = notification.Title,
-            Message = notification.Message,
-            From = notification.Type.ToString()
-        };
-    }
+        Title = notification.Title,
+        Message = notification.Message,
+        From = notification.Type.ToString()
+    };
 }

@@ -35,15 +35,15 @@ public class NotificationService : INotificationService
         try
         {
             var accountResult = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (accountResult.IsFailure && accountResult.Error is not null)
-                return Result<Domain.Model.Notification>.Failure(accountResult.Error);
+            if (accountResult.IsFailure && accountResult.Message is not null)
+                return Result<Domain.Model.Notification>.Failure(accountResult.Message);
 
             if(accountResult.Data == null)
                 return Result<Domain.Model.Notification>.Failure(ErrorMessages.AccountNotFound);
 
             var notification = new Domain.Model.Notification
             {
-                AccountId = accountResult.Data.Id,
+                UserId = accountResult.Data.Id,
                 Title = title,
                 Message = message,
                 Type = type,
@@ -51,7 +51,7 @@ public class NotificationService : INotificationService
 
             await _notificationRepository.CreateAsync(notification);
             await _storeUnitOfWork.Commit();
-            await _realtimeNotificationHandler.HandleNotification(title, message, type, accountResult.Data.IdentityId, accountResult.Data.Id);
+            await _realtimeNotificationHandler.HandleNotification(title, message, type, accountResult.Data.Id);
 
             return Result<Domain.Model.Notification>.Success(notification);
         }
@@ -72,8 +72,8 @@ public class NotificationService : INotificationService
         try
         {
             var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure && account.Error is not null)
-                return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Error);
+            if (account.IsFailure && account.Message is not null)
+                return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Message);
 
             if(account.Data == null)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.AccountNotFound);
@@ -96,8 +96,8 @@ public class NotificationService : INotificationService
         try
         {
             var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure && account.Error is not null)
-                return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Error);
+            if (account.IsFailure && account.Message is not null)
+                return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Message);
 
             if (account.Data == null)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.AccountNotFound);
@@ -120,8 +120,8 @@ public class NotificationService : INotificationService
         try
         {
             var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure && account.Error is not null)
-                return Result<int>.Failure(account.Error);
+            if (account.IsFailure && account.Message is not null)
+                return Result<int>.Failure(account.Message);
 
             if (account.Data == null)
                 return Result<int>.Failure(ErrorMessages.AccountNotFound);
@@ -162,8 +162,8 @@ public class NotificationService : INotificationService
         try
         {
             var account = await _mediator.Send(new GetClientAccountAsEntityQuery());
-            if (account.IsFailure && account.Error is not null)
-                return Result<bool>.Failure(account.Error);
+            if (account.IsFailure && account.Message is not null)
+                return Result<bool>.Failure(account.Message);
 
             if (account.Data == null)
                 return Result<bool>.Failure(ErrorMessages.AccountNotFound);

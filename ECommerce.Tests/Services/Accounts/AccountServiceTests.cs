@@ -93,7 +93,7 @@ public class AccountServiceTests
         var identityUser = new IdentityUser { Id = "test-user-id", Email = "test@example.com", UserName = "test@example.com" };
         
         _mediatorMock.Setup(m => m.Send(
-            It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
+            It.Is<RegisterUserCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Domain.Model.User>.Success(account));
 
@@ -114,7 +114,7 @@ public class AccountServiceTests
         Assert.True(result.IsSuccess);
         Assert.Null(result.Error);
         _mediatorMock.Verify(m => m.Send(
-            It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
+            It.Is<RegisterUserCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()), Times.Once);
         _mediatorMock.Verify(m => m.Send(
             It.Is<CreateIdentityUserCommand>(cmd => cmd.AccountRegisterRequestDto == request && cmd.Role == "User"),
@@ -131,7 +131,7 @@ public class AccountServiceTests
         // Arrange
         var request = CreateRegisterRequest("test@example.com");
         _mediatorMock.Setup(m => m.Send(
-            It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
+            It.Is<RegisterUserCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Domain.Model.User>.Failure("Email is already in use."));
 
@@ -142,7 +142,7 @@ public class AccountServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal("Email is already in use.", result.Error);
         _mediatorMock.Verify(m => m.Send(
-            It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
+            It.Is<RegisterUserCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.Commit(), Times.Never);
     }

@@ -39,7 +39,7 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IBasketItemService, BasketItemService>();
-        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthService, AuthenticationService>();
         services.AddScoped<IAccessTokenService, AccessTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<ICacheService, CacheService>();

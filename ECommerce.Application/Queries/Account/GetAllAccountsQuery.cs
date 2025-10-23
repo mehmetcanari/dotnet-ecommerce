@@ -48,11 +48,10 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, R
             Id = account.Id,
             Name = account.Name,
             Surname = account.Surname,
-            Email = account.Email,
+            Email = account.Email ?? string.Empty,
             Address = account.Address,
-            PhoneNumber = account.PhoneNumber,
+            PhoneNumber = account.PhoneNumber ?? string.Empty,
             DateOfBirth = account.DateOfBirth,
-            Role = account.Role
         };
     }
 }

@@ -36,7 +36,7 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<List<Order>> GetAccountPendingOrders(int accountId, CancellationToken cancellationToken = default)
+    public async Task<List<Order>> GetAccountPendingOrders(string accountId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -44,7 +44,7 @@ public class OrderRepository : IOrderRepository
 
             var orders = await query
                 .AsNoTracking()
-                .Where(o => o.AccountId == accountId && o.Status == OrderStatus.Pending)
+                .Where(o => o.UserId == accountId && o.Status == OrderStatus.Pending)
                 .ToListAsync(cancellationToken);
 
             return orders;
@@ -55,7 +55,7 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<Order?> GetOrderById(int id, CancellationToken cancellationToken = default)
+    public async Task<Order> GetOrderById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -73,13 +73,13 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<Order?> GetOrderByAccountId(int accountId, CancellationToken cancellationToken = default)
+    public async Task<Order> GetOrderByAccountId(string userId, CancellationToken cancellationToken = default)
     {
         try
         {
             var order = await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.AccountId == accountId)
+                .Where(o => o.UserId == userId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return order;
@@ -90,7 +90,7 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<List<Order?>> GetAccountOrders(int accountId, CancellationToken cancellationToken = default)
+    public async Task<List<Order>> GetAccountOrders(string userId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -99,7 +99,7 @@ public class OrderRepository : IOrderRepository
             var orders = await query
                 .AsNoTracking()
                 .Include(o => o.BasketItems)
-                .Where(o => o.AccountId == accountId)
+                .Where(o => o.UserId == userId)
                 .Where(o => o.BasketItems.Any(oi => oi.IsOrdered))
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync(cancellationToken);

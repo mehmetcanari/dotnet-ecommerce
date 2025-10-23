@@ -35,7 +35,7 @@ public class BasketItemRepository : IBasketItemRepository
         
             var items = await query
                 .AsNoTracking()
-                .Where(b => b.AccountId == account.Id && b.IsOrdered == false)
+                .Where(b => b.UserId == account.Id && b.IsOrdered == false)
                 .ToListAsync(cancellationToken);
             
             return items;
@@ -54,7 +54,7 @@ public class BasketItemRepository : IBasketItemRepository
 
             var basketItem = await query
                 .AsNoTracking()
-                .Where(b => b.BasketItemId == id && b.AccountId == account.Id)
+                .Where(b => b.BasketItemId == id && b.UserId == account.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return basketItem;

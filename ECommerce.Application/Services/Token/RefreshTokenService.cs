@@ -64,7 +64,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         }
     }
 
-    public async Task<Result<(string, IList<string>)>> ValidateRefreshToken(ClaimsPrincipal principal, UserManager<IdentityUser> userManager)
+    public async Task<Result<(string, IList<string>)>> ValidateRefreshToken(ClaimsPrincipal principal, UserManager<User> userManager)
     {
         try
         {
@@ -92,8 +92,8 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         try
         {
             var validationResult = await ValidateAsync(request);
-            if (validationResult is { IsSuccess: false, Error: not null })
-                return Result.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null })
+                return Result.Failure(validationResult.Message);
 
             var token = await _refreshTokenRepository.GetActiveUserTokenAsync(request.Email);
             if (token == null)

@@ -9,7 +9,7 @@ namespace ECommerce.Application.Commands.Order;
 
 public class UpdateOrderStatusCommand : IRequest<Result>
 {
-    public required int AccountId { get; set; }
+    public required string UserId { get; set; }
     public required UpdateOrderStatusRequestDto Request { get; set; }
 }
 
@@ -28,9 +28,9 @@ public class UpdateOrderStatusByAccountIdCommandHandler : IRequestHandler<Update
     {
         try
         {
-            var orderResult = await ValidateAndGetOrder(request.AccountId);
-            if (!orderResult.IsSuccess && orderResult.Error is not null)
-                return Result.Failure(orderResult.Error);
+            var orderResult = await ValidateAndGetOrder(request.UserId);
+            if (!orderResult.IsSuccess && orderResult.Message is not null)
+                return Result.Failure(orderResult.Message);
             
             if (orderResult.Data is null)
                 return Result.Failure(ErrorMessages.OrderNotFound);
@@ -40,17 +40,17 @@ public class UpdateOrderStatusByAccountIdCommandHandler : IRequestHandler<Update
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedError, request.AccountId, ex.Message);
+            _logger.LogError(ex, ErrorMessages.UnexpectedError, request.UserId, ex.Message);
             return Result.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
-    private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(int accountId)
+    private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(string userId)
     {
-        var order = await _orderRepository.GetOrderByAccountId(accountId);
+        var order = await _orderRepository.GetOrderByAccountId(userId);
         if (order == null)
         {
-            _logger.LogWarning(ErrorMessages.OrderNotFound, accountId);
+            _logger.LogWarning(ErrorMessages.OrderNotFound, userId);
             return Result<Domain.Model.Order>.Failure(ErrorMessages.OrderNotFound);
         }
 

@@ -57,8 +57,8 @@ public class OrderService : BaseValidator, IOrderService
         try
         {
             var userInfoResult = await ValidateAndGetUserInfoAsync(orderCreateRequestDto);
-            if (userInfoResult.IsFailure && userInfoResult.Error is not null)
-                return Result.Failure(userInfoResult.Error);
+            if (userInfoResult.IsFailure && userInfoResult.Message is not null)
+                return Result.Failure(userInfoResult.Message);
 
             var (account, basketItems) = userInfoResult.Data;
             var order = CreateOrder(account.Id, account.Address, basketItems);
@@ -86,7 +86,7 @@ public class OrderService : BaseValidator, IOrderService
             await _messageBroker.PublishAsync(new OrderCreatedEvent
             {
                 OrderId = order.OrderId,
-                AccountId = order.AccountId,
+                UserId = order.UserId,
                 TotalPrice = order.BasketItems.Sum(bi => bi.Quantity * bi.UnitPrice),
                 ShippingAddress = order.ShippingAddress,
                 BillingAddress = order.BillingAddress,
@@ -105,27 +105,27 @@ public class OrderService : BaseValidator, IOrderService
         }
     }
 
-    private async Task<Result<(Domain.Model.User Account, List<Domain.Model.BasketItem> BasketItems)>> ValidateAndGetUserInfoAsync(OrderCreateRequestDto orderCreateRequestDto)
+    private async Task<Result<(User Account, List<Domain.Model.BasketItem> BasketItems)>> ValidateAndGetUserInfoAsync(OrderCreateRequestDto orderCreateRequestDto)
     {
         var validationResult = await ValidateAsync(orderCreateRequestDto);
-        if (validationResult is { IsSuccess: false, Error: not null }) 
-            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(validationResult.Error);
+        if (validationResult is { IsSuccess: false, Message: not null }) 
+            return Result<(User, List<Domain.Model.BasketItem>)>.Failure(validationResult.Message);
 
         var accountResult = await GetCurrentUserAccountAsync();
-        if (accountResult is { IsSuccess: false, Error: not null }) 
-            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(accountResult.Error);
+        if (accountResult is { IsSuccess: false, Message: not null }) 
+            return Result<(User, List<Domain.Model.BasketItem>)>.Failure(accountResult.Message);
 
-        if(accountResult.Data == null)
-            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.AccountNotFound);
+        if(accountResult.Data is null || accountResult.Data.Email is null)
+            return Result<(User, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.AccountNotFound);
 
         var basketItems = await GetUserBasketItemsAsync(accountResult.Data.Email);
-        if (basketItems is { IsSuccess: false, Error: not null})
-            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(basketItems.Error);
+        if (basketItems is { IsSuccess: false, Message: not null})
+            return Result<(User, List<Domain.Model.BasketItem>)>.Failure(basketItems.Message);
 
         if(basketItems.Data == null || basketItems.Data.Count == 0)
-            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.BasketItemNotFound);
+            return Result<(User, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.BasketItemNotFound);
 
-        return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Success((accountResult.Data, basketItems.Data));
+        return Result<(User, List<Domain.Model.BasketItem>)>.Success((accountResult.Data, basketItems.Data));
     }
 
     private async Task<Result<List<Domain.Model.BasketItem>>> GetUserBasketItemsAsync(string email)
@@ -140,7 +140,7 @@ public class OrderService : BaseValidator, IOrderService
 
         var items = userBasketItems.Select(basketItem => new Domain.Model.BasketItem
         {
-            AccountId = basketItem.AccountId,
+            UserId = basketItem.UserId,
             ProductId = basketItem.ProductId,
             ExternalId = basketItem.ExternalId,
             Quantity = basketItem.Quantity,
@@ -162,21 +162,21 @@ public class OrderService : BaseValidator, IOrderService
         RegisterCard = orderCreateRequestDto.PaymentCard.RegisterCard
     };
 
-    private Domain.Model.Order CreateOrder(int accountId, string address, List<Domain.Model.BasketItem> basketItems) => new Domain.Model.Order
+    private Domain.Model.Order CreateOrder(string userId, string address, List<Domain.Model.BasketItem> basketItems) => new Domain.Model.Order
     {
-        AccountId = accountId,
+        UserId = userId,
         ShippingAddress = address,
         BillingAddress = address,
         BasketItems = basketItems
     };
 
-    private Buyer CreateBuyer(Domain.Model.User account, string ipAddress) => new Buyer
+    private Buyer CreateBuyer(User account, string ipAddress) => new Buyer
     {
-        Id = account.Id.ToString(),
+        Id = account.Id,
         Name = account.Name,
         Surname = account.Surname,
-        Email = account.Email,
-        GsmNumber = account.PhoneNumber,
+        Email = account.Email ?? string.Empty,
+        GsmNumber = account.PhoneNumber ?? string.Empty,
         IdentityNumber = account.IdentityNumber,
         RegistrationAddress = account.Address,
         Ip = ipAddress,
@@ -185,7 +185,7 @@ public class OrderService : BaseValidator, IOrderService
         ZipCode = account.ZipCode
     };
 
-    private Address CreateAddress(Domain.Model.User account) => new Address
+    private Address CreateAddress(User account) => new Address
     {
         ContactName = $"{account.Name} {account.Surname}",
         Description = account.Address,
@@ -194,22 +194,22 @@ public class OrderService : BaseValidator, IOrderService
         ZipCode = account.ZipCode
     };
 
-    public async Task<Result> UpdateOrderStatus(int accountId, UpdateOrderStatusRequestDto orderUpdateRequestDto)
+    public async Task<Result> UpdateOrderStatus(string userId, UpdateOrderStatusRequestDto orderUpdateRequestDto)
     {
         try
         {
             var validationResult = await ValidateAsync(orderUpdateRequestDto);
-            if (validationResult is { IsSuccess: false, Error: not null }) 
-                return Result.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null }) 
+                return Result.Failure(validationResult.Message);
 
             var result = await _mediator.Send(new UpdateOrderStatusCommand 
             {
-                AccountId = accountId,
+                UserId = userId,
                 Request = orderUpdateRequestDto
             });
 
-            if (result is { IsFailure: true, Error: not null})
-                return Result.Failure(result.Error);
+            if (result is { IsFailure: true, Message: not null})
+                return Result.Failure(result.Message);
 
             await _storeUnitOfWork.Commit();
             return Result.Success();
@@ -221,16 +221,16 @@ public class OrderService : BaseValidator, IOrderService
         }
     }
 
-    private async Task<Result<Domain.Model.User>> GetCurrentUserAccountAsync()
+    private async Task<Result<User>> GetCurrentUserAccountAsync()
     {
         var email = _currentUserService.GetUserEmail();
         if(string.IsNullOrEmpty(email))
-            return Result<Domain.Model.User>.Failure(ErrorMessages.AccountEmailNotFound);
+            return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
         
         var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
-            return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
+            return Result<User>.Failure(ErrorMessages.AccountNotFound);
 
-        return Result<Domain.Model.User>.Success(account);
+        return Result<User>.Success(account);
     }
 }

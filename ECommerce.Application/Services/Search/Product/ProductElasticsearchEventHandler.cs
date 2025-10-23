@@ -39,7 +39,7 @@ public class ProductElasticsearchEventHandler :
 
             var result = await _productSearchService.IndexProductAsync(product);
             if (result.IsFailure)
-                _logger.LogWarning("Failed to index new product {ProductId} in Elasticsearch: {Error}", result.Error);
+                _logger.LogWarning("Failed to index new product {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {
@@ -69,7 +69,7 @@ public class ProductElasticsearchEventHandler :
 
             var result = await _productSearchService.UpdateProductAsync(product);
             if (result.IsFailure)
-                _logger.LogWarning("Failed to update product {ProductId} in Elasticsearch: {Error}", result.Error);
+                _logger.LogWarning("Failed to update product {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {
@@ -97,7 +97,7 @@ public class ProductElasticsearchEventHandler :
 
             var result = await _productSearchService.UpdateProductAsync(product);
             if (result.IsFailure)
-                _logger.LogWarning("Failed to update product stock {ProductId} in Elasticsearch: {Error}", result.Error);
+                _logger.LogWarning("Failed to update product stock {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {
@@ -113,7 +113,7 @@ public class ProductElasticsearchEventHandler :
             
             var result = await _productSearchService.DeleteProductAsync(notification.ProductId.ToString());
             if (result.IsFailure)
-                _logger.LogWarning("Failed to delete product {ProductId} in Elasticsearch: {Error}", result.Error);
+                _logger.LogWarning("Failed to delete product {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {

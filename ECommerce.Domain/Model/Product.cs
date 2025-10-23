@@ -20,11 +20,11 @@ public class Product
 
     [BsonElement("price")]
     [JsonPropertyName("price")]
-    public required double Price { get; set; }
+    public required decimal Price { get; set; }
 
     [BsonElement("discountRate")]
     [JsonPropertyName("discountRate")]
-    public required double DiscountRate { get; set; }
+    public required decimal DiscountRate { get; set; }
 
     [BsonElement("imageUrl")]
     [JsonPropertyName("imageUrl")]

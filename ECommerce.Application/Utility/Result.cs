@@ -5,7 +5,7 @@ public class Result<T>
     public bool IsSuccess { get; private set; }
     public bool IsFailure => !IsSuccess;
     public T? Data { get; private set; } = default;
-    public string? Error { get; private set; }
+    public string? Message { get; private set; }
 
     public static Result<T> Success(T data) => new()
     {
@@ -16,7 +16,7 @@ public class Result<T>
     public static Result<T> Failure(string error) => new()
     {
         IsSuccess = false,
-        Error = error
+        Message = error
     };
 }
 
@@ -24,7 +24,7 @@ public class Result
 {
     public bool IsSuccess { get; private set; }
     public bool IsFailure => !IsSuccess;
-    public string? Error { get; private set; }
+    public string? Message { get; private set; }
 
     public static Result Success() => new()
     {
@@ -34,6 +34,6 @@ public class Result
     public static Result Failure(string error) => new()
     {
         IsSuccess = false,
-        Error = error
+        Message = error
     };
 }

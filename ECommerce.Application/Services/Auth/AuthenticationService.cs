@@ -5,15 +5,16 @@ using ECommerce.Application.DTO.Response.Auth;
 using ECommerce.Application.Utility;
 using ECommerce.Application.Validations.BaseValidator;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Services.Auth;
 
-public class AuthService : BaseValidator, IAuthService
+public class AuthenticationService : BaseValidator, IAuthService
 {
     private readonly IAccountService _accountService;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<User> _userManager;
     private readonly IAccessTokenService _accessTokenService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ITokenUserClaimsService _tokenUserClaimsService;
@@ -21,8 +22,8 @@ public class AuthService : BaseValidator, IAuthService
     private readonly ICrossContextUnitOfWork _crossContextUnitOfWork;
     private readonly ICurrentUserService _currentUserService;
 
-    public AuthService(
-        IAccountService accountService, UserManager<IdentityUser> userManager,
+    public AuthenticationService(
+        IAccountService accountService, UserManager<User> userManager,
         IAccessTokenService accessTokenService,
         IRefreshTokenService refreshTokenService,
         ITokenUserClaimsService tokenUserClaimsService,
@@ -52,10 +53,10 @@ public class AuthService : BaseValidator, IAuthService
             await _crossContextUnitOfWork.BeginTransactionAsync();
 
             var accountResult = await _accountService.RegisterAccountAsync(registerRequestDto, role);
-            if (accountResult.IsFailure && accountResult.Error is not null)
+            if (accountResult.IsFailure && accountResult.Message is not null)
             {
                 await _crossContextUnitOfWork.RollbackTransaction();
-                return accountResult.IsFailure ? Result.Failure(accountResult.Error) : Result.Success();
+                return accountResult.IsFailure ? Result.Failure(accountResult.Message) : Result.Success();
             }
 
             await _crossContextUnitOfWork.CommitTransactionAsync();
@@ -72,8 +73,8 @@ public class AuthService : BaseValidator, IAuthService
     private async Task<Result> ValidateRegistrationRequestAsync(AccountRegisterRequestDto registerRequestDto)
     {
         var validationResult = await ValidateAsync(registerRequestDto);
-        if (validationResult is { IsSuccess: false, Error: not null })
-            return Result.Failure(validationResult.Error);
+        if (validationResult is { IsSuccess: false, Message: not null })
+            return Result.Failure(validationResult.Message);
 
         var existingUser = await _userManager.FindByEmailAsync(registerRequestDto.Email);
         if (existingUser != null)
@@ -90,8 +91,8 @@ public class AuthService : BaseValidator, IAuthService
         try
         {
             var validationResult = await ValidateAndReturnAsync(loginRequestDto);
-            if (validationResult is { IsSuccess: false, Error: not null })
-                return Result<AuthResponseDto>.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null })
+                return Result<AuthResponseDto>.Failure(validationResult.Message);
 
             var verifyResult = await VerifyCredentialsAsync(loginRequestDto.Email, loginRequestDto.Password);
             var isValid = verifyResult.Data.Item1;
@@ -108,8 +109,8 @@ public class AuthService : BaseValidator, IAuthService
                 return Result<AuthResponseDto>.Failure(ErrorMessages.IdentityUserNotFound);
 
             var authResponseDto = await RequestGenerateTokensAsync(user.Id, user.Email, roles);
-            if (authResponseDto.IsFailure && authResponseDto.Error is not null)
-                return Result<AuthResponseDto>.Failure(authResponseDto.Error);
+            if (authResponseDto.IsFailure && authResponseDto.Message is not null)
+                return Result<AuthResponseDto>.Failure(authResponseDto.Message);
 
             if (authResponseDto.Data is null)
                 return Result<AuthResponseDto>.Failure(ErrorMessages.UnexpectedAuthenticationError);
@@ -128,8 +129,8 @@ public class AuthService : BaseValidator, IAuthService
         try
         {
             var cookieResult = await _refreshTokenService.GetRefreshTokenFromCookie();
-            if (cookieResult is { IsFailure: true, Error: not null })
-                return Result.Failure(cookieResult.Error);
+            if (cookieResult is { IsFailure: true, Message: not null })
+                return Result.Failure(cookieResult.Message);
 
             var refreshToken = cookieResult.Data;
             if (refreshToken != null)
@@ -171,8 +172,8 @@ public class AuthService : BaseValidator, IAuthService
             }
 
             var authResponseDto = await RequestGenerateTokensAsync(userId, email, roles);
-            if(authResponseDto.IsFailure && authResponseDto.Error is not null)
-                return Result<AuthResponseDto>.Failure(authResponseDto.Error);
+            if(authResponseDto.IsFailure && authResponseDto.Message is not null)
+                return Result<AuthResponseDto>.Failure(authResponseDto.Message);
 
             if(authResponseDto.Data is null)
                 return Result<AuthResponseDto>.Failure(ErrorMessages.UnexpectedAuthenticationError);
@@ -216,31 +217,31 @@ public class AuthService : BaseValidator, IAuthService
         }
     }
 
-    private async Task<Result<(bool, IdentityUser?)>> VerifyCredentialsAsync(string email, string password)
+    private async Task<Result<(bool, User?)>> VerifyCredentialsAsync(string email, string password)
     {
         try
         {
             var account = await _accountService.GetAccountByEmailAsEntityAsync(email);
             if (account.IsFailure || account.Data == null)
-                return Result<(bool, IdentityUser?)>.Failure(ErrorMessages.AccountNotFound);
+                return Result<(bool, User?)>.Failure(ErrorMessages.AccountNotFound);
 
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
-                return Result<(bool, IdentityUser?)>.Failure(ErrorMessages.IdentityUserNotFound);
+                return Result<(bool, User?)>.Failure(ErrorMessages.IdentityUserNotFound);
 
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
             if (!isPasswordValid)
-                return Result<(bool, IdentityUser?)>.Failure(ErrorMessages.InvalidEmailOrPassword);
+                return Result<(bool, User?)>.Failure(ErrorMessages.InvalidEmailOrPassword);
 
             if (account.Data is { IsBanned: true })
-                return Result<(bool, IdentityUser?)>.Failure(ErrorMessages.AccountBanned);
+                return Result<(bool, User?)>.Failure(ErrorMessages.AccountBanned);
 
-            return Result<(bool, IdentityUser?)>.Success((true, user));
+            return Result<(bool, User?)>.Success((true, user));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ErrorMessages.ErrorValidatingLogin);
-            return Result<(bool, IdentityUser?)>.Failure(ErrorMessages.ErrorValidatingLogin);
+            return Result<(bool, User?)>.Failure(ErrorMessages.ErrorValidatingLogin);
         }
     }
 }

@@ -126,7 +126,7 @@ internal static class Program
         //======================================================
         // IDENTITY CONFIGURATION
         //======================================================
-        builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+        builder.Services.AddIdentity<Domain.Model.User, IdentityRole>(options =>
         {
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;

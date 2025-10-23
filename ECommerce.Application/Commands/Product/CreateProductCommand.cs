@@ -39,15 +39,15 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         try
         {
             var productValidationResult = await ValidateProductCreateRequest(request.ProductCreateRequest);
-            if (productValidationResult.IsFailure && productValidationResult.Error is not null)
+            if (productValidationResult.IsFailure && productValidationResult.Message is not null)
             {
-                return Result.Failure(productValidationResult.Error);
+                return Result.Failure(productValidationResult.Message);
             }
 
             var categoryValidationResult = await ValidateCategory(request.ProductCreateRequest.CategoryId);
-            if (categoryValidationResult.IsFailure && categoryValidationResult.Error is not null)
+            if (categoryValidationResult.IsFailure && categoryValidationResult.Message is not null)
             {
-                return Result.Failure(categoryValidationResult.Error);
+                return Result.Failure(categoryValidationResult.Message);
             }
 
             var product = CreateProductEntity(request.ProductCreateRequest);

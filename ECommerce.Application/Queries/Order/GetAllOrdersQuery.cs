@@ -39,28 +39,22 @@ public class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery, Resul
         }
     }
 
-    private static OrderResponseDto MapToResponseDto(Domain.Model.Order order)
+    private static OrderResponseDto MapToResponseDto(Domain.Model.Order order) => new OrderResponseDto
     {
-        return new OrderResponseDto
-        {
-            AccountId = order.AccountId,
-            BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
-            OrderDate = order.OrderDate,
-            ShippingAddress = order.ShippingAddress,
-            BillingAddress = order.BillingAddress,
-            Status = order.Status
-        };
-    }
+        UserId = order.UserId,
+        BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
+        OrderDate = order.OrderDate,
+        ShippingAddress = order.ShippingAddress,
+        BillingAddress = order.BillingAddress,
+        Status = order.Status
+    };
 
-    private static BasketItemResponseDto MapToBasketItemDto(Domain.Model.BasketItem basketItem)
+    private static BasketItemResponseDto MapToBasketItemDto(Domain.Model.BasketItem basketItem) => new BasketItemResponseDto
     {
-        return new BasketItemResponseDto
-        {
-            AccountId = basketItem.AccountId,
-            ProductId = basketItem.ProductId,
-            Quantity = basketItem.Quantity,
-            UnitPrice = basketItem.UnitPrice,
-            ProductName = basketItem.ProductName
-        };
-    }
+        UserId = basketItem.UserId,
+        ProductId = basketItem.ProductId,
+        Quantity = basketItem.Quantity,
+        UnitPrice = basketItem.UnitPrice,
+        ProductName = basketItem.ProductName
+    };
 }

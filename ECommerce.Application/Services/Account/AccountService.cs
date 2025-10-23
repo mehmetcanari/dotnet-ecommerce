@@ -31,32 +31,14 @@ public class AccountService : BaseValidator, IAccountService
     {
         try
         {
-            var accountResult = await _mediator.Send(new CreateAccountCommand
-            {
-                AccountCreateRequest = createUserRequestDto,
-                Role = role
-            });
-
-            if (accountResult is { IsFailure: true, Error: not null })
-                return Result.Failure(accountResult.Error);
-
-            var identityResult = await _mediator.Send(new CreateIdentityUserCommand
+            var accountResult = await _mediator.Send(new RegisterUserCommand
             {
                 AccountRegisterRequestDto = createUserRequestDto,
                 Role = role
             });
 
-            if (identityResult is { IsFailure: true, Error: not null })
-                return Result.Failure(identityResult.Error);
-
-            var updateAccountGuidResult = await _mediator.Send(new UpdateAccountGuidCommand 
-            { 
-                Account = accountResult.Data!, 
-                User = identityResult.Data!
-            });
-            
-            if (updateAccountGuidResult is { IsFailure: true, Error: not null })
-                return Result.Failure(updateAccountGuidResult.Error);
+            if (accountResult is { IsFailure: true, Message: not null })
+                return Result.Failure(accountResult.Message);
 
             return Result.Success();
         }
@@ -89,16 +71,16 @@ public class AccountService : BaseValidator, IAccountService
         try
         {
             var validationResult = await ValidateAsync(request);
-            if (validationResult is { IsSuccess: false, Error: not null })
-                return Result.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null })
+                return Result.Failure(validationResult.Message);
 
             var result = await _mediator.Send(new BanAccountCommand 
             {
                 AccountBanRequestDto = request
             });
             
-            if (result is { IsFailure: true, Error: not null })
-                return Result.Failure(result.Error);
+            if (result is { IsFailure: true, Message: not null })
+                return Result.Failure(result.Message);
 
             await _unitOfWork.Commit();
             return Result.Success();
@@ -115,16 +97,16 @@ public class AccountService : BaseValidator, IAccountService
         try
         {
             var validationResult = await ValidateAsync(request);
-            if (validationResult is { IsSuccess: false, Error: not null })
-                return Result.Failure(validationResult.Error);
+            if (validationResult is { IsSuccess: false, Message: not null })
+                return Result.Failure(validationResult.Message);
 
             var result = await _mediator.Send(new UnbanAccountCommand
             {
                 AccountUnbanRequestDto = request
             });
 
-            if (result is { IsFailure: true, Error: not null })
-                return Result.Failure(result.Error);
+            if (result is { IsFailure: true, Message: not null })
+                return Result.Failure(result.Message);
 
             await _unitOfWork.Commit();
             return Result.Success();

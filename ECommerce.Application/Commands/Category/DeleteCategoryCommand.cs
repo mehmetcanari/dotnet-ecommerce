@@ -27,8 +27,8 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         try
         {
             var categoryResult = await ValidateAndGetCategory(request);
-            if (categoryResult.IsFailure && categoryResult.Error is not null)
-                return Result.Failure(categoryResult.Error);
+            if (categoryResult.IsFailure && categoryResult.Message is not null)
+                return Result.Failure(categoryResult.Message);
 
             if (categoryResult.Data is null)
             {

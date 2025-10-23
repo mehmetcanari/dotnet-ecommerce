@@ -1,3 +1,4 @@
+using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -6,13 +7,13 @@ using Microsoft.EntityFrameworkCore.Design;
 namespace ECommerce.Infrastructure.Context;
 
 public class ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) 
-    : IdentityDbContext<IdentityUser>(options)
+    : IdentityDbContext<User>(options)
 {
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         
-        builder.Entity<IdentityUser>().ToTable("Users", "Identity");
+        builder.Entity<User>().ToTable("Users", "Identity");
         builder.Entity<IdentityRole>().ToTable("Roles", "Identity");
         builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles", "Identity");
         builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims", "Identity");
