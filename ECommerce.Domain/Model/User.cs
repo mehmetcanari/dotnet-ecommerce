@@ -1,6 +1,6 @@
 namespace ECommerce.Domain.Model;
 
-public class Account
+public class User
 {
     public int Id { get; init; }
     public Guid IdentityId { get; set; }

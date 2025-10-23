@@ -83,18 +83,18 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         return email;
     }
 
-    private async Task<Result<Domain.Model.Account>> ValidateAndGetAccount(string email)
+    private async Task<Result<Domain.Model.User>> ValidateAndGetAccount(string email)
     {
         var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
         {
-            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountNotFound);
+            return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
         }
 
-        return Result<Domain.Model.Account>.Success(account);
+        return Result<Domain.Model.User>.Success(account);
     }
 
-    private async Task<Result<Domain.Model.BasketItem>> ValidateAndGetBasketItem(UpdateBasketItemCommand request, Domain.Model.Account account)
+    private async Task<Result<Domain.Model.BasketItem>> ValidateAndGetBasketItem(UpdateBasketItemCommand request, Domain.Model.User account)
     {
         var basketItem = await _basketItemRepository.GetSpecificAccountBasketItemWithId(request.UpdateBasketItemRequestDto.BasketItemId, account);
 

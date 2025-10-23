@@ -105,27 +105,27 @@ public class OrderService : BaseValidator, IOrderService
         }
     }
 
-    private async Task<Result<(Domain.Model.Account Account, List<Domain.Model.BasketItem> BasketItems)>> ValidateAndGetUserInfoAsync(OrderCreateRequestDto orderCreateRequestDto)
+    private async Task<Result<(Domain.Model.User Account, List<Domain.Model.BasketItem> BasketItems)>> ValidateAndGetUserInfoAsync(OrderCreateRequestDto orderCreateRequestDto)
     {
         var validationResult = await ValidateAsync(orderCreateRequestDto);
         if (validationResult is { IsSuccess: false, Error: not null }) 
-            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(validationResult.Error);
+            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(validationResult.Error);
 
         var accountResult = await GetCurrentUserAccountAsync();
         if (accountResult is { IsSuccess: false, Error: not null }) 
-            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(accountResult.Error);
+            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(accountResult.Error);
 
         if(accountResult.Data == null)
-            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.AccountNotFound);
+            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.AccountNotFound);
 
         var basketItems = await GetUserBasketItemsAsync(accountResult.Data.Email);
         if (basketItems is { IsSuccess: false, Error: not null})
-            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(basketItems.Error);
+            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(basketItems.Error);
 
         if(basketItems.Data == null || basketItems.Data.Count == 0)
-            return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.BasketItemNotFound);
+            return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Failure(ErrorMessages.BasketItemNotFound);
 
-        return Result<(Domain.Model.Account, List<Domain.Model.BasketItem>)>.Success((accountResult.Data, basketItems.Data));
+        return Result<(Domain.Model.User, List<Domain.Model.BasketItem>)>.Success((accountResult.Data, basketItems.Data));
     }
 
     private async Task<Result<List<Domain.Model.BasketItem>>> GetUserBasketItemsAsync(string email)
@@ -170,7 +170,7 @@ public class OrderService : BaseValidator, IOrderService
         BasketItems = basketItems
     };
 
-    private Buyer CreateBuyer(Domain.Model.Account account, string ipAddress) => new Buyer
+    private Buyer CreateBuyer(Domain.Model.User account, string ipAddress) => new Buyer
     {
         Id = account.Id.ToString(),
         Name = account.Name,
@@ -185,7 +185,7 @@ public class OrderService : BaseValidator, IOrderService
         ZipCode = account.ZipCode
     };
 
-    private Address CreateAddress(Domain.Model.Account account) => new Address
+    private Address CreateAddress(Domain.Model.User account) => new Address
     {
         ContactName = $"{account.Name} {account.Surname}",
         Description = account.Address,
@@ -221,16 +221,16 @@ public class OrderService : BaseValidator, IOrderService
         }
     }
 
-    private async Task<Result<Domain.Model.Account>> GetCurrentUserAccountAsync()
+    private async Task<Result<Domain.Model.User>> GetCurrentUserAccountAsync()
     {
         var email = _currentUserService.GetUserEmail();
         if(string.IsNullOrEmpty(email))
-            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountEmailNotFound);
+            return Result<Domain.Model.User>.Failure(ErrorMessages.AccountEmailNotFound);
         
         var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
-            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountNotFound);
+            return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
 
-        return Result<Domain.Model.Account>.Success(account);
+        return Result<Domain.Model.User>.Success(account);
     }
 }

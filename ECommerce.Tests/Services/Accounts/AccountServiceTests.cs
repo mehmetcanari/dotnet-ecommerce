@@ -38,20 +38,20 @@ public class AccountServiceTests
         );
     }
 
-    private void SetupAccountByEmail(Domain.Model.Account account)
+    private void SetupAccountByEmail(Domain.Model.User account)
     {
         _accountRepositoryMock.Setup(r => r.GetAccountByEmail(It.IsAny<string>()))
             .ReturnsAsync(account);
     }
 
-    private void SetupAccountById(Domain.Model.Account account)
+    private void SetupAccountById(Domain.Model.User account)
     {
         _accountRepositoryMock.Setup(r => r.GetAccountById(It.IsAny<int>()))
             .ReturnsAsync(account);
     }
 
-    private Domain.Model.Account CreateAccount(string email, int id)
-        => new Domain.Model.Account
+    private Domain.Model.User CreateAccount(string email, int id)
+        => new Domain.Model.User
         {
             Id = id,
             Name = "Test",
@@ -95,7 +95,7 @@ public class AccountServiceTests
         _mediatorMock.Setup(m => m.Send(
             It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<Domain.Model.Account>.Success(account));
+            .ReturnsAsync(Result<Domain.Model.User>.Success(account));
 
         _mediatorMock.Setup(m => m.Send(
             It.Is<CreateIdentityUserCommand>(cmd => cmd.AccountRegisterRequestDto == request && cmd.Role == "User"),
@@ -105,7 +105,7 @@ public class AccountServiceTests
         _mediatorMock.Setup(m => m.Send(
             It.Is<UpdateAccountGuidCommand>(cmd => cmd.Account == account && cmd.User == identityUser),
             It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<Domain.Model.Account>.Success(account));
+            .ReturnsAsync(Result<Domain.Model.User>.Success(account));
 
         // Act
         var result = await _sut.RegisterAccountAsync(request, "User");
@@ -133,7 +133,7 @@ public class AccountServiceTests
         _mediatorMock.Setup(m => m.Send(
             It.Is<CreateAccountCommand>(cmd => cmd.AccountCreateRequest == request && cmd.Role == "User"),
             It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<Domain.Model.Account>.Failure("Email is already in use."));
+            .ReturnsAsync(Result<Domain.Model.User>.Failure("Email is already in use."));
 
         // Act
         var result = await _sut.RegisterAccountAsync(request, "User");

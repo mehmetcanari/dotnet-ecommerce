@@ -52,7 +52,7 @@ public class BasketItemServiceTests
             .Returns(Result<string>.Success(email));
     }
 
-    private void SetupAccount(Domain.Model.Account account)
+    private void SetupAccount(Domain.Model.User account)
     {
         _accountRepositoryMock.Setup(r => r.GetAccountByEmail(account.Email))
             .ReturnsAsync(account);
@@ -64,13 +64,13 @@ public class BasketItemServiceTests
             .ReturnsAsync(product);
     }
 
-    private void SetupBasketItem(Domain.Model.Account account, Domain.Model.BasketItem basketItem)
+    private void SetupBasketItem(Domain.Model.User account, Domain.Model.BasketItem basketItem)
     {
         _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItems(account))
             .ReturnsAsync(new List<Domain.Model.BasketItem> { basketItem });
     }
 
-    private void SetupBasketItemWithId(Domain.Model.Account account, Domain.Model.BasketItem basketItem)
+    private void SetupBasketItemWithId(Domain.Model.User account, Domain.Model.BasketItem basketItem)
     {
         _basketItemRepositoryMock.Setup(r => r.GetSpecificAccountBasketItemWithId(basketItem.BasketItemId, account))
             .ReturnsAsync(basketItem);
@@ -90,12 +90,12 @@ public class BasketItemServiceTests
 
     private void SetupBasketItems(List<Domain.Model.BasketItem> basketItems)
     {
-        _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItems(It.IsAny<Domain.Model.Account>()))
+        _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItems(It.IsAny<Domain.Model.User>()))
             .ReturnsAsync(basketItems);
     }
 
-    private Domain.Model.Account CreateAccount(int id = 1, string email = "test@example.com")
-        => new Domain.Model.Account
+    private Domain.Model.User CreateAccount(int id = 1, string email = "test@example.com")
+        => new Domain.Model.User
         {
             Id = id,
             Email = email,

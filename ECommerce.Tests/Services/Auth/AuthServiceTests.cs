@@ -70,9 +70,9 @@ public class AuthServiceTests
             DateOfBirth = DateTime.UtcNow
         };
 
-    private Account CreateAccount(string email, bool isBanned = false)
+    private User CreateAccount(string email, bool isBanned = false)
     {
-        var account = new Account
+        var account = new User
         {
             Role = "User",
             Name = "Test",
@@ -136,7 +136,7 @@ public class AuthServiceTests
         SetupUserManager(user);
         SetupTokenServices("test-user-id", loginRequest.Email, roles);
         _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(loginRequest.Email))
-            .ReturnsAsync(Result<Account>.Success(account));
+            .ReturnsAsync(Result<User>.Success(account));
 
         // Act
         var result = await _authService.LoginAsync(loginRequest);
@@ -167,7 +167,7 @@ public class AuthServiceTests
 
         SetupUserManager(user, false);
         _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(loginRequest.Email))
-            .ReturnsAsync(Result<Account>.Success(account));
+            .ReturnsAsync(Result<User>.Success(account));
 
         // Act
         var result = await _authService.LoginAsync(loginRequest);
@@ -191,7 +191,7 @@ public class AuthServiceTests
         _userManagerMock.Setup(x => x.FindByEmailAsync(loginRequest.Email))
             .ReturnsAsync((IdentityUser)null);
         _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(loginRequest.Email))
-            .ReturnsAsync(Result<Account>.Failure("User with email not found"));
+            .ReturnsAsync(Result<User>.Failure("User with email not found"));
 
         // Act
         var result = await _authService.LoginAsync(loginRequest);
@@ -213,7 +213,7 @@ public class AuthServiceTests
 
         SetupUserManager(user);
         _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(loginRequest.Email))
-            .ReturnsAsync(Result<Account>.Success(account));
+            .ReturnsAsync(Result<User>.Success(account));
 
         // Act
         var result = await _authService.LoginAsync(loginRequest);
@@ -309,7 +309,7 @@ public class AuthServiceTests
         _userManagerMock.Setup(x => x.FindByEmailAsync(refreshToken.Email))
             .ReturnsAsync(user);
         _accountServiceMock.Setup(x => x.GetAccountByEmailAsEntityAsync(refreshToken.Email))
-            .ReturnsAsync(Result<Account>.Success(account));
+            .ReturnsAsync(Result<User>.Success(account));
 
         SetupTokenServices("test-user-id", refreshToken.Email, roles);
 

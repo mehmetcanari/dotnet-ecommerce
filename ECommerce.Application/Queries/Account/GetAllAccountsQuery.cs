@@ -41,7 +41,7 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, R
         }
     }
 
-    private static AccountResponseDto MapToResponseDto(Domain.Model.Account account)
+    private static AccountResponseDto MapToResponseDto(Domain.Model.User account)
     {
         return new AccountResponseDto
         {

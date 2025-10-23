@@ -67,7 +67,7 @@ public class OrderServiceTests
             .Returns(Result<string>.Success(email));
     }
 
-    private void SetupAccount(Domain.Model.Account account)
+    private void SetupAccount(Domain.Model.User account)
     {
         _accountRepositoryMock.Setup(r => r.GetAccountByEmail(It.IsAny<string>()))
             .ReturnsAsync(account);
@@ -75,7 +75,7 @@ public class OrderServiceTests
 
     private void SetupBasketItems(List<Domain.Model.BasketItem> basketItems)
     {
-        _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItems(It.IsAny<Domain.Model.Account>()))
+        _basketItemRepositoryMock.Setup(r => r.GetNonOrderedBasketItems(It.IsAny<Domain.Model.User>()))
             .ReturnsAsync(basketItems);
     }
 
@@ -115,8 +115,8 @@ public class OrderServiceTests
             .Returns(Task.FromResult(paymentResult));
     }
 
-    private Domain.Model.Account CreateAccount(int id = 1, string email = "test@example.com")
-        => new Domain.Model.Account
+    private Domain.Model.User CreateAccount(int id = 1, string email = "test@example.com")
+        => new Domain.Model.User
         {
             Id = id,
             Email = email,

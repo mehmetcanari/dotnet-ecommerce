@@ -8,7 +8,7 @@ namespace ECommerce.Application.Abstract.Service;
 public interface IAccountService
 {
     Task<Result> RegisterAccountAsync(AccountRegisterRequestDto createUserRequestDto, string role);
-    Task<Result<Domain.Model.Account>> GetAccountByEmailAsEntityAsync(string email);
+    Task<Result<Domain.Model.User>> GetAccountByEmailAsEntityAsync(string email);
     Task<Result> BanAccountAsync(AccountBanRequestDto request);
     Task<Result> UnbanAccountAsync(AccountUnbanRequestDto request);
 }

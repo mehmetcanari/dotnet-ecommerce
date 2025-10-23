@@ -59,7 +59,7 @@ public class GetClientAccountQueryHandler : IRequestHandler<GetClientAccountQuer
         return Result<string>.Success(email);
     }
 
-    private static AccountResponseDto MapToResponseDto(Domain.Model.Account account)
+    private static AccountResponseDto MapToResponseDto(Domain.Model.User account)
     {
         return new AccountResponseDto
         {

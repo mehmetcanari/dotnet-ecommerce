@@ -15,11 +15,11 @@ public class AccountRepository : IAccountRepository
         _context = context;
     }
 
-    public async Task<List<Account>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+    public async Task<List<User>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
-            IQueryable<Account> query = _context.Accounts;
+            IQueryable<User> query = _context.Accounts;
 
             var accounts = await query
                 .AsNoTracking()
@@ -35,7 +35,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<Account> GetAccountByEmail(string email, CancellationToken cancellationToken = default)
+    public async Task<User> GetAccountByEmail(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -53,7 +53,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<Account> GetAccountById(int id, CancellationToken cancellationToken = default)
+    public async Task<User> GetAccountById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -70,7 +70,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<Account> GetAccountByIdentityNumber(string identityNumber, CancellationToken cancellationToken = default)
+    public async Task<User> GetAccountByIdentityNumber(string identityNumber, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -87,7 +87,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task Create(Account userAccount, CancellationToken cancellationToken = default)
+    public async Task Create(User userAccount, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -99,7 +99,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public void Update(Account account)
+    public void Update(User account)
     {
         try
         {
@@ -111,7 +111,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public void Delete(Account account)
+    public void Delete(User account)
     {
         try
         {

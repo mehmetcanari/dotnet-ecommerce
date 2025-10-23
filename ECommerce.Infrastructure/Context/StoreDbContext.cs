@@ -6,7 +6,7 @@ namespace ECommerce.Infrastructure.Context;
 
 public class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContext(options)
 {
-    public DbSet<Account> Accounts => Set<Account>();
+    public DbSet<User> Accounts => Set<User>();
     public DbSet<BasketItem> BasketItems => Set<BasketItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();

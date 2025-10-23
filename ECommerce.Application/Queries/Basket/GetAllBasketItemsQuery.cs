@@ -72,7 +72,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
         return cachedItems;
     }
 
-    private async Task<List<Domain.Model.BasketItem>> GetBasketItems(Domain.Model.Account account)
+    private async Task<List<Domain.Model.BasketItem>> GetBasketItems(Domain.Model.User account)
     {
         return await _basketItemRepository.GetNonOrderedBasketItems(account);
     }

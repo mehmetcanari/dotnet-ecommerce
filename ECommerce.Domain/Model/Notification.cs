@@ -11,7 +11,7 @@ public class Notification
     public DateTime? ReadAt { get; set; }
 
     // Navigation property
-    public Account? User { get; set; }
+    public User? User { get; set; }
     public int? AccountId { get; set; }
 
     

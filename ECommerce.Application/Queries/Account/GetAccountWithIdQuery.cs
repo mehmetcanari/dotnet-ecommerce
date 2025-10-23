@@ -43,7 +43,7 @@ public class GetAccountWithIdQueryHandler : IRequestHandler<GetAccountWithIdQuer
         }
     }
 
-    private static AccountResponseDto MapToResponseDto(Domain.Model.Account account)
+    private static AccountResponseDto MapToResponseDto(Domain.Model.User account)
     {
         return new AccountResponseDto
         {

@@ -22,8 +22,8 @@ public class AccountRepositoryTests
         _repository = new AccountRepository(_context);
     }
 
-    private Domain.Model.Account CreateAccount(int id = 1, string email = "test@example.com")
-        => new Domain.Model.Account
+    private Domain.Model.User CreateAccount(int id = 1, string email = "test@example.com")
+        => new Domain.Model.User
         {
             Id = id,
             Name = "Test",
@@ -63,7 +63,7 @@ public class AccountRepositoryTests
     public async Task Read_Should_Return_Accounts_With_Pagination()
     {
         // Arrange
-        var accounts = new List<Domain.Model.Account>
+        var accounts = new List<Domain.Model.User>
         {
             CreateAccount(1, "test1@example.com"),
             CreateAccount(2, "test2@example.com"),

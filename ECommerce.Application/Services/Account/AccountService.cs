@@ -67,20 +67,20 @@ public class AccountService : BaseValidator, IAccountService
         }
     }
 
-    public async Task<Result<Domain.Model.Account>> GetAccountByEmailAsEntityAsync(string email)
+    public async Task<Result<Domain.Model.User>> GetAccountByEmailAsEntityAsync(string email)
     {
         try
         {
             var account = await _accountRepository.GetAccountByEmail(email);
             if (account == null)
-                return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountNotFound);
+                return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
 
-            return Result<Domain.Model.Account>.Success(account);
+            return Result<Domain.Model.User>.Success(account);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
-            return Result<Domain.Model.Account>.Failure(ErrorMessages.UnexpectedError);
+            return Result<Domain.Model.User>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 

@@ -7,13 +7,13 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Account;
 
-public class CreateAccountCommand : IRequest<Result<Domain.Model.Account>>
+public class CreateAccountCommand : IRequest<Result<Domain.Model.User>>
 {
     public required AccountRegisterRequestDto AccountCreateRequest { get; set; }
     public required string Role { get; set; }
 }
 
-public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand, Result<Domain.Model.Account>>
+public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand, Result<Domain.Model.User>>
 {
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
@@ -24,17 +24,17 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
         _logger = logger;
     }
 
-    public async Task<Result<Domain.Model.Account>> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Domain.Model.User>> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
             var validationResult = await ValidateAccountExists(request);
             if (validationResult.IsFailure && validationResult.Error is not null)
             {
-                return Result<Domain.Model.Account>.Failure(validationResult.Error);
+                return Result<Domain.Model.User>.Failure(validationResult.Error);
             }
 
-            var newAccount = new Domain.Model.Account
+            var newAccount = new Domain.Model.User
             {
                 IdentityId = Guid.NewGuid(),
                 Name = request.AccountCreateRequest.Name,
@@ -53,12 +53,12 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
             await _accountRepository.Create(newAccount, cancellationToken);
 
             _logger.LogInformation(ErrorMessages.AccountCreated, request.AccountCreateRequest.Email);
-            return Result<Domain.Model.Account>.Success(newAccount);
+            return Result<Domain.Model.User>.Success(newAccount);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ErrorMessages.AccountCreationFailed, request.AccountCreateRequest.Email);
-            return Result<Domain.Model.Account>.Failure(ErrorMessages.UnexpectedError);
+            return Result<Domain.Model.User>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 

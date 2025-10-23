@@ -5,9 +5,9 @@ using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
 
-public class GetClientAccountAsEntityQuery : IRequest<Result<Account>>{}
+public class GetClientAccountAsEntityQuery : IRequest<Result<User>>{}
 
-public class GetClientAccountAsEntityQueryHandler : IRequestHandler<GetClientAccountAsEntityQuery, Result<Account>>
+public class GetClientAccountAsEntityQueryHandler : IRequestHandler<GetClientAccountAsEntityQuery, Result<User>>
 {
     private readonly IAccountRepository _accountRepository;
     private readonly ILoggingService _logger;
@@ -20,27 +20,27 @@ public class GetClientAccountAsEntityQueryHandler : IRequestHandler<GetClientAcc
         _currentUserService = currentUserService;
     }
 
-    public async Task<Result<Account>> Handle(GetClientAccountAsEntityQuery request, CancellationToken cancellationToken)
+    public async Task<Result<User>> Handle(GetClientAccountAsEntityQuery request, CancellationToken cancellationToken)
     {
         try
         {
             var validEmailResult = ValidateUser();
             if (validEmailResult.IsFailure && validEmailResult.Error is not null)
-                return Result<Account>.Failure(validEmailResult.Error);
+                return Result<User>.Failure(validEmailResult.Error);
             
             if (string.IsNullOrEmpty(validEmailResult.Data))
-                return Result<Account>.Failure(ErrorMessages.AccountEmailNotFound);
+                return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
             
             var account = await _accountRepository.GetAccountByEmail(validEmailResult.Data);
             if (account == null)
-                return Result<Account>.Failure(ErrorMessages.AccountEmailNotFound);
+                return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
 
-            return Result<Account>.Success(account);
+            return Result<User>.Success(account);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ErrorMessages.AccountEmailNotFound, ex.Message);
-            return Result<Account>.Failure(ErrorMessages.AccountEmailNotFound);
+            return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
         }
     }
 

@@ -57,17 +57,17 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
         }
     }
 
-    private async Task<Result<Domain.Model.Account>> GetCurrentUserAccountAsync()
+    private async Task<Result<Domain.Model.User>> GetCurrentUserAccountAsync()
     {
         var email = _currentUserService.GetUserEmail();        
         if (string.IsNullOrEmpty(email))
-            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountEmailNotFound);
+            return Result<Domain.Model.User>.Failure(ErrorMessages.AccountEmailNotFound);
         
         var account = await _accountRepository.GetAccountByEmail(email);
         if (account == null)
-            return Result<Domain.Model.Account>.Failure(ErrorMessages.AccountNotFound);
+            return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
 
-        return Result<Domain.Model.Account>.Success(account);
+        return Result<Domain.Model.User>.Success(account);
     }
 
     private async Task<List<Domain.Model.Order>> GetUserOrders(int accountId)

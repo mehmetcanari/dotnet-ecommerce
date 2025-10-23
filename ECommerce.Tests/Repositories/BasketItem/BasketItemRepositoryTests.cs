@@ -22,8 +22,8 @@ public class BasketItemRepositoryTests
         _repository = new BasketItemRepository(_context);
     }
 
-    private Domain.Model.Account CreateAccount(int id = 1)
-        => new Domain.Model.Account
+    private Domain.Model.User CreateAccount(int id = 1)
+        => new Domain.Model.User
         {
             Id = id,
             Name = "Test",

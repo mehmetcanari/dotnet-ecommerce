@@ -69,17 +69,17 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
         return email ?? string.Empty;
     }
 
-    private async Task<Result<(Domain.Model.Product, Domain.Model.Account)>> ValidateProductAndAccount(CreateBasketItemCommand request, string email)
+    private async Task<Result<(Domain.Model.Product, Domain.Model.User)>> ValidateProductAndAccount(CreateBasketItemCommand request, string email)
     {
         var product = await _productRepository.GetProductById(request.CreateBasketItemRequestDto.ProductId);
         if (product == null)
-            return Result<(Domain.Model.Product, Domain.Model.Account)>.Failure(ErrorMessages.ProductNotFound);
+            return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.ProductNotFound);
 
         var userAccount = await _accountRepository.GetAccountByEmail(email);
         if (userAccount == null)
-            return Result<(Domain.Model.Product, Domain.Model.Account)>.Failure(ErrorMessages.AccountNotFound);
+            return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.AccountNotFound);
 
-        return Result<(Domain.Model.Product, Domain.Model.Account)>.Success((product, userAccount));
+        return Result<(Domain.Model.Product, Domain.Model.User)>.Success((product, userAccount));
     }
 
     private Result ValidateStock(CreateBasketItemCommand request, Domain.Model.Product product)
@@ -90,7 +90,7 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
         return Result.Success();
     }
 
-    private Domain.Model.BasketItem CreateBasketItem(CreateBasketItemCommand request, Domain.Model.Product product, Domain.Model.Account userAccount) => new Domain.Model.BasketItem
+    private Domain.Model.BasketItem CreateBasketItem(CreateBasketItemCommand request, Domain.Model.Product product, Domain.Model.User userAccount) => new Domain.Model.BasketItem
     {
         AccountId = userAccount.Id,
         ExternalId = Guid.NewGuid().ToString(),
