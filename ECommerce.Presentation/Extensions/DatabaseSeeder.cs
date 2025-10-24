@@ -21,7 +21,7 @@ public static class DatabaseSeeder
             {
                 DotNetEnv.Env.Load();
 
-                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
                 await SeedRolesAsync(roleManager);
 
                 var userManager = services.GetRequiredService<UserManager<User>>();
@@ -37,14 +37,14 @@ public static class DatabaseSeeder
         }
     }
 
-    private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+    private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager)
     {
         string[] roleNames = { AdminRole };
 
         foreach (var roleName in roleNames)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
-                await roleManager.CreateAsync(new IdentityRole(roleName));
+                await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
         }
     }
 

@@ -70,7 +70,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
         return Result<Domain.Model.User>.Success(account);
     }
 
-    private async Task<List<Domain.Model.Order>> GetUserOrders(string userId)
+    private async Task<List<Domain.Model.Order>> GetUserOrders(Guid userId)
     {
         var orders = await _orderRepository.GetAccountOrders(userId);
         if (orders == null || orders.Count == 0)
@@ -83,7 +83,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
     {
         UserId = order.UserId,
         BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
-        OrderDate = order.OrderDate,
+        OrderDate = order.CreatedOn,
         ShippingAddress = order.ShippingAddress,
         BillingAddress = order.BillingAddress,
         Status = order.Status

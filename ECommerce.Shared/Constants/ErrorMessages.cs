@@ -60,6 +60,7 @@
         public const string ErrorLoggingIn = "authentication.error.logging.in";
         public const string UserIsNotLoggedIn = "authentication.user.is.not.logged.in";
         public const string ErrorValidatingLogin = "authentication.error.validating.login";
+        public const string AccountNotAuthorized = "authentication.account.not.authorized";
         #endregion
 
         #region Token

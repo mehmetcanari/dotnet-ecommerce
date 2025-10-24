@@ -66,7 +66,7 @@ public class CategoryRepository : ICategoryRepository
         }
     }
     
-    public async Task<Category> GetCategoryById(int id, CancellationToken cancellationToken = default)
+    public async Task<Category> GetCategoryById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -74,7 +74,7 @@ public class CategoryRepository : ICategoryRepository
 
             var category = await query
                 .AsNoTracking()
-                .Where(c => c.CategoryId == id)
+                .Where(c => c.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return category;

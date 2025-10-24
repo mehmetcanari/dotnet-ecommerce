@@ -37,7 +37,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(string userId, string email, IList<string> roles)
+    public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(Guid userId, string email, IList<string> roles)
     {
         try
         {
@@ -49,8 +49,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
             {
                 Token = GenerateRefreshJwtToken(userId, email, roles),
                 Email = email,
-                Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry)),
-                Created = DateTime.UtcNow
+                ExpiresAt = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry))
             };
 
             await _refreshTokenRepository.CreateAsync(refreshToken);
@@ -78,7 +77,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
 
             var roles = await userManager.GetRolesAsync(user);
 
-            return Result<(string, IList<string>)>.Success((user.Id, roles));
+            return Result<(string, IList<string>)>.Success((user.Email ?? string.Empty, roles));
         }
         catch (Exception ex)
         {
@@ -112,7 +111,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
         }
     }
 
-    private string GenerateRefreshJwtToken(string userId, string email, IList<string> roles)
+    private string GenerateRefreshJwtToken(Guid userId, string email, IList<string> roles)
     {
         try
         {
@@ -126,7 +125,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
                 new(JwtRegisteredClaimNames.Sub, email),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new("tokenType", "refresh"),
-                new(ClaimTypes.NameIdentifier, userId)
+                new(ClaimTypes.NameIdentifier, userId.ToString())
             };
 
             foreach (var role in roles)

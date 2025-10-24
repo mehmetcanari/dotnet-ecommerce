@@ -47,7 +47,7 @@ public class ProductRepository : IProductRepository
             {
                 Skip = (pageNumber - 1) * pageSize,
                 Limit = pageSize,
-                Sort = Builders<Product>.Sort.Descending(p => p.ProductCreated)
+                Sort = Builders<Product>.Sort.Descending(p => p.CreatedOn)
             };
             
             var cursor = await _products.FindAsync(_ => true, options);
@@ -59,11 +59,11 @@ public class ProductRepository : IProductRepository
         }
     }
     
-    public async Task<Product> GetProductById(int id, CancellationToken cancellationToken = default)
+    public async Task<Product> GetProductById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
-            var cursor = await _products.FindAsync(p => p.ProductId == id);
+            var cursor = await _products.FindAsync(p => p.Id == id);
             return await cursor.FirstOrDefaultAsync(cancellationToken);
         }
         catch (Exception exception)
@@ -88,12 +88,7 @@ public class ProductRepository : IProductRepository
     public async Task Create(Product product, CancellationToken cancellationToken = default)
     {
         try
-        {
-            if (product.ProductId == 0)
-            {
-                product.ProductId = await _context.GetNextSequenceValue("product_id");
-            }
-            
+        {            
             await _products.InsertOneAsync(product, new InsertOneOptions(), cancellationToken);
         }
         catch (Exception exception)
@@ -106,8 +101,8 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            product.ProductUpdated = DateTime.UtcNow;
-            await _products.ReplaceOneAsync(p => p.ProductId == product.ProductId, product, new ReplaceOptions(), cancellationToken);
+            product.UpdatedOn = DateTime.UtcNow;
+            await _products.ReplaceOneAsync(p => p.Id == product.Id, product, new ReplaceOptions(), cancellationToken);
         }
         catch (Exception exception)
         {
@@ -119,7 +114,7 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            await _products.DeleteOneAsync(p => p.ProductId == product.ProductId, cancellationToken);
+            await _products.DeleteOneAsync(p => p.Id == product.Id, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -127,11 +122,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task DeleteById(int id, CancellationToken cancellationToken = default)
+    public async Task DeleteById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _products.DeleteOneAsync(p => p.ProductId == id, cancellationToken);
+            await _products.DeleteOneAsync(p => p.Id == id, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -139,7 +134,7 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task<List<Product>> GetProductsByCategoryId(int categoryId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+    public async Task<List<Product>> GetProductsByCategoryId(Guid categoryId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -147,7 +142,7 @@ public class ProductRepository : IProductRepository
             {
                 Skip = (pageNumber - 1) * pageSize,
                 Limit = pageSize,
-                Sort = Builders<Product>.Sort.Descending(p => p.ProductCreated)
+                Sort = Builders<Product>.Sort.Descending(p => p.CreatedOn)
             };
 
             var cursor = await _products.FindAsync(p => p.CategoryId == categoryId, options);
@@ -159,15 +154,15 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task UpdateStock(int productId, int newStock, CancellationToken cancellationToken = default)
+    public async Task UpdateStock(Guid productId, int newStock, CancellationToken cancellationToken = default)
     {
         try
         {
             var update = Builders<Product>.Update
                 .Set(p => p.StockQuantity, newStock)
-                .Set(p => p.ProductUpdated, DateTime.UtcNow);
+                .Set(p => p.UpdatedOn, DateTime.UtcNow);
 
-            await _products.UpdateOneAsync(p => p.ProductId == productId, update);
+            await _products.UpdateOneAsync(p => p.Id == productId, update);
         }
         catch (Exception exception)
         {

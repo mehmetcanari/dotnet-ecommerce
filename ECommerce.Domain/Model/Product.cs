@@ -4,12 +4,8 @@ using System.Text.Json.Serialization;
 
 namespace ECommerce.Domain.Model;
 
-public class Product
+public class Product : BaseEntity
 {
-    [BsonId]
-    [JsonPropertyName("productId")]
-    public int ProductId { get; set; }
-
     [BsonElement("name")]
     [JsonPropertyName("name")]
     public required string Name { get; set; }
@@ -34,13 +30,7 @@ public class Product
     [JsonPropertyName("stockQuantity")]
     public required int StockQuantity { get; set; }
 
-    [BsonElement("productCreated")]
-    public DateTime ProductCreated { get; init; } = DateTime.UtcNow;
-
-    [BsonElement("productUpdated")]
-    public DateTime ProductUpdated { get; set; } = DateTime.UtcNow;
-
     [BsonElement("categoryId")]
-    public int CategoryId { get; set; }
+    public required Guid CategoryId { get; set; }
 }
 

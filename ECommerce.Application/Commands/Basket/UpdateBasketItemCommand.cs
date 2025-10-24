@@ -9,7 +9,7 @@ namespace ECommerce.Application.Commands.Basket;
 
 public class UpdateBasketItemCommand : IRequest<Result>
 {
-    public required UpdateBasketItemRequestDto UpdateBasketItemRequestDto { get; set; }
+    public required UpdateBasketItemRequestDto Model { get; set; }
 }
 
 public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCommand, Result>
@@ -96,7 +96,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
     private async Task<Result<Domain.Model.BasketItem>> ValidateAndGetBasketItem(UpdateBasketItemCommand request, Domain.Model.User account)
     {
-        var basketItem = await _basketItemRepository.GetSpecificAccountBasketItemWithId(request.UpdateBasketItemRequestDto.BasketItemId, account);
+        var basketItem = await _basketItemRepository.GetSpecificAccountBasketItemWithId(request.Model.Id, account);
 
         if (basketItem == null)
         {
@@ -108,7 +108,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
     private async Task<Result<Domain.Model.Product>> ValidateAndGetProduct(UpdateBasketItemCommand request)
     {
-        var product = await _productRepository.GetProductById(request.UpdateBasketItemRequestDto.ProductId);
+        var product = await _productRepository.GetProductById(request.Model.ProductId);
         if (product == null)
         {
             return Result<Domain.Model.Product>.Failure(ErrorMessages.ProductNotFound);
@@ -119,7 +119,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
     private Result ValidateStock(UpdateBasketItemCommand request, Domain.Model.Product product)
     {
-        if (request.UpdateBasketItemRequestDto.Quantity > product.StockQuantity)
+        if (request.Model.Quantity > product.StockQuantity)
         {
             return Result.Failure(ErrorMessages.StockNotAvailable);
         }
@@ -129,8 +129,8 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
     private async Task UpdateBasketItem(Domain.Model.BasketItem basketItem, Domain.Model.Product product, UpdateBasketItemCommand request)
     {
-        basketItem.Quantity = request.UpdateBasketItemRequestDto.Quantity;
-        basketItem.ProductId = request.UpdateBasketItemRequestDto.ProductId;
+        basketItem.Quantity = request.Model.Quantity;
+        basketItem.ProductId = request.Model.ProductId;
         basketItem.ProductName = product.Name;
         basketItem.UnitPrice = product.Price;
         basketItem.IsOrdered = false;

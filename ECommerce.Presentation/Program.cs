@@ -8,6 +8,7 @@ using ECommerce.API.Extensions;
 using ECommerce.API.SwaggerFilters;
 using ECommerce.Application.Exceptions;
 using ECommerce.Application.Services.Notification;
+using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
 using Elastic.Clients.Elasticsearch;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,6 +16,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.IdGenerators;
+using MongoDB.Bson.Serialization.Serializers;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -104,6 +109,8 @@ internal static class Program
         // DATABASE SETUP
         //======================================================
 
+        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+
         builder.Services.AddDbContext<StoreDbContext>(options =>
         {
             options.UseNpgsql(requiredEnvVars["DB_CONNECTION_STRING"]);
@@ -127,7 +134,7 @@ internal static class Program
         //======================================================
         // IDENTITY CONFIGURATION
         //======================================================
-        builder.Services.AddIdentity<Domain.Model.User, IdentityRole>(options =>
+        builder.Services.AddIdentity<Domain.Model.User, IdentityRole<Guid>>(options =>
         {
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
@@ -564,7 +571,7 @@ internal static class Program
     {
         try
         {
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
             string[] roleNames = ["Admin", "User"];
 
             foreach (var roleName in roleNames)
@@ -572,7 +579,7 @@ internal static class Program
                 var roleExist = await roleManager.RoleExistsAsync(roleName);
                 if (!roleExist)
                 {
-                    var result = await roleManager.CreateAsync(new IdentityRole(roleName));
+                    var result = await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
                     if (result.Succeeded)
                     {
                         Console.WriteLine($"Role '{roleName}' created successfully.");

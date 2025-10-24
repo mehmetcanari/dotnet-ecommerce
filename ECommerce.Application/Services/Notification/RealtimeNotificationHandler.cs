@@ -1,6 +1,5 @@
 using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Response.Notification;
-using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ECommerce.Application.Services.Notification;
@@ -13,7 +12,7 @@ public class RealtimeNotificationHandler : IRealtimeNotificationHandler
     {
         _hubContext = hubContext;
     }
-    public async Task HandleNotification(string title, string message, NotificationType type, string userId)
+    public async Task HandleNotification(string title, string message, NotificationType type, Guid userId)
     {
         var notification = new Domain.Model.Notification
         {
@@ -21,11 +20,10 @@ public class RealtimeNotificationHandler : IRealtimeNotificationHandler
             Title = title,
             Message = message,
             Type = type,
-            Status = NotificationStatus.Unread,
-            CreatedAt = DateTime.UtcNow,
+            Status = NotificationStatus.Unread
         };
 
-        await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", MapToResponseDto(notification));
+        await _hubContext.Clients.User(userId.ToString()).SendAsync("ReceiveNotification", MapToResponseDto(notification));
     }
 
     private static NotificationResponseDto MapToResponseDto(Domain.Model.Notification notification) => new NotificationResponseDto

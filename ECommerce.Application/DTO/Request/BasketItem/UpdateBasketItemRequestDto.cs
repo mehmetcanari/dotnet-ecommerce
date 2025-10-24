@@ -2,7 +2,7 @@
 
 public record UpdateBasketItemRequestDto
 {
-    public required int BasketItemId { get; set; }
+    public required Guid Id { get; set; }
+    public required Guid ProductId { get; set; }
     public required int Quantity { get; set; }
-    public required int ProductId { get; set; }
 }

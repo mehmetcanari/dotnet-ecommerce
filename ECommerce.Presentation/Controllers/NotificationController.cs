@@ -23,17 +23,17 @@ public class NotificationController(INotificationService _notificationService, I
     [ValidateId]
     [HttpPost("{id}/mark-read")]
     [ValidateId]
-    public async Task<IActionResult> MarkAsRead(int id) => HandleResult(await _notificationService.MarkAsReadAsync(id));
+    public async Task<IActionResult> MarkAsRead(Guid id) => HandleResult(await _notificationService.MarkAsReadAsync(id));
 
     [HttpPost("mark-all-read")]
     public async Task<IActionResult> MarkAllAsRead() => HandleResult(await _notificationService.MarkAllAsReadAsync());
 
     [ValidateId]
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteNotification(int id) => HandleResult(await _notificationService.DeleteNotificationAsync(id));
+    public async Task<IActionResult> DeleteNotification(Guid id) => HandleResult(await _notificationService.DeleteNotificationAsync(id));
 
     [HttpGet("hub-status")]
-    public async Task<IActionResult> GetHubStatus()
+    public IActionResult GetHubStatus()
     {
         try
         {

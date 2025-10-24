@@ -9,7 +9,7 @@ namespace ECommerce.Application.Commands.Basket;
 
 public class CreateBasketItemCommand : IRequest<Result>
 {
-    public required CreateBasketItemRequestDto CreateBasketItemRequestDto { get; set; }
+    public required CreateBasketItemRequestDto Model { get; set; }
 }
 
 public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCommand, Result>
@@ -66,25 +66,25 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
         if (string.IsNullOrEmpty(email))
             return ErrorMessages.AccountEmailNotFound;
 
-        return email ?? string.Empty;
+        return email ?? ErrorMessages.AccountNotAuthorized;
     }
 
     private async Task<Result<(Domain.Model.Product, Domain.Model.User)>> ValidateProductAndAccount(CreateBasketItemCommand request, string email)
     {
-        var product = await _productRepository.GetProductById(request.CreateBasketItemRequestDto.ProductId);
+        var product = await _productRepository.GetProductById(request.Model.ProductId);
         if (product == null)
             return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.ProductNotFound);
 
         var userAccount = await _accountRepository.GetAccountByEmail(email);
         if (userAccount == null)
-            return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.AccountNotFound);
+            return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.AccountNotAuthorized);
 
         return Result<(Domain.Model.Product, Domain.Model.User)>.Success((product, userAccount));
     }
 
     private Result ValidateStock(CreateBasketItemCommand request, Domain.Model.Product product)
     {
-        if (request.CreateBasketItemRequestDto.Quantity > product.StockQuantity)
+        if (request.Model.Quantity > product.StockQuantity)
             return Result.Failure(ErrorMessages.StockNotAvailable);
 
         return Result.Success();
@@ -94,8 +94,8 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
     {
         UserId = userAccount.Id,
         ExternalId = Guid.NewGuid().ToString(),
-        Quantity = request.CreateBasketItemRequestDto.Quantity,
-        ProductId = product.ProductId,
+        Quantity = request.Model.Quantity,
+        ProductId = product.Id,
         UnitPrice = product.Price,
         ProductName = product.Name,
         IsOrdered = false

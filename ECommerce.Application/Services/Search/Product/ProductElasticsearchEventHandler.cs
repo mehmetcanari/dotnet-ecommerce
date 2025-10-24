@@ -25,16 +25,14 @@ public class ProductElasticsearchEventHandler :
         {
             var product = new Domain.Model.Product
             {
-                ProductId = notification.ProductId,
+                Id = notification.ProductId,
                 Name = notification.Name,
                 Description = notification.Description,
                 Price = notification.Price,
                 DiscountRate = notification.DiscountRate,
                 ImageUrl = notification.ImageUrl,
                 StockQuantity = notification.StockQuantity,
-                CategoryId = notification.CategoryId,
-                ProductCreated = notification.ProductCreated,
-                ProductUpdated = notification.ProductUpdated
+                CategoryId = notification.CategoryId
             };
 
             var result = await _productSearchService.IndexProductAsync(product);
@@ -51,20 +49,18 @@ public class ProductElasticsearchEventHandler :
     {
         try
         {
-            _logger.LogInformation("Handling ProductUpdatedEvent for product {ProductId}", notification.ProductId);
+            _logger.LogInformation("Handling ProductUpdatedEvent for product {ProductId}", notification.Id);
             
             var product = new Domain.Model.Product
             {
-                ProductId = notification.ProductId,
+                Id = notification.Id,
                 Name = notification.Name,
                 Description = notification.Description,
                 Price = notification.Price,
                 DiscountRate = notification.DiscountRate,
                 ImageUrl = notification.ImageUrl,
                 StockQuantity = notification.StockQuantity,
-                CategoryId = notification.CategoryId,
-                ProductCreated = notification.ProductCreated,
-                ProductUpdated = notification.ProductUpdated
+                CategoryId = notification.CategoryId
             };
 
             var result = await _productSearchService.UpdateProductAsync(product);
@@ -73,7 +69,7 @@ public class ProductElasticsearchEventHandler :
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling ProductUpdatedEvent for product {ProductId}: {Message}", notification.ProductId, ex.Message);
+            _logger.LogError(ex, "Error handling ProductUpdatedEvent for product {ProductId}: {Message}", notification.Id, ex.Message);
         }
     }
 
@@ -83,16 +79,14 @@ public class ProductElasticsearchEventHandler :
         {            
             var product = new Domain.Model.Product
             {
-                ProductId = notification.ProductId,
+                Id = notification.ProductId,
                 Name = notification.Name,
                 Description = notification.Description,
                 Price = notification.Price,
                 DiscountRate = notification.DiscountRate,
                 ImageUrl = notification.ImageUrl,
                 StockQuantity = notification.StockQuantity,
-                CategoryId = notification.CategoryId,
-                ProductCreated = notification.ProductCreated,
-                ProductUpdated = notification.ProductUpdated
+                CategoryId = notification.CategoryId
             };
 
             var result = await _productSearchService.UpdateProductAsync(product);
@@ -109,15 +103,15 @@ public class ProductElasticsearchEventHandler :
     {
         try
         {
-            _logger.LogInformation("Handling ProductDeletedEvent for product {ProductId}", notification.ProductId);
+            _logger.LogInformation("Handling ProductDeletedEvent for product {ProductId}", notification.Id);
             
-            var result = await _productSearchService.DeleteProductAsync(notification.ProductId.ToString());
+            var result = await _productSearchService.DeleteProductAsync(notification.Id.ToString());
             if (result.IsFailure)
                 _logger.LogWarning("Failed to delete product {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling ProductDeletedEvent for product {ProductId}: {Message}",  notification.ProductId, ex.Message);
+            _logger.LogError(ex, "Error handling ProductDeletedEvent for product {ProductId}: {Message}",  notification.Id, ex.Message);
         }
     }
 } 

@@ -40,6 +40,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
 
             var productResponses = products.Select(p => new ProductResponseDto
             {
+                Id = p.Id,
                 ProductName = p.Name,
                 Description = p.Description,
                 Price = p.Price,

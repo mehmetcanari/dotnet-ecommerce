@@ -4,7 +4,7 @@ namespace ECommerce.Application.DTO.Response.Order;
 
 public record OrderResponseDto
 {
-    public required string UserId { get; init; }
+    public required Guid UserId { get; init; }
     public ICollection<BasketItemResponseDto> BasketItems { get; init; } = new List<BasketItemResponseDto>();
     public decimal TotalPrice => BasketItems.Sum(oi => oi.UnitPrice * oi.Quantity);
     public DateTime OrderDate { get; init; }

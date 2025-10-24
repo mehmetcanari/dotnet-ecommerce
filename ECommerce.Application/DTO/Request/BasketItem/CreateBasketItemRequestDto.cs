@@ -2,6 +2,6 @@
 
 public record CreateBasketItemRequestDto
 {
-    public required int ProductId { get; set; }
+    public required Guid ProductId { get; set; }
     public required int Quantity { get; set; }
 }

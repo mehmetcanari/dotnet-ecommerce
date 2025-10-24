@@ -19,17 +19,17 @@ public class CategoryController(IMediator _mediator, ICategoryService _categoryS
     [Authorize("Admin")]
     [HttpDelete("delete/{id}")]
     [ValidateId]
-    public async Task<IActionResult> DeleteCategory([FromRoute] int id) => HandleResult(await _categoryService.DeleteCategoryAsync(id));
+    public async Task<IActionResult> DeleteCategory([FromRoute] Guid id) => HandleResult(await _categoryService.DeleteCategoryAsync(id));
 
     [Authorize("Admin")]
     [HttpPut("update/{id}")]
     [ValidateId]
-    public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] UpdateCategoryRequestDto request) => HandleResult(await _categoryService.UpdateCategoryAsync(id, request));
+    public async Task<IActionResult> UpdateCategory([FromRoute] Guid id, [FromBody] UpdateCategoryRequestDto request) => HandleResult(await _categoryService.UpdateCategoryAsync(id, request));
 
     [Authorize]
     [HttpGet("{id}")]
     [ValidateId]
-    public async Task<IActionResult> GetCategoryById([FromRoute] int id) => HandleResult(await _mediator.Send(new GetCategoryByIdQuery { CategoryId = id }));
+    public async Task<IActionResult> GetCategoryById([FromRoute] Guid id) => HandleResult(await _mediator.Send(new GetCategoryByIdQuery { CategoryId = id }));
 }
 
 

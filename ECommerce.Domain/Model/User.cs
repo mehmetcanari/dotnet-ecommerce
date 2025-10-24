@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Domain.Model;
 
-public class User : IdentityUser
+public class User : IdentityUser<Guid>
 {
     public required string Name { get; set; }
     public required string Surname { get; set; }
@@ -13,8 +13,8 @@ public class User : IdentityUser
     public required string ZipCode { get; set; }
     public required string Address { get; set; }
     public required DateTime DateOfBirth { get; init; }
-    public DateTime UserCreated { get; init; } = DateTime.UtcNow;
-    public DateTime UserUpdated { get; set; }
+    public DateTime CreatedOn { get; init; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
     public bool IsBanned
     {
         get
@@ -27,9 +27,9 @@ public class User : IdentityUser
             return false;
         }
     }
-    public DateTime? BannedAt { get; set; }
-    public DateTime? BannedUntil { get; set; }
-    public string? BanReason { get; set; }
+    public DateTime? BannedAt { get; private set; }
+    public DateTime? BannedUntil { get; private set; }
+    public string? BanReason { get; private set; }
 
     public void BanAccount(DateTime until, string reason)
     {

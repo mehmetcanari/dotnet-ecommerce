@@ -20,7 +20,7 @@ public class ProductController(IMediator _mediator, IProductService _productServ
     [HttpGet("{id}")]
     [ValidateId]
     [Authorize]
-    public async Task<IActionResult> GetProductById([FromRoute] int id) => HandleResult(await _mediator.Send(new GetProductByIdQuery { ProductId = id }));
+    public async Task<IActionResult> GetProductById([FromRoute] Guid id) => HandleResult(await _mediator.Send(new GetProductByIdQuery { Id = id }));
 
     [HttpPost("create")]
     [Authorize("Admin")]
@@ -34,12 +34,12 @@ public class ProductController(IMediator _mediator, IProductService _productServ
     [Authorize("Admin")]
     [HttpPut("update/{id}")]
     [ValidateId]
-    public async Task<IActionResult> UpdateProduct([FromRoute] int id, [FromBody] ProductUpdateRequestDto productUpdateRequestRequest) => HandleResult(await _productService.UpdateProductAsync(id, productUpdateRequestRequest));
+    public async Task<IActionResult> UpdateProduct([FromRoute] Guid id, [FromBody] ProductUpdateRequestDto productUpdateRequestRequest) => HandleResult(await _productService.UpdateProductAsync(id, productUpdateRequestRequest));
 
     [Authorize("Admin")]
     [HttpDelete("delete/{id}")]
     [ValidateId]
-    public async Task<IActionResult> DeleteProduct([FromRoute] int id) => HandleResult(await _productService.DeleteProductAsync(id));
+    public async Task<IActionResult> DeleteProduct([FromRoute] Guid id) => HandleResult(await _productService.DeleteProductAsync(id));
 
     [HttpGet("search")]
     [Authorize]

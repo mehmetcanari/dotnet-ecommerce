@@ -8,7 +8,7 @@ namespace ECommerce.Application.Commands.Category;
 
 public class DeleteCategoryCommand : IRequest<Result>
 {
-    public required int CategoryId { get; set; }
+    public required Guid Id { get; set; }
 }
 
 public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryCommand, Result>
@@ -41,17 +41,17 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.ErrorDeletingCategory, request.CategoryId);
+            _logger.LogError(ex, ErrorMessages.ErrorDeletingCategory, request.Id);
             return Result.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
     private async Task<Result<Domain.Model.Category>> ValidateAndGetCategory(DeleteCategoryCommand request)
     {
-        var category = await _categoryRepository.GetCategoryById(request.CategoryId);
+        var category = await _categoryRepository.GetCategoryById(request.Id);
         if (category == null)
         {
-            _logger.LogWarning(ErrorMessages.CategoryNotFound, request.CategoryId);
+            _logger.LogWarning(ErrorMessages.CategoryNotFound, request.Id);
             return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
         }
 
@@ -61,6 +61,6 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
     private void DeleteCategory(Domain.Model.Category category)
     {
         _categoryRepository.Delete(category);
-        _logger.LogInformation(ErrorMessages.CategoryDeleted, category.CategoryId, category.Name);
+        _logger.LogInformation(ErrorMessages.CategoryDeleted, category.Id, category.Name);
     }
 }

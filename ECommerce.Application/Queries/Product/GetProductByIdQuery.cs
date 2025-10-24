@@ -9,7 +9,7 @@ namespace ECommerce.Application.Queries.Product;
 
 public class GetProductByIdQuery : IRequest<Result<ProductResponseDto>>
 {
-    public int ProductId { get; set; }
+    public required Guid Id { get; set; }
 }
 
 public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Result<ProductResponseDto>>
@@ -33,16 +33,16 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
     {
         try
         {
-            var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(CacheKeys.ProductById, request.ProductId));
+            var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(CacheKeys.ProductById, request.Id));
             if (cachedProduct != null)
                 return Result<ProductResponseDto>.Success(cachedProduct);
 
-            var product = await _productRepository.GetProductById(request.ProductId);
+            var product = await _productRepository.GetProductById(request.Id);
             if (product == null)
                 return Result<ProductResponseDto>.Failure(ErrorMessages.ProductNotFound);
             
             var productResponse = MapToResponseDto(product);
-            await CacheProduct(request.ProductId, productResponse);
+            await CacheProduct(request.Id, productResponse);
             
             return Result<ProductResponseDto>.Success(productResponse);
         }
@@ -53,7 +53,7 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
         }
     }
 
-    private async Task CacheProduct(int productId, ProductResponseDto productDto)
+    private async Task CacheProduct(Guid productId, ProductResponseDto productDto)
     {
         var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
         await _cacheService.SetAsync(string.Format(CacheKeys.ProductById, productId), productDto, expirationTime);
@@ -61,6 +61,7 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
 
     private static ProductResponseDto MapToResponseDto(Domain.Model.Product product) => new ProductResponseDto
     {
+        Id = product.Id,
         ProductName = product.Name,
         Description = product.Description,
         Price = product.Price,

@@ -8,7 +8,7 @@ namespace ECommerce.Application.Commands.Order;
 
 public class DeleteOrderByIdCommand : IRequest<Result>
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
 }
 
 public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdCommand, Result>
@@ -63,6 +63,6 @@ public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdComm
         _orderRepository.Delete(order);
         await _unitOfWork.Commit();
 
-        _logger.LogInformation(ErrorMessages.OrderDeleted, order.OrderId, order.Status);
+        _logger.LogInformation(ErrorMessages.OrderDeleted, order.Id, order.Status);
     }
 }

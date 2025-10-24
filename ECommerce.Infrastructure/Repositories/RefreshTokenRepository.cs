@@ -35,7 +35,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             var refreshToken = await query
                 .AsNoTracking()
-                .Where(rt => rt.Email == email && rt.Expires > DateTime.UtcNow && rt.Revoked == null)
+                .Where(rt => rt.Email == email && rt.ExpiresAt > DateTime.UtcNow && rt.RevokedAt == null)
                 .FirstOrDefaultAsync(cancellationToken);
             
             return refreshToken;
@@ -54,7 +54,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             var refreshToken = await query
                 .AsNoTracking()
-                .FirstOrDefaultAsync(rt => rt.Token == token && rt.Expires > DateTime.UtcNow && rt.Revoked == null, cancellationToken);
+                .FirstOrDefaultAsync(rt => rt.Token == token && rt.ExpiresAt > DateTime.UtcNow && rt.RevokedAt == null, cancellationToken);
 
             return refreshToken;
         }
@@ -85,7 +85,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
             var expiredTokens = await query
                 .AsNoTracking()
-                .Where(rt => rt.Expires < DateTime.UtcNow || rt.Revoked != null)
+                .Where(rt => rt.ExpiresAt < DateTime.UtcNow || rt.RevokedAt != null)
                 .ToListAsync(cancellationToken);
 
             _context.RefreshTokens.RemoveRange(expiredTokens);

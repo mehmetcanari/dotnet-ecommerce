@@ -29,7 +29,7 @@ public class ProductSearchService : IProductSearchService
                     return Result.Failure($"Failed to create index: {createIndexResponse.ElasticsearchServerError?.Error?.Reason}");
             }
 
-            var response = await _elasticClient.IndexAsync(product, ProductIndexName, i => i.Id(product.ProductId.ToString()));
+            var response = await _elasticClient.IndexAsync(product, ProductIndexName, i => i.Id(product.Id.ToString()));
             if (!response.IsValidResponse)
                 return Result.Failure($"Failed to index product: {response.ElasticsearchServerError?.Error?.Reason}");
 
@@ -117,7 +117,7 @@ public class ProductSearchService : IProductSearchService
                 return Result.Failure("Product cannot be null");
             }
 
-            var response = await _elasticClient.UpdateAsync<Domain.Model.Product, Domain.Model.Product>(ProductIndexName, product.ProductId.ToString(), u => u.Doc(product));
+            var response = await _elasticClient.UpdateAsync<Domain.Model.Product, Domain.Model.Product>(ProductIndexName, product.Id.ToString(), u => u.Doc(product));
             if (!response.IsValidResponse)
             {
                 return Result.Failure($"Failed to update product: {response.ElasticsearchServerError?.Error?.Reason}");

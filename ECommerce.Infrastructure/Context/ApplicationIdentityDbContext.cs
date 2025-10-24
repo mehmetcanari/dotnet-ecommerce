@@ -6,20 +6,21 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace ECommerce.Infrastructure.Context;
 
-public class ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) 
-    : IdentityDbContext<User>(options)
+public class ApplicationIdentityDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
+    public ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) : base(options){}
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         
         builder.Entity<User>().ToTable("Users", "Identity");
         builder.Entity<IdentityRole>().ToTable("Roles", "Identity");
-        builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles", "Identity");
-        builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims", "Identity");
-        builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins", "Identity");
-        builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "Identity");
-        builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "Identity");
+        builder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles", "Identity");
+        builder.Entity<IdentityUserClaim<Guid>>().ToTable("UserClaims", "Identity");
+        builder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins", "Identity");
+        builder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims", "Identity");
+        builder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens", "Identity");
     }
 }
 

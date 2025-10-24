@@ -9,7 +9,7 @@ namespace ECommerce.Application.Commands.Account;
 
 public class DeleteAccountCommand : IRequest<Result>
 {
-    public required string UserId { get; set; }
+    public required Guid UserId { get; set; }
 }
 
 public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand, Result>

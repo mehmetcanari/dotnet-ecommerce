@@ -9,8 +9,8 @@ namespace ECommerce.Application.Commands.Order;
 
 public class UpdateOrderStatusCommand : IRequest<Result>
 {
-    public required string UserId { get; set; }
-    public required UpdateOrderStatusRequestDto Request { get; set; }
+    public required UpdateOrderStatusRequestDto Model { get; set; }
+    public required Guid UserId { get; set; }
 }
 
 public class UpdateOrderStatusByAccountIdCommandHandler : IRequestHandler<UpdateOrderStatusCommand, Result>
@@ -35,7 +35,7 @@ public class UpdateOrderStatusByAccountIdCommandHandler : IRequestHandler<Update
             if (orderResult.Data is null)
                 return Result.Failure(ErrorMessages.OrderNotFound);
             
-            UpdateOrderStatus(orderResult.Data, request.Request.Status);
+            UpdateOrderStatus(orderResult.Data, request.Model.Status);
             return Result.Success();
         }
         catch (Exception ex)
@@ -45,7 +45,7 @@ public class UpdateOrderStatusByAccountIdCommandHandler : IRequestHandler<Update
         }
     }
 
-    private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(string userId)
+    private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(Guid userId)
     {
         var order = await _orderRepository.GetOrderByAccountId(userId);
         if (order == null)

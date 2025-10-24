@@ -46,7 +46,7 @@ public class IyzicoPaymentService : IPaymentService
                 _logger.LogWarning(ErrorMessages.PaymentFailed, payment.ErrorMessage);
                 return Result<Iyzipay.Model.Payment>.Failure(payment.ErrorMessage ?? ErrorMessages.PaymentFailed);
             }
-            await _notificationService.CreateNotificationAsync("Payment Success", $"Payment successful for order {order.OrderId}" + $"Total price: {payment.Price}", NotificationType.Payment);
+            await _notificationService.CreateNotificationAsync("Payment Success", $"Payment successful for order {order.Id}" + $"Total price: {payment.Price}", NotificationType.Payment);
             return Result<Iyzipay.Model.Payment>.Success(payment);
         }
         catch (Exception ex)
@@ -64,7 +64,7 @@ public class IyzicoPaymentService : IPaymentService
         PaidPrice = CalculateTotalPrice(basketItems),
         Currency = Currency.TRY.ToString(),
         Installment = 1,
-        BasketId = order.OrderId.ToString(),
+        BasketId = order.Id.ToString(),
         PaymentChannel = nameof(PaymentChannel.WEB),
         PaymentGroup = nameof(PaymentGroup.PRODUCT),
         PaymentCard = MapToIyzicoPaymentCard(paymentCard),
@@ -88,7 +88,7 @@ public class IyzicoPaymentService : IPaymentService
 
     private Iyzipay.Model.Buyer MapToIyzicoBuyer(Domain.Model.Buyer buyer) => new Iyzipay.Model.Buyer
     {
-        Id = buyer.Id,
+        Id = buyer.Id.ToString(),
         Name = buyer.Name,
         Surname = buyer.Surname,
         GsmNumber = buyer.GsmNumber,

@@ -43,7 +43,7 @@ public class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery, Resul
     {
         UserId = order.UserId,
         BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
-        OrderDate = order.OrderDate,
+        OrderDate = order.CreatedOn,
         ShippingAddress = order.ShippingAddress,
         BillingAddress = order.BillingAddress,
         Status = order.Status

@@ -36,7 +36,7 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<List<Order>> GetAccountPendingOrders(string accountId, CancellationToken cancellationToken = default)
+    public async Task<List<Order>> GetAccountPendingOrders(Guid accountId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -55,13 +55,13 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<Order> GetOrderById(int id, CancellationToken cancellationToken = default)
+    public async Task<Order> GetOrderById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
             var order = await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.OrderId == id)
+                .Where(o => o.Id == id)
                 .Include(o => o.BasketItems)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -73,7 +73,7 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<Order> GetOrderByAccountId(string userId, CancellationToken cancellationToken = default)
+    public async Task<Order> GetOrderByAccountId(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -90,7 +90,7 @@ public class OrderRepository : IOrderRepository
         }
     }
     
-    public async Task<List<Order>> GetAccountOrders(string userId, CancellationToken cancellationToken = default)
+    public async Task<List<Order>> GetAccountOrders(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -101,7 +101,7 @@ public class OrderRepository : IOrderRepository
                 .Include(o => o.BasketItems)
                 .Where(o => o.UserId == userId)
                 .Where(o => o.BasketItems.Any(oi => oi.IsOrdered))
-                .OrderByDescending(o => o.OrderDate)
+                .OrderByDescending(o => o.CreatedOn)
                 .ToListAsync(cancellationToken);
 
             return orders;

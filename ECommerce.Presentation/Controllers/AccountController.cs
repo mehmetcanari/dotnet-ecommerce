@@ -25,12 +25,12 @@ public class AccountController(IMediator _mediator, IAccountService _accountServ
     [Authorize("Admin")]
     [HttpGet("{id}")]
     [ValidateId]
-    public async Task<IActionResult> GetAccountById([FromRoute] string id) => HandleResult(await _mediator.Send(new GetAccountWithIdQuery { UserId = id }));
+    public async Task<IActionResult> GetAccountById([FromRoute] Guid id) => HandleResult(await _mediator.Send(new GetAccountWithIdQuery { UserId = id }));
 
     [Authorize("Admin")]
     [HttpDelete("delete/{id}")]
     [ValidateId]
-    public async Task<IActionResult> DeleteAccount([FromRoute] string id) => HandleResult(await _mediator.Send(new DeleteAccountCommand { UserId = id }));
+    public async Task<IActionResult> DeleteAccount([FromRoute] Guid id) => HandleResult(await _mediator.Send(new DeleteAccountCommand { UserId = id }));
     [Authorize("Admin")]
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] TokenRevokeRequestDto request) => HandleResult(await _refreshTokenService.RevokeUserTokens(request));

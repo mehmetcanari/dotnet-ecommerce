@@ -53,7 +53,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<User> GetAccountById(string userId, CancellationToken cancellationToken = default)
+    public async Task<User> GetAccountById(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {

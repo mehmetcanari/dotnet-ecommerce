@@ -18,7 +18,7 @@ public class AccessTokenService : IAccessTokenService
         _logger = logger;
     }
 
-    public Result<AccessToken> GenerateAccessTokenAsync(string userId, string email, IList<string> roles)
+    public Result<AccessToken> GenerateAccessTokenAsync(Guid userId, string email, IList<string> roles)
     {
         try
         {
@@ -39,7 +39,7 @@ public class AccessTokenService : IAccessTokenService
         }
     }
 
-    private string GenerateAccessJwtToken(string userId, string email, IList<string> roles)
+    private string GenerateAccessJwtToken(Guid userId, string email, IList<string> roles)
     {
         var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET");
         var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
@@ -52,7 +52,7 @@ public class AccessTokenService : IAccessTokenService
 
             var claims = new List<Claim>
             {
-                new(NameIdentifier, userId),
+                new(NameIdentifier, userId.ToString()),
                 new(Email, email),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new("tokenType", "access")

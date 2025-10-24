@@ -72,11 +72,11 @@ public class OrderService : BaseValidator, IOrderService
             await _storeUnitOfWork.BeginTransactionAsync();
             
             var paymentResult = await _paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
-            if (paymentResult.Data != null && paymentResult.Data.Status != "success")
+            if (paymentResult.IsFailure == true && paymentResult.Message is not null)
             {
-                _logger.LogWarning(ErrorMessages.PaymentFailed, paymentResult.Data.ErrorCode, paymentResult.Data.ErrorMessage);
+                _logger.LogWarning(ErrorMessages.PaymentFailed, paymentResult.Message);
                 await _storeUnitOfWork.RollbackTransaction();
-                return Result.Failure($"{ErrorMessages.PaymentFailed}: {paymentResult.Data.ErrorMessage}");
+                return Result.Failure($"{ErrorMessages.PaymentFailed}: {paymentResult.Message}");
             }
 
             await _orderRepository.Create(order);
@@ -85,12 +85,12 @@ public class OrderService : BaseValidator, IOrderService
             await _productService.UpdateProductStockAsync(basketItems);
             await _messageBroker.PublishAsync(new OrderCreatedEvent
             {
-                OrderId = order.OrderId,
+                Id = order.Id,
                 UserId = order.UserId,
                 TotalPrice = order.BasketItems.Sum(bi => bi.Quantity * bi.UnitPrice),
                 ShippingAddress = order.ShippingAddress,
                 BillingAddress = order.BillingAddress,
-                OrderDate = DateTime.UtcNow,
+                CreatedOn = DateTime.UtcNow,
                 Status = order.Status
             }, "order_exchange", "order.created");
 
@@ -162,7 +162,7 @@ public class OrderService : BaseValidator, IOrderService
         RegisterCard = orderCreateRequestDto.PaymentCard.RegisterCard
     };
 
-    private Domain.Model.Order CreateOrder(string userId, string address, List<Domain.Model.BasketItem> basketItems) => new Domain.Model.Order
+    private Domain.Model.Order CreateOrder(Guid userId, string address, List<Domain.Model.BasketItem> basketItems) => new Domain.Model.Order
     {
         UserId = userId,
         ShippingAddress = address,
@@ -194,7 +194,7 @@ public class OrderService : BaseValidator, IOrderService
         ZipCode = account.ZipCode
     };
 
-    public async Task<Result> UpdateOrderStatus(string userId, UpdateOrderStatusRequestDto orderUpdateRequestDto)
+    public async Task<Result> UpdateOrderStatus(Guid userId, UpdateOrderStatusRequestDto orderUpdateRequestDto)
     {
         try
         {
@@ -205,7 +205,7 @@ public class OrderService : BaseValidator, IOrderService
             var result = await _mediator.Send(new UpdateOrderStatusCommand 
             {
                 UserId = userId,
-                Request = orderUpdateRequestDto
+                Model = orderUpdateRequestDto
             });
 
             if (result is { IsFailure: true, Message: not null})

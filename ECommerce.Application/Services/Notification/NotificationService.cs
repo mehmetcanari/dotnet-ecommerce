@@ -126,7 +126,7 @@ public class NotificationService : INotificationService
             if (account.Data == null)
                 return Result<int>.Failure(ErrorMessages.AccountNotFound);
 
-            var count = await _notificationRepository.GetUnreadCountAsync(account.Data.Id.ToString());
+            var count = await _notificationRepository.GetUnreadCountAsync(account.Data.Id);
             if (count == 0)
                 return Result<int>.Failure(ErrorMessages.NoUnreadNotifications);
 
@@ -139,7 +139,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<Result<bool>> MarkAsReadAsync(int notificationId)
+    public async Task<Result<bool>> MarkAsReadAsync(Guid notificationId)
     {
         try
         {
@@ -183,7 +183,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<Result<bool>> DeleteNotificationAsync(int notificationId)
+    public async Task<Result<bool>> DeleteNotificationAsync(Guid notificationId)
     {
         try
         {

@@ -1,7 +1,6 @@
 namespace ECommerce.Domain.Model;
-public class Buyer
+public class Buyer : BaseEntity
 {
-    public required string Id { get; init; }
     public required string Name { get; set; }
     public required string Surname { get; set; }
     public required string Email { get; set; }

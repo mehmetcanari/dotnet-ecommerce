@@ -43,6 +43,7 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
 
             var elasticProductResponse = Result<List<ProductResponseDto>>.Success(result.Hits.Select(d => new ProductResponseDto
             {
+                Id = d.Source.Id,
                 ProductName = d.Source.Name,
                 Description = d.Source.Description,
                 Price = d.Source.Price,

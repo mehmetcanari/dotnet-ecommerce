@@ -38,7 +38,7 @@ public class CategoryService : BaseValidator, ICategoryService
             
             var commandResult = await _mediator.Send(new CreateCategoryCommand
             {
-                CreateCategoryRequestDto = request
+                Model = request
             });
 
             if (commandResult is { IsSuccess: false, Message: not null })
@@ -55,13 +55,13 @@ public class CategoryService : BaseValidator, ICategoryService
         }
     }
 
-    public async Task<Result> DeleteCategoryAsync(int categoryId)
+    public async Task<Result> DeleteCategoryAsync(Guid categoryId)
     {
         try
         {
             var result = await _mediator.Send(new DeleteCategoryCommand
             {
-                CategoryId = categoryId
+                Id = categoryId
             });
 
             if (result is { IsSuccess: false, Message: not null })
@@ -78,7 +78,7 @@ public class CategoryService : BaseValidator, ICategoryService
         }
     }
 
-    public async Task<Result> UpdateCategoryAsync(int categoryId, UpdateCategoryRequestDto request)
+    public async Task<Result> UpdateCategoryAsync(Guid categoryId, UpdateCategoryRequestDto request)
     {
         try
         {
@@ -90,8 +90,7 @@ public class CategoryService : BaseValidator, ICategoryService
             
             var commandResult = await _mediator.Send(new UpdateCategoryCommand
             {
-                CategoryId = categoryId,
-                UpdateCategoryRequestDto = request
+                Model = request
             });
             
             if (commandResult is { IsSuccess: false, Message: not null })
@@ -115,7 +114,7 @@ public class CategoryService : BaseValidator, ICategoryService
             var categories = await _categoryRepository.Read();
             foreach (var category in categories)
             {
-                await _cacheService.RemoveAsync(string.Format(CacheKeys.CategoryById, category.CategoryId));
+                await _cacheService.RemoveAsync(string.Format(CacheKeys.CategoryById, category.Id));
             }
         }
         catch (Exception ex)

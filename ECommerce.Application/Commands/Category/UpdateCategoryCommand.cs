@@ -9,8 +9,7 @@ namespace ECommerce.Application.Commands.Category;
 
 public class UpdateCategoryCommand : IRequest<Result>
 {
-    public required int CategoryId { get; set; }
-    public required UpdateCategoryRequestDto UpdateCategoryRequestDto { get; set; }
+    public required UpdateCategoryRequestDto Model { get; set; }
 }
 
 public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result>
@@ -45,14 +44,14 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.ErrorUpdatingCategory, request.CategoryId);
+            _logger.LogError(ex, ErrorMessages.ErrorUpdatingCategory, request.Model.Id);
             return Result.Failure(ErrorMessages.ErrorUpdatingCategory);
         }
     }
 
     private async Task<Result<Domain.Model.Category>> ValidateAndGetCategory(UpdateCategoryCommand request)
     {
-        var category = await _categoryRepository.GetCategoryById(request.CategoryId);
+        var category = await _categoryRepository.GetCategoryById(request.Model.Id);
         if (category == null)
         {
             return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
@@ -63,7 +62,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
 
     private async Task<Result> ValidateCategoryName(UpdateCategoryCommand request)
     {
-        var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.UpdateCategoryRequestDto.Name);
+        var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.Model.Name);
         if (categoryExists)
         {
             return Result.Failure(ErrorMessages.CategoryExists);
@@ -74,8 +73,8 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
 
     private void UpdateCategory(Domain.Model.Category category, UpdateCategoryCommand request)
     {
-        category.Name = request.UpdateCategoryRequestDto.Name;
-        category.Description = request.UpdateCategoryRequestDto.Description;
+        category.Name = request.Model.Name;
+        category.Description = request.Model.Description;
 
         _categoryRepository.Update(category);
     }

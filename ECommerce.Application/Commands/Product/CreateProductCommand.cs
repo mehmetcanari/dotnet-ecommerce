@@ -11,7 +11,7 @@ namespace ECommerce.Application.Commands.Product;
 
 public class CreateProductCommand : IRequest<Result>
 {
-    public required ProductCreateRequestDto ProductCreateRequest { get; set; }
+    public required ProductCreateRequestDto Model { get; set; }
 }
 
 public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Result>
@@ -38,35 +38,35 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     {
         try
         {
-            var productValidationResult = await ValidateProductCreateRequest(request.ProductCreateRequest);
+            var productValidationResult = await ValidateProductCreateRequest(request.Model);
             if (productValidationResult.IsFailure && productValidationResult.Message is not null)
             {
                 return Result.Failure(productValidationResult.Message);
             }
 
-            var categoryValidationResult = await ValidateCategory(request.ProductCreateRequest.CategoryId);
+            var categoryValidationResult = await ValidateCategory(request.Model.CategoryId);
             if (categoryValidationResult.IsFailure && categoryValidationResult.Message is not null)
             {
                 return Result.Failure(categoryValidationResult.Message);
             }
 
-            var product = CreateProductEntity(request.ProductCreateRequest);
+            var product = CreateProductEntity(request.Model);
             await _productRepository.Create(product);
             
             await _unitOfWork.Commit();
 
             var domainEvent = new ProductCreatedEvent
             {
-                ProductId = product.ProductId,
+                ProductId = product.Id,
                 Name = product.Name,
                 Description = product.Description,
                 Price = product.Price,
                 DiscountRate = product.DiscountRate,
-                ImageUrl = product.ImageUrl,
+                ImageUrl = product.ImageUrl ?? string.Empty,
                 StockQuantity = product.StockQuantity,
                 CategoryId = product.CategoryId,
-                ProductCreated = product.ProductCreated,
-                ProductUpdated = product.ProductUpdated
+                ProductCreated = product.CreatedOn,
+                ProductUpdated = product.UpdatedOn
             };
 
             await _mediator.Publish(domainEvent, cancellationToken);
@@ -92,7 +92,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         return Result.Success();
     }
 
-    private async Task<Result<Domain.Model.Category>> ValidateCategory(int categoryId)
+    private async Task<Result<Domain.Model.Category>> ValidateCategory(Guid categoryId)
     {
         var category = await _categoryRepository.GetCategoryById(categoryId);
         if (category is null)
@@ -114,8 +114,6 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             DiscountRate = request.DiscountRate,
             ImageUrl = request.ImageUrl,
             StockQuantity = request.StockQuantity,
-            ProductCreated = DateTime.UtcNow.ToLocalTime(),
-            ProductUpdated = DateTime.UtcNow.ToLocalTime(),
             CategoryId = request.CategoryId
         };
 

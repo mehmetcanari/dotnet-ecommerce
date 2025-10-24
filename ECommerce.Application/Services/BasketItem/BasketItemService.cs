@@ -45,7 +45,7 @@ public class BasketItemService : BaseValidator, IBasketItemService
 
             await ClearBasketItemsCacheAsync();
             
-            var result = await _mediator.Send(new CreateBasketItemCommand { CreateBasketItemRequestDto = createBasketItemRequestDto });
+            var result = await _mediator.Send(new CreateBasketItemCommand { Model = createBasketItemRequestDto });
             if (result is { IsSuccess: false, Message: not null })
             {
                 _logger.LogWarning(ErrorMessages.ErrorAddingItemToBasket, result.Message);
@@ -70,7 +70,7 @@ public class BasketItemService : BaseValidator, IBasketItemService
             if (validationResult is { IsSuccess: false, Message: not null }) 
                 return Result.Failure(validationResult.Message);
 
-            var result = await _mediator.Send(new UpdateBasketItemCommand { UpdateBasketItemRequestDto = updateBasketItemRequestDto });
+            var result = await _mediator.Send(new UpdateBasketItemCommand { Model = updateBasketItemRequestDto });
             if (result is { IsSuccess: false, Message: not null })
             {
                 _logger.LogWarning(ErrorMessages.ErrorUpdatingBasketItem, result.Message);
@@ -112,7 +112,7 @@ public class BasketItemService : BaseValidator, IBasketItemService
     {
         try
         {
-            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItemIncludeSpecificProduct(updatedProduct.ProductId);
+            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItemIncludeSpecificProduct(updatedProduct.Id);
             if (nonOrderedBasketItems == null || nonOrderedBasketItems.Count == 0)
                 return;
 

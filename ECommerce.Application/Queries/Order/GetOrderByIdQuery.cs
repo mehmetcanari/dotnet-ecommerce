@@ -10,7 +10,7 @@ namespace ECommerce.Application.Queries.Order;
 
 public class GetOrderByIdQuery : IRequest<Result<OrderResponseDto>>
 {
-    public int OrderId { get; set; }
+    public required Guid Id { get; set; }
 }
 
 public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Result<OrderResponseDto>>
@@ -28,7 +28,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
     {
         try
         {
-            var order = await _orderRepository.GetOrderById(request.OrderId);
+            var order = await _orderRepository.GetOrderById(request.Id);
             if (order == null)
                 return Result<OrderResponseDto>.Failure(ErrorMessages.OrderNotFound);
 
@@ -46,7 +46,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
     {
         UserId = order.UserId,
         BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
-        OrderDate = order.OrderDate,
+        OrderDate = order.CreatedOn,
         ShippingAddress = order.ShippingAddress,
         BillingAddress = order.BillingAddress,
         Status = order.Status

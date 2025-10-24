@@ -171,7 +171,7 @@ public class AuthenticationService : BaseValidator, IAuthService
                     return Result<AuthResponseDto>.Failure(ErrorMessages.IdentityUserNotFound);
             }
 
-            var authResponseDto = await RequestGenerateTokensAsync(userId, email, roles);
+            var authResponseDto = await RequestGenerateTokensAsync(Guid.Parse(userId), email, roles);
             if(authResponseDto.IsFailure && authResponseDto.Message is not null)
                 return Result<AuthResponseDto>.Failure(authResponseDto.Message);
 
@@ -187,7 +187,7 @@ public class AuthenticationService : BaseValidator, IAuthService
         }
     }
 
-    private async Task<Result<AuthResponseDto>> RequestGenerateTokensAsync(string userId, string email, IList<string> roles)
+    private async Task<Result<AuthResponseDto>> RequestGenerateTokensAsync(Guid userId, string email, IList<string> roles)
     {
         try
         {

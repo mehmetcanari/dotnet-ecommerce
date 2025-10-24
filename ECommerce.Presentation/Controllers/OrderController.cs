@@ -32,15 +32,15 @@ public class OrderController(IOrderService _orderService, IMediator _mediator) :
     [Authorize("Admin")]
     [HttpGet("{id}")]
     [ValidateId]
-    public async Task<IActionResult> GetOrderById([FromRoute] int id) => HandleResult(await _mediator.Send(new GetOrderByIdQuery { OrderId = id }));
+    public async Task<IActionResult> GetOrderById([FromRoute] Guid id) => HandleResult(await _mediator.Send(new GetOrderByIdQuery { Id = id }));
 
     [Authorize("Admin")]
     [HttpDelete("delete/{id}")]
     [ValidateId]
-    public async Task<IActionResult> DeleteOrder([FromRoute] int id) => HandleResult(await _mediator.Send(new DeleteOrderByIdCommand { Id = id }));
+    public async Task<IActionResult> DeleteOrder([FromRoute] Guid id) => HandleResult(await _mediator.Send(new DeleteOrderByIdCommand { Id = id }));
 
     [Authorize("Admin")]
     [HttpPut("update/{id}")]
     [ValidateId]
-    public async Task<IActionResult> UpdateOrderStatus([FromRoute] string id, [FromBody] UpdateOrderStatusRequestDto orderUpdateRequestDto) => HandleResult(await _orderService.UpdateOrderStatus(id, orderUpdateRequestDto));
+    public async Task<IActionResult> UpdateOrderStatus([FromRoute] Guid id, [FromBody] UpdateOrderStatusRequestDto orderUpdateRequestDto) => HandleResult(await _orderService.UpdateOrderStatus(id, orderUpdateRequestDto));
 }

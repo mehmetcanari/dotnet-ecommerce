@@ -8,17 +8,17 @@ using Microsoft.EntityFrameworkCore;
 
 public class RegisterUserCommand : IRequest<Result<ECommerce.Domain.Model.User>>
 {
-    public required AccountRegisterRequestDto AccountRegisterRequestDto { get; set; }
+    public required AccountRegisterRequestDto Model { get; set; }
     public required string Role { get; set; }
 }
 
 public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Result<ECommerce.Domain.Model.User>>
 {
     private readonly UserManager<ECommerce.Domain.Model.User> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly IAccountRepository _accountRepository;
 
-    public RegisterUserCommandHandler(UserManager<ECommerce.Domain.Model.User> userManager, RoleManager<IdentityRole> roleManager, IAccountRepository accountRepository)
+    public RegisterUserCommandHandler(UserManager<ECommerce.Domain.Model.User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IAccountRepository accountRepository)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -27,27 +27,27 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, R
 
     public async Task<Result<ECommerce.Domain.Model.User>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        var existingUserByIdentity = await _userManager.Users.AnyAsync(u => u.IdentityNumber == request.AccountRegisterRequestDto.IdentityNumber, cancellationToken);
+        var existingUserByIdentity = await _userManager.Users.AnyAsync(u => u.IdentityNumber == request.Model.IdentityNumber, cancellationToken);
 
         if (existingUserByIdentity)
             return Result<ECommerce.Domain.Model.User>.Failure(ErrorMessages.IdentityNumberAlreadyExists);
 
         var user = new ECommerce.Domain.Model.User
         {
-            UserName = request.AccountRegisterRequestDto.Email,
-            Email = request.AccountRegisterRequestDto.Email,
-            PhoneNumber = request.AccountRegisterRequestDto.PhoneNumber,
-            Name = request.AccountRegisterRequestDto.Name,
-            Surname = request.AccountRegisterRequestDto.Surname,
-            IdentityNumber = request.AccountRegisterRequestDto.IdentityNumber,
-            City = request.AccountRegisterRequestDto.City,
-            Country = request.AccountRegisterRequestDto.Country,
-            ZipCode = request.AccountRegisterRequestDto.ZipCode,
-            Address = request.AccountRegisterRequestDto.Address,
-            DateOfBirth = request.AccountRegisterRequestDto.DateOfBirth.ToUniversalTime(),
+            UserName = request.Model.Email,
+            Email = request.Model.Email,
+            PhoneNumber = request.Model.PhoneNumber,
+            Name = request.Model.Name,
+            Surname = request.Model.Surname,
+            IdentityNumber = request.Model.IdentityNumber,
+            City = request.Model.City,
+            Country = request.Model.Country,
+            ZipCode = request.Model.ZipCode,
+            Address = request.Model.Address,
+            DateOfBirth = request.Model.DateOfBirth.ToUniversalTime(),
         };
 
-        var userManagerCreateResult = await _userManager.CreateAsync(user, request.AccountRegisterRequestDto.Password);
+        var userManagerCreateResult = await _userManager.CreateAsync(user, request.Model.Password);
         if (!userManagerCreateResult.Succeeded)
         {
             var errors = userManagerCreateResult.Errors.Select(e => e.Description).Aggregate((a, b) => a + ", " + b);
@@ -69,7 +69,7 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, R
     {
         if (!await _roleManager.RoleExistsAsync(role))
         {
-            var roleResult = await _roleManager.CreateAsync(new IdentityRole(role));
+            var roleResult = await _roleManager.CreateAsync(new IdentityRole<Guid>(role));
             if (!roleResult.Succeeded)
             {
                 return Result.Failure(ErrorMessages.ErrorCreatingRole);

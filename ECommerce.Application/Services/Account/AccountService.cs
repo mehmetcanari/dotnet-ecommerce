@@ -33,7 +33,7 @@ public class AccountService : BaseValidator, IAccountService
         {
             var accountResult = await _mediator.Send(new RegisterUserCommand
             {
-                AccountRegisterRequestDto = createUserRequestDto,
+                Model = createUserRequestDto,
                 Role = role
             });
 
@@ -76,7 +76,7 @@ public class AccountService : BaseValidator, IAccountService
 
             var result = await _mediator.Send(new BanAccountCommand 
             {
-                AccountBanRequestDto = request
+                Model = request
             });
             
             if (result is { IsFailure: true, Message: not null })
@@ -102,7 +102,7 @@ public class AccountService : BaseValidator, IAccountService
 
             var result = await _mediator.Send(new UnbanAccountCommand
             {
-                AccountUnbanRequestDto = request
+                Model = request
             });
 
             if (result is { IsFailure: true, Message: not null })

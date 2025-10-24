@@ -1,6 +1,5 @@
 using MongoDB.Driver;
 using Microsoft.Extensions.Configuration;
-using ECommerce.Domain.Model;
 
 namespace ECommerce.Infrastructure.Context;
 
@@ -20,21 +19,5 @@ public class MongoDbContext
     public virtual IMongoCollection<T> GetCollection<T>(string collectionName)
     {
         return _database.GetCollection<T>(collectionName);
-    }
-
-    public virtual async Task<int> GetNextSequenceValue(string sequenceName)
-    {
-        var counters = GetCollection<Counter>("counters");
-        
-        var filter = Builders<Counter>.Filter.Eq(c => c.Id, sequenceName);
-        var update = Builders<Counter>.Update.Inc(c => c.SequenceValue, 1);
-        var options = new FindOneAndUpdateOptions<Counter>
-        {
-            IsUpsert = true,
-            ReturnDocument = ReturnDocument.After
-        };
-
-        var result = await counters.FindOneAndUpdateAsync(filter, update, options);
-        return result.SequenceValue;
     }
 } 

@@ -9,7 +9,7 @@ namespace ECommerce.Application.Commands.Category;
 
 public class CreateCategoryCommand : IRequest<Result>
 {
-    public required CreateCategoryRequestDto CreateCategoryRequestDto { get; set; }
+    public required CreateCategoryRequestDto Model { get; set; }
 }
 
 public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, Result>
@@ -46,10 +46,10 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
     private async Task<Result> ValidateCategoryName(CreateCategoryCommand request)
     {
 
-        var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.CreateCategoryRequestDto.Name);
+        var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.Model.Name);
         if (categoryExists)
         {
-            _logger.LogWarning(ErrorMessages.CategoryExists, request.CreateCategoryRequestDto.Name);
+            _logger.LogWarning(ErrorMessages.CategoryExists, request.Model.Name);
             return Result.Failure(ErrorMessages.CategoryExists);
         }
 
@@ -60,8 +60,8 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
     {
         return new Domain.Model.Category
         {
-            Name = request.CreateCategoryRequestDto.Name,
-            Description = request.CreateCategoryRequestDto.Description,
+            Name = request.Model.Name,
+            Description = request.Model.Description,
         };
     }
 

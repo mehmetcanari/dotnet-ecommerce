@@ -10,7 +10,7 @@ namespace ECommerce.Application.Commands.Product;
 
 public class UpdateProductStockCommand : IRequest<Result>
 {
-    public required List<BasketItem> BasketItems { get; set; }
+    public required List<BasketItem> Model { get; set; }
 }
 
 public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductStockCommand, Result>
@@ -32,7 +32,7 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
         {
             var updatedProducts = new List<Domain.Model.Product>();
             
-            foreach (var item in request.BasketItems)
+            foreach (var item in request.Model)
             {
                 var validationResult = await ValidateAndUpdateStock(item);
                 if (!validationResult.result.IsSuccess)
@@ -46,7 +46,7 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
             {
                 var domainEvent = new ProductStockUpdatedEvent
                 {
-                    ProductId = product.ProductId,
+                    ProductId = product.Id,
                     Name = product.Name,
                     Description = product.Description,
                     Price = product.Price,
@@ -54,14 +54,14 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
                     ImageUrl = product.ImageUrl ?? string.Empty,
                     StockQuantity = product.StockQuantity,
                     CategoryId = product.CategoryId,
-                    ProductCreated = product.ProductCreated,
-                    ProductUpdated = product.ProductUpdated
+                    ProductCreated = product.CreatedOn,
+                    ProductUpdated = product.UpdatedOn
                 };
 
                 await _mediator.Publish(domainEvent, cancellationToken);
             }
 
-            _logger.LogInformation(ErrorMessages.UpdateProductStockSuccess, request.BasketItems.Count);
+            _logger.LogInformation(ErrorMessages.UpdateProductStockSuccess, request.Model.Count);
             return Result.Success();
         }
         catch (Exception ex)
@@ -88,9 +88,9 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
     private void UpdateProductStock(Domain.Model.Product product, int quantity)
     {
         product.StockQuantity -= quantity;
-        product.ProductUpdated = DateTime.UtcNow;
-        _productRepository.UpdateStock(product.ProductId, product.StockQuantity);
+        product.UpdatedOn = DateTime.UtcNow;
+        _productRepository.UpdateStock(product.Id, product.StockQuantity);
 
-        _logger.LogInformation(ErrorMessages.UpdateProductStockSuccess, product.ProductId, product.Name, product.StockQuantity);
+        _logger.LogInformation(ErrorMessages.UpdateProductStockSuccess, product.Id, product.Name, product.StockQuantity);
     }
 }

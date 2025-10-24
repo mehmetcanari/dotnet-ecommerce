@@ -10,7 +10,7 @@ namespace ECommerce.Application.Commands.Account;
 
 public class BanAccountCommand : IRequest<Result>
 {
-    public required AccountBanRequestDto AccountBanRequestDto { get; set; }
+    public required AccountBanRequestDto Model { get; set; }
 }
 
 public class BanAccountCommandHandler : IRequestHandler<BanAccountCommand, Result>
@@ -30,19 +30,19 @@ public class BanAccountCommandHandler : IRequestHandler<BanAccountCommand, Resul
     {
         try
         {
-            var account = await _accountRepository.GetAccountByEmail(request.AccountBanRequestDto.Email);
+            var account = await _accountRepository.GetAccountByEmail(request.Model.Email);
             if (account == null)
             {
                 return Result.Failure(ErrorMessages.AccountEmailNotFound);
             }
             
-            var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.AccountBanRequestDto.Email, Reason = ErrorMessages.AccountBanned };
+            var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.Model.Email, Reason = ErrorMessages.AccountBanned };
             await _refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
 
-            account.BanAccount(request.AccountBanRequestDto.Until, request.AccountBanRequestDto.Reason);
+            account.BanAccount(request.Model.Until, request.Model.Reason);
             _accountRepository.Update(account);
 
-            _logger.LogInformation(ErrorMessages.AccountBanned, request.AccountBanRequestDto.Email);
+            _logger.LogInformation(ErrorMessages.AccountBanned, request.Model.Email);
             return Result.Success();
         }
         catch (Exception ex)

@@ -7,17 +7,13 @@ public class BasketItemUpdateValidation : AbstractValidator<UpdateBasketItemRequ
 {
     public BasketItemUpdateValidation()
     {
-        RuleFor(x => x.BasketItemId)
+        RuleFor(x => x.Id)
             .NotEmpty()
-            .WithMessage("Basket Item Id is required.")
-            .GreaterThan(0)
-            .WithMessage("Basket Item Id must be greater than 0.");
-        
+            .WithMessage("Basket Item Id is required.");
+
         RuleFor(x => x.ProductId)
             .NotEmpty()
-            .WithMessage("Product Id is required.")
-            .GreaterThan(0)
-            .WithMessage("Product Id must be greater than 0.");
+            .WithMessage("Product Id is required.");
         
         RuleFor(x => x.Quantity)
             .NotEmpty()

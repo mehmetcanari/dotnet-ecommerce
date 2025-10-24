@@ -10,7 +10,7 @@ namespace ECommerce.Application.Commands.Account;
 
 public class UnbanAccountCommand : IRequest<Result>
 {
-    public required AccountUnbanRequestDto AccountUnbanRequestDto { get; set; }
+    public required AccountUnbanRequestDto Model { get; set; }
 }
 
 public class UnbanAccountCommandHandler : IRequestHandler<UnbanAccountCommand, Result>
@@ -30,7 +30,7 @@ public class UnbanAccountCommandHandler : IRequestHandler<UnbanAccountCommand, R
     {
         try
         {
-            var account = await _accountRepository.GetAccountByEmail(request.AccountUnbanRequestDto.Email);
+            var account = await _accountRepository.GetAccountByEmail(request.Model.Email);
             if (account == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
             
@@ -39,12 +39,12 @@ public class UnbanAccountCommandHandler : IRequestHandler<UnbanAccountCommand, R
 
             var tokenRevokeRequest = new TokenRevokeRequestDto
             {
-                Email = request.AccountUnbanRequestDto.Email, Reason = ErrorMessages.AccountUnrestricted
+                Email = request.Model.Email, Reason = ErrorMessages.AccountUnrestricted
             };
 
             await _refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
 
-            _logger.LogInformation(ErrorMessages.AccountUnrestricted, request.AccountUnbanRequestDto.Email);
+            _logger.LogInformation(ErrorMessages.AccountUnrestricted, request.Model.Email);
             return Result.Success();
         }
         catch (Exception ex)

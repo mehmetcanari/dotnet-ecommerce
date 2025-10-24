@@ -10,7 +10,7 @@ namespace ECommerce.Application.Queries.Category;
 
 public class GetCategoryByIdQuery : IRequest<Result<CategoryResponseDto>>
 {
-    public required int CategoryId { get; set; }
+    public required Guid CategoryId { get; set; }
 }
 
 public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery, Result<CategoryResponseDto>>
@@ -37,21 +37,12 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
             if (cachedCategory != null)
                 return Result<CategoryResponseDto>.Success(cachedCategory);
 
-            var categoryTask = _categoryRepository.GetCategoryById(request.CategoryId);
-            var productsTask = _productRepository.GetProductsByCategoryId(request.CategoryId);
-
-            await Task.WhenAll(categoryTask, productsTask);
-
-            var category = await categoryTask;
-            var categoryProducts = await productsTask;
+            var category = await _categoryRepository.GetCategoryById(request.CategoryId);
 
             if (category == null)
                 return Result<CategoryResponseDto>.Failure(ErrorMessages.CategoryNotFound);
 
-            if (categoryProducts.Count == 0)
-                return Result<CategoryResponseDto>.Failure(ErrorMessages.ProductNotFound);
-
-            var categoryResponseDto = MapToResponseDto(category, categoryProducts);
+            var categoryResponseDto = MapToResponseDto(category);
             await CacheCategory(request.CategoryId, categoryResponseDto);
     
             return Result<CategoryResponseDto>.Success(categoryResponseDto);
@@ -63,39 +54,21 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
         }
     }
 
-    private async Task<CategoryResponseDto?> GetCachedCategory(int categoryId)
+    private async Task<CategoryResponseDto?> GetCachedCategory(Guid categoryId)
     {
         return await _cacheService.GetAsync<CategoryResponseDto>(string.Format(CacheKeys.CategoryById, categoryId));
     }
 
-    private async Task CacheCategory(int categoryId, CategoryResponseDto categoryDto)
+    private async Task CacheCategory(Guid categoryId, CategoryResponseDto categoryDto)
     {
         var expirationTime = TimeSpan.FromMinutes(CacheExpirationMinutes);
         await _cacheService.SetAsync(string.Format(CacheKeys.CategoryById, categoryId), categoryDto, expirationTime);
     }
 
-    private static CategoryResponseDto MapToResponseDto(Domain.Model.Category category, List<Domain.Model.Product> products)
+    private static CategoryResponseDto MapToResponseDto(Domain.Model.Category category) => new CategoryResponseDto
     {
-        return new CategoryResponseDto
-        {
-            CategoryId = category.CategoryId,
-            Name = category.Name,
-            Description = category.Description,
-            Products = products.Select(MapToProductDto).ToList()
-        };
-    }
-
-    private static ProductResponseDto MapToProductDto(Domain.Model.Product product)
-    {
-        return new ProductResponseDto
-        {
-            ProductName = product.Name,
-            Description = product.Description,
-            Price = product.Price,
-            DiscountRate = product.DiscountRate,
-            ImageUrl = product.ImageUrl,
-            StockQuantity = product.StockQuantity,
-            CategoryId = product.CategoryId
-        };
-    }
+        Id = category.Id,
+        Name = category.Name,
+        Description = category.Description,
+    };
 }

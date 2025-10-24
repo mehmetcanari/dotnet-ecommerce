@@ -9,7 +9,7 @@ namespace ECommerce.Application.Queries.Account;
 
 public class GetAccountWithIdQuery : IRequest<Result<AccountResponseDto>>
 {
-    public required string UserId { get; set; }
+    public required Guid UserId { get; set; }
 }
 
 public class GetAccountWithIdQueryHandler : IRequestHandler<GetAccountWithIdQuery, Result<AccountResponseDto>>

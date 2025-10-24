@@ -46,7 +46,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
     }
     
-    public async Task<BasketItem?> GetSpecificAccountBasketItemWithId(int id, User account, CancellationToken cancellationToken = default)
+    public async Task<BasketItem?> GetSpecificAccountBasketItemWithId(Guid id, User account, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -54,7 +54,7 @@ public class BasketItemRepository : IBasketItemRepository
 
             var basketItem = await query
                 .AsNoTracking()
-                .Where(b => b.BasketItemId == id && b.UserId == account.Id)
+                .Where(b => b.Id == id && b.UserId == account.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return basketItem;
@@ -65,7 +65,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
     }
     
-    public async Task<List<BasketItem>?> GetNonOrderedBasketItemIncludeSpecificProduct(int productId, CancellationToken cancellationToken = default)
+    public async Task<List<BasketItem>?> GetNonOrderedBasketItemIncludeSpecificProduct(Guid productId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -73,7 +73,7 @@ public class BasketItemRepository : IBasketItemRepository
         
             var items = await query
                 .AsNoTracking()
-                .Where(b => b.ProductId == productId && b.IsOrdered == false)
+                .Where(b => b.Id == productId && b.IsOrdered == false)
                 .ToListAsync(cancellationToken);
             
             return items;

@@ -4,5 +4,5 @@ namespace ECommerce.Application.Abstract.Service;
 
 public interface IRealtimeNotificationHandler
 {
-    Task HandleNotification(string title, string message, NotificationType type, string userId);
+    Task HandleNotification(string title, string message, NotificationType type, Guid userId);
 }

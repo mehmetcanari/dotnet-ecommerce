@@ -10,8 +10,8 @@ namespace ECommerce.Application.Commands.Product;
 
 public class UpdateProductCommand : IRequest<Result>
 {
-    public required int Id { get; set; }
-    public required ProductUpdateRequestDto ProductUpdateRequest { get; set; }
+    public required ProductUpdateRequestDto Model { get; set; }
+    public required Guid Id { get; set; }
 }
 
 public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result>
@@ -38,28 +38,28 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
     {
         try
         {
-            var validationResult = await ValidateRequest(request.Id, request.ProductUpdateRequest);
+            var validationResult = await ValidateRequest(request.Id, request.Model);
             if (validationResult.IsFailure && validationResult.Message is not null)
             {
                 return Result.Failure(validationResult.Message);
             }
 
             var (product, category) = validationResult.Data;
-            var updatedProduct = UpdateProduct(product, category, request.ProductUpdateRequest);
+            var updatedProduct = UpdateProduct(product, category, request.Model);
             await _basketItemService.ClearBasketItemsIncludeOrderedProductAsync(product);
 
             var domainEvent = new ProductUpdatedEvent
             {
-                ProductId = updatedProduct.ProductId,
+                Id = updatedProduct.Id,
                 Name = updatedProduct.Name,
                 Description = updatedProduct.Description,
                 Price = updatedProduct.Price,
                 DiscountRate = updatedProduct.DiscountRate,
-                ImageUrl = updatedProduct.ImageUrl,
+                ImageUrl = updatedProduct.ImageUrl ?? string.Empty,
                 StockQuantity = updatedProduct.StockQuantity,
                 CategoryId = updatedProduct.CategoryId,
-                ProductCreated = updatedProduct.ProductCreated,
-                ProductUpdated = updatedProduct.ProductUpdated
+                ProductCreated = updatedProduct.CreatedOn,
+                ProductUpdated = updatedProduct.UpdatedOn
             };
 
             await _mediator.Publish(domainEvent, cancellationToken);
@@ -74,7 +74,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         }
     }
 
-    private async Task<Result<(Domain.Model.Product Product, Domain.Model.Category Category)>> ValidateRequest(int productId, ProductUpdateRequestDto request)
+    private async Task<Result<(Domain.Model.Product Product, Domain.Model.Category Category)>> ValidateRequest(Guid productId, ProductUpdateRequestDto request)
     {
         var category = await _categoryRepository.GetCategoryById(request.CategoryId);
         if (category == null)
@@ -100,12 +100,11 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         product.DiscountRate = request.DiscountRate;
         product.ImageUrl = request.ImageUrl;
         product.StockQuantity = request.StockQuantity;
-        product.ProductUpdated = DateTime.UtcNow;
-        product.CategoryId = category.CategoryId;
+        product.UpdatedOn = DateTime.UtcNow;
+        product.CategoryId = category.Id;
         product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
         _productRepository.Update(product);
-
         return product;
     }
 }

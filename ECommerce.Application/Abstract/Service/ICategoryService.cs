@@ -7,7 +7,7 @@ namespace ECommerce.Application.Abstract.Service;
 public interface ICategoryService
 {
     Task<Result> CreateCategoryAsync(CreateCategoryRequestDto request);
-    Task<Result> DeleteCategoryAsync(int categoryId);
-    Task<Result> UpdateCategoryAsync(int categoryId, UpdateCategoryRequestDto request);
+    Task<Result> DeleteCategoryAsync(Guid id);
+    Task<Result> UpdateCategoryAsync(Guid id, UpdateCategoryRequestDto request);
     Task CategoryCacheInvalidateAsync();
 }

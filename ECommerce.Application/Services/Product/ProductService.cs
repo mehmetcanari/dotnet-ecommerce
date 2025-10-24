@@ -45,7 +45,7 @@ public class ProductService : BaseValidator, IProductService
             if (validationResult is { IsSuccess: false, Message: not null }) 
                 return Result.Failure(validationResult.Message);
             
-            var result = await _mediator.Send(new CreateProductCommand { ProductCreateRequest = productCreateRequest });
+            var result = await _mediator.Send(new CreateProductCommand { Model = productCreateRequest });
             if (result is { IsSuccess: false, Message: not null })
                 return Result.Failure(result.Message);
 
@@ -63,7 +63,7 @@ public class ProductService : BaseValidator, IProductService
         }
     }
 
-    public async Task<Result> UpdateProductAsync(int id, ProductUpdateRequestDto productUpdateRequest)
+    public async Task<Result> UpdateProductAsync(Guid id, ProductUpdateRequestDto productUpdateRequest)
     {
         try
         {
@@ -71,7 +71,7 @@ public class ProductService : BaseValidator, IProductService
             if (validationResult is { IsSuccess: false, Message: not null }) 
                 return Result.Failure(validationResult.Message);
             
-            var result = await _mediator.Send(new UpdateProductCommand { Id = id, ProductUpdateRequest = productUpdateRequest });
+            var result = await _mediator.Send(new UpdateProductCommand { Id = id, Model = productUpdateRequest });
             if (result is { IsSuccess: false, Message: not null })
                 return Result.Failure(result.Message);
             
@@ -89,7 +89,7 @@ public class ProductService : BaseValidator, IProductService
         }
     }
 
-    public async Task<Result> DeleteProductAsync(int id)
+    public async Task<Result> DeleteProductAsync(Guid id)
     {
         try
         {
@@ -100,7 +100,7 @@ public class ProductService : BaseValidator, IProductService
             await _productRepository.Delete(product);
             var productDeleteEvent = new ProductDeletedEvent
             {
-                ProductId = product.ProductId,
+                Id = product.Id,
                 ProductName = product.Name
             };
 
@@ -121,7 +121,7 @@ public class ProductService : BaseValidator, IProductService
     {
         try
         {
-            var result = await _mediator.Send(new UpdateProductStockCommand { BasketItems = basketItems });
+            var result = await _mediator.Send(new UpdateProductStockCommand { Model = basketItems });
             if (result is { IsSuccess: false, Message: not null })
                 return Result.Failure(result.Message);
 
@@ -156,6 +156,7 @@ public class ProductService : BaseValidator, IProductService
             var products = await _productRepository.Read();
             var productResponses = products.Select(p => new ProductResponseDto
             {
+                Id = p.Id,
                 ProductName = p.Name,
                 Description = p.Description,
                 Price = p.Price,
