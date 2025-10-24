@@ -93,7 +93,7 @@ public class ProductService : BaseValidator, IProductService
     {
         try
         {
-            var product = await _productRepository.GetProductById(id);
+            var product = await _productRepository.GetById(id);
             if (product == null)
                 return Result.Failure(ErrorMessages.ProductNotFound);
 

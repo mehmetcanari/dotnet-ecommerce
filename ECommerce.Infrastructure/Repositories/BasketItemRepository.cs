@@ -27,7 +27,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
     }
 
-    public async Task<List<BasketItem>> GetNonOrderedBasketItems(User account, CancellationToken cancellationToken = default)
+    public async Task<List<BasketItem>> GetNonOrdereds(User account, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -46,7 +46,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
     }
     
-    public async Task<BasketItem?> GetSpecificAccountBasketItemWithId(Guid id, User account, CancellationToken cancellationToken = default)
+    public async Task<BasketItem?> GetUserCart(Guid id, User account, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -65,7 +65,7 @@ public class BasketItemRepository : IBasketItemRepository
         }
     }
     
-    public async Task<List<BasketItem>?> GetNonOrderedBasketItemIncludeSpecificProduct(Guid productId, CancellationToken cancellationToken = default)
+    public async Task<List<BasketItem>?> GetUnorderedsByProductId(Guid productId, CancellationToken cancellationToken = default)
     {
         try
         {

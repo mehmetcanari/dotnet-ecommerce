@@ -30,7 +30,7 @@ public class BanAccountCommandHandler : IRequestHandler<BanAccountCommand, Resul
     {
         try
         {
-            var account = await _accountRepository.GetAccountByEmail(request.Model.Email);
+            var account = await _accountRepository.GetByEmail(request.Model.Email);
             if (account == null)
             {
                 return Result.Failure(ErrorMessages.AccountEmailNotFound);

@@ -27,7 +27,7 @@ public class GetAccountWithIdQueryHandler : IRequestHandler<GetAccountWithIdQuer
     {
         try
         {
-            var account = await _accountRepository.GetAccountById(request.UserId);
+            var account = await _accountRepository.GetById(request.UserId);
             if (account == null)
             {
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotFound);

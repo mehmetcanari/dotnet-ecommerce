@@ -130,11 +130,11 @@ public class OrderService : BaseValidator, IOrderService
 
     private async Task<Result<List<Domain.Model.BasketItem>>> GetUserBasketItemsAsync(string email)
     {
-        var account = await _accountRepository.GetAccountByEmail(email);
+        var account = await _accountRepository.GetByEmail(email);
         if (account == null)
             return Result<List<Domain.Model.BasketItem>>.Failure(ErrorMessages.AccountNotFound);
         
-        var userBasketItems = await _basketItemRepository.GetNonOrderedBasketItems(account);
+        var userBasketItems = await _basketItemRepository.GetNonOrdereds(account);
         if (userBasketItems.Count == 0)
             return Result<List<Domain.Model.BasketItem>>.Failure(ErrorMessages.BasketItemNotFound);
 
@@ -227,7 +227,7 @@ public class OrderService : BaseValidator, IOrderService
         if(string.IsNullOrEmpty(email))
             return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
         
-        var account = await _accountRepository.GetAccountByEmail(email);
+        var account = await _accountRepository.GetByEmail(email);
         if (account == null)
             return Result<User>.Failure(ErrorMessages.AccountNotFound);
 

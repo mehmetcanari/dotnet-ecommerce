@@ -31,7 +31,7 @@ public class GetClientAccountAsEntityQueryHandler : IRequestHandler<GetClientAcc
             if (string.IsNullOrEmpty(validEmailResult.Data))
                 return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
             
-            var account = await _accountRepository.GetAccountByEmail(validEmailResult.Data);
+            var account = await _accountRepository.GetByEmail(validEmailResult.Data);
             if (account == null)
                 return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
 

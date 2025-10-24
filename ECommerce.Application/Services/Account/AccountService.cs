@@ -53,7 +53,7 @@ public class AccountService : BaseValidator, IAccountService
     {
         try
         {
-            var account = await _accountRepository.GetAccountByEmail(email);
+            var account = await _accountRepository.GetByEmail(email);
             if (account == null)
                 return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
 

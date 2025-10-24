@@ -28,7 +28,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
     {
         try
         {
-            var order = await _orderRepository.GetOrderById(request.Id);
+            var order = await _orderRepository.GetById(request.Id);
             if (order == null)
                 return Result<OrderResponseDto>.Failure(ErrorMessages.OrderNotFound);
 

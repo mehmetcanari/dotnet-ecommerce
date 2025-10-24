@@ -48,7 +48,7 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
 
     private async Task<Result<Domain.Model.Category>> ValidateAndGetCategory(DeleteCategoryCommand request)
     {
-        var category = await _categoryRepository.GetCategoryById(request.Id);
+        var category = await _categoryRepository.GetById(request.Id);
         if (category == null)
         {
             _logger.LogWarning(ErrorMessages.CategoryNotFound, request.Id);

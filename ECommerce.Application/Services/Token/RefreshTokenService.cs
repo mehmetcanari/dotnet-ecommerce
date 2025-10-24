@@ -94,7 +94,7 @@ public class RefreshTokenService : BaseValidator, IRefreshTokenService
             if (validationResult is { IsSuccess: false, Message: not null })
                 return Result.Failure(validationResult.Message);
 
-            var token = await _refreshTokenRepository.GetActiveUserTokenAsync(request.Email);
+            var token = await _refreshTokenRepository.GetActive(request.Email);
             if (token == null)
                 return Result.Failure(ErrorMessages.NoActiveTokensFound);
 

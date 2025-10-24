@@ -27,7 +27,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(Guid userId, int page = 1, int size = 50, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Notification>> GetAsync(Guid userId, int page = 1, int size = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -49,7 +49,7 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public async Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Notification>> GetUnreadAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -87,27 +87,15 @@ public class NotificationRepository : INotificationRepository
         }
     }
 
-    public void UpdateAsync(Notification notification)
+    public void Delete(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
-            _context.Notifications.Update(notification);
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
+            var notification = _context.Notifications.Find(id);
+            if (notification is not null)
+                _context.Notifications.Remove(notification);
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var notification = await _context.Notifications.FindAsync(id, cancellationToken);
-            if (notification == null) return false;
-            
-            _context.Notifications.Remove(notification);
-            return true;
+            return;
         }
         catch (Exception exception)
         {
@@ -137,6 +125,7 @@ public class NotificationRepository : INotificationRepository
         try
         {
             IQueryable<Notification> query = _context.Notifications;
+
             var unreadNotifications = await query
                 .AsNoTracking()
                 .Where(n => n.UserId == userId && n.Status == NotificationStatus.Unread)
@@ -148,25 +137,6 @@ public class NotificationRepository : INotificationRepository
                 _context.Notifications.Update(notification);
             }
 
-            return true;
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
-
-    public async Task<bool> DeleteOldNotificationsAsync(int daysToKeep = 30, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var cutoffDate = DateTime.UtcNow.AddDays(-daysToKeep);
-            var oldNotifications = await _context.Notifications
-                .AsNoTracking()
-                .Where(n => n.CreatedOn < cutoffDate)
-                .ToListAsync(cancellationToken);
-
-            _context.Notifications.RemoveRange(oldNotifications);
             return true;
         }
         catch (Exception exception)

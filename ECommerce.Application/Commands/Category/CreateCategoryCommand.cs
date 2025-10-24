@@ -46,7 +46,7 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
     private async Task<Result> ValidateCategoryName(CreateCategoryCommand request)
     {
 
-        var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.Model.Name);
+        var categoryExists = await _categoryRepository.CheckNameExists(request.Model.Name);
         if (categoryExists)
         {
             _logger.LogWarning(ErrorMessages.CategoryExists, request.Model.Name);

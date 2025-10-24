@@ -63,7 +63,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
         if (string.IsNullOrEmpty(email))
             return Result<Domain.Model.User>.Failure(ErrorMessages.AccountEmailNotFound);
         
-        var account = await _accountRepository.GetAccountByEmail(email);
+        var account = await _accountRepository.GetByEmail(email);
         if (account == null)
             return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
 
@@ -72,7 +72,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Res
 
     private async Task<List<Domain.Model.Order>> GetUserOrders(Guid userId)
     {
-        var orders = await _orderRepository.GetAccountOrders(userId);
+        var orders = await _orderRepository.GetOrders(userId);
         if (orders == null || orders.Count == 0)
             return new List<Domain.Model.Order>();
 

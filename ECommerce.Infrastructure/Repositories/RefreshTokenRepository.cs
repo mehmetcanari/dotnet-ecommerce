@@ -27,7 +27,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
     }
     
-    public async Task<RefreshToken?> GetActiveUserTokenAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<RefreshToken?> GetActive(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -77,7 +77,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         }
     }
 
-    public async Task CleanupExpiredTokensAsync(CancellationToken cancellationToken = default)
+    public async Task CleanupExpiredAsync(CancellationToken cancellationToken = default)
     {
         try
         {

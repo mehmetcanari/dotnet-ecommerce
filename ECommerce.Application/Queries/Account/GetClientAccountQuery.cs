@@ -36,7 +36,7 @@ public class GetClientAccountQueryHandler : IRequestHandler<GetClientAccountQuer
             if (string.IsNullOrEmpty(validationResult.Data))
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountEmailNotFound);
 
-            var account = await _accountRepository.GetAccountByEmail(validationResult.Data);
+            var account = await _accountRepository.GetByEmail(validationResult.Data);
             if (account == null)
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountEmailNotFound);
             

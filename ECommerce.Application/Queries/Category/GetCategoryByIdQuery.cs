@@ -37,7 +37,7 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
             if (cachedCategory != null)
                 return Result<CategoryResponseDto>.Success(cachedCategory);
 
-            var category = await _categoryRepository.GetCategoryById(request.CategoryId);
+            var category = await _categoryRepository.GetById(request.CategoryId);
 
             if (category == null)
                 return Result<CategoryResponseDto>.Failure(ErrorMessages.CategoryNotFound);

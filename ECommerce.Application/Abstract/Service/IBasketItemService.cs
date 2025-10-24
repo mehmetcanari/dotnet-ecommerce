@@ -8,6 +8,6 @@ public interface IBasketItemService
     Task<Result> CreateBasketItemAsync(CreateBasketItemRequestDto createBasketItemRequestDto);
     Task<Result> UpdateBasketItemAsync(UpdateBasketItemRequestDto updateBasketItemRequestDto);
     Task<Result> DeleteAllNonOrderedBasketItemsAsync();
-    Task ClearBasketItemsIncludeOrderedProductAsync(Domain.Model.Product updatedProduct);
+    Task RemoveUnorderedFromCart(Domain.Model.Product updatedProduct);
     Task ClearBasketItemsCacheAsync();
 }

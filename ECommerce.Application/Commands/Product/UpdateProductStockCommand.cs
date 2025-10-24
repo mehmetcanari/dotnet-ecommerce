@@ -73,7 +73,7 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
 
     private async Task<(Result result, Domain.Model.Product product)> ValidateAndUpdateStock(BasketItem item)
     {
-        var product = await _productRepository.GetProductById(item.ProductId);
+        var product = await _productRepository.GetById(item.ProductId);
         if (product == null)
             return (Result.Failure(ErrorMessages.ProductNotFound), null!);
         

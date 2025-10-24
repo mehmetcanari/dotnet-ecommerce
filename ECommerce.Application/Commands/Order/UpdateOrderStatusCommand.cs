@@ -47,7 +47,7 @@ public class UpdateOrderStatusByAccountIdCommandHandler : IRequestHandler<Update
 
     private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(Guid userId)
     {
-        var order = await _orderRepository.GetOrderByAccountId(userId);
+        var order = await _orderRepository.GetByUserId(userId);
         if (order == null)
         {
             _logger.LogWarning(ErrorMessages.OrderNotFound, userId);

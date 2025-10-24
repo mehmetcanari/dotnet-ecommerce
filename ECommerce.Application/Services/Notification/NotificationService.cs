@@ -78,7 +78,7 @@ public class NotificationService : INotificationService
             if(account.Data == null)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.AccountNotFound);
 
-            var notifications = await _notificationRepository.GetUserNotificationsAsync(account.Data.Id, page, size);
+            var notifications = await _notificationRepository.GetAsync(account.Data.Id, page, size);
             if (notifications == null || !notifications.Any())
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.NotificationsNotFound);
 
@@ -102,7 +102,7 @@ public class NotificationService : INotificationService
             if (account.Data == null)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.AccountNotFound);
 
-            var notifications = await _notificationRepository.GetUnreadNotificationsAsync(account.Data.Id);
+            var notifications = await _notificationRepository.GetUnreadAsync(account.Data.Id);
             if (notifications == null || !notifications.Any())
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.NotificationsNotFound);
 
@@ -183,21 +183,19 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<Result<bool>> DeleteNotificationAsync(Guid notificationId)
+    public async Task<Result> DeleteNotificationAsync(Guid notificationId)
     {
         try
         {
-            var result = await _notificationRepository.DeleteAsync(notificationId);
+            _notificationRepository.Delete(notificationId);
             await _storeUnitOfWork.Commit();
-            if (result is false)
-                return Result<bool>.Failure(ErrorMessages.FailedToDeleteNotification);
 
-            return Result<bool>.Success(result);
+            return Result.Success();
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, ErrorMessages.UnexpectedHubError, exception);
-            return Result<bool>.Failure(exception.Message);
+            return Result.Failure(exception.Message);
         }
     }
 } 

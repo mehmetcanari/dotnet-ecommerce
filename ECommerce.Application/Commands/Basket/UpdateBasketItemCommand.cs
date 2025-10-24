@@ -85,7 +85,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
     private async Task<Result<Domain.Model.User>> ValidateAndGetAccount(string email)
     {
-        var account = await _accountRepository.GetAccountByEmail(email);
+        var account = await _accountRepository.GetByEmail(email);
         if (account == null)
         {
             return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
@@ -96,7 +96,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
     private async Task<Result<Domain.Model.BasketItem>> ValidateAndGetBasketItem(UpdateBasketItemCommand request, Domain.Model.User account)
     {
-        var basketItem = await _basketItemRepository.GetSpecificAccountBasketItemWithId(request.Model.Id, account);
+        var basketItem = await _basketItemRepository.GetUserCart(request.Model.Id, account);
 
         if (basketItem == null)
         {
@@ -108,7 +108,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
     private async Task<Result<Domain.Model.Product>> ValidateAndGetProduct(UpdateBasketItemCommand request)
     {
-        var product = await _productRepository.GetProductById(request.Model.ProductId);
+        var product = await _productRepository.GetById(request.Model.ProductId);
         if (product == null)
         {
             return Result<Domain.Model.Product>.Failure(ErrorMessages.ProductNotFound);

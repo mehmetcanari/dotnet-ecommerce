@@ -37,7 +37,7 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
             if (cachedProduct != null)
                 return Result<ProductResponseDto>.Success(cachedProduct);
 
-            var product = await _productRepository.GetProductById(request.Id);
+            var product = await _productRepository.GetById(request.Id);
             if (product == null)
                 return Result<ProductResponseDto>.Failure(ErrorMessages.ProductNotFound);
             

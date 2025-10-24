@@ -31,7 +31,7 @@ public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand,
     {
         try
         {
-            var account = await _accountRepository.GetAccountById(request.UserId);
+            var account = await _accountRepository.GetById(request.UserId);
             if (account == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
 

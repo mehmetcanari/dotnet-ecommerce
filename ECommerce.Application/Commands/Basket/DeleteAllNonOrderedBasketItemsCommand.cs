@@ -67,7 +67,7 @@ public class DeleteAllNonOrderedBasketItemsCommandHandler : IRequestHandler<Dele
 
     private async Task<Result<Domain.Model.User>> ValidateAndGetAccount(string email)
     {
-        var account = await _accountRepository.GetAccountByEmail(email);
+        var account = await _accountRepository.GetByEmail(email);
         if (account == null)
         {
             return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
@@ -78,7 +78,7 @@ public class DeleteAllNonOrderedBasketItemsCommandHandler : IRequestHandler<Dele
 
     private async Task<Result<List<Domain.Model.BasketItem>>> GetAndValidateNonOrderedBasketItems(Domain.Model.User account)
     {
-        var basketItems = await _basketItemRepository.GetNonOrderedBasketItems(account);
+        var basketItems = await _basketItemRepository.GetNonOrdereds(account);
         if (!basketItems.Any())
         {
             return Result<List<Domain.Model.BasketItem>>.Failure(ErrorMessages.BasketItemNotFound);

@@ -72,7 +72,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
 
     private async Task<Result<Domain.Model.User>> ValidateAndGetAccount(string email)
     {
-        var account = await _accountRepository.GetAccountByEmail(email);
+        var account = await _accountRepository.GetByEmail(email);
         if (account == null)
         {
             _logger.LogWarning(ErrorMessages.AccountNotFound, email);
@@ -84,7 +84,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
 
     private async Task<Result<List<Domain.Model.Order>>> ValidateAndGetPendingOrders(Domain.Model.User account)
     {
-        var pendingOrders = await _orderRepository.GetAccountPendingOrders(account.Id);
+        var pendingOrders = await _orderRepository.GetPendings(account.Id);
         if (!pendingOrders.Any())
         {
             _logger.LogInformation(ErrorMessages.NoPendingOrders, account.Id);

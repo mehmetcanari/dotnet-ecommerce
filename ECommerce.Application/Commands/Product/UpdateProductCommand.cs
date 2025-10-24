@@ -46,7 +46,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
             var (product, category) = validationResult.Data;
             var updatedProduct = UpdateProduct(product, category, request.Model);
-            await _basketItemService.ClearBasketItemsIncludeOrderedProductAsync(product);
+            await _basketItemService.RemoveUnorderedFromCart(product);
 
             var domainEvent = new ProductUpdatedEvent
             {
@@ -76,13 +76,13 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
     private async Task<Result<(Domain.Model.Product Product, Domain.Model.Category Category)>> ValidateRequest(Guid productId, ProductUpdateRequestDto request)
     {
-        var category = await _categoryRepository.GetCategoryById(request.CategoryId);
+        var category = await _categoryRepository.GetById(request.CategoryId);
         if (category == null)
         {
             return Result<(Domain.Model.Product, Domain.Model.Category)>.Failure(ErrorMessages.CategoryNotFound);
         }
 
-        var product = await _productRepository.GetProductById(productId);
+        var product = await _productRepository.GetById(productId);
         if (product == null)
         {
             _logger.LogWarning(ErrorMessages.ProductNotFound, productId);

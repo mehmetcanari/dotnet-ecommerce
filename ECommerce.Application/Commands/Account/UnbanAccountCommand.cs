@@ -30,7 +30,7 @@ public class UnbanAccountCommandHandler : IRequestHandler<UnbanAccountCommand, R
     {
         try
         {
-            var account = await _accountRepository.GetAccountByEmail(request.Model.Email);
+            var account = await _accountRepository.GetByEmail(request.Model.Email);
             if (account == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
             

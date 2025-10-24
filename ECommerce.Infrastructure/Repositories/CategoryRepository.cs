@@ -47,7 +47,7 @@ public class CategoryRepository : ICategoryRepository
         }
     }
     
-    public async Task<bool> CheckCategoryExistsWithName(string name, CancellationToken cancellationToken = default)
+    public async Task<bool> CheckNameExists(string name, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -66,7 +66,7 @@ public class CategoryRepository : ICategoryRepository
         }
     }
     
-    public async Task<Category> GetCategoryById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Category> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {

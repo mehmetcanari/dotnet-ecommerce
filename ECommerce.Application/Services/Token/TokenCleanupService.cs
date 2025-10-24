@@ -20,7 +20,7 @@ public class TokenCleanupService : ITokenCleanupService
     {
         try
         {
-            await _refreshTokenRepository.CleanupExpiredTokensAsync();
+            await _refreshTokenRepository.CleanupExpiredAsync();
             await _unitOfWork.Commit();
         }
         catch (Exception ex)

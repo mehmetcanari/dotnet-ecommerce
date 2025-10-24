@@ -59,7 +59,7 @@ public class ProductRepository : IProductRepository
         }
     }
     
-    public async Task<Product> GetProductById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Product> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -72,7 +72,7 @@ public class ProductRepository : IProductRepository
         }
     }
     
-    public async Task<bool> CheckProductExistsWithName(string name, CancellationToken cancellationToken = default)
+    public async Task<bool> CheckExistsWithName(string name, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -122,44 +122,12 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task DeleteById(Guid id, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await _products.DeleteOneAsync(p => p.Id == id, cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
-
-    public async Task<List<Product>> GetProductsByCategoryId(Guid categoryId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var options = new FindOptions<Product>
-            {
-                Skip = (pageNumber - 1) * pageSize,
-                Limit = pageSize,
-                Sort = Builders<Product>.Sort.Descending(p => p.CreatedOn)
-            };
-
-            var cursor = await _products.FindAsync(p => p.CategoryId == categoryId, options);
-            return await cursor.ToListAsync(cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
-
-    public async Task UpdateStock(Guid productId, int newStock, CancellationToken cancellationToken = default)
+    public async Task UpdateStock(Guid productId, int newValue, CancellationToken cancellationToken = default)
     {
         try
         {
             var update = Builders<Product>.Update
-                .Set(p => p.StockQuantity, newStock)
+                .Set(p => p.StockQuantity, newValue)
                 .Set(p => p.UpdatedOn, DateTime.UtcNow);
 
             await _products.UpdateOneAsync(p => p.Id == productId, update);

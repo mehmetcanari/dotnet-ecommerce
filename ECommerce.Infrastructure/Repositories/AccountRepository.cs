@@ -35,7 +35,7 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<User> GetAccountByEmail(string email, CancellationToken cancellationToken = default)
+    public async Task<User> GetByEmail(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -53,30 +53,13 @@ public class AccountRepository : IAccountRepository
         }
     }
 
-    public async Task<User> GetAccountById(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<User> GetById(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {
             var account = await _context.Accounts
                 .AsNoTracking()
                 .Where(a => a.Id == userId)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            return account;
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
-
-    public async Task<User> GetAccountByIdentityNumber(string identityNumber, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var account = await _context.Accounts
-                .AsNoTracking()
-                .Where(a => a.IdentityNumber == identityNumber)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return account;

@@ -108,11 +108,11 @@ public class BasketItemService : BaseValidator, IBasketItemService
         }
     }
 
-    public async Task ClearBasketItemsIncludeOrderedProductAsync(Domain.Model.Product updatedProduct)
+    public async Task RemoveUnorderedFromCart(Domain.Model.Product updatedProduct)
     {
         try
         {
-            var nonOrderedBasketItems = await _basketItemRepository.GetNonOrderedBasketItemIncludeSpecificProduct(updatedProduct.Id);
+            var nonOrderedBasketItems = await _basketItemRepository.GetUnorderedsByProductId(updatedProduct.Id);
             if (nonOrderedBasketItems == null || nonOrderedBasketItems.Count == 0)
                 return;
 

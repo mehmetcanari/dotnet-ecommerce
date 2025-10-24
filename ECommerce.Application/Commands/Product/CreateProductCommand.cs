@@ -82,7 +82,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
     private async Task<Result> ValidateProductCreateRequest(ProductCreateRequestDto request)
     {
-        var existingProduct = await _productRepository.CheckProductExistsWithName(request.Name);
+        var existingProduct = await _productRepository.CheckExistsWithName(request.Name);
         if (existingProduct)
         {
             _logger.LogWarning(ErrorMessages.ProductExists, request.Name);
@@ -94,7 +94,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
     private async Task<Result<Domain.Model.Category>> ValidateCategory(Guid categoryId)
     {
-        var category = await _categoryRepository.GetCategoryById(categoryId);
+        var category = await _categoryRepository.GetById(categoryId);
         if (category is null)
         {
             return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);

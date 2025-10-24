@@ -51,7 +51,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
 
     private async Task<Result<Domain.Model.Category>> ValidateAndGetCategory(UpdateCategoryCommand request)
     {
-        var category = await _categoryRepository.GetCategoryById(request.Model.Id);
+        var category = await _categoryRepository.GetById(request.Model.Id);
         if (category == null)
         {
             return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
@@ -62,7 +62,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
 
     private async Task<Result> ValidateCategoryName(UpdateCategoryCommand request)
     {
-        var categoryExists = await _categoryRepository.CheckCategoryExistsWithName(request.Model.Name);
+        var categoryExists = await _categoryRepository.CheckNameExists(request.Model.Name);
         if (categoryExists)
         {
             return Result.Failure(ErrorMessages.CategoryExists);

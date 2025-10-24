@@ -48,7 +48,7 @@ public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdComm
 
     private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(DeleteOrderByIdCommand request)
     {
-        var order = await _orderRepository.GetOrderById(request.Id);
+        var order = await _orderRepository.GetById(request.Id);
         if (order == null)
         {
             _logger.LogWarning(ErrorMessages.OrderNotFound, request.Id);

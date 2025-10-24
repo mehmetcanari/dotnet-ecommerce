@@ -44,7 +44,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
             if (cachedItems != null)
                 return Result<List<BasketItemResponseDto>>.Success(cachedItems);
 
-            var account = await _accountRepository.GetAccountByEmail(email);
+            var account = await _accountRepository.GetByEmail(email);
             if (account == null)
                 return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.AccountNotFound);
 
@@ -74,7 +74,7 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
 
     private async Task<List<Domain.Model.BasketItem>> GetBasketItems(Domain.Model.User account)
     {
-        return await _basketItemRepository.GetNonOrderedBasketItems(account);
+        return await _basketItemRepository.GetNonOrdereds(account);
     }
 
     private async Task CacheBasketItems(List<BasketItemResponseDto> items)

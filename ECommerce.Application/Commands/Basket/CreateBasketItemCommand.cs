@@ -71,11 +71,11 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
 
     private async Task<Result<(Domain.Model.Product, Domain.Model.User)>> ValidateProductAndAccount(CreateBasketItemCommand request, string email)
     {
-        var product = await _productRepository.GetProductById(request.Model.ProductId);
+        var product = await _productRepository.GetById(request.Model.ProductId);
         if (product == null)
             return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.ProductNotFound);
 
-        var userAccount = await _accountRepository.GetAccountByEmail(email);
+        var userAccount = await _accountRepository.GetByEmail(email);
         if (userAccount == null)
             return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.AccountNotAuthorized);
 
