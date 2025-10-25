@@ -194,20 +194,15 @@ public class OrderService : BaseValidator, IOrderService
         ZipCode = account.ZipCode
     };
 
-    public async Task<Result> UpdateOrderStatus(Guid userId, UpdateOrderStatusRequestDto orderUpdateRequestDto)
+    public async Task<Result> UpdateOrderStatus(Guid userId, UpdateOrderStatusRequestDto request)
     {
         try
         {
-            var validationResult = await ValidateAsync(orderUpdateRequestDto);
+            var validationResult = await ValidateAsync(request);
             if (validationResult is { IsSuccess: false, Message: not null }) 
                 return Result.Failure(validationResult.Message);
 
-            var result = await _mediator.Send(new UpdateOrderStatusCommand 
-            {
-                UserId = userId,
-                Model = orderUpdateRequestDto
-            });
-
+            var result = await _mediator.Send(new UpdateOrderStatusCommand(request));
             if (result is { IsFailure: true, Message: not null})
                 return Result.Failure(result.Message);
 

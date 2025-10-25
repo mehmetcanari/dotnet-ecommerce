@@ -45,12 +45,9 @@ public class BasketItemService : BaseValidator, IBasketItemService
 
             await ClearBasketItemsCacheAsync();
             
-            var result = await _mediator.Send(new CreateBasketItemCommand { Model = createBasketItemRequestDto });
+            var result = await _mediator.Send(new CreateBasketItemCommand(createBasketItemRequestDto));
             if (result is { IsSuccess: false, Message: not null })
-            {
-                _logger.LogWarning(ErrorMessages.ErrorAddingItemToBasket, result.Message);
                 return Result.Failure(result.Message);
-            }
 
             await _unitOfWork.Commit();
             return Result.Success();
@@ -70,12 +67,9 @@ public class BasketItemService : BaseValidator, IBasketItemService
             if (validationResult is { IsSuccess: false, Message: not null }) 
                 return Result.Failure(validationResult.Message);
 
-            var result = await _mediator.Send(new UpdateBasketItemCommand { Model = updateBasketItemRequestDto });
+            var result = await _mediator.Send(new UpdateBasketItemCommand(updateBasketItemRequestDto));
             if (result is { IsSuccess: false, Message: not null })
-            {
-                _logger.LogWarning(ErrorMessages.ErrorUpdatingBasketItem, result.Message);
                 return Result.Failure(result.Message);
-            }
 
             await ClearBasketItemsCacheAsync();
             await _unitOfWork.Commit();

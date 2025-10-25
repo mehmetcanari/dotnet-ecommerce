@@ -2,5 +2,6 @@
 
 public record UpdateOrderStatusRequestDto
 {
+    public required Guid UserId { get; set; }
     public OrderStatus Status { get; set; }
 }

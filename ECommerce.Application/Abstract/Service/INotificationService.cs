@@ -13,5 +13,5 @@ public interface INotificationService
     Task<Result<int>> GetUnreadNotificationsCountAsync();
     Task<Result<bool>> MarkAsReadAsync(Guid notificationId);
     Task<Result<bool>> MarkAllAsReadAsync();
-    Task<Result<bool>> DeleteNotificationAsync(Guid notificationId);
+    Task<Result> DeleteNotificationAsync(Guid notificationId);
 } 

@@ -6,30 +6,19 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Order;
 
-public class DeleteOrderByIdCommand : IRequest<Result>
+public class DeleteOrderByIdCommand() : IRequest<Result>
 {
-    public required Guid Id { get; set; }
+    public required Guid Id { get; init; }
 }
 
-public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdCommand, Result>
+public class DeleteOrderByIdCommandHandler(IOrderRepository orderRepository, ILoggingService logger, IUnitOfWork unitOfWork) : IRequestHandler<DeleteOrderByIdCommand, Result>
 {
-    private readonly IOrderRepository _orderRepository;
-    private readonly ILoggingService _logger;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public DeleteOrderByIdCommandHandler(IOrderRepository orderRepository, ILoggingService logger, IUnitOfWork unitOfWork)
-    {
-        _orderRepository = orderRepository;
-        _logger = logger;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(DeleteOrderByIdCommand request, CancellationToken cancellationToken)
     {
         try
         {
             var orderResult = await ValidateAndGetOrder(request);
-            if (orderResult.IsFailure && orderResult.Message is not null)
+            if (orderResult is { IsFailure: true, Message: not null })
                 return Result.Failure(orderResult.Message);
 
             if (orderResult.Data is null)
@@ -41,17 +30,17 @@ public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdComm
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }
 
     private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(DeleteOrderByIdCommand request)
     {
-        var order = await _orderRepository.GetById(request.Id);
+        var order = await orderRepository.GetById(request.Id);
         if (order == null)
         {
-            _logger.LogWarning(ErrorMessages.OrderNotFound, request.Id);
+            logger.LogWarning(ErrorMessages.OrderNotFound, request.Id);
             return Result<Domain.Model.Order>.Failure(ErrorMessages.OrderNotFound);
         }
 
@@ -60,9 +49,9 @@ public class DeleteOrderByIdCommandHandler : IRequestHandler<DeleteOrderByIdComm
 
     private async Task DeleteOrder(Domain.Model.Order order)
     {
-        _orderRepository.Delete(order);
-        await _unitOfWork.Commit();
+        orderRepository.Delete(order);
+        await unitOfWork.Commit();
 
-        _logger.LogInformation(ErrorMessages.OrderDeleted, order.Id, order.Status);
+        logger.LogInformation(ErrorMessages.OrderDeleted, order.Id, order.Status);
     }
 }

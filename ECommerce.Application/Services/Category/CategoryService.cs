@@ -35,12 +35,8 @@ public class CategoryService : BaseValidator, ICategoryService
             var validationResult = await ValidateAsync(request);
             if (!validationResult.IsSuccess)
                 return validationResult;
-            
-            var commandResult = await _mediator.Send(new CreateCategoryCommand
-            {
-                Model = request
-            });
 
+            var commandResult = await _mediator.Send(new CreateCategoryCommand(request));
             if (commandResult is { IsSuccess: false, Message: not null })
                 return Result.Failure(commandResult.Message);
 
@@ -87,12 +83,8 @@ public class CategoryService : BaseValidator, ICategoryService
             {
                 return result;
             }
-            
-            var commandResult = await _mediator.Send(new UpdateCategoryCommand
-            {
-                Model = request
-            });
-            
+
+            var commandResult = await _mediator.Send(new UpdateCategoryCommand(request));
             if (commandResult is { IsSuccess: false, Message: not null })
                 return Result.Failure(commandResult.Message);
 

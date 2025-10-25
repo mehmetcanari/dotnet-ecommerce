@@ -37,15 +37,15 @@ public class ProductService : BaseValidator, IProductService
         _mediator = mediator;
     }
 
-    public async Task<Result> CreateProductAsync(ProductCreateRequestDto productCreateRequest)
+    public async Task<Result> CreateProductAsync(ProductCreateRequestDto request)
     {
         try
         {
-            var validationResult = await ValidateAsync(productCreateRequest);
+            var validationResult = await ValidateAsync(request);
             if (validationResult is { IsSuccess: false, Message: not null }) 
                 return Result.Failure(validationResult.Message);
             
-            var result = await _mediator.Send(new CreateProductCommand { Model = productCreateRequest });
+            var result = await _mediator.Send(new CreateProductCommand(request));
             if (result is { IsSuccess: false, Message: not null })
                 return Result.Failure(result.Message);
 
@@ -63,15 +63,15 @@ public class ProductService : BaseValidator, IProductService
         }
     }
 
-    public async Task<Result> UpdateProductAsync(Guid id, ProductUpdateRequestDto productUpdateRequest)
+    public async Task<Result> UpdateProductAsync(Guid id, ProductUpdateRequestDto request)
     {
         try
         {
-            var validationResult = await ValidateAsync(productUpdateRequest);
+            var validationResult = await ValidateAsync(request);
             if (validationResult is { IsSuccess: false, Message: not null }) 
                 return Result.Failure(validationResult.Message);
             
-            var result = await _mediator.Send(new UpdateProductCommand { Id = id, Model = productUpdateRequest });
+            var result = await _mediator.Send(new UpdateProductCommand(request));
             if (result is { IsSuccess: false, Message: not null })
                 return Result.Failure(result.Message);
             

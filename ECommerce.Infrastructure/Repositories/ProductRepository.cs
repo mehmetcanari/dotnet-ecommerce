@@ -114,20 +114,4 @@ public sealed class ProductRepository : IProductRepository
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-
-    public async Task UpdateStock(Guid productId, int newValue, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var update = Builders<Product>.Update
-                .Set(p => p.StockQuantity, newValue)
-                .Set(p => p.UpdatedOn, DateTime.UtcNow);
-
-            await _products.UpdateOneAsync(p => p.Id == productId, update, cancellationToken: cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
 }

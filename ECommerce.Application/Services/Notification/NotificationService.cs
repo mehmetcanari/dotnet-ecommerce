@@ -2,7 +2,6 @@ using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.DTO.Request.Notification;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
 

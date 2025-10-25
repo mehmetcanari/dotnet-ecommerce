@@ -7,31 +7,14 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
 
-public class UpdateBasketItemCommand : IRequest<Result>
+public class UpdateBasketItemCommand(UpdateBasketItemRequestDto request) : IRequest<Result>
 {
-    public required UpdateBasketItemRequestDto Model { get; set; }
+    public readonly UpdateBasketItemRequestDto Model = request;
 }
 
-public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCommand, Result>
+public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILoggingService logger, IAccountRepository accountRepository, 
+    IProductRepository productRepository, IBasketItemService basketItemService) : IRequestHandler<UpdateBasketItemCommand, Result>
 {
-    private readonly IBasketItemRepository _basketItemRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IProductRepository _productRepository;
-    private readonly ILoggingService _logger;
-    private readonly IBasketItemService _basketItemService;
-
-    public UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILoggingService logger, ICacheService cacheService,
-        IAccountRepository accountRepository, IProductRepository productRepository, IBasketItemService basketItemService)
-    {
-        _basketItemRepository = basketItemRepository;
-        _currentUserService = currentUserService;
-        _logger = logger;
-        _accountRepository = accountRepository;
-        _productRepository = productRepository;
-        _basketItemService = basketItemService;
-    }
-
     public async Task<Result> Handle(UpdateBasketItemCommand request, CancellationToken cancellationToken)
     {
         try
@@ -39,18 +22,18 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
             var emailResult = GetValidatedUserEmail();
 
             var accountResult = await ValidateAndGetAccount(emailResult);
-            if (accountResult.IsFailure && accountResult.Message is not null)
+            if (accountResult is { IsFailure: true, Message: not null })
                 return Result.Failure(accountResult.Message);
 
             if (accountResult.Data == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
 
             var basketItemResult = await ValidateAndGetBasketItem(request, accountResult.Data);
-            if (basketItemResult.IsFailure && basketItemResult.Message is not null)
+            if (basketItemResult is { IsFailure: true, Message: not null })
                 return Result.Failure(basketItemResult.Message);
 
             var productResult = await ValidateAndGetProduct(request);
-            if (productResult.IsFailure && productResult.Message is not null)
+            if (productResult is { IsFailure: true, Message: not null })
                 return Result.Failure(productResult.Message);
 
             if (productResult.Data == null)
@@ -69,14 +52,14 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedError);
+            logger.LogError(ex, ErrorMessages.UnexpectedError);
             return Result.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
     private string GetValidatedUserEmail()
     {
-        var email = _currentUserService.GetUserEmail();
+        var email = currentUserService.GetUserEmail();
         if (string.IsNullOrEmpty(email))
             return string.Empty;
 
@@ -85,34 +68,28 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
 
     private async Task<Result<Domain.Model.User>> ValidateAndGetAccount(string email)
     {
-        var account = await _accountRepository.GetByEmail(email);
+        var account = await accountRepository.GetByEmail(email);
         if (account == null)
-        {
             return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
-        }
 
         return Result<Domain.Model.User>.Success(account);
     }
 
     private async Task<Result<Domain.Model.BasketItem>> ValidateAndGetBasketItem(UpdateBasketItemCommand request, Domain.Model.User account)
     {
-        var basketItem = await _basketItemRepository.GetUserCart(request.Model.Id, account);
+        var basketItem = await basketItemRepository.GetUserCart(request.Model.Id, account);
 
         if (basketItem == null)
-        {
             return Result<Domain.Model.BasketItem>.Failure(ErrorMessages.BasketItemNotFound);
-        }
 
         return Result<Domain.Model.BasketItem>.Success(basketItem);
     }
 
     private async Task<Result<Domain.Model.Product>> ValidateAndGetProduct(UpdateBasketItemCommand request)
     {
-        var product = await _productRepository.GetById(request.Model.ProductId);
+        var product = await productRepository.GetById(request.Model.ProductId);
         if (product == null)
-        {
             return Result<Domain.Model.Product>.Failure(ErrorMessages.ProductNotFound);
-        }
 
         return Result<Domain.Model.Product>.Success(product);
     }
@@ -120,9 +97,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
     private Result ValidateStock(UpdateBasketItemCommand request, Domain.Model.Product product)
     {
         if (request.Model.Quantity > product.StockQuantity)
-        {
             return Result.Failure(ErrorMessages.StockNotAvailable);
-        }
 
         return Result.Success();
     }
@@ -135,7 +110,7 @@ public class UpdateBasketItemCommandHandler : IRequestHandler<UpdateBasketItemCo
         basketItem.UnitPrice = product.Price;
         basketItem.IsOrdered = false;
 
-        _basketItemRepository.Update(basketItem);
-        await _basketItemService.ClearBasketItemsCacheAsync();
+        basketItemRepository.Update(basketItem);
+        await basketItemService.ClearBasketItemsCacheAsync();
     }
 }

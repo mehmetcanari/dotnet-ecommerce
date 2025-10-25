@@ -9,51 +9,30 @@ using Result = ECommerce.Application.Utility.Result;
 
 namespace ECommerce.Application.Commands.Product;
 
-public class CreateProductCommand : IRequest<Result>
+public class CreateProductCommand(ProductCreateRequestDto request) : IRequest<Result>
 {
-    public required ProductCreateRequestDto Model { get; set; }
+    public readonly ProductCreateRequestDto Model = request;
 }
 
-public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Result>
+public class CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILoggingService logger, IMessageBroker messageBroker,
+    IMediator mediator, IUnitOfWork unitOfWork) : IRequestHandler<CreateProductCommand, Result>
 {
-    private readonly IProductRepository _productRepository;
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IMessageBroker _messageBroker;
-    private readonly IMediator _mediator;
-    private readonly ILoggingService _logger;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILoggingService logger, IMessageBroker messageBroker,
-        IMediator mediator, IUnitOfWork unitOfWork)
-    {
-        _productRepository = productRepository;
-        _categoryRepository = categoryRepository;
-        _logger = logger;
-        _messageBroker = messageBroker;
-        _mediator = mediator;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         try
         {
             var productValidationResult = await ValidateProductCreateRequest(request.Model);
-            if (productValidationResult.IsFailure && productValidationResult.Message is not null)
-            {
+            if (productValidationResult is { IsFailure: true, Message: not null })
                 return Result.Failure(productValidationResult.Message);
-            }
 
             var categoryValidationResult = await ValidateCategory(request.Model.CategoryId);
-            if (categoryValidationResult.IsFailure && categoryValidationResult.Message is not null)
-            {
+            if (categoryValidationResult is { IsFailure: true, Message: not null })
                 return Result.Failure(categoryValidationResult.Message);
-            }
 
             var product = CreateProductEntity(request.Model);
-            await _productRepository.Create(product);
+            await productRepository.Create(product, cancellationToken);
             
-            await _unitOfWork.Commit();
+            await unitOfWork.Commit();
 
             var domainEvent = new ProductCreatedEvent
             {
@@ -69,36 +48,28 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
                 ProductUpdated = product.UpdatedOn
             };
 
-            await _mediator.Publish(domainEvent, cancellationToken);
-            await _messageBroker.PublishAsync(domainEvent, "product_exchange", "product.created");
+            await mediator.Publish(domainEvent, cancellationToken);
+            await messageBroker.PublishAsync(domainEvent, "product_exchange", "product.created");
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.ErrorCreatingProduct, ex.Message);
+            logger.LogError(ex, ErrorMessages.ErrorCreatingProduct, ex.Message);
             return Result.Failure(ErrorMessages.ErrorCreatingProduct);
         }
     }
 
     private async Task<Result> ValidateProductCreateRequest(ProductCreateRequestDto request)
     {
-        var existingProduct = await _productRepository.CheckExistsWithName(request.Name);
-        if (existingProduct)
-        {
-            _logger.LogWarning(ErrorMessages.ProductExists, request.Name);
-            return Result.Failure(ErrorMessages.ProductExists);
-        }
-
-        return Result.Success();
+        var existingProduct = await productRepository.CheckExistsWithName(request.Name);
+        return existingProduct ? Result.Failure(ErrorMessages.ProductExists) : Result.Success();
     }
 
     private async Task<Result<Domain.Model.Category>> ValidateCategory(Guid categoryId)
     {
-        var category = await _categoryRepository.GetById(categoryId);
+        var category = await categoryRepository.GetById(categoryId);
         if (category is null)
-        {
             return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
-        }
         
         return Result<Domain.Model.Category>.Success(category);
     }

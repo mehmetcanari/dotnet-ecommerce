@@ -9,50 +9,37 @@ namespace ECommerce.Application.Commands.Account;
 
 public class DeleteAccountCommand : IRequest<Result>
 {
-    public required Guid UserId { get; set; }
+    public required Guid UserId { get; init; }
 }
 
-public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand, Result>
+public class DeleteAccountCommandHandler(IAccountRepository accountRepository, UserManager<Domain.Model.User> userManager, IUnitOfWork unitOfWork, ILoggingService logger) : IRequestHandler<DeleteAccountCommand, Result>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly UserManager<Domain.Model.User> _userManager;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ILoggingService _logger;
-
-    public DeleteAccountCommandHandler(IAccountRepository accountRepository, UserManager<Domain.Model.User> userManager, IUnitOfWork unitOfWork, ILoggingService logger)
-    {
-        _accountRepository = accountRepository;
-        _userManager = userManager;
-        _unitOfWork = unitOfWork;
-        _logger = logger;
-    }
-
     public async Task<Result> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var account = await _accountRepository.GetById(request.UserId);
+            var account = await accountRepository.GetById(request.UserId, cancellationToken);
             if (account == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
 
             if(account.Email is null)
                 return Result.Failure(ErrorMessages.IdentityUserNotFound);
 
-            var user = await _userManager.FindByEmailAsync(account.Email);
+            var user = await userManager.FindByEmailAsync(account.Email);
             if (user == null)
                 return Result.Failure(ErrorMessages.IdentityUserNotFound);
             
 
-            _accountRepository.Delete(account);
-            await _userManager.DeleteAsync(user);
-            await _unitOfWork.Commit();
+            accountRepository.Delete(account);
+            await userManager.DeleteAsync(user);
+            await unitOfWork.Commit();
 
-            _logger.LogInformation(ErrorMessages.AccountDeleted, account);
+            logger.LogInformation(ErrorMessages.AccountDeleted, account);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }

@@ -6,28 +6,19 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-public class RegisterUserCommand : IRequest<Result<ECommerce.Domain.Model.User>>
+namespace ECommerce.Application.Commands.Account;
+
+public class RegisterUserCommand(AccountRegisterRequestDto request, string role) : IRequest<Result<ECommerce.Domain.Model.User>>
 {
-    public required AccountRegisterRequestDto Model { get; set; }
-    public required string Role { get; set; }
+    public readonly AccountRegisterRequestDto Model = request;
+    public readonly string Role = role;
 }
 
-public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Result<ECommerce.Domain.Model.User>>
+public class RegisterUserCommandHandler(UserManager<ECommerce.Domain.Model.User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IAccountRepository accountRepository)  : IRequestHandler<RegisterUserCommand, Result<ECommerce.Domain.Model.User>>
 {
-    private readonly UserManager<ECommerce.Domain.Model.User> _userManager;
-    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
-    private readonly IAccountRepository _accountRepository;
-
-    public RegisterUserCommandHandler(UserManager<ECommerce.Domain.Model.User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IAccountRepository accountRepository)
-    {
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _accountRepository = accountRepository;
-    }
-
     public async Task<Result<ECommerce.Domain.Model.User>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        var existingUserByIdentity = await _userManager.Users.AnyAsync(u => u.IdentityNumber == request.Model.IdentityNumber, cancellationToken);
+        var existingUserByIdentity = await userManager.Users.AnyAsync(u => u.IdentityNumber == request.Model.IdentityNumber, cancellationToken);
 
         if (existingUserByIdentity)
             return Result<ECommerce.Domain.Model.User>.Failure(ErrorMessages.IdentityNumberAlreadyExists);
@@ -47,36 +38,34 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, R
             DateOfBirth = request.Model.DateOfBirth.ToUniversalTime(),
         };
 
-        var userManagerCreateResult = await _userManager.CreateAsync(user, request.Model.Password);
+        var userManagerCreateResult = await userManager.CreateAsync(user, request.Model.Password);
         if (!userManagerCreateResult.Succeeded)
         {
             var errors = userManagerCreateResult.Errors.Select(e => e.Description).Aggregate((a, b) => a + ", " + b);
             return Result<ECommerce.Domain.Model.User>.Failure(errors);
         }
 
-        await _accountRepository.CreateAsync(user, cancellationToken);
+        await accountRepository.CreateAsync(user, cancellationToken);
 
         var roleResult = await AssignUserRoleAsync(user, request.Role);
         if (roleResult is { IsFailure: true, Message: not null })
-        {
             return Result<ECommerce.Domain.Model.User>.Failure(roleResult.Message);
-        }
 
         return Result<ECommerce.Domain.Model.User>.Success(user);
     }
 
     private async Task<Result> AssignUserRoleAsync(ECommerce.Domain.Model.User user, string role)
     {
-        if (!await _roleManager.RoleExistsAsync(role))
+        if (!await roleManager.RoleExistsAsync(role))
         {
-            var roleResult = await _roleManager.CreateAsync(new IdentityRole<Guid>(role));
+            var roleResult = await roleManager.CreateAsync(new IdentityRole<Guid>(role));
             if (!roleResult.Succeeded)
             {
                 return Result.Failure(ErrorMessages.ErrorCreatingRole);
             }
         }
 
-        var addRoleResult = await _userManager.AddToRoleAsync(user, role);
+        var addRoleResult = await userManager.AddToRoleAsync(user, role);
         if (!addRoleResult.Succeeded)
         {
             return Result.Failure(ErrorMessages.ErrorAssigningRole);

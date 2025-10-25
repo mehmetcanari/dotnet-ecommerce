@@ -10,6 +10,5 @@ namespace ECommerce.Domain.Abstract.Repository
         Task<bool> CheckExistsWithName(string name, CancellationToken cancellationToken = default);
         Task Update(Product product, CancellationToken cancellationToken = default);
         Task Delete(Product product, CancellationToken cancellationToken = default);
-        Task UpdateStock(Guid productId, int newStock, CancellationToken cancellationToken = default);
     }
 }

@@ -8,32 +8,21 @@ namespace ECommerce.Application.Commands.Category;
 
 public class DeleteCategoryCommand : IRequest<Result>
 {
-    public required Guid Id { get; set; }
+    public required Guid Id { get; init; }
 }
 
-public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryCommand, Result>
+public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository, ILoggingService logger) : IRequestHandler<DeleteCategoryCommand, Result>
 {
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly ILoggingService _logger;
-
-    public DeleteCategoryCommandHandler(ICategoryRepository categoryRepository, ILoggingService logger)
-    {
-        _categoryRepository = categoryRepository;
-        _logger = logger;
-    }
-
     public async Task<Result> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
             var categoryResult = await ValidateAndGetCategory(request);
-            if (categoryResult.IsFailure && categoryResult.Message is not null)
+            if (categoryResult is { IsFailure: true, Message: not null })
                 return Result.Failure(categoryResult.Message);
 
             if (categoryResult.Data is null)
-            {
                 return Result.Failure(ErrorMessages.CategoryNotFound);
-            }
 
             DeleteCategory(categoryResult.Data);
 
@@ -41,17 +30,17 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.ErrorDeletingCategory, request.Id);
+            logger.LogError(ex, ErrorMessages.ErrorDeletingCategory, request.Id);
             return Result.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
     private async Task<Result<Domain.Model.Category>> ValidateAndGetCategory(DeleteCategoryCommand request)
     {
-        var category = await _categoryRepository.GetById(request.Id);
+        var category = await categoryRepository.GetById(request.Id);
         if (category == null)
         {
-            _logger.LogWarning(ErrorMessages.CategoryNotFound, request.Id);
+            logger.LogWarning(ErrorMessages.CategoryNotFound, request.Id);
             return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
         }
 
@@ -60,7 +49,7 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
 
     private void DeleteCategory(Domain.Model.Category category)
     {
-        _categoryRepository.Delete(category);
-        _logger.LogInformation(ErrorMessages.CategoryDeleted, category.Id, category.Name);
+        categoryRepository.Delete(category);
+        logger.LogInformation(ErrorMessages.CategoryDeleted, category.Id, category.Name);
     }
 }

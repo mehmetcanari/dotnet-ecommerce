@@ -7,31 +7,15 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
 
-public class CreateBasketItemCommand : IRequest<Result>
+public class CreateBasketItemCommand(CreateBasketItemRequestDto request) : IRequest<Result>
 {
-    public required CreateBasketItemRequestDto Model { get; set; }
+    public readonly CreateBasketItemRequestDto Model = request;
 }
 
-public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCommand, Result>
+public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILoggingService logger, ICacheService cacheService, 
+    IAccountRepository accountRepository, IProductRepository productRepository) : IRequestHandler<CreateBasketItemCommand, Result>
 {
-    private readonly IBasketItemRepository _basketItemRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IProductRepository _productRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly ILoggingService _logger;
-    private readonly ICacheService _cacheService;
     private const int CacheDurationInMinutes = 30;
-
-    public CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILoggingService logger, ICacheService cacheService, 
-        IAccountRepository accountRepository, IProductRepository productRepository)
-    {
-        _basketItemRepository = basketItemRepository;
-        _currentUserService = currentUserService;
-        _logger = logger;
-        _cacheService = cacheService;
-        _accountRepository = accountRepository;
-        _productRepository = productRepository;
-    }
 
     public async Task<Result> Handle(CreateBasketItemCommand request, CancellationToken cancellationToken)
     {
@@ -55,14 +39,14 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, ErrorMessages.ErrorAddingItemToBasket);
+            logger.LogError(exception, ErrorMessages.ErrorAddingItemToBasket);
             return Result.Failure(exception.Message);
         }
     }
 
     private string GetValidatedUserEmail()
     {
-        var email = _currentUserService.GetUserEmail();
+        var email = currentUserService.GetUserEmail();
         if (string.IsNullOrEmpty(email))
             return ErrorMessages.AccountEmailNotFound;
 
@@ -71,11 +55,11 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
 
     private async Task<Result<(Domain.Model.Product, Domain.Model.User)>> ValidateProductAndAccount(CreateBasketItemCommand request, string email)
     {
-        var product = await _productRepository.GetById(request.Model.ProductId);
+        var product = await productRepository.GetById(request.Model.ProductId);
         if (product == null)
             return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.ProductNotFound);
 
-        var userAccount = await _accountRepository.GetByEmail(email);
+        var userAccount = await accountRepository.GetByEmail(email);
         if (userAccount == null)
             return Result<(Domain.Model.Product, Domain.Model.User)>.Failure(ErrorMessages.AccountNotAuthorized);
 
@@ -103,8 +87,8 @@ public class CreateBasketItemCommandHandler : IRequestHandler<CreateBasketItemCo
 
     private async Task SaveBasketItem(Domain.Model.BasketItem basketItem)
     {
-        await _basketItemRepository.Create(basketItem);
-        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail()}";
-        await _cacheService.SetAsync(cacheKey, basketItem, TimeSpan.FromMinutes(CacheDurationInMinutes));
+        await basketItemRepository.Create(basketItem);
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{currentUserService.GetUserEmail()}";
+        await cacheService.SetAsync(cacheKey, basketItem, TimeSpan.FromMinutes(CacheDurationInMinutes));
     }
 }

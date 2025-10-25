@@ -8,46 +8,33 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Account;
 
-public class BanAccountCommand : IRequest<Result>
+public class BanAccountCommand(AccountBanRequestDto request) : IRequest<Result>
 {
-    public required AccountBanRequestDto Model { get; set; }
+    public readonly AccountBanRequestDto Model = request;
 }
 
-public class BanAccountCommandHandler : IRequestHandler<BanAccountCommand, Result>
+public class BanAccountCommandHandler(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, ILoggingService logger) : IRequestHandler<BanAccountCommand, Result>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IRefreshTokenService _refreshTokenService;
-    private readonly ILoggingService _logger;
-
-    public BanAccountCommandHandler(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, ILoggingService logger)
-    {
-        _accountRepository = accountRepository;
-        _refreshTokenService = refreshTokenService;
-        _logger = logger;
-    }
-
     public async Task<Result> Handle(BanAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var account = await _accountRepository.GetByEmail(request.Model.Email);
+            var account = await accountRepository.GetByEmail(request.Model.Email, cancellationToken);
             if (account == null)
-            {
                 return Result.Failure(ErrorMessages.AccountEmailNotFound);
-            }
             
             var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.Model.Email, Reason = ErrorMessages.AccountBanned };
-            await _refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
+            await refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
 
             account.BanAccount(request.Model.Until, request.Model.Reason);
-            _accountRepository.Update(account);
+            accountRepository.Update(account);
 
-            _logger.LogInformation(ErrorMessages.AccountBanned, request.Model.Email);
+            logger.LogInformation(ErrorMessages.AccountBanned, request.Model.Email);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }
     }

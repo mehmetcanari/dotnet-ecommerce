@@ -8,45 +8,27 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Product;
 
-public class UpdateProductCommand : IRequest<Result>
+public class UpdateProductCommand(ProductUpdateRequestDto request) : IRequest<Result>
 {
-    public required ProductUpdateRequestDto Model { get; set; }
-    public required Guid Id { get; set; }
+    public readonly ProductUpdateRequestDto Model = request;
 }
 
-public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result>
+public class UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, IBasketItemService basketItemService,
+    ILoggingService logger, IMessageBroker messageBroker, IMediator mediator) : IRequestHandler<UpdateProductCommand, Result>
 {
-    private readonly IProductRepository _productRepository;
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IBasketItemService _basketItemService;
-    private readonly ILoggingService _logger;
-    private readonly IMessageBroker _messageBroker;
-    private readonly IMediator _mediator;
-
-    public UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, IBasketItemService basketItemService, ILoggingService logger,
-        IMessageBroker messageBroker, IMediator mediator)
-    {
-        _productRepository = productRepository;
-        _categoryRepository = categoryRepository;
-        _basketItemService = basketItemService;
-        _logger = logger;
-        _messageBroker = messageBroker;
-        _mediator = mediator;
-    }
-
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var validationResult = await ValidateRequest(request.Id, request.Model);
-            if (validationResult.IsFailure && validationResult.Message is not null)
+            var validationResult = await ValidateRequest(request.Model.Id, request.Model);
+            if (validationResult is { IsFailure: true, Message: not null })
             {
                 return Result.Failure(validationResult.Message);
             }
 
             var (product, category) = validationResult.Data;
             var updatedProduct = UpdateProduct(product, category, request.Model);
-            await _basketItemService.RemoveUnorderedFromCart(product);
+            await basketItemService.RemoveUnorderedFromCart(product);
 
             var domainEvent = new ProductUpdatedEvent
             {
@@ -62,32 +44,27 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
                 ProductUpdated = updatedProduct.UpdatedOn
             };
 
-            await _mediator.Publish(domainEvent, cancellationToken);
-            await _messageBroker.PublishAsync(domainEvent, "product_exchange", "product.updated");
+            await mediator.Publish(domainEvent, cancellationToken);
+            await messageBroker.PublishAsync(domainEvent, "product_exchange", "product.updated");
 
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.ErrorUpdatingProduct, request.Id, ex.Message);
+            logger.LogError(ex, ErrorMessages.ErrorUpdatingProduct, request.Model.Id, ex.Message);
             return Result.Failure(ErrorMessages.ErrorUpdatingProduct);
         }
     }
 
     private async Task<Result<(Domain.Model.Product Product, Domain.Model.Category Category)>> ValidateRequest(Guid productId, ProductUpdateRequestDto request)
     {
-        var category = await _categoryRepository.GetById(request.CategoryId);
+        var category = await categoryRepository.GetById(request.CategoryId);
         if (category == null)
-        {
             return Result<(Domain.Model.Product, Domain.Model.Category)>.Failure(ErrorMessages.CategoryNotFound);
-        }
 
-        var product = await _productRepository.GetById(productId);
+        var product = await productRepository.GetById(productId);
         if (product == null)
-        {
-            _logger.LogWarning(ErrorMessages.ProductNotFound, productId);
             return Result<(Domain.Model.Product, Domain.Model.Category)>.Failure(ErrorMessages.ProductNotFound);
-        }
 
         return Result<(Domain.Model.Product, Domain.Model.Category)>.Success((product, category));
     }
@@ -104,7 +81,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         product.CategoryId = category.Id;
         product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
 
-        _productRepository.Update(product);
+        productRepository.Update(product);
         return product;
     }
 }

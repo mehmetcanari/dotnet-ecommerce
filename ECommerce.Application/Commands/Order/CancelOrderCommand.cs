@@ -8,40 +8,25 @@ namespace ECommerce.Application.Commands.Order;
 
 public class CancelOrderCommand : IRequest<Result> { }
 
-public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Result>
+public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILoggingService logger, IOrderRepository orderRepository, IAccountRepository accountRepository, IUnitOfWork unitOfWork) : IRequestHandler<CancelOrderCommand, Result>
 {
-    private readonly ICurrentUserService _currentUserService;
-    private readonly ILoggingService _logger;
-    private readonly IOrderRepository _orderRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CancelOrderCommandHandler(ICurrentUserService currentUserService, ILoggingService logger, IOrderRepository orderRepository, IAccountRepository accountRepository, IUnitOfWork unitOfWork)
-    {
-        _currentUserService = currentUserService;
-        _logger = logger;
-        _orderRepository = orderRepository;
-        _accountRepository = accountRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var emailResult = GetValidatedUserEmail();
-            if (emailResult is null)
+            var email = GetValidatedUserEmail();
+            if (string.IsNullOrEmpty(email))
                 return Result.Failure(ErrorMessages.AccountEmailNotFound);
 
-            var accountResult = await ValidateAndGetAccount(emailResult);
-            if (accountResult.IsFailure && accountResult.Message is not null)
+            var accountResult = await ValidateAndGetAccount(email);
+            if (accountResult is { IsFailure: true, Message: not null })
                 return Result.Failure(accountResult.Message);
 
             if (accountResult.Data is null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
 
             var ordersResult = await ValidateAndGetPendingOrders(accountResult.Data);
-            if (ordersResult.IsFailure && ordersResult.Message is not null)
+            if (ordersResult is { IsFailure: true, Message: not null })
                 return Result.Failure(ordersResult.Message);
 
             if (ordersResult.Data is null || !ordersResult.Data.Any())
@@ -53,17 +38,17 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedError);
+            logger.LogError(ex, ErrorMessages.UnexpectedError);
             return Result.Failure(ex.Message);
         }
     }
 
     private string GetValidatedUserEmail()
     {
-        var emailResult = _currentUserService.GetUserEmail();
+        var emailResult = currentUserService.GetUserEmail();
         if (string.IsNullOrEmpty(emailResult))
         {
-            _logger.LogWarning(ErrorMessages.AccountEmailNotFound);
+            logger.LogWarning(ErrorMessages.AccountEmailNotFound);
             return string.Empty;
         }
 
@@ -72,10 +57,10 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
 
     private async Task<Result<Domain.Model.User>> ValidateAndGetAccount(string email)
     {
-        var account = await _accountRepository.GetByEmail(email);
+        var account = await accountRepository.GetByEmail(email);
         if (account == null)
         {
-            _logger.LogWarning(ErrorMessages.AccountNotFound, email);
+            logger.LogWarning(ErrorMessages.AccountNotFound, email);
             return Result<Domain.Model.User>.Failure(ErrorMessages.AccountNotFound);
         }
 
@@ -84,12 +69,9 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
 
     private async Task<Result<List<Domain.Model.Order>>> ValidateAndGetPendingOrders(Domain.Model.User account)
     {
-        var pendingOrders = await _orderRepository.GetPendings(account.Id);
-        if (!pendingOrders.Any())
-        {
-            _logger.LogInformation(ErrorMessages.NoPendingOrders, account.Id);
+        var pendingOrders = await orderRepository.GetPendings(account.Id);
+        if (pendingOrders.Count == 0)
             return Result<List<Domain.Model.Order>>.Failure(ErrorMessages.NoPendingOrders);
-        }
 
         return Result<List<Domain.Model.Order>>.Success(pendingOrders);
     }
@@ -99,10 +81,10 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
         foreach (var order in orders)
         {
             order.Status = OrderStatus.Cancelled;
-            _orderRepository.Update(order);
+            orderRepository.Update(order);
         }
 
-        await _unitOfWork.Commit();
-        _logger.LogInformation(ErrorMessages.OrderCancelled, orders.Count);
+        await unitOfWork.Commit();
+        logger.LogInformation(ErrorMessages.OrderCancelled, orders.Count);
     }
 }
