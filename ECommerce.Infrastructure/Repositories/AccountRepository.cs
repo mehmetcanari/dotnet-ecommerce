@@ -6,20 +6,13 @@ using ECommerce.Shared.Constants;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class AccountRepository : IAccountRepository
+public class AccountRepository(StoreDbContext context) : IAccountRepository
 {
-    private readonly StoreDbContext _context;
-
-    public AccountRepository(StoreDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<List<User>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
-            IQueryable<User> query = _context.Accounts;
+            IQueryable<User> query = context.Accounts;
 
             var accounts = await query
                 .AsNoTracking()
@@ -40,7 +33,7 @@ public class AccountRepository : IAccountRepository
         try
         {
             
-            var account = await _context.Accounts
+            var account = await context.Accounts
                 .AsNoTracking()
                 .Where(a => a.Email == email)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -57,7 +50,7 @@ public class AccountRepository : IAccountRepository
     {
         try
         {
-            var account = await _context.Accounts
+            var account = await context.Accounts
                 .AsNoTracking()
                 .Where(a => a.Id == userId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -74,7 +67,7 @@ public class AccountRepository : IAccountRepository
     {
         try
         {
-            await _context.Accounts.AddAsync(userAccount, cancellationToken);
+            await context.Accounts.AddAsync(userAccount, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -86,7 +79,7 @@ public class AccountRepository : IAccountRepository
     {
         try
         {
-            _context.Accounts.Update(account);
+            context.Accounts.Update(account);
         }
         catch (Exception exception)
         {
@@ -98,7 +91,7 @@ public class AccountRepository : IAccountRepository
     {
         try
         {
-            _context.Accounts.Remove(account);
+            context.Accounts.Remove(account);
         }
         catch (Exception exception)
         {

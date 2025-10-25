@@ -6,20 +6,13 @@ using ECommerce.Shared.Constants;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class OrderRepository : IOrderRepository
+public class OrderRepository(StoreDbContext context) : IOrderRepository
 {
-    private readonly StoreDbContext _context;
-
-    public OrderRepository(StoreDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<List<Order>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
-            IQueryable<Order> query = _context.Orders;
+            IQueryable<Order> query = context.Orders;
 
             var orders = await query
             .AsNoTracking()
@@ -40,7 +33,7 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            IQueryable<Order> query = _context.Orders;
+            IQueryable<Order> query = context.Orders;
 
             var orders = await query
                 .AsNoTracking()
@@ -59,7 +52,7 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            var order = await _context.Orders
+            var order = await context.Orders
                 .AsNoTracking()
                 .Where(o => o.Id == id)
                 .Include(o => o.BasketItems)
@@ -77,7 +70,7 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            var order = await _context.Orders
+            var order = await context.Orders
                 .AsNoTracking()
                 .Where(o => o.UserId == userId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -94,7 +87,7 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            IQueryable<Order> query = _context.Orders;
+            IQueryable<Order> query = context.Orders;
 
             var orders = await query
                 .AsNoTracking()
@@ -116,7 +109,7 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            await _context.Orders.AddAsync(order, cancellationToken);
+            await context.Orders.AddAsync(order, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -128,7 +121,7 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            _context.Orders.Update(order);
+            context.Orders.Update(order);
         }
         catch (Exception exception)
         {
@@ -140,7 +133,7 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            _context.Orders.Remove(order);
+            context.Orders.Remove(order);
         }
         catch (Exception exception)
         {

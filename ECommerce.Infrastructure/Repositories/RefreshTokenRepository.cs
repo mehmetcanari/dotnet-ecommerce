@@ -6,20 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class RefreshTokenRepository : IRefreshTokenRepository
+public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepository
 {
-    private readonly StoreDbContext _context;
-
-    public RefreshTokenRepository(StoreDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task CreateAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+            await context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -31,7 +24,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     {
         try
         {
-            IQueryable<RefreshToken> query = _context.RefreshTokens;
+            IQueryable<RefreshToken> query = context.RefreshTokens;
 
             var refreshToken = await query
                 .AsNoTracking()
@@ -50,7 +43,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     {
         try
         {
-            IQueryable<RefreshToken> query = _context.RefreshTokens;
+            IQueryable<RefreshToken> query = context.RefreshTokens;
 
             var refreshToken = await query
                 .AsNoTracking()
@@ -69,7 +62,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         try
         {
             refreshToken.RevokeToken(reason);
-            _context.RefreshTokens.Update(refreshToken);
+            context.RefreshTokens.Update(refreshToken);
         }
         catch (Exception exception)
         {
@@ -81,14 +74,14 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     {
         try
         {
-            IQueryable<RefreshToken> query = _context.RefreshTokens;
+            IQueryable<RefreshToken> query = context.RefreshTokens;
 
             var expiredTokens = await query
                 .AsNoTracking()
                 .Where(rt => rt.ExpiresAt < DateTime.UtcNow || rt.RevokedAt != null)
                 .ToListAsync(cancellationToken);
 
-            _context.RefreshTokens.RemoveRange(expiredTokens);
+            context.RefreshTokens.RemoveRange(expiredTokens);
         }
         catch (Exception exception)
         {

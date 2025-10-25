@@ -6,20 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 
 namespace ECommerce.Infrastructure.Repositories;
-public class CategoryRepository : ICategoryRepository
+public class CategoryRepository(StoreDbContext context) : ICategoryRepository
 {
-    private readonly StoreDbContext _context;
-
-    public CategoryRepository(StoreDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task Create(Category category, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.Categories.AddAsync(category, cancellationToken);
+            await context.Categories.AddAsync(category, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -31,7 +24,7 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            IQueryable<Category> query = _context.Categories;
+            IQueryable<Category> query = context.Categories;
 
             var categories = await query
                 .AsNoTracking()
@@ -51,7 +44,7 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            IQueryable<Category> query = _context.Categories;
+            IQueryable<Category> query = context.Categories;
 
             var category = await query
                 .AsNoTracking()
@@ -70,7 +63,7 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            IQueryable<Category> query = _context.Categories;
+            IQueryable<Category> query = context.Categories;
 
             var category = await query
                 .AsNoTracking()
@@ -89,7 +82,7 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            _context.Categories.Update(category);
+            context.Categories.Update(category);
         }
         catch (Exception exception)
         {
@@ -101,7 +94,7 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            _context.Categories.Remove(category);
+            context.Categories.Remove(category);
         }
         catch (Exception exception)
         {

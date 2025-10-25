@@ -6,19 +6,17 @@ using MongoDB.Driver;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class ProductRepository : IProductRepository
+public sealed class ProductRepository : IProductRepository
 {
     private readonly IMongoCollection<Product> _products;
-    private readonly MongoDbContext _context;
 
     public ProductRepository(MongoDbContext context)
     {
-        _context = context;
         _products = context.GetCollection<Product>("products");
         CreateIndexes();
     }
 
-    protected virtual void CreateIndexes()
+    private void CreateIndexes()
     {
         var indexKeys = Builders<Product>.IndexKeys
             .Ascending(p => p.Name)
@@ -34,11 +32,6 @@ public class ProductRepository : IProductRepository
         _products.Indexes.CreateOneAsync(new CreateIndexModel<Product>(stockIndexKeys));
     }
 
-    protected virtual IFindFluent<Product, Product> GetProductQuery(FilterDefinition<Product> filter)
-    {
-        return _products.Find(filter);
-    }
-
     public async Task<List<Product>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
@@ -50,7 +43,7 @@ public class ProductRepository : IProductRepository
                 Sort = Builders<Product>.Sort.Descending(p => p.CreatedOn)
             };
             
-            var cursor = await _products.FindAsync(_ => true, options);
+            var cursor = await _products.FindAsync(_ => true, options, cancellationToken);
             return await cursor.ToListAsync(cancellationToken);
         }
         catch (Exception exception)
@@ -63,7 +56,7 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            var cursor = await _products.FindAsync(p => p.Id == id);
+            var cursor = await _products.FindAsync(p => p.Id == id, cancellationToken: cancellationToken);
             return await cursor.FirstOrDefaultAsync(cancellationToken);
         }
         catch (Exception exception)
@@ -76,7 +69,7 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            var count = await _products.CountDocumentsAsync(p => p.Name == name);
+            var count = await _products.CountDocumentsAsync(p => p.Name == name, cancellationToken: cancellationToken);
             return count > 0;
         }
         catch (Exception exception)
@@ -130,7 +123,7 @@ public class ProductRepository : IProductRepository
                 .Set(p => p.StockQuantity, newValue)
                 .Set(p => p.UpdatedOn, DateTime.UtcNow);
 
-            await _products.UpdateOneAsync(p => p.Id == productId, update);
+            await _products.UpdateOneAsync(p => p.Id == productId, update, cancellationToken: cancellationToken);
         }
         catch (Exception exception)
         {

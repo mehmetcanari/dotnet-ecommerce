@@ -6,20 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class NotificationRepository : INotificationRepository
+public class NotificationRepository(StoreDbContext context) : INotificationRepository
 {
-    private readonly StoreDbContext _context;
-
-    public NotificationRepository(StoreDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task CreateAsync(Notification notification, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.Notifications.AddAsync(notification, cancellationToken);
+            await context.Notifications.AddAsync(notification, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -31,7 +24,7 @@ public class NotificationRepository : INotificationRepository
     {
         try
         {
-            IQueryable<Notification> query = _context.Notifications;
+            IQueryable<Notification> query = context.Notifications;
 
             var notifications = await query
                 .AsNoTracking()
@@ -53,7 +46,7 @@ public class NotificationRepository : INotificationRepository
     {
         try
         {
-            IQueryable<Notification> query = _context.Notifications;
+            IQueryable<Notification> query = context.Notifications;
 
             var notifications = await query
             .AsNoTracking()
@@ -73,7 +66,7 @@ public class NotificationRepository : INotificationRepository
     {
         try
         {
-            IQueryable<Notification> query = _context.Notifications;
+            IQueryable<Notification> query = context.Notifications;
 
             var count = await query
                 .AsNoTracking()
@@ -91,9 +84,9 @@ public class NotificationRepository : INotificationRepository
     {
         try
         {
-            var notification = _context.Notifications.Find(id);
+            var notification = context.Notifications.Find(id);
             if (notification is not null)
-                _context.Notifications.Remove(notification);
+                context.Notifications.Remove(notification);
 
             return;
         }
@@ -107,11 +100,11 @@ public class NotificationRepository : INotificationRepository
     {
         try
         {
-            var notification = await _context.Notifications.FindAsync(id, cancellationToken);
+            var notification = await context.Notifications.FindAsync(id, cancellationToken);
             if (notification == null) return false;
             
             notification.MarkAsRead();
-            _context.Notifications.Update(notification);
+            context.Notifications.Update(notification);
             return true;
         }
         catch (Exception exception)
@@ -124,7 +117,7 @@ public class NotificationRepository : INotificationRepository
     {
         try
         {
-            IQueryable<Notification> query = _context.Notifications;
+            IQueryable<Notification> query = context.Notifications;
 
             var unreadNotifications = await query
                 .AsNoTracking()
@@ -134,7 +127,7 @@ public class NotificationRepository : INotificationRepository
             foreach (var notification in unreadNotifications)
             {
                 notification.MarkAsRead();
-                _context.Notifications.Update(notification);
+                context.Notifications.Update(notification);
             }
 
             return true;

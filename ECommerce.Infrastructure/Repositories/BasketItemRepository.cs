@@ -6,20 +6,13 @@ using ECommerce.Shared.Constants;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class BasketItemRepository : IBasketItemRepository
+public class BasketItemRepository(StoreDbContext context) : IBasketItemRepository
 {
-    private readonly StoreDbContext _context;
-
-    public BasketItemRepository(StoreDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task Create(BasketItem basketItem, CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.BasketItems.AddAsync(basketItem, cancellationToken);
+            await context.BasketItems.AddAsync(basketItem, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -31,7 +24,7 @@ public class BasketItemRepository : IBasketItemRepository
     {
         try
         {
-            IQueryable<BasketItem> query = _context.BasketItems;
+            IQueryable<BasketItem> query = context.BasketItems;
         
             var items = await query
                 .AsNoTracking()
@@ -50,7 +43,7 @@ public class BasketItemRepository : IBasketItemRepository
     {
         try
         {
-            IQueryable<BasketItem> query = _context.BasketItems;
+            IQueryable<BasketItem> query = context.BasketItems;
 
             var basketItem = await query
                 .AsNoTracking()
@@ -69,7 +62,7 @@ public class BasketItemRepository : IBasketItemRepository
     {
         try
         {
-            IQueryable<BasketItem> query = _context.BasketItems;
+            IQueryable<BasketItem> query = context.BasketItems;
         
             var items = await query
                 .AsNoTracking()
@@ -88,7 +81,7 @@ public class BasketItemRepository : IBasketItemRepository
     {
         try
         {
-            _context.BasketItems.Update(basketItem);
+            context.BasketItems.Update(basketItem);
         }
         catch (Exception exception)
         {
@@ -100,7 +93,7 @@ public class BasketItemRepository : IBasketItemRepository
     {
         try
         {
-            _context.BasketItems.Remove(basketItem);
+            context.BasketItems.Remove(basketItem);
         }
         catch (Exception exception)
         {
