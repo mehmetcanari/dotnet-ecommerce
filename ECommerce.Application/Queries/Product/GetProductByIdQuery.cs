@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -7,59 +7,40 @@ using MediatR;
 
 namespace ECommerce.Application.Queries.Product;
 
-public class GetProductByIdQuery : IRequest<Result<ProductResponseDto>>
+public class GetProductByIdQuery(Guid id) : IRequest<Result<ProductResponseDto>>
 {
-    public required Guid Id { get; set; }
+    public readonly Guid Id = id;
 }
 
-public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Result<ProductResponseDto>>
+public class GetProductByIdQueryHandler(IProductRepository productRepository, ICacheService cacheService, ILogService logger) : IRequestHandler<GetProductByIdQuery, Result<ProductResponseDto>>
 {
-    private readonly IProductRepository _productRepository;
-    private readonly ICacheService _cacheService;
-    private readonly ILoggingService _logger;
-    private const int CacheDurationInMinutes = 60;
-
-    public GetProductByIdQueryHandler(
-        IProductRepository productRepository,
-        ICacheService cacheService,
-        ILoggingService logger)
-    {
-        _productRepository = productRepository;
-        _cacheService = cacheService;
-        _logger = logger;
-    }
+    private static readonly TimeSpan ExpirationTime = TimeSpan.FromMinutes(60);
 
     public async Task<Result<ProductResponseDto>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var cachedProduct = await _cacheService.GetAsync<ProductResponseDto>(string.Format(CacheKeys.ProductById, request.Id));
+            var cachedProduct = await cacheService.GetAsync<ProductResponseDto>(string.Format(CacheKeys.ProductById, request.Id));
             if (cachedProduct != null)
                 return Result<ProductResponseDto>.Success(cachedProduct);
 
-            var product = await _productRepository.GetById(request.Id);
+            var product = await productRepository.GetById(request.Id, cancellationToken);
             if (product == null)
                 return Result<ProductResponseDto>.Failure(ErrorMessages.ProductNotFound);
             
             var productResponse = MapToResponseDto(product);
-            await CacheProduct(request.Id, productResponse);
-            
+            await cacheService.SetAsync(string.Format(CacheKeys.ProductById, product.Id), productResponse, ExpirationTime);
+
             return Result<ProductResponseDto>.Success(productResponse);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result<ProductResponseDto>.Failure(ex.Message);
         }
     }
 
-    private async Task CacheProduct(Guid productId, ProductResponseDto productDto)
-    {
-        var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
-        await _cacheService.SetAsync(string.Format(CacheKeys.ProductById, productId), productDto, expirationTime);
-    }
-
-    private static ProductResponseDto MapToResponseDto(Domain.Model.Product product) => new ProductResponseDto
+    private ProductResponseDto MapToResponseDto(Domain.Model.Product product) => new ProductResponseDto
     {
         Id = product.Id,
         ProductName = product.Name,

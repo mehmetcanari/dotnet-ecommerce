@@ -1,4 +1,5 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
+using ECommerce.Application.Commands.Token;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Utility;
@@ -13,7 +14,7 @@ public class BanAccountCommand(AccountBanRequestDto request) : IRequest<Result>
     public readonly AccountBanRequestDto Model = request;
 }
 
-public class BanAccountCommandHandler(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, ILoggingService logger) : IRequestHandler<BanAccountCommand, Result>
+public class BanAccountCommandHandler(IAccountRepository accountRepository, IUnitOfWork unitOfWork, ILogService logger, IMediator mediator) : IRequestHandler<BanAccountCommand, Result>
 {
     public async Task<Result> Handle(BanAccountCommand request, CancellationToken cancellationToken)
     {
@@ -24,10 +25,13 @@ public class BanAccountCommandHandler(IAccountRepository accountRepository, IRef
                 return Result.Failure(ErrorMessages.AccountEmailNotFound);
             
             var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.Model.Email, Reason = ErrorMessages.AccountBanned };
-            await refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
+            var revokeResult = await mediator.Send(new RevokeRefreshTokenCommand(tokenRevokeRequest), cancellationToken);
+            if(revokeResult is { IsFailure: true })
+                return Result.Failure(ErrorMessages.FailedToRevokeToken);
 
             account.BanAccount(request.Model.Until, request.Model.Reason);
             accountRepository.Update(account);
+            await unitOfWork.Commit();
 
             logger.LogInformation(ErrorMessages.AccountBanned, request.Model.Email);
             return Result.Success();

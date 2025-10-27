@@ -93,7 +93,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
                 .AsNoTracking()
                 .Include(o => o.BasketItems)
                 .Where(o => o.UserId == userId)
-                .Where(o => o.BasketItems.Any(oi => oi.IsOrdered))
+                .Where(o => o.BasketItems.Any(oi => oi.IsPurchased))
                 .OrderByDescending(o => o.CreatedOn)
                 .ToListAsync(cancellationToken);
 

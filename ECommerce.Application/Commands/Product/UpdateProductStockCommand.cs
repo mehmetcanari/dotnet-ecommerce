@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -8,12 +8,12 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Product;
 
-public class UpdateProductStockCommand : IRequest<Result>
+public class UpdateProductStockCommand(List<BasketItem> request) : IRequest<Result>
 {
-    public required List<BasketItem> Model { get; init; }
+    public readonly List<BasketItem> Model = request;
 }
 
-public class UpdateProductStockCommandHandler(IProductRepository productRepository, IMediator mediator, ILoggingService logger) : IRequestHandler<UpdateProductStockCommand, Result>
+public class UpdateProductStockCommandHandler(IProductRepository productRepository, IMediator mediator, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<UpdateProductStockCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductStockCommand request, CancellationToken cancellationToken)
     {
@@ -23,13 +23,15 @@ public class UpdateProductStockCommandHandler(IProductRepository productReposito
 
             foreach (var item in request.Model)
             {
-                var validation = await ValidateAndUpdateStock(item, cancellationToken);
-                if (!validation.result.IsSuccess)
-                    return validation.result;
+                var stockUpdateResult = await ValidateAndUpdateStock(item, cancellationToken);
+                if(stockUpdateResult is { IsFailure: true})
+                    return Result.Failure(ErrorMessages.ErrorUpdatingProductStock);
 
-                updatedProducts.Add(validation.product);
+                if(stockUpdateResult.Data is not null)
+                    updatedProducts.Add(stockUpdateResult.Data);
             }
 
+            await unitOfWork.Commit();
             await PublishProductStockUpdatedEvents(updatedProducts, cancellationToken);
 
             logger.LogInformation(ErrorMessages.UpdateProductStockSuccess, request.Model.Count);
@@ -42,17 +44,17 @@ public class UpdateProductStockCommandHandler(IProductRepository productReposito
         }
     }
 
-    private async Task<(Result result, Domain.Model.Product product)> ValidateAndUpdateStock(BasketItem item, CancellationToken cancellationToken)
+    private async Task<Result<Domain.Model.Product>> ValidateAndUpdateStock(BasketItem item, CancellationToken cancellationToken)
     {
         var product = await productRepository.GetById(item.ProductId, cancellationToken);
         if (product == null)
-            return (Result.Failure(ErrorMessages.ProductNotFound), null!);
+            return Result<Domain.Model.Product>.Failure(ErrorMessages.ProductNotFound);
 
         if (product.StockQuantity < item.Quantity)
-            return (Result.Failure(ErrorMessages.StockNotAvailable), null!);
+            return Result<Domain.Model.Product>.Failure(ErrorMessages.StockNotAvailable);
 
         await UpdateProductStock(product, item.Quantity, cancellationToken);
-        return (Result.Success(), product);
+        return Result<Domain.Model.Product>.Success(product);
     }
 
     private async Task UpdateProductStock(Domain.Model.Product product, int quantity, CancellationToken cancellationToken)

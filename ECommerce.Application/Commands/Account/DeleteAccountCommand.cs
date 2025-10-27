@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.Commands.Account;
 
-public class DeleteAccountCommand : IRequest<Result>
+public class DeleteAccountCommand(Guid id) : IRequest<Result>
 {
-    public required Guid UserId { get; init; }
+    public readonly Guid UserId = id;
 }
 
-public class DeleteAccountCommandHandler(IAccountRepository accountRepository, UserManager<Domain.Model.User> userManager, IUnitOfWork unitOfWork, ILoggingService logger) : IRequestHandler<DeleteAccountCommand, Result>
+public class DeleteAccountCommandHandler(IAccountRepository accountRepository, UserManager<Domain.Model.User> userManager, IUnitOfWork unitOfWork, ILogService logger) : IRequestHandler<DeleteAccountCommand, Result>
 {
     public async Task<Result> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {

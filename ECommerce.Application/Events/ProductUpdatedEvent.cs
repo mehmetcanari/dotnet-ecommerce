@@ -4,14 +4,12 @@ namespace ECommerce.Application.Events;
 
 public class ProductUpdatedEvent : INotification
 {
-    public required Guid Id { get; set; }
-    public required Guid CategoryId { get; set; }
-    public required string Name { get; set; }
-    public required string Description { get; set; }
-    public decimal Price { get; set; }
-    public decimal DiscountRate { get; set; }
-    public required string ImageUrl { get; set; }
-    public int StockQuantity { get; set; }
-    public DateTime ProductCreated { get; set; }
-    public DateTime ProductUpdated { get; set; }
-} 
+    public required Guid Id { get; init; }
+    public required Guid CategoryId { get; init; }
+    public required string Name { get; init; }
+    public required string Description { get; init; }
+    public decimal Price { get; init; }
+    public decimal DiscountRate { get; init; }
+    public required string ImageUrl { get; init; }
+    public int StockQuantity { get; init; }
+}

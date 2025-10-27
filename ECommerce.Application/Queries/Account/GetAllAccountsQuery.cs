@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -9,22 +9,13 @@ namespace ECommerce.Application.Queries.Account;
 
 public class GetAllAccountsQuery : IRequest<Result<List<AccountResponseDto>>>{}
 
-public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, Result<List<AccountResponseDto>>>
+public class GetAllAccountsQueryHandler(IAccountRepository accountRepository, ILogService logger) : IRequestHandler<GetAllAccountsQuery, Result<List<AccountResponseDto>>>
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly ILoggingService _logger;
-
-    public GetAllAccountsQueryHandler(IAccountRepository accountRepository, ILoggingService logger)
-    {
-        _accountRepository = accountRepository;
-        _logger = logger;
-    }
-
     public async Task<Result<List<AccountResponseDto>>> Handle(GetAllAccountsQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var accounts = await _accountRepository.Read();
+            var accounts = await accountRepository.Read(cancellationToken: cancellationToken);
             var accountCount = accounts.Count;
             if (accountCount == 0)
             {
@@ -36,12 +27,12 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, R
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.AccountNotFound, ex.Message);
+            logger.LogError(ex, ErrorMessages.AccountNotFound, ex.Message);
             return Result<List<AccountResponseDto>>.Failure(ErrorMessages.AccountNotFound);
         }
     }
 
-    private static AccountResponseDto MapToResponseDto(Domain.Model.User account)
+    private AccountResponseDto MapToResponseDto(Domain.Model.User account)
     {
         return new AccountResponseDto
         {

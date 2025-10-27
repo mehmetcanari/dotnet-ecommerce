@@ -1,26 +1,19 @@
 using StackExchange.Redis;
 using System.Text.Json;
-using ECommerce.Application.Abstract.Service;
 using ECommerce.Shared.Constants;
+using ECommerce.Application.Abstract;
 
 namespace ECommerce.Application.Services.Cache;
 
-public class CacheService : ICacheService
+public class CacheService(IConnectionMultiplexer redis, ILogService logger) : ICacheService
 {
-    private readonly IDatabase _database;
-    private readonly ILoggingService _logger;
-    private readonly JsonSerializerOptions _jsonOptions;
-    
-    public CacheService(IConnectionMultiplexer redis, ILoggingService logger)
+    private readonly IDatabase _database = redis.GetDatabase();
+
+    private readonly JsonSerializerOptions _jsonOptions = new()
     {
-        _database = redis.GetDatabase();
-        _logger = logger;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = null
-        };
-    }
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = null
+    };
 
     public async Task<T?> GetAsync<T>(string key)
     {
@@ -39,7 +32,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
+            logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
             return default;
         }
     }
@@ -53,7 +46,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
+            logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
             throw;
         }
     }
@@ -69,7 +62,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
+            logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
             throw;
         }
     }

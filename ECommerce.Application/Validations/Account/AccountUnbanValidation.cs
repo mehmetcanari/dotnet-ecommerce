@@ -1,16 +1,12 @@
-using ECommerce.Application.DTO.Request.Account;
+using ECommerce.Application.Commands.Account;
 using FluentValidation;
 
 namespace ECommerce.Application.Validations.Account;
 
-public class AccountUnbanValidation : AbstractValidator<AccountUnbanRequestDto>
+public class AccountUnbanValidation : AbstractValidator<UnbanAccountCommand>
 {
     public AccountUnbanValidation()
     {
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .WithMessage("You must provide an email address for the account to be unbanned")
-            .EmailAddress()
-            .WithMessage("The email address provided is invalid");
+        RuleFor(x => x.Model.Email).NotEmpty().EmailAddress();
     }
 }

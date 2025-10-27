@@ -1,19 +1,14 @@
-using ECommerce.Application.DTO.Request.Account;
+using ECommerce.Application.Commands.Auth;
 using FluentValidation;
 
 namespace ECommerce.Application.Validations.Account;
 
-public class AccountLoginValidation : AbstractValidator<AccountLoginRequestDto>
+public class AccountLoginValidation : AbstractValidator<LoginCommand>
 {
     public AccountLoginValidation()
     {
-        RuleFor(x => x.Email)
-            .EmailAddress()
-            .NotEmpty()
-            .WithMessage("Email is required");
-        
-        RuleFor(x => x.Password)
-            .NotEmpty()
-            .WithMessage("Password is required");
+        RuleFor(x => x.Model.Email).EmailAddress().NotEmpty();
+
+        RuleFor(x => x.Model.Password).NotEmpty();
     }
 } 

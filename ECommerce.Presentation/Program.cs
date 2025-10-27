@@ -5,8 +5,8 @@ using Asp.Versioning.ApiExplorer;
 using DotNetEnv;
 using ECommerce.API.Configurations;
 using ECommerce.API.Extensions;
+using ECommerce.API.Middlewares;
 using ECommerce.API.SwaggerFilters;
-using ECommerce.Application.Exceptions;
 using ECommerce.Application.Services.Notification;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
@@ -18,7 +18,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Bson.Serialization.Serializers;
 using Serilog;
 using Serilog.Events;
@@ -134,7 +133,7 @@ internal static class Program
         //======================================================
         // IDENTITY CONFIGURATION
         //======================================================
-        builder.Services.AddIdentity<Domain.Model.User, IdentityRole<Guid>>(options =>
+        builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
         {
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
@@ -479,7 +478,7 @@ internal static class Program
         // MIDDLEWARE PIPELINE 
         //======================================================
 
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseMiddleware<GlobalExceptionMiddleware>();
 
         app.Use(async (context, next) =>
         {

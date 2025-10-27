@@ -10,7 +10,7 @@ public class BasketItem : BaseEntity
     public required Guid ProductId { get; set; }
     public decimal TotalPrice => UnitPrice * Quantity;
     public required string ProductName { get; set; }
-    public bool IsOrdered { get; set; }
+    public bool IsPurchased { get; set; }
 
     // Navigation properties
     public Guid? OrderId { get; set; }

@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -9,46 +9,28 @@ namespace ECommerce.Application.Queries.Basket;
 
 public class GetAllBasketItemsQuery : IRequest<Result<List<BasketItemResponseDto>>> { }
 
-public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQuery, Result<List<BasketItemResponseDto>>>
+public class GetAllBasketItemsQueryHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, 
+    ICacheService cacheService, IAccountRepository accountRepository) : IRequestHandler<GetAllBasketItemsQuery, Result<List<BasketItemResponseDto>>>
 {
-    private readonly IBasketItemRepository _basketItemRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly ILoggingService _logger;
-    private readonly ICacheService _cacheService;
-    private const int _cacheDurationInMinutes = 10;
-
-    public GetAllBasketItemsQueryHandler(
-        IBasketItemRepository basketItemRepository,
-        ICurrentUserService currentUserService,
-        ILoggingService logger,
-        ICacheService cacheService,
-        IAccountRepository accountRepository)
-    {
-        _basketItemRepository = basketItemRepository;
-        _currentUserService = currentUserService;
-        _logger = logger;
-        _cacheService = cacheService;
-        _accountRepository = accountRepository;
-    }
+    private const int CacheExpirationInMinutes = 10;
 
     public async Task<Result<List<BasketItemResponseDto>>> Handle(GetAllBasketItemsQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var email = _currentUserService.GetUserEmail();
-            if (email is null)
+            var email = currentUserService.GetUserEmail();
+            if (string.IsNullOrEmpty(email))
                 return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.AccountEmailNotFound);
 
             var cachedItems = await GetCachedBasketItems();
             if (cachedItems != null)
                 return Result<List<BasketItemResponseDto>>.Success(cachedItems);
 
-            var account = await _accountRepository.GetByEmail(email);
+            var account = await accountRepository.GetByEmail(email, cancellationToken);
             if (account == null)
                 return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.AccountNotFound);
 
-            var basketItems = await GetBasketItems(account);
+            var basketItems = await basketItemRepository.GetUnorderedItems(account, cancellationToken);
             if (basketItems.Count == 0)
                 return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.BasketItemNotFound);
 
@@ -59,32 +41,27 @@ public class GetAllBasketItemsQueryHandler : IRequestHandler<GetAllBasketItemsQu
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, ErrorMessages.UnexpectedError);
+            logger.LogError(exception, ErrorMessages.UnexpectedError);
             return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
     private async Task<List<BasketItemResponseDto>?> GetCachedBasketItems()
     {
-        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail()}";
-        var cachedItems = await _cacheService.GetAsync<List<BasketItemResponseDto>>(cacheKey);
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{currentUserService.GetUserEmail()}";
+        var cachedItems = await cacheService.GetAsync<List<BasketItemResponseDto>>(cacheKey);
 
         return cachedItems;
     }
 
-    private async Task<List<Domain.Model.BasketItem>> GetBasketItems(Domain.Model.User account)
-    {
-        return await _basketItemRepository.GetNonOrdereds(account);
-    }
-
     private async Task CacheBasketItems(List<BasketItemResponseDto> items)
     {
-        var cacheKey = $"{CacheKeys.AllBasketItems}_{_currentUserService.GetUserEmail()}";
-        TimeSpan cacheDuration = TimeSpan.FromMinutes(_cacheDurationInMinutes);
-        await _cacheService.SetAsync(cacheKey, items, cacheDuration);
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{currentUserService.GetUserEmail()}";
+        TimeSpan cacheDuration = TimeSpan.FromMinutes(CacheExpirationInMinutes);
+        await cacheService.SetAsync(cacheKey, items, cacheDuration);
     }
 
-    private static BasketItemResponseDto MapToResponseDto(Domain.Model.BasketItem basketItem) => new BasketItemResponseDto
+    private BasketItemResponseDto MapToResponseDto(Domain.Model.BasketItem basketItem) => new BasketItemResponseDto
     {
         UserId = basketItem.UserId,
         Quantity = basketItem.Quantity,

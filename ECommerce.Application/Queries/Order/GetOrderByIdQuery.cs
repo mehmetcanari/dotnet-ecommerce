@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.BasketItem;
 using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Application.Utility;
@@ -8,27 +8,18 @@ using MediatR;
 
 namespace ECommerce.Application.Queries.Order;
 
-public class GetOrderByIdQuery : IRequest<Result<OrderResponseDto>>
+public class GetOrderByIdQuery(Guid id) : IRequest<Result<OrderResponseDto>>
 {
-    public required Guid Id { get; set; }
+    public readonly Guid Id = id;
 }
 
-public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Result<OrderResponseDto>>
+public class GetOrderByIdQueryHandler(IOrderRepository orderRepository, ILogService logger) : IRequestHandler<GetOrderByIdQuery, Result<OrderResponseDto>>
 {
-    private readonly IOrderRepository _orderRepository;
-    private readonly ILoggingService _logger;
-
-    public GetOrderByIdQueryHandler(IOrderRepository orderRepository, ILoggingService logger)
-    {
-        _orderRepository = orderRepository;
-        _logger = logger;
-    }
-
     public async Task<Result<OrderResponseDto>> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var order = await _orderRepository.GetById(request.Id);
+            var order = await orderRepository.GetById(request.Id, cancellationToken);
             if (order == null)
                 return Result<OrderResponseDto>.Failure(ErrorMessages.OrderNotFound);
 
@@ -37,12 +28,12 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.OrderNotFound, ex.Message);
+            logger.LogError(ex, ErrorMessages.OrderNotFound, ex.Message);
             return Result<OrderResponseDto>.Failure(ErrorMessages.UnexpectedError);
         }
     }
 
-    private static OrderResponseDto MapToResponseDto(Domain.Model.Order order) => new OrderResponseDto
+    private OrderResponseDto MapToResponseDto(Domain.Model.Order order) => new OrderResponseDto
     {
         UserId = order.UserId,
         BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
@@ -52,7 +43,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
         Status = order.Status
     };
 
-    private static BasketItemResponseDto MapToBasketItemDto(Domain.Model.BasketItem basketItem) => new BasketItemResponseDto
+    private BasketItemResponseDto MapToBasketItemDto(Domain.Model.BasketItem basketItem) => new BasketItemResponseDto
     {
         UserId = basketItem.UserId,
         ProductId = basketItem.ProductId,

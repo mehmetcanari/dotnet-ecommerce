@@ -1,24 +1,11 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.Events;
 using MediatR;
 
 namespace ECommerce.Application.Services.Search.Product;
 
-public class ProductElasticsearchEventHandler : 
-    INotificationHandler<ProductCreatedEvent>,
-    INotificationHandler<ProductUpdatedEvent>,
-    INotificationHandler<ProductStockUpdatedEvent>,
-    INotificationHandler<ProductDeletedEvent>
+public class ProductElasticsearchEventHandler(IElasticSearchService elasticSearchService, ILogService logger) : INotificationHandler<ProductCreatedEvent>, INotificationHandler<ProductUpdatedEvent>, INotificationHandler<ProductStockUpdatedEvent>, INotificationHandler<ProductDeletedEvent>
 {
-    private readonly IProductSearchService _productSearchService;
-    private readonly ILoggingService _logger;
-
-    public ProductElasticsearchEventHandler(IProductSearchService productSearchService, ILoggingService logger)
-    {
-        _productSearchService = productSearchService;
-        _logger = logger;
-    }
-
     public async Task Handle(ProductCreatedEvent notification, CancellationToken cancellationToken)
     {
         try
@@ -35,13 +22,13 @@ public class ProductElasticsearchEventHandler :
                 CategoryId = notification.CategoryId
             };
 
-            var result = await _productSearchService.IndexProductAsync(product);
+            var result = await elasticSearchService.IndexProductAsync(product);
             if (result.IsFailure)
-                _logger.LogWarning("Failed to index new product {ProductId} in Elasticsearch: {Error}", result.Message);
+                logger.LogWarning("Failed to index new product {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling ProductCreatedEvent for product {ProductId}: {Message}", notification.ProductId, ex.Message);
+            logger.LogError(ex, "Error handling ProductCreatedEvent for product {ProductId}: {Message}", notification.ProductId, ex.Message);
         }
     }
 
@@ -49,7 +36,7 @@ public class ProductElasticsearchEventHandler :
     {
         try
         {
-            _logger.LogInformation("Handling ProductUpdatedEvent for product {ProductId}", notification.Id);
+            logger.LogInformation("Handling ProductUpdatedEvent for product {ProductId}", notification.Id);
             
             var product = new Domain.Model.Product
             {
@@ -63,13 +50,13 @@ public class ProductElasticsearchEventHandler :
                 CategoryId = notification.CategoryId
             };
 
-            var result = await _productSearchService.UpdateProductAsync(product);
+            var result = await elasticSearchService.UpdateProductAsync(product);
             if (result.IsFailure)
-                _logger.LogWarning("Failed to update product {ProductId} in Elasticsearch: {Error}", result.Message);
+                logger.LogWarning("Failed to update product {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling ProductUpdatedEvent for product {ProductId}: {Message}", notification.Id, ex.Message);
+            logger.LogError(ex, "Error handling ProductUpdatedEvent for product {ProductId}: {Message}", notification.Id, ex.Message);
         }
     }
 
@@ -89,13 +76,13 @@ public class ProductElasticsearchEventHandler :
                 CategoryId = notification.CategoryId
             };
 
-            var result = await _productSearchService.UpdateProductAsync(product);
+            var result = await elasticSearchService.UpdateProductAsync(product);
             if (result.IsFailure)
-                _logger.LogWarning("Failed to update product stock {ProductId} in Elasticsearch: {Error}", result.Message);
+                logger.LogWarning("Failed to update product stock {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling ProductStockUpdatedEvent for product {ProductId}: {Message}", notification.ProductId, ex.Message);
+            logger.LogError(ex, "Error handling ProductStockUpdatedEvent for product {ProductId}: {Message}", notification.ProductId, ex.Message);
         }
     }
 
@@ -103,15 +90,15 @@ public class ProductElasticsearchEventHandler :
     {
         try
         {
-            _logger.LogInformation("Handling ProductDeletedEvent for product {ProductId}", notification.Id);
+            logger.LogInformation("Handling ProductDeletedEvent for product {ProductId}", notification.Id);
             
-            var result = await _productSearchService.DeleteProductAsync(notification.Id.ToString());
+            var result = await elasticSearchService.DeleteProductAsync(notification.Id.ToString());
             if (result.IsFailure)
-                _logger.LogWarning("Failed to delete product {ProductId} in Elasticsearch: {Error}", result.Message);
+                logger.LogWarning("Failed to delete product {ProductId} in Elasticsearch: {Error}", result.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling ProductDeletedEvent for product {ProductId}: {Message}",  notification.Id, ex.Message);
+            logger.LogError(ex, "Error handling ProductDeletedEvent for product {ProductId}: {Message}",  notification.Id, ex.Message);
         }
     }
 } 

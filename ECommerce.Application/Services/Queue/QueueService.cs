@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Shared.Constants;
 using RabbitMQ.Client;
 
@@ -10,9 +10,9 @@ public class QueueService : IMessageBroker, IDisposable
 {
     private readonly IConnection? _connection;
     private readonly IModel? _channel;
-    private readonly ILoggingService _logger;
+    private readonly ILogService _logger;
 
-    public QueueService(IConnectionFactory connectionFactory, ILoggingService logger)
+    public QueueService(IConnectionFactory connectionFactory, ILogService logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -30,7 +30,7 @@ public class QueueService : IMessageBroker, IDisposable
         }
     }
 
-    public async Task PublishAsync<T>(T message, string exchange, string routingKey) where T : class
+    public async Task Publish<T>(T message, string exchange, string routingKey) where T : class
     {
         try
         {

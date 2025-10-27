@@ -61,12 +61,15 @@
         public const string UserIsNotLoggedIn = "authentication.user.is.not.logged.in";
         public const string ErrorValidatingLogin = "authentication.error.validating.login";
         public const string AccountNotAuthorized = "authentication.account.not.authorized";
+        public const string InvalidCredentials = "authentication.invalid.credentials";
         #endregion
 
         #region Token
         public const string ErrorGeneratingTokens = "authentication.error.generating.tokens";
         public const string FailedToGenerateAccessToken = "authentication.failed.to.generate.access.token";
         public const string FailedToGenerateRefreshToken = "authentication.failed.to.generate.refresh.token";
+        public const string CantFetchRefreshTokenFromContext = "authentication.cant.fetch.refresh.token.from.context";
+        public const string RefreshTokenNotFound = "authentication.refresh.token.not.found";
         public const string InvalidToken = "authentication.invalid.token";
         public const string FailedToRevokeToken = "authentication.failed.to.revoke.token";
         public const string ErrorValidatingToken = "authentication.error.validating.token";
@@ -88,6 +91,7 @@
         public const string StockNotAvailable = "product.stock.not.available";
         public const string ProductExists = "product.exists";
         public const string ErrorCreatingProduct = "product.error.creating";
+        public const string ErrorDeletingProduct = "product.error.deleting";
         public const string ErrorUpdatingProduct = "product.error.updating";
         public const string ErrorUpdatingProductStock = "product.error.updating.stock";
         public const string UpdateProductStockSuccess = "product.update.stock.success";

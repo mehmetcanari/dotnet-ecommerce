@@ -2,7 +2,7 @@ namespace ECommerce.Application.Utility;
 
 public class Result<T>
 {
-    public bool IsSuccess { get; private set; }
+    public bool IsSuccess { get; private init; }
     public bool IsFailure => !IsSuccess;
     public T? Data { get; private set; } = default;
     public string? Message { get; private set; }
@@ -22,7 +22,7 @@ public class Result<T>
 
 public class Result
 {
-    public bool IsSuccess { get; private set; }
+    public bool IsSuccess { get; private init; }
     public bool IsFailure => !IsSuccess;
     public string? Message { get; private set; }
 

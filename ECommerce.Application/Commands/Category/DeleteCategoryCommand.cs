@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
@@ -6,12 +6,12 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Category;
 
-public class DeleteCategoryCommand : IRequest<Result>
+public class DeleteCategoryCommand(Guid id) : IRequest<Result>
 {
-    public required Guid Id { get; init; }
+    public readonly Guid Id = id;
 }
 
-public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository, ILoggingService logger) : IRequestHandler<DeleteCategoryCommand, Result>
+public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<DeleteCategoryCommand, Result>
 {
     public async Task<Result> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
@@ -24,7 +24,8 @@ public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository
             if (categoryResult.Data is null)
                 return Result.Failure(ErrorMessages.CategoryNotFound);
 
-            DeleteCategory(categoryResult.Data);
+            categoryRepository.Delete(categoryResult.Data);
+            await unitOfWork.Commit();
 
             return Result.Success();
         }
@@ -45,11 +46,5 @@ public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository
         }
 
         return Result<Domain.Model.Category>.Success(category);
-    }
-
-    private void DeleteCategory(Domain.Model.Category category)
-    {
-        categoryRepository.Delete(category);
-        logger.LogInformation(ErrorMessages.CategoryDeleted, category.Id, category.Name);
     }
 }

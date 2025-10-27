@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -12,7 +12,7 @@ public class UpdateOrderStatusCommand(UpdateOrderStatusRequestDto request) : IRe
     public readonly UpdateOrderStatusRequestDto Model = request;
 }
 
-public class UpdateOrderStatusByAccountIdCommandHandler(IOrderRepository orderRepository, ILoggingService logger) : IRequestHandler<UpdateOrderStatusCommand, Result>
+public class UpdateOrderStatusByAccountIdCommandHandler(IOrderRepository orderRepository, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<UpdateOrderStatusCommand, Result>
 {
     public async Task<Result> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
     {
@@ -24,8 +24,13 @@ public class UpdateOrderStatusByAccountIdCommandHandler(IOrderRepository orderRe
             
             if (orderResult.Data is null)
                 return Result.Failure(ErrorMessages.OrderNotFound);
-            
-            UpdateOrderStatus(orderResult.Data, request.Model.Status);
+
+            var order = orderResult.Data;
+
+            order.Status = request.Model.Status;
+            orderRepository.Update(order);
+            await unitOfWork.Commit();
+
             return Result.Success();
         }
         catch (Exception ex)
@@ -42,11 +47,5 @@ public class UpdateOrderStatusByAccountIdCommandHandler(IOrderRepository orderRe
             return Result<Domain.Model.Order>.Failure(ErrorMessages.OrderNotFound);
 
         return Result<Domain.Model.Order>.Success(order);
-    }
-
-    private void UpdateOrderStatus(Domain.Model.Order order, OrderStatus newStatus)
-    {
-        order.Status = newStatus;
-        orderRepository.Update(order);
     }
 }

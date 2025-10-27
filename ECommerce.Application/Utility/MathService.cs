@@ -8,7 +8,7 @@ public static class MathService
     {
         try
         {
-            if (discountRate < 0 || discountRate > 100)
+            if (discountRate is < 0 or > 100)
                 return 0;
 
             return price - price * discountRate / 100;

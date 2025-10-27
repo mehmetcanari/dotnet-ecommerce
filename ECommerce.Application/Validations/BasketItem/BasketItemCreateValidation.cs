@@ -1,20 +1,14 @@
-﻿using ECommerce.Application.DTO.Request.BasketItem;
+﻿using ECommerce.Application.Commands.Basket;
 using FluentValidation;
 
 namespace ECommerce.Application.Validations.BasketItem;
 
-public class BasketItemCreateValidation : AbstractValidator<CreateBasketItemRequestDto>
+public class BasketItemCreateValidation : AbstractValidator<CreateBasketItemCommand>
 {
     public BasketItemCreateValidation()
     {
-        RuleFor(x => x.ProductId)
-            .NotEmpty()
-            .WithMessage("Product id is required.");
-        
-        RuleFor(x => x.Quantity)
-            .NotEmpty()
-            .WithMessage("Quantity is required.")
-            .GreaterThan(0)
-            .WithMessage("Quantity must be greater than 0.");
+        RuleFor(x => x.Model.ProductId).NotEmpty();
+
+        RuleFor(x => x.Model.Quantity).NotEmpty().GreaterThan(0);
     }
 }

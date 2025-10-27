@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -12,18 +12,24 @@ public class CreateCategoryCommand(CreateCategoryRequestDto request) : IRequest<
     public readonly CreateCategoryRequestDto Model = request;
 }
 
-public class CreateCategoryCommandHandler(ICategoryRepository categoryRepository, ILoggingService logger) : IRequestHandler<CreateCategoryCommand, Result>
+public class CreateCategoryCommandHandler(ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<CreateCategoryCommand, Result>
 {
     public async Task<Result> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var validationResult = await ValidateCategoryName(request);
-            if (validationResult.IsFailure)
-                return validationResult;
+            var categoryExists = await categoryRepository.CheckNameExists(request.Model.Name, cancellationToken);
+            if (categoryExists)
+                return Result.Failure(ErrorMessages.CategoryExists);
 
-            var category = CreateCategoryEntity(request);
-            await SaveCategory(category);
+            var category = new Domain.Model.Category
+            {
+                Name = request.Model.Name,
+                Description = request.Model.Description
+            };
+
+            await categoryRepository.Create(category, cancellationToken);
+            await unitOfWork.Commit();
 
             return Result.Success();
         }
@@ -32,27 +38,5 @@ public class CreateCategoryCommandHandler(ICategoryRepository categoryRepository
             logger.LogError(ex, ErrorMessages.ErrorCreatingCategory);
             return Result.Failure(ErrorMessages.ErrorCreatingCategory);
         }
-    }
-
-    private async Task<Result> ValidateCategoryName(CreateCategoryCommand request)
-    {
-
-        var categoryExists = await categoryRepository.CheckNameExists(request.Model.Name);
-        if (categoryExists)
-            return Result.Failure(ErrorMessages.CategoryExists);
-
-        return Result.Success();
-    }
-
-    private static Domain.Model.Category CreateCategoryEntity(CreateCategoryCommand request) => new()
-    {
-        Name = request.Model.Name,
-        Description = request.Model.Description
-    };
-
-    private async Task SaveCategory(Domain.Model.Category category)
-    {
-        await categoryRepository.Create(category);
-        logger.LogInformation(ErrorMessages.CategoryCreated, category.Name);
     }
 }

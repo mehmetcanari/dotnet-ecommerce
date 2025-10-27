@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
@@ -8,7 +8,7 @@ namespace ECommerce.Application.Commands.Order;
 
 public class CancelOrderCommand : IRequest<Result> { }
 
-public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILoggingService logger, IOrderRepository orderRepository, IAccountRepository accountRepository, IUnitOfWork unitOfWork) : IRequestHandler<CancelOrderCommand, Result>
+public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILogService logger, IOrderRepository orderRepository, IAccountRepository accountRepository, IUnitOfWork unitOfWork) : IRequestHandler<CancelOrderCommand, Result>
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {

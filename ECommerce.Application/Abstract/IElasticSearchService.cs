@@ -1,0 +1,11 @@
+using ECommerce.Domain.Model;
+using Elastic.Clients.Elasticsearch;
+
+namespace ECommerce.Application.Abstract;
+public interface IElasticSearchService
+{
+    Task<Utility.Result> IndexProductAsync(Product product);
+    Task<Utility.Result> DeleteProductAsync(string productId);
+    Task<SearchResponse<Product>> SearchProductsAsync(string query, int page = 1, int pageSize = 10);
+    Task<Utility.Result> UpdateProductAsync(Product product);
+}

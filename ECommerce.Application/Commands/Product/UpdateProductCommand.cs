@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
@@ -13,8 +13,7 @@ public class UpdateProductCommand(ProductUpdateRequestDto request) : IRequest<Re
     public readonly ProductUpdateRequestDto Model = request;
 }
 
-public class UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, IBasketItemService basketItemService,
-    ILoggingService logger, IMessageBroker messageBroker, IMediator mediator) : IRequestHandler<UpdateProductCommand, Result>
+public class UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IMessageBroker messageBroker, IMediator mediator, IUnitOfWork unitOfWork) : IRequestHandler<UpdateProductCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
@@ -28,9 +27,9 @@ public class UpdateProductCommandHandler(IProductRepository productRepository, I
 
             var (product, category) = validationResult.Data;
             var updatedProduct = UpdateProduct(product, category, request.Model);
-            await basketItemService.RemoveUnorderedFromCart(product);
+            await unitOfWork.Commit();
 
-            var domainEvent = new ProductUpdatedEvent
+            var productUpdatedEvent = new ProductUpdatedEvent
             {
                 Id = updatedProduct.Id,
                 Name = updatedProduct.Name,
@@ -40,12 +39,10 @@ public class UpdateProductCommandHandler(IProductRepository productRepository, I
                 ImageUrl = updatedProduct.ImageUrl ?? string.Empty,
                 StockQuantity = updatedProduct.StockQuantity,
                 CategoryId = updatedProduct.CategoryId,
-                ProductCreated = updatedProduct.CreatedOn,
-                ProductUpdated = updatedProduct.UpdatedOn
             };
 
-            await mediator.Publish(domainEvent, cancellationToken);
-            await messageBroker.PublishAsync(domainEvent, "product_exchange", "product.updated");
+            await mediator.Publish(productUpdatedEvent, cancellationToken); //neden mediator ile elastice ulasiyoruz?
+            await messageBroker.Publish(productUpdatedEvent, "product_exchange", "product.updated");
 
             return Result.Success();
         }

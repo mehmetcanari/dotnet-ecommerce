@@ -1,4 +1,5 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
+using ECommerce.Application.Commands.Token;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Utility;
@@ -13,7 +14,7 @@ public class UnbanAccountCommand(AccountUnbanRequestDto request) : IRequest<Resu
     public readonly AccountUnbanRequestDto Model = request;
 }
 
-public class UnbanAccountCommandHandler(IAccountRepository accountRepository, IRefreshTokenService refreshTokenService, ILoggingService logger) : IRequestHandler<UnbanAccountCommand, Result>
+public class UnbanAccountCommandHandler(IAccountRepository accountRepository, IMediator mediator, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<UnbanAccountCommand, Result>
 {
     public async Task<Result> Handle(UnbanAccountCommand request, CancellationToken cancellationToken)
     {
@@ -26,14 +27,13 @@ public class UnbanAccountCommandHandler(IAccountRepository accountRepository, IR
             account.UnbanAccount();
             accountRepository.Update(account);
 
-            var tokenRevokeRequest = new TokenRevokeRequestDto
-            {
-                Email = request.Model.Email, Reason = ErrorMessages.AccountUnrestricted
-            };
+            var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.Model.Email, Reason = ErrorMessages.AccountUnrestricted };
+            var revokeResult = await mediator.Send(new RevokeRefreshTokenCommand(tokenRevokeRequest), cancellationToken);
 
-            await refreshTokenService.RevokeUserTokens(tokenRevokeRequest);
+            if (revokeResult is { IsFailure: true })
+                return Result.Failure(ErrorMessages.FailedToRevokeToken);
 
-            logger.LogInformation(ErrorMessages.AccountUnrestricted, request.Model.Email);
+            await unitOfWork.Commit();
             return Result.Success();
         }
         catch (Exception ex)

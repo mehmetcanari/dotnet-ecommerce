@@ -1,4 +1,4 @@
-﻿using ECommerce.Application.Abstract.Service;
+﻿using ECommerce.Application.Abstract;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
@@ -15,7 +15,7 @@ public static class DatabaseSeeder
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
-            var logger = services.GetRequiredService<ILoggingService>();
+            var logger = services.GetRequiredService<ILogService>();
             var unitOfWork = services.GetRequiredService<ICrossContextUnitOfWork>();
             try
             {
@@ -48,7 +48,7 @@ public static class DatabaseSeeder
         }
     }
 
-    private static async Task SeedAdminUserAsync(UserManager<User> userManager, IAccountRepository accountRepository, ILoggingService logger, ICrossContextUnitOfWork unitOfWork)
+    private static async Task SeedAdminUserAsync(UserManager<User> userManager, IAccountRepository accountRepository, ILogService logger, ICrossContextUnitOfWork unitOfWork)
     {
         string adminEmail = DotNetEnv.Env.GetString("ADMIN_EMAIL");
         string adminPassword = DotNetEnv.Env.GetString("ADMIN_PASSWORD");

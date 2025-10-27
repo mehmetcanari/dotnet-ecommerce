@@ -1,39 +1,28 @@
 using ECommerce.Application.DTO.Response.Product;
 using MediatR;
-using ECommerce.Application.Abstract.Service;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Application.Abstract;
 
 namespace ECommerce.Application.Queries.Product;
 
 public class GetAllProductsQuery : IRequest<Result<List<ProductResponseDto>>>{}
 
-public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, Result<List<ProductResponseDto>>>
+public class GetAllProductsQueryHandler(IProductRepository productRepository, ICacheService cacheService, ILogService logger) : IRequestHandler<GetAllProductsQuery, Result<List<ProductResponseDto>>>
 {
-    private readonly IProductRepository _productRepository;
-    private readonly ICacheService _cacheService;
-    private readonly ILoggingService _logger;
-    private const int CacheDurationInMinutes = 60;
-
-    public GetAllProductsQueryHandler(IProductRepository productRepository, ICacheService cacheService, ILoggingService logger)
-    {
-        _productRepository = productRepository;
-        _cacheService = cacheService;
-        _logger = logger;
-    }
+    private static readonly TimeSpan ExpirationTime = TimeSpan.FromMinutes(60);
 
     public async Task<Result<List<ProductResponseDto>>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var expirationTime = TimeSpan.FromMinutes(CacheDurationInMinutes);
-            var cachedProducts = await _cacheService.GetAsync<List<ProductResponseDto>>(CacheKeys.AllProducts);
+            var cachedProducts = await cacheService.GetAsync<List<ProductResponseDto>>(CacheKeys.AllProducts);
 
             if (cachedProducts is { Count: > 0 })
                 return Result<List<ProductResponseDto>>.Success(cachedProducts);
 
-            var products = await _productRepository.Read();
+            var products = await productRepository.Read(cancellationToken: cancellationToken);
 
             if (products.Count == 0)
                 throw new Exception(ErrorMessages.ProductNotFound);
@@ -50,13 +39,13 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
                 CategoryId = p.CategoryId
             }).ToList();
 
-            await _cacheService.SetAsync(CacheKeys.AllProducts, productResponses, expirationTime);
+            await cacheService.SetAsync(CacheKeys.AllProducts, productResponses, ExpirationTime);
             
             return Result<List<ProductResponseDto>>.Success(productResponses);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
+            logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result<List<ProductResponseDto>>.Failure(ex.Message);
         }
     }

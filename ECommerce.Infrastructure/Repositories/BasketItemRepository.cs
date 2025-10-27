@@ -20,7 +20,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         }
     }
 
-    public async Task<List<BasketItem>> GetNonOrdereds(User account, CancellationToken cancellationToken = default)
+    public async Task<List<BasketItem>> GetUnorderedItems(User account, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -28,7 +28,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         
             var items = await query
                 .AsNoTracking()
-                .Where(b => b.UserId == account.Id && b.IsOrdered == false)
+                .Where(b => b.UserId == account.Id && b.IsPurchased == false)
                 .ToListAsync(cancellationToken);
             
             return items;
@@ -58,7 +58,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         }
     }
     
-    public async Task<List<BasketItem>?> GetUnorderedsByProductId(Guid productId, CancellationToken cancellationToken = default)
+    public async Task<List<BasketItem>?> GetUnorderedByProductId(Guid productId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -66,7 +66,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         
             var items = await query
                 .AsNoTracking()
-                .Where(b => b.Id == productId && b.IsOrdered == false)
+                .Where(b => b.Id == productId && b.IsPurchased == false)
                 .ToListAsync(cancellationToken);
             
             return items;

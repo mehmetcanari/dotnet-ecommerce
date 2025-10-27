@@ -38,7 +38,7 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsOrdered")
+                    b.Property<bool>("IsPurchased")
                         .HasColumnType("boolean");
 
                     b.Property<Guid?>("OrderId")

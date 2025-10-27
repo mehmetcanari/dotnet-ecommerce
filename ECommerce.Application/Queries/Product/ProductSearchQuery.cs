@@ -1,34 +1,18 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Application.Utility;
 using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Product;
-public class ProductSearchQuery : IRequest<Result<List<ProductResponseDto>>>
+public class ProductSearchQuery(string query, int page = 1, int pageSize = 10) : IRequest<Result<List<ProductResponseDto>>>
 {
-    public string Query { get; set; }
-    public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 10;
-
-    public ProductSearchQuery(string query, int page = 1, int pageSize = 10)
-    {
-        Query = query;
-        Page = page;
-        PageSize = pageSize;
-    }
+    public string Query { get; set; } = query;
+    public int Page { get; set; } = page;
+    public int PageSize { get; set; } = pageSize;
 }
-public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Result<List<ProductResponseDto>>>
+public class ProductSearchQueryHandler(IElasticSearchService elasticSearchService, ILogService logger) : IRequestHandler<ProductSearchQuery, Result<List<ProductResponseDto>>>
 {
-    private readonly IProductSearchService _productSearchService;
-    private readonly ILoggingService _logger;
-
-    public ProductSearchQueryHandler(IProductSearchService productSearchService, ILoggingService logger)
-    {
-        _productSearchService = productSearchService;
-        _logger = logger;
-    }
-
     public async Task<Result<List<ProductResponseDto>>> Handle(ProductSearchQuery request, CancellationToken cancellationToken)
     {
         try
@@ -36,9 +20,9 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
             if (string.IsNullOrEmpty(request.Query))
                 return Result<List<ProductResponseDto>>.Failure(ErrorMessages.QueryCannotBeEmpty);
 
-            var result = await _productSearchService.SearchProductsAsync(request.Query, request.Page, request.PageSize);
+            var result = await elasticSearchService.SearchProductsAsync(request.Query, request.Page, request.PageSize);
 
-            if (result == null || !result.Hits.Any())
+            if (result.Hits.Count == 0)
                 return Result<List<ProductResponseDto>>.Success(new List<ProductResponseDto>());
 
             var elasticProductResponse = Result<List<ProductResponseDto>>.Success(result.Hits.Select(d => new ProductResponseDto
@@ -57,7 +41,7 @@ public class ProductSearchQueryHandler : IRequestHandler<ProductSearchQuery, Res
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ErrorMessages.NoSearchResults, ex.Message);
+            logger.LogError(ex, ErrorMessages.NoSearchResults, ex.Message);
             return Result<List<ProductResponseDto>>.Failure(ErrorMessages.NoSearchResults);
         }
     }

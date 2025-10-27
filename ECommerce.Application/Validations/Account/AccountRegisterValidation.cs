@@ -1,71 +1,39 @@
-using ECommerce.Application.DTO.Request.Account;
 using FluentValidation;
 using System.Text.RegularExpressions;
+using ECommerce.Application.Commands.Auth;
 
 namespace ECommerce.Application.Validations.Account;
 
-public partial class AccountRegisterValidation : AbstractValidator<AccountRegisterRequestDto>
+public class AccountRegisterValidation : AbstractValidator<RegisterCommand>
 {
     public AccountRegisterValidation()
     {
 
-        RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required")
-            .Length(2, 50).WithMessage("Name must be between 2 and 50 characters")
-            .Matches(@"^[\p{L}\s\-'\.]+$").WithMessage("Name can only contain letters, spaces, hyphens, apostrophes and dots");
+        RuleFor(x => x.Model.Name).NotEmpty().Length(2, 50).Matches(@"^[\p{L}\s\-'\.]+$");
 
-        RuleFor(x => x.Surname)
-            .NotEmpty().WithMessage("Surname is required")
-            .Length(2, 50).WithMessage("Surname must be between 2 and 50 characters")
-            .Matches(@"^[\p{L}\s\-'\.]+$").WithMessage("Surname can only contain letters, spaces, hyphens, apostrophes and dots");
+        RuleFor(x => x.Model.Surname).NotEmpty().Length(2, 50).Matches(@"^[\p{L}\s\-'\.]+$");
 
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required")
-            .EmailAddress().WithMessage("Invalid email format")
-            .MaximumLength(100).WithMessage("Email must not exceed 100 characters");
+        RuleFor(x => x.Model.Email).NotEmpty().EmailAddress().MaximumLength(100);
 
-        RuleFor(x => x.IdentityNumber)
-            .NotEmpty().WithMessage("Identity number is required")
-            .Length(11).WithMessage("Identity number must be 11 digits")
-            .Matches("^[0-9]+$").WithMessage("Identity number must contain only numbers")
-            .Must(IsValidTurkishIdentity).WithMessage("Invalid identity number format");
+        RuleFor(x => x.Model.IdentityNumber).NotEmpty().Length(11).Matches("^[0-9]+$").Must(IsValidTurkishIdentity);
 
-        RuleFor(x => x.Country)
-            .NotEmpty().WithMessage("Country is required")
-            .Length(2, 50).WithMessage("Country must be between 2 and 50 characters");
+        RuleFor(x => x.Model.Country).NotEmpty().Length(2, 50);
 
-        RuleFor(x => x.City)
-            .NotEmpty().WithMessage("City is required")
-            .Length(2, 50).WithMessage("City must be between 2 and 50 characters");
+        RuleFor(x => x.Model.City).NotEmpty().Length(2, 50);
 
-        RuleFor(x => x.ZipCode)
-            .NotEmpty().WithMessage("Zip code is required")
-            .Length(5, 10).WithMessage("Zip code must be between 5 and 10 characters")
-            .Matches(@"^[0-9a-zA-Z\-\s]+$").WithMessage("Invalid zip code format");
+        RuleFor(x => x.Model.ZipCode).NotEmpty().Length(5, 10).Matches(@"^[0-9a-zA-Z\-\s]+$");
 
-        RuleFor(x => x.Address)
-            .NotEmpty().WithMessage("Address is required")
-            .Length(5, 200).WithMessage("Address must be between 5 and 200 characters");
+        RuleFor(x => x.Model.Address).NotEmpty().Length(5, 200);
 
-        RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("Phone number is required")
-            .Matches(@"^\+?[1-9]\d{1,14}$").WithMessage("Phone number must be in international format (E.164)")
-            .Must(IsValidPhoneNumber).WithMessage("Invalid phone number format");
+        RuleFor(x => x.Model.PhoneNumber).NotEmpty().Matches(@"^\+?[1-9]\d{1,14}$").Must(IsValidPhoneNumber);
 
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required")
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters")
-            .MaximumLength(128).WithMessage("Password must not exceed 128 characters")
-            .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter")
-            .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter")
-            .Matches("[0-9]").WithMessage("Password must contain at least one number")
-            .Matches("[^a-zA-Z0-9]").WithMessage("Password must contain at least one special character");
+        RuleFor(x => x.Model.Password).NotEmpty().MinimumLength(8).MaximumLength(128)
+            .Matches("[A-Z]")
+            .Matches("[a-z]")
+            .Matches("[0-9]")
+            .Matches("[^a-zA-Z0-9]");
 
-        RuleFor(x => x.DateOfBirth)
-            .NotEmpty().WithMessage("Date of birth is required")
-            .LessThan(DateTime.UtcNow).WithMessage("Date of birth cannot be in the future")
-            .GreaterThan(DateTime.UtcNow.AddYears(-120)).WithMessage("Age cannot exceed 120 years")
-            .Must(IsAgeValid).WithMessage("You must be 18 years or older to register");
+        RuleFor(x => x.Model.DateOfBirth).NotEmpty().LessThan(DateTime.UtcNow).GreaterThan(DateTime.UtcNow.AddYears(-120)).Must(IsAgeValid);
     }
 
     private bool IsAgeValid(DateTime dateOfBirth)
@@ -78,11 +46,11 @@ public partial class AccountRegisterValidation : AbstractValidator<AccountRegist
 
     private bool IsValidPhoneNumber(string phoneNumber)
     {
-        var digitsOnly = MyRegex().Replace(phoneNumber, "");
-        
+        var digitsOnly = Regex.Replace(phoneNumber, @"[^\d+]", "");
+
         if (digitsOnly.StartsWith($"+"))
         {
-            digitsOnly = digitsOnly.Substring(1);
+            digitsOnly = digitsOnly[1..];
         }
         
         return digitsOnly.Length is >= 8 and <= 15;
@@ -104,7 +72,4 @@ public partial class AccountRegisterValidation : AbstractValidator<AccountRegist
 
         return digits[9] == digit10 && digits[10] == digit11;
     }
-
-    [GeneratedRegex(@"[^\d+]")]
-    private static partial Regex MyRegex();
 }

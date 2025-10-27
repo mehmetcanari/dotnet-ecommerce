@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -12,8 +12,8 @@ public class CreateBasketItemCommand(CreateBasketItemRequestDto request) : IRequ
     public readonly CreateBasketItemRequestDto Model = request;
 }
 
-public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILoggingService logger, ICacheService cacheService, 
-    IAccountRepository accountRepository, IProductRepository productRepository) : IRequestHandler<CreateBasketItemCommand, Result>
+public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, ICacheService cacheService, 
+    IAccountRepository accountRepository, IProductRepository productRepository, IUnitOfWork unitOfWork) : IRequestHandler<CreateBasketItemCommand, Result>
 {
     private const int CacheDurationInMinutes = 30;
 
@@ -82,7 +82,7 @@ public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
         ProductId = product.Id,
         UnitPrice = product.Price,
         ProductName = product.Name,
-        IsOrdered = false
+        IsPurchased = false
     };
 
     private async Task SaveBasketItem(Domain.Model.BasketItem basketItem)
@@ -90,5 +90,6 @@ public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
         await basketItemRepository.Create(basketItem);
         var cacheKey = $"{CacheKeys.AllBasketItems}_{currentUserService.GetUserEmail()}";
         await cacheService.SetAsync(cacheKey, basketItem, TimeSpan.FromMinutes(CacheDurationInMinutes));
+        await unitOfWork.Commit();
     }
 }

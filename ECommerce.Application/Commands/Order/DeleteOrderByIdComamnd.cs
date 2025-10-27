@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
@@ -6,18 +6,18 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Order;
 
-public class DeleteOrderByIdCommand() : IRequest<Result>
+public class DeleteOrderByIdCommand(Guid id) : IRequest<Result>
 {
-    public required Guid Id { get; init; }
+    public readonly Guid Id = id;
 }
 
-public class DeleteOrderByIdCommandHandler(IOrderRepository orderRepository, ILoggingService logger, IUnitOfWork unitOfWork) : IRequestHandler<DeleteOrderByIdCommand, Result>
+public class DeleteOrderByIdCommandHandler(IOrderRepository orderRepository, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<DeleteOrderByIdCommand, Result>
 {
     public async Task<Result> Handle(DeleteOrderByIdCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var orderResult = await ValidateAndGetOrder(request);
+            var orderResult = await ValidateAndGetOrder(request.Id, cancellationToken);
             if (orderResult is { IsFailure: true, Message: not null })
                 return Result.Failure(orderResult.Message);
 
@@ -35,14 +35,11 @@ public class DeleteOrderByIdCommandHandler(IOrderRepository orderRepository, ILo
         }
     }
 
-    private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(DeleteOrderByIdCommand request)
+    private async Task<Result<Domain.Model.Order>> ValidateAndGetOrder(Guid id, CancellationToken cancellationToken)
     {
-        var order = await orderRepository.GetById(request.Id);
+        var order = await orderRepository.GetById(id, cancellationToken);
         if (order == null)
-        {
-            logger.LogWarning(ErrorMessages.OrderNotFound, request.Id);
             return Result<Domain.Model.Order>.Failure(ErrorMessages.OrderNotFound);
-        }
 
         return Result<Domain.Model.Order>.Success(order);
     }

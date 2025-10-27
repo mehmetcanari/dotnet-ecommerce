@@ -1,4 +1,4 @@
-using ECommerce.Application.Abstract.Service;
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
@@ -12,16 +12,18 @@ public class UpdateBasketItemCommand(UpdateBasketItemRequestDto request) : IRequ
     public readonly UpdateBasketItemRequestDto Model = request;
 }
 
-public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILoggingService logger, IAccountRepository accountRepository, 
-    IProductRepository productRepository, IBasketItemService basketItemService) : IRequestHandler<UpdateBasketItemCommand, Result>
+public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IAccountRepository accountRepository, 
+    IProductRepository productRepository, IUnitOfWork unitOfWork, ICacheService cacheService) : IRequestHandler<UpdateBasketItemCommand, Result>
 {
+    private const int CacheDurationInMinutes = 30;
+
     public async Task<Result> Handle(UpdateBasketItemCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var emailResult = GetValidatedUserEmail();
+            var email = GetValidatedUserEmail();
 
-            var accountResult = await ValidateAndGetAccount(emailResult);
+            var accountResult = await ValidateAndGetAccount(email);
             if (accountResult is { IsFailure: true, Message: not null })
                 return Result.Failure(accountResult.Message);
 
@@ -108,9 +110,11 @@ public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
         basketItem.ProductId = request.Model.ProductId;
         basketItem.ProductName = product.Name;
         basketItem.UnitPrice = product.Price;
-        basketItem.IsOrdered = false;
+        basketItem.IsPurchased = false;
 
         basketItemRepository.Update(basketItem);
-        await basketItemService.ClearBasketItemsCacheAsync();
+        var cacheKey = $"{CacheKeys.AllBasketItems}_{currentUserService.GetUserEmail()}";
+        await cacheService.SetAsync(cacheKey, basketItem, TimeSpan.FromMinutes(CacheDurationInMinutes));
+        await unitOfWork.Commit();
     }
 }
