@@ -52,7 +52,7 @@ public sealed class ProductRepository : IProductRepository
         }
     }
     
-    public async Task<Product> GetById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Product?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {

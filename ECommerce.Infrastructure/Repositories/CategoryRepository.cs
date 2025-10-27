@@ -4,8 +4,8 @@ using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace ECommerce.Infrastructure.Repositories;
+
 public class CategoryRepository(StoreDbContext context) : ICategoryRepository
 {
     public async Task Create(Category category, CancellationToken cancellationToken = default)
@@ -59,7 +59,7 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
         }
     }
     
-    public async Task<Category> GetById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Category?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {

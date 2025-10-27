@@ -29,7 +29,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
         }
     }
     
-    public async Task<List<Order>> GetPendings(Guid accountId, CancellationToken cancellationToken = default)
+    public async Task<List<Order>> GetPendingOrders(Guid accountId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -48,7 +48,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
         }
     }
     
-    public async Task<Order> GetById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Order?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -66,7 +66,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
         }
     }
 
-    public async Task<Order> GetByUserId(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Order?> GetByUserId(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {

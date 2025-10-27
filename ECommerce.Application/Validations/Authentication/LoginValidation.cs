@@ -1,11 +1,11 @@
 using ECommerce.Application.Commands.Auth;
 using FluentValidation;
 
-namespace ECommerce.Application.Validations.Account;
+namespace ECommerce.Application.Validations.Authentication;
 
-public class AccountLoginValidation : AbstractValidator<LoginCommand>
+public class LoginValidation : AbstractValidator<LoginCommand>
 {
-    public AccountLoginValidation()
+    public LoginValidation()
     {
         RuleFor(x => x.Model.Email).EmailAddress().NotEmpty();
 

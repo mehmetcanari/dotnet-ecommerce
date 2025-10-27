@@ -57,25 +57,6 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
-    public async Task<List<BasketItem>?> GetUnorderedByProductId(Guid productId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            IQueryable<BasketItem> query = context.BasketItems;
-        
-            var items = await query
-                .AsNoTracking()
-                .Where(b => b.Id == productId && b.IsPurchased == false)
-                .ToListAsync(cancellationToken);
-            
-            return items;
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
 
     public void Update(BasketItem basketItem)
     {

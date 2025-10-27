@@ -28,7 +28,7 @@ public class AccountRepository(StoreDbContext context) : IAccountRepository
         }
     }
 
-    public async Task<User> GetByEmail(string email, CancellationToken cancellationToken = default)
+    public async Task<User?> GetByEmail(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -46,7 +46,7 @@ public class AccountRepository(StoreDbContext context) : IAccountRepository
         }
     }
 
-    public async Task<User> GetById(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<User?> GetById(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {

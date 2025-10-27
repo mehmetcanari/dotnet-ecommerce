@@ -69,7 +69,7 @@ public class CancelOrderCommandHandler(ICurrentUserService currentUserService, I
 
     private async Task<Result<List<Domain.Model.Order>>> ValidateAndGetPendingOrders(Domain.Model.User account)
     {
-        var pendingOrders = await orderRepository.GetPendings(account.Id);
+        var pendingOrders = await orderRepository.GetPendingOrders(account.Id);
         if (pendingOrders.Count == 0)
             return Result<List<Domain.Model.Order>>.Failure(ErrorMessages.NoPendingOrders);
 

@@ -50,7 +50,7 @@ public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
         if (string.IsNullOrEmpty(email))
             return ErrorMessages.AccountEmailNotFound;
 
-        return email ?? ErrorMessages.AccountNotAuthorized;
+        return email;
     }
 
     private async Task<Result<(Domain.Model.Product, Domain.Model.User)>> ValidateProductAndAccount(CreateBasketItemCommand request, string email)

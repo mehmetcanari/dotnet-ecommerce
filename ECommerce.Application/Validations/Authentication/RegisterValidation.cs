@@ -2,11 +2,11 @@ using FluentValidation;
 using System.Text.RegularExpressions;
 using ECommerce.Application.Commands.Auth;
 
-namespace ECommerce.Application.Validations.Account;
+namespace ECommerce.Application.Validations.Authentication;
 
-public class AccountRegisterValidation : AbstractValidator<RegisterCommand>
+public class RegisterValidation : AbstractValidator<RegisterCommand>
 {
-    public AccountRegisterValidation()
+    public RegisterValidation()
     {
 
         RuleFor(x => x.Model.Name).NotEmpty().Length(2, 50).Matches(@"^[\p{L}\s\-'\.]+$");
