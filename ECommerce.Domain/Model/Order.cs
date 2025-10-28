@@ -8,5 +8,11 @@ namespace ECommerce.Domain.Model
         public required string ShippingAddress { get; init; }
         public required string BillingAddress { get; init; }
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
+
+        public void UpdateStatus(OrderStatus status)
+        {
+            Status = status;
+            UpdatedOn = DateTime.UtcNow;
+        }
     }
 }

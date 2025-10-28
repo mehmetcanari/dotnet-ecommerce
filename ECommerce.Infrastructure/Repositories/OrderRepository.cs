@@ -29,7 +29,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
         }
     }
     
-    public async Task<List<Order>> GetPendingOrders(Guid accountId, CancellationToken cancellationToken = default)
+    public async Task<Order?> GetPendingOrderById(Guid accountId, Guid orderId,CancellationToken cancellationToken = default)
     {
         try
         {
@@ -37,8 +37,8 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
 
             var orders = await query
                 .AsNoTracking()
-                .Where(o => o.UserId == accountId && o.Status == OrderStatus.Pending)
-                .ToListAsync(cancellationToken);
+                .Where(o => o.UserId == accountId && o.Status == OrderStatus.Pending && o.Id == orderId)
+                .FirstOrDefaultAsync(cancellationToken);
 
             return orders;
         }
@@ -66,13 +66,13 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
         }
     }
 
-    public async Task<Order?> GetByUserId(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Order?> GetByUserId(Guid userId, Guid orderId,CancellationToken cancellationToken = default)
     {
         try
         {
             var order = await context.Orders
                 .AsNoTracking()
-                .Where(o => o.UserId == userId)
+                .Where(o => o.UserId == userId && o.Id == orderId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return order;

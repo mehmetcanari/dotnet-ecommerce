@@ -24,8 +24,8 @@ public class OrderController(IMediator mediator) : ApiBaseController
     public async Task<IActionResult> GetUserOrders() => HandleResult(await mediator.Send(new GetUserOrdersQuery()));
 
     [Authorize("User")]
-    [HttpPost("cancel")]
-    public async Task<IActionResult> CancelActiveOrder() => HandleResult(await mediator.Send(new CancelOrderCommand()));
+    [HttpPost("cancel/{id}")]
+    public async Task<IActionResult> CancelActiveOrder(Guid id) => HandleResult(await mediator.Send(new CancelOrderCommand(id)));
 
     [Authorize("Admin")]
     [HttpGet("allOrders")]
