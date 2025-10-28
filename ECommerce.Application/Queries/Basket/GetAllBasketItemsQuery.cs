@@ -30,7 +30,7 @@ public class GetAllBasketItemsQueryHandler(IBasketItemRepository basketItemRepos
             if (account == null)
                 return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.AccountNotFound);
 
-            var basketItems = await basketItemRepository.GetUnorderedItems(account, cancellationToken);
+            var basketItems = await basketItemRepository.GetActiveItems(account, cancellationToken);
             if (basketItems.Count == 0)
                 return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.BasketItemNotFound);
 

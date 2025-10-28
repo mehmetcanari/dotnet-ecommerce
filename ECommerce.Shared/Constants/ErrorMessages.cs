@@ -11,13 +11,11 @@
         #endregion
 
         #region Utility
-        public const string InvalidDiscountRate = "math.invalid.discount.rate";
         public const string ErrorCalculatingDiscountedPrice = "math.error.calculating.discounted.price";
         #endregion
 
         #region Payment
         public const string PaymentFailed = "payment.failed";
-        public const string PaymentSuccessful = "payment.successful";
         #endregion
 
         #region Queue
@@ -34,31 +32,26 @@
         public const string NotificationsNotFound = "hub.notifications.not.found";
         public const string NoUnreadNotifications = "hub.no.unread.notifications";
         public const string ErrorMarkingNotificationsAsRead = "hub.error.marking.notifications.as.read";
-        public const string FailedToDeleteNotification = "hub.failed.to.delete.notification";
         #endregion
 
         #region Account
-        public const string AccountExists = "account.exists";
         public const string AccountNotFound = "account.not.found";
         public const string AccountEmailNotFound = "account.email.not.found";
         public const string AccountBanned = "account.banned";
         public const string AccountAlreadyBanned = "account.already.banned";
         public const string AccountAlreadyUnbanned = "account.already.unbanned";
-        public const string AccountCreated = "account.created";
         public const string AccountCreationFailed = "account.creation.failed";
-        public const string AccountEmailAlreadyExists = "account.email.already.exists";
         public const string IdentityNumberAlreadyExists = "account.identity.number.already.exists";
         public const string AccountDeleted = "account.deleted";
         public const string AccountUnrestricted = "account.unrestricted";
-        public const string UserNotAuthenticated = "account.user.not.authenticated";
         public const string InvalidEmailOrPassword = "account.invalid.email.or.password";
         public const string ErrorSeedingAdminUser = "account.error.seeding.admin.user";
         public const string AdminAccountAlreadyExists = "account.admin.already.exists";
+        public const string UnauthorizedAction = "account.unauthorized.action";
         #endregion
 
         #region Authentication
         public const string ErrorLoggingIn = "authentication.error.logging.in";
-        public const string UserIsNotLoggedIn = "authentication.user.is.not.logged.in";
         public const string ErrorValidatingLogin = "authentication.error.validating.login";
         public const string AccountNotAuthorized = "authentication.account.not.authorized";
         public const string InvalidCredentials = "authentication.invalid.credentials";
@@ -68,15 +61,10 @@
         public const string ErrorGeneratingTokens = "authentication.error.generating.tokens";
         public const string FailedToGenerateAccessToken = "authentication.failed.to.generate.access.token";
         public const string FailedToGenerateRefreshToken = "authentication.failed.to.generate.refresh.token";
-        public const string CantFetchRefreshTokenFromContext = "authentication.cant.fetch.refresh.token.from.context";
         public const string RefreshTokenNotFound = "authentication.refresh.token.not.found";
-        public const string InvalidToken = "authentication.invalid.token";
         public const string FailedToRevokeToken = "authentication.failed.to.revoke.token";
-        public const string ErrorValidatingToken = "authentication.error.validating.token";
         public const string NoActiveTokensFound = "authentication.no.active.tokens.found";
         public const string FailedToFetchUserTokens = "authentication.failed.to.fetch.user.tokens";
-        public const string FailedToCleanupExpiredTokens = "authentication.failed.to.cleanup.expired.tokens";
-        public const string InvalidTokenAlgorithm = "authentication.invalid.token.algorithm";
         #endregion
 
         #region Identity
@@ -91,7 +79,6 @@
         public const string StockNotAvailable = "product.stock.not.available";
         public const string ProductExists = "product.exists";
         public const string ErrorCreatingProduct = "product.error.creating";
-        public const string ErrorDeletingProduct = "product.error.deleting";
         public const string ErrorUpdatingProduct = "product.error.updating";
         public const string ErrorUpdatingProductStock = "product.error.updating.stock";
         public const string UpdateProductStockSuccess = "product.update.stock.success";
@@ -100,15 +87,12 @@
         #region Basket
         public const string BasketItemNotFound = "basket.item.not.found";
         public const string ErrorAddingItemToBasket = "basket.error.adding.item";
-        public const string ErrorUpdatingBasketItem = "basket.error.updating.item";
         #endregion
 
         #region Category
         public const string CategoryExists = "category.exists";
         public const string ErrorCreatingCategory = "category.error.creating";
-        public const string CategoryCreated = "category.created";
         public const string CategoryNotFound = "category.not.found";
-        public const string CategoryDeleted = "category.deleted";
         public const string ErrorDeletingCategory = "category.error.deleting";
         public const string ErrorUpdatingCategory = "category.error.updating";
         #endregion
@@ -118,7 +102,6 @@
         public const string NoPendingOrders = "order.no.pending.orders";
         public const string OrderCancelled = "order.cancelled";
         public const string OrderDeleted = "order.deleted";
-        public const string OrderStatusUpdated = "order.status.updated";
         #endregion
 
         #region Search

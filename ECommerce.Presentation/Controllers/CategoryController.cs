@@ -24,6 +24,10 @@ public class CategoryController(IMediator mediator) : ApiBaseController
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequestDto request) => HandleResult(await mediator.Send(new UpdateCategoryCommand(request)));
 
     [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetAllCategories(int pageSize, int page) => HandleResult(await mediator.Send(new GetAllCategoriesQuery(pageSize, page)));
+
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCategoryById([FromRoute] Guid id) => HandleResult(await mediator.Send(new GetCategoryByIdQuery(id)));
 }

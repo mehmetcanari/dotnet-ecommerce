@@ -79,7 +79,7 @@ public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
 
     private async Task<Result<Domain.Model.BasketItem>> ValidateAndGetBasketItem(UpdateBasketItemCommand request, Domain.Model.User account)
     {
-        var basketItem = await basketItemRepository.GetUserCart(request.Model.Id, account);
+        var basketItem = await basketItemRepository.GetUserBasket(request.Model.Id, account);
 
         if (basketItem == null)
             return Result<Domain.Model.BasketItem>.Failure(ErrorMessages.BasketItemNotFound);

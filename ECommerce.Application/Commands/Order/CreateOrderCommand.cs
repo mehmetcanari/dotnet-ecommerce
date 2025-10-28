@@ -90,7 +90,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
 
     private async Task<Result<List<BasketItem>>> GetUserBasketItemsAsync(User user)
     {
-        var userBasketItems = await basketItemRepository.GetUnorderedItems(user);
+        var userBasketItems = await basketItemRepository.GetActiveItems(user);
         if (userBasketItems.Count == 0)
             return Result<List<BasketItem>>.Failure(ErrorMessages.BasketItemNotFound);
 

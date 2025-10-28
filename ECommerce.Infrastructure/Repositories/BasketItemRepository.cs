@@ -1,8 +1,8 @@
 ﻿using ECommerce.Domain.Abstract.Repository;
-using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -20,7 +20,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         }
     }
 
-    public async Task<List<BasketItem>> GetUnorderedItems(User account, CancellationToken cancellationToken = default)
+    public async Task<List<BasketItem>> GetActiveItems(User account, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -39,7 +39,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         }
     }
     
-    public async Task<BasketItem?> GetUserCart(Guid id, User account, CancellationToken cancellationToken = default)
+    public async Task<BasketItem?> GetUserBasket(Guid id, User account, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -48,6 +48,25 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
             var basketItem = await query
                 .AsNoTracking()
                 .Where(b => b.Id == id && b.UserId == account.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return basketItem;
+        }
+        catch (Exception exception)
+        {
+            throw new Exception(ErrorMessages.UnexpectedError, exception);
+        }
+    }
+
+    public async Task<BasketItem?> GetById(Guid id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            IQueryable<BasketItem> query = context.BasketItems;
+
+            var basketItem = await query
+                .AsNoTracking()
+                .Where(b => b.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return basketItem;
