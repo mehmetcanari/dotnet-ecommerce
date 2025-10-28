@@ -14,22 +14,21 @@ public class UnbanAccountCommand(AccountUnbanRequestDto request) : IRequest<Resu
     public readonly AccountUnbanRequestDto Model = request;
 }
 
-public class UnbanAccountCommandHandler(IAccountRepository accountRepository, IMediator mediator, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<UnbanAccountCommand, Result>
+public class UnbanAccountCommandHandler(IUserRepository userRepository, IMediator mediator, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<UnbanAccountCommand, Result>
 {
     public async Task<Result> Handle(UnbanAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var account = await accountRepository.GetByEmail(request.Model.Email, cancellationToken);
+            var account = await userRepository.GetByEmail(request.Model.Email, cancellationToken);
             if (account == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
             
             account.UnbanAccount();
-            accountRepository.Update(account);
+            userRepository.Update(account);
 
             var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.Model.Email, Reason = ErrorMessages.AccountUnrestricted };
             var revokeResult = await mediator.Send(new RevokeRefreshTokenCommand(tokenRevokeRequest), cancellationToken);
-
             if (revokeResult is { IsFailure: true })
                 return Result.Failure(ErrorMessages.FailedToRevokeToken);
 

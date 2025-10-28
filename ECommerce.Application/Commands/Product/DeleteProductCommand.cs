@@ -17,14 +17,11 @@ public class DeleteProductCommandHandler(IProductRepository productRepository, I
     {
         try
         {
-            var productResult = await ValidateAndGetProduct(request);
-            if (productResult is { IsFailure: true, Message: not null })
-                return Result.Failure(productResult.Message);
-
-            if (productResult.Data is null)
+            var product = await productRepository.GetById(request.Id, cancellationToken);
+            if (product is null)
                 return Result.Failure(ErrorMessages.ProductNotFound);
 
-            await productRepository.Delete(productResult.Data, cancellationToken);
+            await productRepository.Delete(product, cancellationToken);
             await unitOfWork.Commit();
             return Result.Success();
         }
@@ -33,14 +30,5 @@ public class DeleteProductCommandHandler(IProductRepository productRepository, I
             logger.LogError(ex, ErrorMessages.ErrorDeletingCategory, request.Id);
             return Result.Failure(ErrorMessages.UnexpectedError);
         }
-    }
-
-    private async Task<Result<Domain.Model.Product>> ValidateAndGetProduct(DeleteProductCommand request)
-    {
-        var product = await productRepository.GetById(request.Id);
-        if (product == null)
-            return Result<Domain.Model.Product>.Failure(ErrorMessages.ProductNotFound);
-
-        return Result<Domain.Model.Product>.Success(product);
     }
 }

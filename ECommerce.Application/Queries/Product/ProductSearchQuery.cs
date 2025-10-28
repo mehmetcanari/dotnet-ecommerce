@@ -5,12 +5,14 @@ using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Product;
+
 public class ProductSearchQuery(string query, int page = 1, int pageSize = 10) : IRequest<Result<List<ProductResponseDto>>>
 {
     public string Query { get; set; } = query;
     public int Page { get; set; } = page;
     public int PageSize { get; set; } = pageSize;
 }
+
 public class ProductSearchQueryHandler(IElasticSearchService elasticSearchService, ILogService logger) : IRequestHandler<ProductSearchQuery, Result<List<ProductResponseDto>>>
 {
     public async Task<Result<List<ProductResponseDto>>> Handle(ProductSearchQuery request, CancellationToken cancellationToken)
@@ -21,7 +23,6 @@ public class ProductSearchQueryHandler(IElasticSearchService elasticSearchServic
                 return Result<List<ProductResponseDto>>.Failure(ErrorMessages.QueryCannotBeEmpty);
 
             var result = await elasticSearchService.SearchProductsAsync(request.Query, request.Page, request.PageSize);
-
             if (result.Hits.Count == 0)
                 return Result<List<ProductResponseDto>>.Success(new List<ProductResponseDto>());
 

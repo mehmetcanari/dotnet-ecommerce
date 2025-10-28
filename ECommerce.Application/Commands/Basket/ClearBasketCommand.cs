@@ -8,42 +8,32 @@ namespace ECommerce.Application.Commands.Basket;
 
 public class ClearBasketCommand : IRequest<Result> { }
 
-public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IAccountRepository accountRepository, IUnitOfWork unitOfWork) : IRequestHandler<ClearBasketCommand, Result>
+public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IUserRepository userRepository, IUnitOfWork unitOfWork) : IRequestHandler<ClearBasketCommand, Result>
 {
     public async Task<Result> Handle(ClearBasketCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var email = currentUserService.GetUserEmail();
-            if (string.IsNullOrEmpty(email))
+            var userId = currentUserService.GetUserId();
+            if (string.IsNullOrEmpty(userId))
                 return Result.Failure(ErrorMessages.AccountEmailNotFound);
 
-            var user = await accountRepository.GetByEmail(email, cancellationToken);
-            if (user is null)
-                return Result.Failure(ErrorMessages.AccountNotFound);
-
-            var basketItems = await basketItemRepository.GetActiveItems(user, cancellationToken);
+            var basketItems = await basketItemRepository.GetActiveItems(Guid.Parse(userId), cancellationToken);
             if (basketItems.Count == 0)
                 return Result.Failure(ErrorMessages.BasketItemNotFound);
 
-            DeleteItems(basketItems);
+            foreach (var basketItem in basketItems)
+            {
+                basketItemRepository.Delete(basketItem);
+            }
 
             await unitOfWork.Commit();
-
             return Result.Success();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, ErrorMessages.UnexpectedError);
             return Result.Failure(ErrorMessages.UnexpectedError);
-        }
-    }
-
-    private void DeleteItems(List<Domain.Model.BasketItem> basketItems)
-    {
-        foreach (var basketItem in basketItems)
-        {
-            basketItemRepository.Delete(basketItem);
         }
     }
 }

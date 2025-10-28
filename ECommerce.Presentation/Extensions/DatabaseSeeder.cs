@@ -25,7 +25,7 @@ public static class DatabaseSeeder
                 await SeedRolesAsync(roleManager);
 
                 var userManager = services.GetRequiredService<UserManager<User>>();
-                var accountRepository = services.GetRequiredService<IAccountRepository>();
+                var accountRepository = services.GetRequiredService<IUserRepository>();
 
                 await SeedAdminUserAsync(userManager, accountRepository, logger, unitOfWork);
             }
@@ -48,7 +48,7 @@ public static class DatabaseSeeder
         }
     }
 
-    private static async Task SeedAdminUserAsync(UserManager<User> userManager, IAccountRepository accountRepository, ILogService logger, ICrossContextUnitOfWork unitOfWork)
+    private static async Task SeedAdminUserAsync(UserManager<User> userManager, IUserRepository userRepository, ILogService logger, ICrossContextUnitOfWork unitOfWork)
     {
         string adminEmail = DotNetEnv.Env.GetString("ADMIN_EMAIL");
         string adminPassword = DotNetEnv.Env.GetString("ADMIN_PASSWORD");
@@ -80,7 +80,7 @@ public static class DatabaseSeeder
 
             if (createResult.Succeeded)
             {
-                await accountRepository.CreateAsync(adminUser, CancellationToken.None);
+                await userRepository.CreateAsync(adminUser, CancellationToken.None);
                 await userManager.AddToRoleAsync(adminUser, AdminRole);
             }
             else

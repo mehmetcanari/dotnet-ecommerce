@@ -16,7 +16,7 @@ namespace ECommerce.Application.Commands.Auth
         public readonly AccountLoginRequestDto Model = request;
     }
 
-    public class LoginCommandHandler(IAccountRepository accountRepository, UserManager<User> userManager, ILogService logService, IMediator mediator) : IRequestHandler<LoginCommand, Result<AuthResponseDto>>
+    public class LoginCommandHandler(IUserRepository userRepository, UserManager<User> userManager, ILogService logService, IMediator mediator) : IRequestHandler<LoginCommand, Result<AuthResponseDto>>
     {
         public async Task<Result<AuthResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
@@ -55,7 +55,7 @@ namespace ECommerce.Application.Commands.Auth
         {
             try
             {
-                var account = await accountRepository.GetByEmail(email);
+                var account = await userRepository.GetByEmail(email);
                 if (account is null)
                     return Result<User>.Failure(ErrorMessages.AccountNotFound);
 

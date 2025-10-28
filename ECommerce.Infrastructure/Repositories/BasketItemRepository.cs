@@ -20,7 +20,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         }
     }
 
-    public async Task<List<BasketItem>> GetActiveItems(User account, CancellationToken cancellationToken = default)
+    public async Task<List<BasketItem>> GetActiveItems(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -28,7 +28,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         
             var items = await query
                 .AsNoTracking()
-                .Where(b => b.UserId == account.Id && b.IsPurchased == false)
+                .Where(b => b.UserId == userId && b.IsPurchased == false)
                 .ToListAsync(cancellationToken);
             
             return items;
@@ -39,7 +39,7 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         }
     }
     
-    public async Task<BasketItem?> GetUserBasket(Guid id, User account, CancellationToken cancellationToken = default)
+    public async Task<BasketItem?> GetItemById(Guid id, User account, CancellationToken cancellationToken = default)
     {
         try
         {

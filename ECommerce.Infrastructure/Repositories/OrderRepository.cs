@@ -83,7 +83,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
         }
     }
     
-    public async Task<List<Order>> GetOrders(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<List<Order>> GetClientCompletedOrders(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {

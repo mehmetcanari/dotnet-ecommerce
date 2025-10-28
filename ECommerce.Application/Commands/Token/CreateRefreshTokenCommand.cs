@@ -80,11 +80,7 @@ namespace ECommerce.Application.Commands.Token
                     new("tokenType", "refresh"),
                     new(ClaimTypes.NameIdentifier, userId.ToString())
                 };
-
-                foreach (var role in roles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role));
-                }
+                claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
                 var token = new JwtSecurityToken(issuer: issuer, audience: audience, claims: claims,
                     expires: DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry)),

@@ -18,7 +18,6 @@ public class GetAllProductsQueryHandler(IProductRepository productRepository, IC
         try
         {
             var cachedProducts = await cacheService.GetAsync<List<ProductResponseDto>>(CacheKeys.AllProducts);
-
             if (cachedProducts is { Count: > 0 })
                 return Result<List<ProductResponseDto>>.Success(cachedProducts);
 

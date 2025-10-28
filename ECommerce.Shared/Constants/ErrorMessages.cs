@@ -55,6 +55,7 @@
         public const string ErrorValidatingLogin = "authentication.error.validating.login";
         public const string AccountNotAuthorized = "authentication.account.not.authorized";
         public const string InvalidCredentials = "authentication.invalid.credentials";
+        public const string UserIsNotLoggedIn = "authentication.user.is.not.logged.in";
         #endregion
 
         #region Token

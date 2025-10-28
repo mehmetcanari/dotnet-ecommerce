@@ -15,7 +15,7 @@ public class AccountController(IMediator mediator) : ApiBaseController
 {
     [HttpGet("profile")]
     [Authorize]
-    public async Task<IActionResult> GetProfile() => HandleResult(await mediator.Send(new GetClientAccountQuery()));
+    public async Task<IActionResult> GetProfile() => HandleResult(await mediator.Send(new GetProfileQuery()));
 
     [Authorize("Admin")]
     [HttpGet]

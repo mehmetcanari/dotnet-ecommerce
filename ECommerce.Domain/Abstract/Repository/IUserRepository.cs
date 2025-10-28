@@ -2,7 +2,7 @@ using ECommerce.Domain.Model;
 
 namespace ECommerce.Domain.Abstract.Repository;
 
-public interface IAccountRepository
+public interface IUserRepository
 {
     Task CreateAsync(User userAccount, CancellationToken cancellationToken = default);
     Task<List<User>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default);

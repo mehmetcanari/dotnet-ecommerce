@@ -6,7 +6,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ECommerce.Shared.Constants;
-using static System.Security.Claims.ClaimTypes;
 using ECommerce.Application.Abstract;
 
 namespace ECommerce.Application.Commands.Token
@@ -20,10 +19,10 @@ namespace ECommerce.Application.Commands.Token
 
     public class CreateAccessTokenCommandHandler(ILogService logService) : IRequestHandler<CreateAccessTokenCommand, Result<AccessToken>>
     {
-        public async Task<Result<AccessToken>> Handle(CreateAccessTokenCommand request, CancellationToken cancellationToken)
+        public Task<Result<AccessToken>> Handle(CreateAccessTokenCommand request, CancellationToken cancellationToken)
         {
             var accessToken = GenerateAccessTokenAsync(request.UserId, request.Email, request.Roles);
-            return accessToken;
+            return Task.FromResult(accessToken);
         }
 
         private Result<AccessToken> GenerateAccessTokenAsync(Guid userId, string email, IList<string> roles)
@@ -31,7 +30,6 @@ namespace ECommerce.Application.Commands.Token
             try
             {
                 var accessTokenExpiry = Environment.GetEnvironmentVariable("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES");
-
                 var accessToken = new AccessToken
                 {
                     Token = GenerateAccessJwtToken(userId, email, roles),
@@ -57,13 +55,13 @@ namespace ECommerce.Application.Commands.Token
 
             var claims = new List<Claim>
             {
-                new(NameIdentifier, userId.ToString()),
-                new(Email, email),
+                new(ClaimTypes.NameIdentifier, userId.ToString()),
+                new(ClaimTypes.Email, email),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new("tokenType", "access")
             };
 
-            claims.AddRange(roles.Select(role => new Claim(Role, role)));
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var token = new JwtSecurityToken(issuer: issuer, audience: audience, claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(expirationMinutes)),

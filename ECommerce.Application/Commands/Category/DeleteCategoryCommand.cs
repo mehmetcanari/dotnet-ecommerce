@@ -17,14 +17,11 @@ public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository
     {
         try
         {
-            var categoryResult = await ValidateAndGetCategory(request);
-            if (categoryResult is { IsFailure: true, Message: not null })
-                return Result.Failure(categoryResult.Message);
-
-            if (categoryResult.Data is null)
+            var category = await categoryRepository.GetById(request.Id, cancellationToken);
+            if (category is null)
                 return Result.Failure(ErrorMessages.CategoryNotFound);
 
-            categoryRepository.Delete(categoryResult.Data);
+            categoryRepository.Delete(category);
             await unitOfWork.Commit();
 
             return Result.Success();
@@ -34,17 +31,5 @@ public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository
             logger.LogError(ex, ErrorMessages.ErrorDeletingCategory, request.Id);
             return Result.Failure(ErrorMessages.UnexpectedError);
         }
-    }
-
-    private async Task<Result<Domain.Model.Category>> ValidateAndGetCategory(DeleteCategoryCommand request)
-    {
-        var category = await categoryRepository.GetById(request.Id);
-        if (category == null)
-        {
-            logger.LogWarning(ErrorMessages.CategoryNotFound, request.Id);
-            return Result<Domain.Model.Category>.Failure(ErrorMessages.CategoryNotFound);
-        }
-
-        return Result<Domain.Model.Category>.Success(category);
     }
 }

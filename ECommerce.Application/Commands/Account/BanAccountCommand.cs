@@ -14,14 +14,14 @@ public class BanAccountCommand(AccountBanRequestDto request) : IRequest<Result>
     public readonly AccountBanRequestDto Model = request;
 }
 
-public class BanAccountCommandHandler(IAccountRepository accountRepository, IUnitOfWork unitOfWork, ILogService logger, IMediator mediator) : IRequestHandler<BanAccountCommand, Result>
+public class BanAccountCommandHandler(IUserRepository userRepository, IUnitOfWork unitOfWork, ILogService logger, IMediator mediator) : IRequestHandler<BanAccountCommand, Result>
 {
     public async Task<Result> Handle(BanAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var account = await accountRepository.GetByEmail(request.Model.Email, cancellationToken);
-            if (account == null)
+            var user = await userRepository.GetByEmail(request.Model.Email, cancellationToken);
+            if (user == null)
                 return Result.Failure(ErrorMessages.AccountEmailNotFound);
             
             var tokenRevokeRequest = new TokenRevokeRequestDto { Email = request.Model.Email, Reason = ErrorMessages.AccountBanned };
@@ -29,8 +29,8 @@ public class BanAccountCommandHandler(IAccountRepository accountRepository, IUni
             if(revokeResult is { IsFailure: true })
                 return Result.Failure(ErrorMessages.FailedToRevokeToken);
 
-            account.BanAccount(request.Model.Until, request.Model.Reason);
-            accountRepository.Update(account);
+            user.BanAccount(request.Model.Until, request.Model.Reason);
+            userRepository.Update(user);
             await unitOfWork.Commit();
 
             logger.LogInformation(ErrorMessages.AccountBanned, request.Model.Email);

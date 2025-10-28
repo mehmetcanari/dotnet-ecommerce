@@ -15,25 +15,34 @@ public class CreateOrderCommand(CreateOrderRequestDto request) : IRequest<Result
     public readonly CreateOrderRequestDto Model = request;
 }
 
-public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasketItemRepository basketItemRepository, IStoreUnitOfWork unitOfWork, IMediator mediator, IAccountRepository accountRepository, 
+public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasketItemRepository basketItemRepository, IStoreUnitOfWork unitOfWork, IMediator mediator, IUserRepository userRepository, 
     ILogService logger, IPaymentService paymentService, ICurrentUserService currentUserService, IMessageBroker messageBroker) : IRequestHandler<CreateOrderCommand, Result>
 {
     public async Task<Result> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var userInfoResult = await ValidateAndGetUserInfoAsync(request.Model);
-            if (userInfoResult is { IsFailure: true, Message: not null })
-                return Result.Failure(userInfoResult.Message);
+            var userId = currentUserService.GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Result.Failure(ErrorMessages.UnauthorizedAction);
 
-            var (account, basketItems) = userInfoResult.Data;
-            var order = CreateOrder(account.Id, account.Address, basketItems);
+            var basketItemsResult = await GetUserBasketItemsAsync(userId);
+            if (basketItemsResult is { IsFailure: true, Message: not null })
+                return Result.Failure(basketItemsResult.Message);
 
-            string ipAddress = currentUserService.GetIpAddress();
-            Buyer buyer = CreateBuyer(account, ipAddress);
-            PaymentCard paymentCard = CreatePaymentCard(request.Model);
-            Address shippingAddress = CreateAddress(account);
-            Address billingAddress = CreateAddress(account);
+            var basketItems = basketItemsResult.Data;
+            if (basketItems == null || basketItems.Count == 0)
+                return Result.Failure(ErrorMessages.BasketItemNotFound);
+
+            var user = await userRepository.GetById(Guid.Parse(userId), cancellationToken);
+            if (user == null)
+                return Result.Failure(ErrorMessages.AccountNotFound);
+
+            var order = CreateOrder(userId, user.Address, basketItems);
+            var buyer = CreateBuyer(user);
+            var paymentCard = CreatePaymentCard(request.Model);
+            var shippingAddress = CreateAddress(user);
+            var billingAddress = CreateAddress(user);
 
             await unitOfWork.BeginTransactionAsync();
 
@@ -45,8 +54,8 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
                 return Result.Failure($"{ErrorMessages.PaymentFailed}: {paymentResult.Message}");
             }
 
-            await orderRepository.Create(order, cancellationToken);
             await mediator.Send(new UpdateProductStockCommand(basketItems), cancellationToken);
+            await orderRepository.Create(order, cancellationToken);
             await messageBroker.Publish(new OrderCreatedEvent
             {
                 Id = order.Id,
@@ -69,28 +78,9 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         }
     }
 
-    private async Task<Result<(User Account, List<BasketItem> BasketItems)>> ValidateAndGetUserInfoAsync(CreateOrderRequestDto request)
+    private async Task<Result<List<BasketItem>>> GetUserBasketItemsAsync(string userId)
     {
-        var accountResult = await GetCurrentUserAccountAsync();
-        if (accountResult is { IsSuccess: false, Message: not null })
-            return Result<(User, List<BasketItem>)>.Failure(accountResult.Message);
-
-        if (accountResult.Data?.Email is null)
-            return Result<(User, List<BasketItem>)>.Failure(ErrorMessages.AccountNotFound);
-
-        var basketItems = await GetUserBasketItemsAsync(accountResult.Data);
-        if (basketItems is { IsSuccess: false, Message: not null })
-            return Result<(User, List<BasketItem>)>.Failure(basketItems.Message);
-
-        if (basketItems.Data == null || basketItems.Data.Count == 0)
-            return Result<(User, List<BasketItem>)>.Failure(ErrorMessages.BasketItemNotFound);
-
-        return Result<(User, List<BasketItem>)>.Success((accountResult.Data, basketItems.Data));
-    }
-
-    private async Task<Result<List<BasketItem>>> GetUserBasketItemsAsync(User user)
-    {
-        var userBasketItems = await basketItemRepository.GetActiveItems(user);
+        var userBasketItems = await basketItemRepository.GetActiveItems(Guid.Parse(userId));
         if (userBasketItems.Count == 0)
             return Result<List<BasketItem>>.Failure(ErrorMessages.BasketItemNotFound);
 
@@ -118,15 +108,15 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         RegisterCard = request.PaymentCard.RegisterCard
     };
 
-    private Domain.Model.Order CreateOrder(Guid userId, string address, List<BasketItem> basketItems) => new Domain.Model.Order
+    private Domain.Model.Order CreateOrder(string userId, string address, List<BasketItem> basketItems) => new Domain.Model.Order
     {
-        UserId = userId,
+        UserId = Guid.Parse(userId),
         ShippingAddress = address,
         BillingAddress = address,
         BasketItems = basketItems
     };
 
-    private Buyer CreateBuyer(User account, string ipAddress) => new Buyer
+    private Buyer CreateBuyer(User account) => new Buyer
     {
         Id = account.Id,
         Name = account.Name,
@@ -135,7 +125,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         GsmNumber = account.PhoneNumber ?? string.Empty,
         IdentityNumber = account.IdentityNumber,
         RegistrationAddress = account.Address,
-        Ip = ipAddress,
+        Ip = currentUserService.GetIpAddress(),
         City = account.City,
         Country = account.Country,
         ZipCode = account.ZipCode
@@ -149,17 +139,4 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         Country = account.Country,
         ZipCode = account.ZipCode
     };
-
-    private async Task<Result<User>> GetCurrentUserAccountAsync()
-    {
-        var email = currentUserService.GetUserEmail();
-        if (string.IsNullOrEmpty(email))
-            return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
-
-        var account = await accountRepository.GetByEmail(email);
-        if (account == null)
-            return Result<User>.Failure(ErrorMessages.AccountNotFound);
-
-        return Result<User>.Success(account);
-    }
 }

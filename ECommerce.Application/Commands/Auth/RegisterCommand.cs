@@ -14,7 +14,7 @@ public class RegisterCommand(AccountRegisterRequestDto request) : IRequest<Resul
     public readonly AccountRegisterRequestDto Model = request;
 }
 
-public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IAccountRepository accountRepository, 
+public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IUserRepository userRepository, 
     ICrossContextUnitOfWork unitOfWork, ILogService logService)  : IRequestHandler<RegisterCommand, Result>
 {
     private const string Role = "User";
@@ -24,9 +24,8 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
         {
             await unitOfWork.BeginTransactionAsync();
 
-            var existingUserByIdentity = await userManager.Users.AnyAsync(u => u.IdentityNumber == request.Model.IdentityNumber, cancellationToken);
-
-            if (existingUserByIdentity)
+            var isIdentityExists = await userManager.Users.AnyAsync(u => u.IdentityNumber == request.Model.IdentityNumber, cancellationToken);
+            if (isIdentityExists)
                 return Result.Failure(ErrorMessages.IdentityNumberAlreadyExists);
 
             var user = new Domain.Model.User
@@ -52,7 +51,7 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
                 return Result.Failure(errors);
             }
 
-            await accountRepository.CreateAsync(user, cancellationToken);
+            await userRepository.CreateAsync(user, cancellationToken);
 
             var roleResult = await AssignUserRoleAsync(user);
             if (roleResult is { IsFailure: true, Message: not null })

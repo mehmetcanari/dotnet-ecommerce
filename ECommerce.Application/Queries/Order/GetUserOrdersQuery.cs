@@ -11,28 +11,22 @@ namespace ECommerce.Application.Queries.Order;
 
 public class GetUserOrdersQuery : IRequest<Result<List<OrderResponseDto>>>{}
 
-public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, IAccountRepository accountRepository, IOrderRepository orderRepository, ILogService logger) : IRequestHandler<GetUserOrdersQuery, Result<List<OrderResponseDto>>>
+public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, IOrderRepository orderRepository, ILogService logger) : IRequestHandler<GetUserOrdersQuery, Result<List<OrderResponseDto>>>
 {
     public async Task<Result<List<OrderResponseDto>>> Handle(GetUserOrdersQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var accountResult = await GetCurrentUserAccountAsync();
-            if (accountResult is { IsFailure: true, Message: not null })
-                return Result<List<OrderResponseDto>>.Failure(ErrorMessages.AccountNotFound);
+            var userId = currentUserService.GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Result<List<OrderResponseDto>>.Failure(ErrorMessages.AccountNotAuthorized);
 
-            if (accountResult.Data is not null)
-            {
-                var orders = await orderRepository.GetOrders(accountResult.Data.Id, cancellationToken);
-                if (orders.Count == 0)
-                    return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
+            var orders = await orderRepository.GetClientCompletedOrders(Guid.Parse(userId), cancellationToken);
+            if (orders.Count == 0)
+                return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
 
-                var ordersResponse = orders.Select(MapToResponseDto).ToList();
-                return Result<List<OrderResponseDto>>.Success(ordersResponse);
-            }
-
-            return Result<List<OrderResponseDto>>.Failure(ErrorMessages.AccountNotFound);
-
+            var ordersResponse = orders.Select(MapToResponseDto).ToList();
+            return Result<List<OrderResponseDto>>.Success(ordersResponse);
         }
         catch (Exception ex)
         {
@@ -41,20 +35,7 @@ public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, I
         }
     }
 
-    private async Task<Result<User>> GetCurrentUserAccountAsync()
-    {
-        var email = currentUserService.GetUserEmail();        
-        if (string.IsNullOrEmpty(email))
-            return Result<User>.Failure(ErrorMessages.AccountEmailNotFound);
-        
-        var account = await accountRepository.GetByEmail(email);
-        if (account == null)
-            return Result<User>.Failure(ErrorMessages.AccountNotFound);
-
-        return Result<User>.Success(account);
-    }
-
-    private OrderResponseDto MapToResponseDto(Domain.Model.Order order) => new OrderResponseDto
+    private OrderResponseDto MapToResponseDto(Domain.Model.Order order) => new()
     {
         UserId = order.UserId,
         BasketItems = order.BasketItems.Select(MapToBasketItemDto).ToList(),
@@ -64,7 +45,7 @@ public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, I
         Status = order.Status
     };
 
-    private BasketItemResponseDto MapToBasketItemDto(BasketItem basketItem) => new BasketItemResponseDto
+    private BasketItemResponseDto MapToBasketItemDto(BasketItem basketItem) => new()
     {
         UserId = basketItem.UserId,
         ProductId = basketItem.ProductId,

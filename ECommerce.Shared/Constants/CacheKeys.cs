@@ -14,5 +14,9 @@
         #region Category
         public const string CategoryById = "cache:categories:{0}";
         #endregion
+
+        #region Profile
+        public const string Profile = "cache:profile";
+        #endregion
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace ECommerce.Application.Queries.Token;
 
-public class GetRefreshTokenFromContextQuery : IRequest<Result<RefreshToken>> { }
+public class GetRefreshTokenFromContextQuery : IRequest<Result<RefreshToken>>;
 
 public class GetRefreshTokenFromContextQueryHandler(IHttpContextAccessor httpContextAccessor, ILogService logService, IRefreshTokenRepository refreshTokenRepository) : IRequestHandler<GetRefreshTokenFromContextQuery, Result<RefreshToken>>
 {
@@ -18,7 +18,7 @@ public class GetRefreshTokenFromContextQueryHandler(IHttpContextAccessor httpCon
         {
             var refreshToken = httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
             if (string.IsNullOrEmpty(refreshToken))
-                return Result<RefreshToken>.Failure(ErrorMessages.FailedToFetchUserTokens);
+                return Result<RefreshToken>.Failure(ErrorMessages.UserIsNotLoggedIn);
 
             var token = await refreshTokenRepository.GetByTokenAsync(refreshToken, cancellationToken);
             if (token == null)

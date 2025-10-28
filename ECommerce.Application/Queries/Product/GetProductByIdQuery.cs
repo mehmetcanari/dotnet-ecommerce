@@ -40,7 +40,7 @@ public class GetProductByIdQueryHandler(IProductRepository productRepository, IC
         }
     }
 
-    private ProductResponseDto MapToResponseDto(Domain.Model.Product product) => new ProductResponseDto
+    private ProductResponseDto MapToResponseDto(Domain.Model.Product product) => new()
     {
         Id = product.Id,
         ProductName = product.Name,

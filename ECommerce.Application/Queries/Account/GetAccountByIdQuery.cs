@@ -12,13 +12,13 @@ public class GetAccountByIdQuery(Guid id) : IRequest<Result<AccountResponseDto>>
     public readonly Guid UserId = id;
 }
 
-public class GetAccountWithIdQueryHandler(IAccountRepository accountRepository, ILogService logger) : IRequestHandler<GetAccountByIdQuery, Result<AccountResponseDto>>
+public class GetAccountWithIdQueryHandler(IUserRepository userRepository, ILogService logger) : IRequestHandler<GetAccountByIdQuery, Result<AccountResponseDto>>
 {
     public async Task<Result<AccountResponseDto>> Handle(GetAccountByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var account = await accountRepository.GetById(request.UserId, cancellationToken);
+            var account = await userRepository.GetById(request.UserId, cancellationToken);
             if (account == null)
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotFound);
 

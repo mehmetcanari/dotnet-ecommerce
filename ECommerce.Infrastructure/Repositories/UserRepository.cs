@@ -6,7 +6,7 @@ using ECommerce.Shared.Constants;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class AccountRepository(StoreDbContext context) : IAccountRepository
+public class UserRepository(StoreDbContext context) : IUserRepository
 {
     public async Task<List<User>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {

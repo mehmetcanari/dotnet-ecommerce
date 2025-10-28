@@ -25,7 +25,6 @@ public class GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository,
                 return Result<CategoryResponseDto>.Success(cachedCategory);
 
             var category = await categoryRepository.GetById(request.CategoryId, cancellationToken);
-
             if (category == null)
                 return Result<CategoryResponseDto>.Failure(ErrorMessages.CategoryNotFound);
 
@@ -47,7 +46,7 @@ public class GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository,
         await cacheService.SetAsync(string.Format(CacheKeys.CategoryById, categoryId), categoryDto, expirationTime);
     }
 
-    private CategoryResponseDto MapToResponseDto(Domain.Model.Category category) => new CategoryResponseDto
+    private CategoryResponseDto MapToResponseDto(Domain.Model.Category category) => new()
     {
         Id = category.Id,
         Name = category.Name,

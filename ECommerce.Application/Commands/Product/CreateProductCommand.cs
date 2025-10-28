@@ -5,7 +5,6 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
 using MediatR;
-using Result = ECommerce.Application.Utility.Result;
 
 namespace ECommerce.Application.Commands.Product;
 
@@ -22,27 +21,25 @@ public class CreateProductCommandHandler(IProductRepository productRepository, I
         try
         {
             var existingProduct = await productRepository.CheckExistsWithName(request.Model.Name, cancellationToken);
-            if(existingProduct)
+            if (existingProduct)
                 return Result.Failure(ErrorMessages.ProductExists);
 
             var category = await categoryRepository.GetById(request.Model.CategoryId, cancellationToken);
-            if(category is null)
+            if (category is null)
                 return Result.Failure(ErrorMessages.CategoryNotFound);
 
             var product = new Domain.Model.Product
             {
                 Name = request.Model.Name,
                 Description = request.Model.Description,
-                Price = request.Model.Price,
+                Price = MathService.CalculateDiscount(request.Model.Price, request.Model.DiscountRate),
                 DiscountRate = request.Model.DiscountRate,
                 ImageUrl = request.Model.ImageUrl,
                 StockQuantity = request.Model.StockQuantity,
                 CategoryId = request.Model.CategoryId
             };
 
-            product.Price = MathService.CalculateDiscount(product.Price, product.DiscountRate);
             await productRepository.Create(product, cancellationToken);
-            
             await unitOfWork.Commit();
 
             var productCreatedEvent = new ProductCreatedEvent
