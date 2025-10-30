@@ -1,5 +1,4 @@
 using ECommerce.Application.Commands.Product;
-using ECommerce.Application.DTO.Request.FileUpload;
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Queries.Product;
 using MediatR;

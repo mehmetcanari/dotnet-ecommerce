@@ -7,5 +7,6 @@ namespace ECommerce.Application.Abstract
         string GetUserId();
         string GetUserEmail();
         string GetIpAddress();
+        string GetClientToken();
     }
 }

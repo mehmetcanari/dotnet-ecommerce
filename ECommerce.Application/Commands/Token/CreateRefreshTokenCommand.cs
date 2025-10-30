@@ -20,8 +20,11 @@ namespace ECommerce.Application.Commands.Token
         public readonly IList<string> Roles = roles;
     }
 
-    public class CreateRefreshTokenCommandHandler(ILogService logService, IRefreshTokenRepository refreshTokenRepository, IUnitOfWork unitOfWork, IMediator mediator, IHttpContextAccessor contextAccessor) : IRequestHandler<CreateRefreshTokenCommand, Result<RefreshToken>>
+    public class CreateRefreshTokenCommandHandler(ILogService logService, IRefreshTokenRepository refreshTokenRepository, IUnitOfWork unitOfWork, IMediator mediator, IHttpContextAccessor contextAccessor, ICurrentUserService currentUserService) 
+        : IRequestHandler<CreateRefreshTokenCommand, Result<RefreshToken>>
     {
+        private const string Reason = "Generating new refresh token";
+
         public async Task<Result<RefreshToken>> Handle(CreateRefreshTokenCommand request, CancellationToken cancellationToken)
         {
             var tokenResult = await GenerateRefreshTokenAsync(request.UserId, request.Email, request.Roles, cancellationToken);
@@ -39,10 +42,8 @@ namespace ECommerce.Application.Commands.Token
         {
             try
             {
-                var request = new TokenRevokeRequestDto { Email = email, Reason = string.Empty };
-                var revokeResult = await mediator.Send(new RevokeRefreshTokenCommand(request), cancellationToken);
-                if (revokeResult is { IsFailure: true })
-                    return Result<RefreshToken>.Failure(ErrorMessages.FailedToRevokeToken);
+                var request = new TokenRevokeRequestDto { Email = email, Reason = Reason};
+                await mediator.Send(new RevokeRefreshTokenCommand(request), cancellationToken);
 
                 var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
                 var refreshToken = new RefreshToken
