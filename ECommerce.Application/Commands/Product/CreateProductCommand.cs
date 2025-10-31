@@ -1,6 +1,5 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.Product;
-using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
@@ -13,8 +12,7 @@ public class CreateProductCommand(ProductCreateRequestDto request) : IRequest<Re
     public readonly ProductCreateRequestDto Model = request;
 }
 
-public class CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IMessageBroker messageBroker,
-    IMediator mediator, IUnitOfWork unitOfWork) : IRequestHandler<CreateProductCommand, Result>
+public class CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService) : IRequestHandler<CreateProductCommand, Result>
 {
     public async Task<Result> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
@@ -39,25 +37,10 @@ public class CreateProductCommandHandler(IProductRepository productRepository, I
                 CategoryId = request.Model.CategoryId
             };
 
+            await elasticSearchService.IndexAsync(product, "products", product.Id.ToString(), cancellationToken);
             await productRepository.Create(product, cancellationToken);
             await unitOfWork.Commit();
 
-            var productCreatedEvent = new ProductCreatedEvent
-            {
-                ProductId = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                DiscountRate = product.DiscountRate,
-                ImageUrl = product.ImageUrl ?? string.Empty,
-                StockQuantity = product.StockQuantity,
-                CategoryId = product.CategoryId,
-                ProductCreated = product.CreatedOn,
-                ProductUpdated = product.UpdatedOn
-            };
-
-            await mediator.Publish(productCreatedEvent, cancellationToken);
-            await messageBroker.Publish(productCreatedEvent, "product_exchange", "product.created");
             return Result.Success();
         }
         catch (Exception ex)

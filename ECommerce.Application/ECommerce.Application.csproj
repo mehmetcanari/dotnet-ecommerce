@@ -12,24 +12,23 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.1" />
-      <PackageReference Include="AWSSDK.S3" Version="4.0.1.1" />
+      <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.9" />
+      <PackageReference Include="AWSSDK.S3" Version="4.0.9.1" />
       <PackageReference Include="DotNetEnv" Version="3.1.1" />
-      <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.13.0" />
-      <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+      <PackageReference Include="Elastic.Clients.Elasticsearch" Version="9.2.0" />
+      <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
       <PackageReference Include="Iyzipay" Version="2.1.67" />
-      <PackageReference Include="MediatR" Version="12.5.0" />
-      <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
-      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
+      <PackageReference Include="MediatR" Version="13.1.0" />
+      <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" />
       <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
-      <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
-      <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
-      <PackageReference Include="Serilog" Version="4.2.0" />
+      <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10" />
+      <PackageReference Include="Serilog" Version="4.3.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
       <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />  
       <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
-      <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-      <PackageReference Include="System.Text.Json" Version="9.0.3" />
+      <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+      <PackageReference Include="System.Text.Json" Version="9.0.10" />
     </ItemGroup>
 
 </Project>

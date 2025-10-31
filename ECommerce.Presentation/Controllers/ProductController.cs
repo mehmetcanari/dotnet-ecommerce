@@ -33,5 +33,5 @@ public class ProductController(IMediator mediator) : ApiBaseController
 
     [HttpGet("search")]
     [Authorize]
-    public async Task<IActionResult> SearchProducts([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 10) => HandleResult(await mediator.Send(new ProductSearchQuery(query, page, pageSize)));
+    public async Task<IActionResult> SearchProducts([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 10) => HandleResult(await mediator.Send(new GetProductBySearchQuery(query, page, pageSize)));
 }

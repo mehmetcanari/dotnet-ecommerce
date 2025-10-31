@@ -1,7 +1,6 @@
 ﻿using ECommerce.Application.Abstract;
 using ECommerce.Application.Commands.Product;
 using ECommerce.Application.DTO.Request.Order;
-using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
@@ -16,7 +15,7 @@ public class CreateOrderCommand(CreateOrderRequestDto request) : IRequest<Result
 }
 
 public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasketItemRepository basketItemRepository, IStoreUnitOfWork unitOfWork, IMediator mediator, IUserRepository userRepository, 
-    ILogService logger, IPaymentService paymentService, ICurrentUserService currentUserService, IMessageBroker messageBroker) : IRequestHandler<CreateOrderCommand, Result>
+    ILogService logger, IPaymentService paymentService, ICurrentUserService currentUserService) : IRequestHandler<CreateOrderCommand, Result>
 {
     public async Task<Result> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
@@ -56,16 +55,6 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
 
             await mediator.Send(new UpdateProductStockCommand(basketItems), cancellationToken);
             await orderRepository.Create(order, cancellationToken);
-            await messageBroker.Publish(new OrderCreatedEvent
-            {
-                Id = order.Id,
-                UserId = order.UserId,
-                TotalPrice = order.BasketItems.Sum(bi => bi.Quantity * bi.UnitPrice),
-                ShippingAddress = order.ShippingAddress,
-                BillingAddress = order.BillingAddress,
-                CreatedOn = DateTime.UtcNow,
-                Status = order.Status
-            }, "order_exchange", "order.created");
 
             await unitOfWork.CommitTransactionAsync();
             return Result.Success();

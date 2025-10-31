@@ -6,20 +6,15 @@ using ECommerce.Application.Commands.Category;
 using ECommerce.Application.Commands.Order;
 using ECommerce.Application.Commands.Product;
 using ECommerce.Application.Dependencies;
-using ECommerce.Application.Events;
 using ECommerce.Application.Queries.Account;
 using ECommerce.Application.Queries.Basket;
 using ECommerce.Application.Queries.Category;
 using ECommerce.Application.Queries.Order;
 using ECommerce.Application.Queries.Product;
 using ECommerce.Application.Services.Background;
-using ECommerce.Application.Services.Queue;
-using ECommerce.Application.Services.Search.Product;
 using ECommerce.Application.Validations;
 using ECommerce.Infrastructure.Dependencies;
 using ECommerce.Shared.Constants;
-using MediatR;
-using RabbitMQ.Client;
 using Serilog;
 using StackExchange.Redis;
 
@@ -41,13 +36,6 @@ public class DependencyContainer(WebApplicationBuilder builder) : IDependencyCon
             throw new InvalidOperationException(ErrorMessages.QueueConnectionStringNotConfigured);
 
         builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString));
-        builder.Services.AddSingleton<IConnectionFactory>(_ => new ConnectionFactory
-        {
-            Uri = new Uri(rabbitMqConnection),
-            DispatchConsumersAsync = true
-        });
-
-        builder.Services.AddSingleton<IMessageBroker, QueueService>();
         builder.Services.AddSingleton(Log.Logger);
         builder.Services.AddHostedService<TokenCleanupBackgroundService>();
         builder.Services.AddHttpContextAccessor();
@@ -91,14 +79,7 @@ public class DependencyContainer(WebApplicationBuilder builder) : IDependencyCon
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetUserOrdersQuery).Assembly));
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllProductsQuery).Assembly));
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductByIdQuery).Assembly));
-        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ProductSearchQuery).Assembly));
-        #endregion
-
-        #region Events
-        builder.Services.AddScoped<INotificationHandler<ProductCreatedEvent>, ProductElasticsearchEventHandler>();
-        builder.Services.AddScoped<INotificationHandler<ProductUpdatedEvent>, ProductElasticsearchEventHandler>();
-        builder.Services.AddScoped<INotificationHandler<ProductStockUpdatedEvent>, ProductElasticsearchEventHandler>();
-        builder.Services.AddScoped<INotificationHandler<ProductDeletedEvent>, ProductElasticsearchEventHandler>();
+        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductBySearchQuery).Assembly));
         #endregion
     }
 }

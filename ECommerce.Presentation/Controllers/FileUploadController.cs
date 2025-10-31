@@ -10,7 +10,8 @@ namespace ECommerce.API.Controllers;
 [Authorize("Admin")]
 public class FileUploadController(IFileUploadService uploadService) : ApiBaseController
 {
-    [Authorize("Admin")]
+
+    [Authorize("Admin")]
     [HttpPost("upload-image")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadImage([FromForm] FileUploadRequestDto request) => HandleResult(await uploadService.UploadFileAsync(request));

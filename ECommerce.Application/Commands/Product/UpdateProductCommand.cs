@@ -1,6 +1,5 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.Product;
-using ECommerce.Application.Events;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
@@ -13,7 +12,7 @@ public class UpdateProductCommand(ProductUpdateRequestDto request) : IRequest<Re
     public readonly ProductUpdateRequestDto Model = request;
 }
 
-public class UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IMessageBroker messageBroker, IMediator mediator, IUnitOfWork unitOfWork) : IRequestHandler<UpdateProductCommand, Result>
+public class UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService) : IRequestHandler<UpdateProductCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
@@ -35,23 +34,9 @@ public class UpdateProductCommandHandler(IProductRepository productRepository, I
             product.StockQuantity = request.Model.StockQuantity;
             product.UpdatedOn = DateTime.UtcNow;
 
+            await elasticSearchService.UpdateAsync(product.Id.ToString(), product, "products", cancellationToken);
             await productRepository.Update(product, cancellationToken);
             await unitOfWork.Commit();
-
-            var productUpdatedEvent = new ProductUpdatedEvent
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                DiscountRate = product.DiscountRate,
-                ImageUrl = product.ImageUrl ?? string.Empty,
-                StockQuantity = product.StockQuantity,
-                CategoryId = product.CategoryId,
-            };
-
-            await mediator.Publish(productUpdatedEvent, cancellationToken); //mediator ile ulasimi kapat
-            await messageBroker.Publish(productUpdatedEvent, "product_exchange", "product.updated");//rabbitmq gerekmedigi icin gozden gecirilecek
 
             return Result.Success();
         }

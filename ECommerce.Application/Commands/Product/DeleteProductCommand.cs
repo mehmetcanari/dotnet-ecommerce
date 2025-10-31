@@ -11,7 +11,7 @@ public class DeleteProductCommand(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class DeleteProductCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<DeleteProductCommand, Result>
+public class DeleteProductCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService) : IRequestHandler<DeleteProductCommand, Result>
 {
     public async Task<Result> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
@@ -21,6 +21,7 @@ public class DeleteProductCommandHandler(IProductRepository productRepository, I
             if (product is null)
                 return Result.Failure(ErrorMessages.ProductNotFound);
 
+            await elasticSearchService.DeleteAsync<Domain.Model.Product>(product.Id.ToString(), "products", cancellationToken);
             await productRepository.Delete(product, cancellationToken);
             await unitOfWork.Commit();
             return Result.Success();

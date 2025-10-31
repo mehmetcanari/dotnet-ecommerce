@@ -8,7 +8,7 @@ namespace ECommerce.Application.Commands.Basket;
 
 public class ClearBasketCommand : IRequest<Result> { }
 
-public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IUserRepository userRepository, IUnitOfWork unitOfWork) : IRequestHandler<ClearBasketCommand, Result>
+public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<ClearBasketCommand, Result>
 {
     public async Task<Result> Handle(ClearBasketCommand request, CancellationToken cancellationToken)
     {

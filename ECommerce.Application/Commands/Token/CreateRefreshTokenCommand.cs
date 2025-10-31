@@ -20,7 +20,7 @@ namespace ECommerce.Application.Commands.Token
         public readonly IList<string> Roles = roles;
     }
 
-    public class CreateRefreshTokenCommandHandler(ILogService logService, IRefreshTokenRepository refreshTokenRepository, IUnitOfWork unitOfWork, IMediator mediator, IHttpContextAccessor contextAccessor, ICurrentUserService currentUserService) 
+    public class CreateRefreshTokenCommandHandler(ILogService logService, IRefreshTokenRepository refreshTokenRepository, IUnitOfWork unitOfWork, IMediator mediator, IHttpContextAccessor contextAccessor) 
         : IRequestHandler<CreateRefreshTokenCommand, Result<RefreshToken>>
     {
         private const string Reason = "Generating new refresh token";

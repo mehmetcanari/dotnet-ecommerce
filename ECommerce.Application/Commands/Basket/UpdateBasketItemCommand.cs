@@ -12,7 +12,7 @@ public class UpdateBasketItemCommand(UpdateBasketItemRequestDto request) : IRequ
     public readonly UpdateBasketItemRequestDto Model = request;
 }
 
-public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IUserRepository userRepository, 
+public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, 
     IProductRepository productRepository, IUnitOfWork unitOfWork, ICacheService cacheService) : IRequestHandler<UpdateBasketItemCommand, Result>
 {
     private const int CacheDurationInMinutes = 30;

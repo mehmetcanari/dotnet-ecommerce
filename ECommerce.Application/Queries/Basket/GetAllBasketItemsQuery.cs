@@ -10,7 +10,7 @@ namespace ECommerce.Application.Queries.Basket;
 public class GetAllBasketItemsQuery : IRequest<Result<List<BasketItemResponseDto>>> { }
 
 public class GetAllBasketItemsQueryHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, 
-    ICacheService cacheService, IUserRepository userRepository) : IRequestHandler<GetAllBasketItemsQuery, Result<List<BasketItemResponseDto>>>
+    ICacheService cacheService) : IRequestHandler<GetAllBasketItemsQuery, Result<List<BasketItemResponseDto>>>
 {
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
     private readonly string _cacheKey = $"{CacheKeys.AllBasketItems}_{currentUserService.GetUserEmail()}";

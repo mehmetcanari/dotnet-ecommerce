@@ -3,6 +3,7 @@ version: '3.8'
 services:
   redis:
     image: redis:7
+    container_name: redis
     ports:
       - "6380:6379"
     command: redis-server --appendonly yes
@@ -26,11 +27,11 @@ services:
           memory: 256M
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
-    container_name: elasticsearch-standalone
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.1.4
+    container_name: elasticsearch
     environment:
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms2g -Xmx2g   
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
       - xpack.security.enabled=false
       - bootstrap.memory_lock=true
       - TZ=Europe/Istanbul
@@ -62,47 +63,18 @@ services:
           memory: 2G
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.13.4
+    image: docker.elastic.co/kibana/kibana:9.1.4
     container_name: kibana
     ports:
       - "5601:5601"
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch-standalone:9200
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - TZ=Europe/Istanbul
     depends_on:
       - elasticsearch
     networks:
       - ecommerce-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 1G
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"   
-      - "15672:15672" 
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-      - TZ=Europe/Istanbul
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - ecommerce-network
     deploy:
       resources:
         limits:
@@ -120,6 +92,4 @@ volumes:
   redis_data:
     driver: local
   es_data:
-    driver: local
-  rabbitmq_data:
     driver: local

@@ -8,38 +8,36 @@ namespace ECommerce.API.Extensions;
 
 public static class DatabaseSeeder
 {
-    public const string AdminRole = "Admin";
+    private const string AdminRole = "Admin";
 
     public static async Task SeedDatabaseAsync(IHost app)
     {
-        using (var scope = app.Services.CreateScope())
+        using var scope = app.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogService>();
+        var unitOfWork = services.GetRequiredService<ICrossContextUnitOfWork>();
+        try
         {
-            var services = scope.ServiceProvider;
-            var logger = services.GetRequiredService<ILogService>();
-            var unitOfWork = services.GetRequiredService<ICrossContextUnitOfWork>();
-            try
-            {
-                DotNetEnv.Env.Load();
+            DotNetEnv.Env.Load();
 
-                var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-                await SeedRolesAsync(roleManager);
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+            await SeedRolesAsync(roleManager);
 
-                var userManager = services.GetRequiredService<UserManager<User>>();
-                var accountRepository = services.GetRequiredService<IUserRepository>();
+            var userManager = services.GetRequiredService<UserManager<User>>();
+            var accountRepository = services.GetRequiredService<IUserRepository>();
 
-                await SeedAdminUserAsync(userManager, accountRepository, logger, unitOfWork);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, ErrorMessages.ErrorSeedingAdminUser);
-                throw;
-            }
+            await SeedAdminUserAsync(userManager, accountRepository, logger, unitOfWork);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, ErrorMessages.ErrorSeedingAdminUser);
+            throw;
         }
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager)
     {
-        string[] roleNames = { AdminRole };
+        string[] roleNames = [AdminRole];
 
         foreach (var roleName in roleNames)
         {
@@ -50,8 +48,8 @@ public static class DatabaseSeeder
 
     private static async Task SeedAdminUserAsync(UserManager<User> userManager, IUserRepository userRepository, ILogService logger, ICrossContextUnitOfWork unitOfWork)
     {
-        string adminEmail = DotNetEnv.Env.GetString("ADMIN_EMAIL");
-        string adminPassword = DotNetEnv.Env.GetString("ADMIN_PASSWORD");
+        var adminEmail = DotNetEnv.Env.GetString("ADMIN_EMAIL");
+        var adminPassword = DotNetEnv.Env.GetString("ADMIN_PASSWORD");
 
         if (string.IsNullOrEmpty(adminEmail) || string.IsNullOrEmpty(adminPassword))
             return;

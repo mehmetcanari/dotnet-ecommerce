@@ -7,6 +7,7 @@
         public const string UnexpectedAuthenticationError = "authentication.unexpected.error";
         public const string UnexpectedCacheError = "cache.unexpected.error";
         public const string UnexpectedHubError = "hub.unexpected.error";
+        public const string UnexpectedElasticError = "elastic.unexpected.error";
         public const string NoTransactionInProgress = "global.no.transaction.in.progress";
         #endregion
 
@@ -19,8 +20,6 @@
         #endregion
 
         #region Queue
-        public const string QueueConnectionFailed = "queue.connection.failed";
-        public const string QueueMessagePublishFailed = "queue.message.publish.failed";
         public const string QueueConnectionStringNotConfigured = "queue.connection.string.not.configured";
         #endregion
 
@@ -32,6 +31,14 @@
         public const string NotificationsNotFound = "hub.notifications.not.found";
         public const string NoUnreadNotifications = "hub.no.unread.notifications";
         public const string ErrorMarkingNotificationsAsRead = "hub.error.marking.notifications.as.read";
+        #endregion
+
+        #region Elastic
+        public const string IndexFailure = "elastic.index.failure";
+        public const string IndexCreationFailure = "elastic.index.creation.failure";
+        public const string UpdateFailure = "elastic.update.failure";
+        public const string DeleteFailure = "elastic.delete.failure";  
+        public const string SearchFailure = "elastic.search.failure";
         #endregion
 
         #region Account

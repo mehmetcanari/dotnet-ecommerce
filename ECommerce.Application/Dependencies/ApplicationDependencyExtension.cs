@@ -1,10 +1,11 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.Services.Cache;
 using ECommerce.Application.Services.Client;
+using ECommerce.Application.Services.Elastic;
+using ECommerce.Application.Services.Elastic.Descriptors;
 using ECommerce.Application.Services.Logging;
 using ECommerce.Application.Services.Notification;
 using ECommerce.Application.Services.Payment;
-using ECommerce.Application.Services.Search;
 using ECommerce.Application.Services.Upload;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,12 +16,14 @@ public static class ApplicationDependencyExtension
     public static void AddApplicationDependencies(this IServiceCollection services)
     {
         services.AddSingleton<ILogService, LogService>();
+        services.AddSingleton<IElasticSearchService, ElasticSearchService>();
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IFileUploadService, FileUploadService>();
-        services.AddScoped<IElasticSearchService, ElasticSearchService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IRealtimeNotificationHandler, RealtimeNotificationHandler>();
+        services.AddScoped<IElasticSearchService, ElasticSearchService>();
+        services.AddScoped<ISearchDescriptor<Domain.Model.Product>, ProductSearchDescriptor>();
     }
 }

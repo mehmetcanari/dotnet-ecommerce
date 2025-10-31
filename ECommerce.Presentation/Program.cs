@@ -271,6 +271,7 @@ internal static class Program
         builder.Services.AddSingleton(sp =>
         {
             var settings = new ElasticsearchClientSettings(new Uri(elasticUri));
+
             return new ElasticsearchClient(settings);
         });
 
@@ -412,48 +413,6 @@ internal static class Program
         });
 
         var app = builder.Build();
-
-        #region Database Migration
-
-        //======================================================
-        // DOCKER DATABASE MIGRATION
-        //======================================================
-        if (args.Contains("--migrate"))
-        {
-            var scope = app.Services.CreateScope();
-            try
-            {
-                var services = scope.ServiceProvider;
-                var storeContext = services.GetRequiredService<StoreDbContext>();
-                var identityContext = services.GetRequiredService<ApplicationIdentityDbContext>();
-
-                try
-                {
-                    await using var connection = identityContext.Database.GetDbConnection();
-                    await connection.OpenAsync();
-                    await using var command = connection.CreateCommand();
-                    command.CommandText = "CREATE SCHEMA IF NOT EXISTS \"Identity\";";
-                    await command.ExecuteNonQueryAsync();
-                    await identityContext.Database.MigrateAsync();
-                    await storeContext.Database.MigrateAsync();
-
-                    Console.WriteLine("Database migration completed successfully.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Database migration failed: {ex.Message}");
-                    throw new Exception("An error occurred while migrating the database.", ex);
-                }
-
-                return;
-            }
-            finally
-            {
-                scope.Dispose();
-            }
-        }
-
-        #endregion
 
         #region Initialize Roles
 
