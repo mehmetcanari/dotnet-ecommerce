@@ -21,6 +21,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using Serilog;
 using Serilog.Events;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
@@ -89,7 +90,7 @@ internal static class Program
             Environment.GetEnvironmentVariable("AWS_SECRET_KEY")
         );
 
-        builder.Services.AddSingleton<IAmazonS3>(sp =>
+        builder.Services.AddSingleton<IAmazonS3>(_ =>
         {
             var config = new AmazonS3Config
             {
@@ -244,7 +245,7 @@ internal static class Program
         //======================================================
         // SERILOG IMPLEMENTATION
         //======================================================
-        builder.Host.UseSerilog((context, _, configuration) => configuration
+        builder.Host.UseSerilog((_, _, configuration) => configuration
             .MinimumLevel.Debug()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
@@ -268,7 +269,7 @@ internal static class Program
 
         var elasticUri = "http://localhost:9200";
 
-        builder.Services.AddSingleton(sp =>
+        builder.Services.AddSingleton(_ =>
         {
             var settings = new ElasticsearchClientSettings(new Uri(elasticUri));
 
@@ -370,7 +371,7 @@ internal static class Program
         // REDIS CACHE CONFIGURATION
         //======================================================
         var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost:6380";
-        var configurationOptions = new StackExchange.Redis.ConfigurationOptions
+        var configurationOptions = new ConfigurationOptions
         {
             EndPoints = { redisConnectionString },
             AbortOnConnectFail = false,
@@ -383,6 +384,15 @@ internal static class Program
             options.ConfigurationOptions = configurationOptions;
             options.InstanceName = "ECommerce.Cache";
         });
+
+        builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(configurationOptions));
+
+        builder.Services.AddScoped<IDatabase>(sp =>
+        {
+            var connection = sp.GetRequiredService<IConnectionMultiplexer>();
+            return connection.GetDatabase();
+        });
+
 
         #endregion
 
@@ -515,11 +525,11 @@ internal static class Program
         #endregion
 
         Console.WriteLine($"E-Commerce API starting on {app.Environment.EnvironmentName} environment");
-        Console.WriteLine($"Health checks available at: /health");
+        Console.WriteLine("Health checks available at: /health");
 
         if (app.Environment.IsDevelopment())
         {
-            Console.WriteLine($"API Documentation available at the root URL (e.g., http://localhost:5076/swagger)");
+            Console.WriteLine("API Documentation available at the root URL (e.g., http://localhost:5076/swagger)");
         }
 
         await app.RunAsync();
@@ -538,14 +548,9 @@ internal static class Program
                 if (!roleExist)
                 {
                     var result = await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
-                    if (result.Succeeded)
-                    {
-                        Console.WriteLine($"Role '{roleName}' created successfully.");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Failed to create role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                    }
+                    Console.WriteLine(result.Succeeded
+                        ? $"Role '{roleName}' created successfully."
+                        : $"Failed to create role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
                 }
             }
         }

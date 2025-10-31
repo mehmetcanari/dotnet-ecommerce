@@ -12,7 +12,7 @@ public class CreateCategoryCommand(CreateCategoryRequestDto request) : IRequest<
     public readonly CreateCategoryRequestDto Model = request;
 }
 
-public class CreateCategoryCommandHandler(ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<CreateCategoryCommand, Result>
+public class CreateCategoryCommandHandler(ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<CreateCategoryCommand, Result>
 {
     public async Task<Result> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
@@ -28,6 +28,7 @@ public class CreateCategoryCommandHandler(ICategoryRepository categoryRepository
                 Description = request.Model.Description
             };
 
+            await cache.RemoveAsync(CacheKeys.Category, cancellationToken);
             await categoryRepository.Create(category, cancellationToken);
             await unitOfWork.Commit();
 

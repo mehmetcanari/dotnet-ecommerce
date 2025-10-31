@@ -2,21 +2,13 @@
 {
     public static class CacheKeys
     {
-        #region Basket
-        public const string AllBasketItems = "cache:basketItems:all";
-        #endregion
-
-        #region Product
-        public const string ProductById = "cache:products:{0}";
-        public const string AllProducts = "cache:products:all";
-        #endregion
-
-        #region Category
-        public const string CategoryById = "cache:categories:{0}";
-        #endregion
-
-        #region Profile
-        public const string Profile = "cache:profile";
-        #endregion
+        public const string UserBasket = "cache:basket:user";
+        public const string UserAccount = "cache:account:user";
+        public const string AllAccounts = "cache:account:all";
+        public const string Category = "cache:category";
+        public const string CategoryId = "cache:category:id";
+        public const string UserOrders = "cache:orders:user";
+        public const string Orders = "cache:orders";
+        public const string Products = "cache:products";
     }
 }

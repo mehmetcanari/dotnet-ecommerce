@@ -19,7 +19,7 @@ public class AccountController(IMediator mediator) : ApiBaseController
 
     [Authorize("Admin")]
     [HttpGet]
-    public async Task<IActionResult> GetAllAccounts() => HandleResult(await mediator.Send(new GetAllAccountsQuery()));
+    public async Task<IActionResult> GetAllAccounts(int page, int pageSize) => HandleResult(await mediator.Send(new GetAllAccountsQuery(pageSize, page)));
 
     [Authorize("Admin")]
     [HttpGet("{id}")]

@@ -15,7 +15,7 @@ public class CreateOrderCommand(CreateOrderRequestDto request) : IRequest<Result
 }
 
 public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasketItemRepository basketItemRepository, IStoreUnitOfWork unitOfWork, IMediator mediator, IUserRepository userRepository, 
-    ILogService logger, IPaymentService paymentService, ICurrentUserService currentUserService) : IRequestHandler<CreateOrderCommand, Result>
+    ILogService logger, IPaymentService paymentService, ICurrentUserService currentUserService, ICacheService cache) : IRequestHandler<CreateOrderCommand, Result>
 {
     public async Task<Result> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
@@ -57,6 +57,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
             await orderRepository.Create(order, cancellationToken);
 
             await unitOfWork.CommitTransactionAsync();
+            await cache.RemoveAsync($"{CacheKeys.UserOrders}_{userId}", cancellationToken);
             return Result.Success();
         }
         catch (Exception ex)

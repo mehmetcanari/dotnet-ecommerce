@@ -5,6 +5,11 @@ using Iyzipay;
 using Iyzipay.Model;
 using Iyzipay.Request;
 using System.Globalization;
+using ECommerce.Domain.Model;
+using Address = Iyzipay.Model.Address;
+using BasketItem = Iyzipay.Model.BasketItem;
+using Buyer = Iyzipay.Model.Buyer;
+using PaymentCard = Iyzipay.Model.PaymentCard;
 
 namespace ECommerce.Application.Services.Payment;
 
@@ -17,7 +22,7 @@ public class PaymentService(ILogService logger, INotificationService notificatio
         BaseUrl = Environment.GetEnvironmentVariable("IYZICO_BASE_URL")
     };
 
-    public async Task<Result<Iyzipay.Model.Payment>> ProcessPaymentAsync(Domain.Model.Order order, Domain.Model.Buyer buyer, Domain.Model.Address shippingAddress, Domain.Model.Address billingAddress, Domain.Model.PaymentCard paymentCard, List<Domain.Model.BasketItem> basketItems)
+    public async Task<Result<Iyzipay.Model.Payment>> ProcessPaymentAsync(Order order, Domain.Model.Buyer buyer, Domain.Model.Address shippingAddress, Domain.Model.Address billingAddress, Domain.Model.PaymentCard paymentCard, List<Domain.Model.BasketItem> basketItems)
     {
         try
         {
@@ -38,7 +43,7 @@ public class PaymentService(ILogService logger, INotificationService notificatio
         }
     }
 
-    private CreatePaymentRequest CreatePaymentRequest(Domain.Model.Order order, Domain.Model.Buyer buyer, Domain.Model.Address shippingAddress, Domain.Model.Address billingAddress, Domain.Model.PaymentCard paymentCard, List<Domain.Model.BasketItem> basketItems) => new CreatePaymentRequest
+    private CreatePaymentRequest CreatePaymentRequest(Order order, Domain.Model.Buyer buyer, Domain.Model.Address shippingAddress, Domain.Model.Address billingAddress, Domain.Model.PaymentCard paymentCard, List<Domain.Model.BasketItem> basketItems) => new()
     {
         Locale = Locale.TR.ToString(),
         ConversationId = Guid.NewGuid().ToString(),
@@ -58,7 +63,7 @@ public class PaymentService(ILogService logger, INotificationService notificatio
 
     private string CalculateTotalPrice(List<Domain.Model.BasketItem> basketItems) => basketItems.Sum(item => item.UnitPrice * item.Quantity).ToString(CultureInfo.InvariantCulture);
 
-    private PaymentCard MapToCard(Domain.Model.PaymentCard paymentCard) => new PaymentCard
+    private PaymentCard MapToCard(Domain.Model.PaymentCard paymentCard) => new()
     {
         CardHolderName = paymentCard.CardHolderName,
         CardNumber = paymentCard.CardNumber,
@@ -68,7 +73,7 @@ public class PaymentService(ILogService logger, INotificationService notificatio
         RegisterCard = paymentCard.RegisterCard
     };
 
-    private Buyer MapToBuyer(Domain.Model.Buyer buyer) => new Buyer
+    private Buyer MapToBuyer(Domain.Model.Buyer buyer) => new()
     {
         Id = buyer.Id.ToString(),
         Name = buyer.Name,
@@ -83,7 +88,7 @@ public class PaymentService(ILogService logger, INotificationService notificatio
         ZipCode = buyer.ZipCode
     };
 
-    private Address MapToAddress(Domain.Model.Address address, string description) => new Address
+    private Address MapToAddress(Domain.Model.Address address, string description) => new()
     {
         ContactName = address.ContactName,
         City = address.City,

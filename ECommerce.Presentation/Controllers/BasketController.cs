@@ -25,5 +25,5 @@ public class BasketController(IMediator mediator) : ApiBaseController
     public async Task<IActionResult> RemoveItem([FromRoute] Guid id) => HandleResult(await mediator.Send(new RemoveBasketItemById(id)));
 
     [HttpGet]
-    public async Task<IActionResult> GetAllBasketItems() => HandleResult(await mediator.Send(new GetAllBasketItemsQuery()));
+    public async Task<IActionResult> GetAllBasketItems() => HandleResult(await mediator.Send(new GetBasketQuery()));
 }

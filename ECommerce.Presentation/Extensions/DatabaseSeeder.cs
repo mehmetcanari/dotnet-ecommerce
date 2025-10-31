@@ -64,7 +64,7 @@ public static class DatabaseSeeder
                 Email = adminEmail,
                 EmailConfirmed = true,
                 Name = "Admin",
-                Surname = "Account",
+                Surname = "UserAccount",
                 IdentityNumber = "00000000000",
                 PhoneNumber = "0000000000",
                 City = "Default",

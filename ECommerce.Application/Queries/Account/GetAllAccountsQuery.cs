@@ -2,26 +2,39 @@ using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Account;
 
-public class GetAllAccountsQuery : IRequest<Result<List<AccountResponseDto>>> { }
-
-public class GetAllAccountsQueryHandler(IUserRepository userRepository, ILogService logger) : IRequestHandler<GetAllAccountsQuery, Result<List<AccountResponseDto>>>
+public class GetAllAccountsQuery(int pageSize, int page) : IRequest<Result<List<AccountResponseDto>>>
 {
+    public readonly int PageSize = pageSize;
+    public readonly int Page = page;
+}
+
+public class GetAllAccountsQueryHandler(IUserRepository userRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetAllAccountsQuery, Result<List<AccountResponseDto>>>
+{
+    private readonly string _cacheKey = $"{CacheKeys.AllAccounts}";
+    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+
     public async Task<Result<List<AccountResponseDto>>> Handle(GetAllAccountsQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var accounts = await userRepository.Read(cancellationToken: cancellationToken);
-            var accountCount = accounts.Count;
-            if (accountCount == 0)
+            var cacheItems = await cache.GetAsync<List<AccountResponseDto>>(_cacheKey, cancellationToken);
+            if (cacheItems is { Count: > 0 })
+                return Result<List<AccountResponseDto>>.Success(cacheItems);
+
+            var users = await userRepository.Read(request.Page, request.PageSize, cancellationToken);
+            if (users.Count == 0)
                 return Result<List<AccountResponseDto>>.Failure(ErrorMessages.AccountNotFound);
 
-            var accountList = accounts.Select(MapToResponseDto).ToList();
-            return Result<List<AccountResponseDto>>.Success(accountList);
+            var response = users.Select(MapToResponseDto).ToList();
+            await cache.SetAsync(_cacheKey, response, CacheExpirationType.Absolute, _expiration, cancellationToken);
+
+            return Result<List<AccountResponseDto>>.Success(response);
         }
         catch (Exception ex)
         {
@@ -30,7 +43,7 @@ public class GetAllAccountsQueryHandler(IUserRepository userRepository, ILogServ
         }
     }
 
-    private AccountResponseDto MapToResponseDto(Domain.Model.User account) => new()
+    private AccountResponseDto MapToResponseDto(User account) => new()
     {
         Id = account.Id,
         Name = account.Name,

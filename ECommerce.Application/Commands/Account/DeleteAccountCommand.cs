@@ -12,7 +12,7 @@ public class DeleteAccountCommand(Guid id) : IRequest<Result>
     public readonly Guid UserId = id;
 }
 
-public class DeleteAccountCommandHandler(IUserRepository userRepository, UserManager<Domain.Model.User> userManager, IUnitOfWork unitOfWork, ILogService logger) : IRequestHandler<DeleteAccountCommand, Result>
+public class DeleteAccountCommandHandler(IUserRepository userRepository, UserManager<Domain.Model.User> userManager, IUnitOfWork unitOfWork, ILogService logger, ICacheService cache) : IRequestHandler<DeleteAccountCommand, Result>
 {
     public async Task<Result> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
@@ -28,8 +28,9 @@ public class DeleteAccountCommandHandler(IUserRepository userRepository, UserMan
             var user = await userManager.FindByEmailAsync(account.Email);
             if (user == null)
                 return Result.Failure(ErrorMessages.IdentityUserNotFound);
-            
 
+
+            await cache.RemoveAsync($"{CacheKeys.UserAccount}_{request.UserId}", cancellationToken);
             userRepository.Delete(account);
             await userManager.DeleteAsync(user);
             await unitOfWork.Commit();

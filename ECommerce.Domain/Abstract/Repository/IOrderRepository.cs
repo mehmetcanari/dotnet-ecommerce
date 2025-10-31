@@ -9,7 +9,7 @@ public interface IOrderRepository
     Task<Order?> GetPendingOrderById(Guid userId, Guid orderId, CancellationToken cancellationToken = default);
     Task<Order?> GetById(Guid id, CancellationToken cancellationToken = default);
     Task<Order?> GetByUserId(Guid userId, Guid orderId,CancellationToken cancellationToken = default);
-    Task<List<Order>> GetClientCompletedOrders(Guid userId, CancellationToken cancellationToken = default);
+    Task<List<Order>> GetPurchasedOrders(Guid userId, CancellationToken cancellationToken = default);
     void Update(Order order);
     void Delete(Order order);
 }

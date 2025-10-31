@@ -1,4 +1,6 @@
-﻿public enum NotificationType
+﻿namespace ECommerce.Domain.Model;
+
+public enum NotificationType
 {
     OrderStatus = 1,
     Payment = 2,
@@ -19,4 +21,10 @@ public enum OrderStatus
     Shipped = 1,
     Delivered = 2,
     Cancelled = 3
+}
+
+public enum CacheExpirationType
+{
+    Absolute,
+    Sliding
 }

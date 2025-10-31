@@ -1,4 +1,6 @@
-﻿namespace ECommerce.Application.DTO.Request.Order;
+﻿using ECommerce.Domain.Model;
+
+namespace ECommerce.Application.DTO.Request.Order;
 
 public record UpdateOrderStatusRequestDto
 {

@@ -12,11 +12,10 @@ public class CreateBasketItemCommand(CreateBasketItemRequestDto request) : IRequ
     public readonly CreateBasketItemRequestDto Model = request;
 }
 
-public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, ICacheService cacheService,
-IProductRepository productRepository, IUnitOfWork unitOfWork) : IRequestHandler<CreateBasketItemCommand, Result>
+public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, ICacheService cache,
+    IProductRepository productRepository, IUnitOfWork unitOfWork) : IRequestHandler<CreateBasketItemCommand, Result>
 {
-    private readonly string _cacheKey = $"{CacheKeys.AllBasketItems}_{currentUserService.GetUserEmail()}";
-    private const int CacheDurationInMinutes = 30;
+    private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
 
     public async Task<Result> Handle(CreateBasketItemCommand request, CancellationToken cancellationToken)
     {
@@ -36,7 +35,7 @@ IProductRepository productRepository, IUnitOfWork unitOfWork) : IRequestHandler<
             var basketItem = CreateBasketItem(request, product, userId);
 
             await basketItemRepository.Create(basketItem, cancellationToken);
-            await cacheService.SetAsync(_cacheKey, basketItem, TimeSpan.FromMinutes(CacheDurationInMinutes));
+            await cache.RemoveAsync(_cacheKey, cancellationToken);
             await unitOfWork.Commit();
 
             return Result.Success();

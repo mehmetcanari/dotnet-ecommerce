@@ -1,5 +1,6 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Notification;
+using ECommerce.Domain.Model;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ECommerce.Application.Services.Notification;

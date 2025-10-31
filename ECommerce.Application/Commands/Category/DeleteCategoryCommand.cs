@@ -11,7 +11,7 @@ public class DeleteCategoryCommand(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<DeleteCategoryCommand, Result>
+public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<DeleteCategoryCommand, Result>
 {
     public async Task<Result> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
@@ -22,6 +22,7 @@ public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository
                 return Result.Failure(ErrorMessages.CategoryNotFound);
 
             categoryRepository.Delete(category);
+            await cache.RemoveAsync(CacheKeys.Category, cancellationToken);
             await unitOfWork.Commit();
 
             return Result.Success();

@@ -12,7 +12,8 @@ public class CreateProductCommand(ProductCreateRequestDto request) : IRequest<Re
     public readonly ProductCreateRequestDto Model = request;
 }
 
-public class CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService) : IRequestHandler<CreateProductCommand, Result>
+public class CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, 
+    IElasticSearchService elasticSearchService, ICacheService cache) : IRequestHandler<CreateProductCommand, Result>
 {
     public async Task<Result> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
@@ -37,6 +38,7 @@ public class CreateProductCommandHandler(IProductRepository productRepository, I
                 CategoryId = request.Model.CategoryId
             };
 
+            await cache.RemoveAsync(CacheKeys.Products, cancellationToken);
             await elasticSearchService.IndexAsync(product, "products", product.Id.ToString(), cancellationToken);
             await productRepository.Create(product, cancellationToken);
             await unitOfWork.Commit();

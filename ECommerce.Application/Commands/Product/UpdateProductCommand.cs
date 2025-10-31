@@ -12,7 +12,8 @@ public class UpdateProductCommand(ProductUpdateRequestDto request) : IRequest<Re
     public readonly ProductUpdateRequestDto Model = request;
 }
 
-public class UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService) : IRequestHandler<UpdateProductCommand, Result>
+public class UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, 
+    IElasticSearchService elasticSearchService, ICacheService cache) : IRequestHandler<UpdateProductCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
@@ -34,6 +35,7 @@ public class UpdateProductCommandHandler(IProductRepository productRepository, I
             product.StockQuantity = request.Model.StockQuantity;
             product.UpdatedOn = DateTime.UtcNow;
 
+            await cache.RemoveAsync(CacheKeys.Products, cancellationToken);
             await elasticSearchService.UpdateAsync(product.Id.ToString(), product, "products", cancellationToken);
             await productRepository.Update(product, cancellationToken);
             await unitOfWork.Commit();

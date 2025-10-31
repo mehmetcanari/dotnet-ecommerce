@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
 
@@ -11,8 +12,8 @@ public class GetProfileQuery : IRequest<Result<AccountResponseDto>>;
 
 public class GetProfileQueryHandler(IUserRepository userRepository, ILogService logger, ICurrentUserService currentUserService, ICacheService cacheService) : IRequestHandler<GetProfileQuery, Result<AccountResponseDto>>
 {
-    private static readonly TimeSpan ExpirationTime = TimeSpan.FromHours(1);
-    private readonly string _cacheKey = $"{CacheKeys.Profile}_{currentUserService.GetUserId()}";
+    private readonly TimeSpan _expirationTime = TimeSpan.FromMinutes(30);
+    private readonly string _cacheKey = $"{CacheKeys.UserAccount}_{currentUserService.GetUserId()}";
 
     public async Task<Result<AccountResponseDto>> Handle(GetProfileQuery request, CancellationToken cancellationToken)
     {
@@ -22,7 +23,7 @@ public class GetProfileQueryHandler(IUserRepository userRepository, ILogService 
             if (string.IsNullOrEmpty(userId))
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotAuthorized);
 
-            var cachedProfile = await cacheService.GetAsync<AccountResponseDto>(_cacheKey);
+            var cachedProfile = await cacheService.GetAsync<AccountResponseDto>(_cacheKey, cancellationToken);
             if (cachedProfile != null)
                 return Result<AccountResponseDto>.Success(cachedProfile);
 
@@ -30,10 +31,10 @@ public class GetProfileQueryHandler(IUserRepository userRepository, ILogService 
             if (account == null)
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountEmailNotFound);
             
-            var responseDto = MapToResponseDto(account);
+            var response = MapToResponseDto(account);
 
-            await cacheService.SetAsync(_cacheKey, responseDto, ExpirationTime);
-            return Result<AccountResponseDto>.Success(responseDto);
+            await cacheService.SetAsync(_cacheKey, response, CacheExpirationType.Sliding, _expirationTime, cancellationToken);
+            return Result<AccountResponseDto>.Success(response);
         }
         catch (Exception ex)
         {
@@ -42,7 +43,7 @@ public class GetProfileQueryHandler(IUserRepository userRepository, ILogService 
         }
     }
 
-    private AccountResponseDto MapToResponseDto(Domain.Model.User account) => new()
+    private AccountResponseDto MapToResponseDto(User account) => new()
     {
         Id = account.Id,
         Name = account.Name,

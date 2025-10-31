@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
 
@@ -12,18 +13,26 @@ public class GetAccountByIdQuery(Guid id) : IRequest<Result<AccountResponseDto>>
     public readonly Guid UserId = id;
 }
 
-public class GetAccountWithIdQueryHandler(IUserRepository userRepository, ILogService logger) : IRequestHandler<GetAccountByIdQuery, Result<AccountResponseDto>>
+public class GetAccountWithIdQueryHandler(IUserRepository userRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetAccountByIdQuery, Result<AccountResponseDto>>
 {
+    private readonly TimeSpan _expiration = TimeSpan.FromHours(1);
+
     public async Task<Result<AccountResponseDto>> Handle(GetAccountByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
+            var cachedAccount = await cache.GetAsync<AccountResponseDto>($"{CacheKeys.UserAccount}_{request.UserId}", cancellationToken);
+            if (cachedAccount is not null)
+                return Result<AccountResponseDto>.Success(cachedAccount);
+
             var account = await userRepository.GetById(request.UserId, cancellationToken);
             if (account == null)
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotFound);
 
-            var responseDto = MapToResponseDto(account);
-            return Result<AccountResponseDto>.Success(responseDto);
+            var response = MapToResponseDto(account);
+            await cache.SetAsync($"{CacheKeys.UserAccount}_{request.UserId}", response, CacheExpirationType.Absolute, _expiration, cancellationToken);
+
+            return Result<AccountResponseDto>.Success(response);
         }
         catch (Exception ex)
         {
@@ -32,7 +41,7 @@ public class GetAccountWithIdQueryHandler(IUserRepository userRepository, ILogSe
         }
     }
 
-    private AccountResponseDto MapToResponseDto(Domain.Model.User account) => new AccountResponseDto
+    private AccountResponseDto MapToResponseDto(User account) => new()
     {
         Id = account.Id,
         Name = account.Name,

@@ -1,6 +1,7 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
 
@@ -11,7 +12,7 @@ public class CancelOrderCommand(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILogService logger, IOrderRepository orderRepository, IUnitOfWork unitOfWork) : IRequestHandler<CancelOrderCommand, Result>
+public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILogService logger, IOrderRepository orderRepository, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<CancelOrderCommand, Result>
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
@@ -27,6 +28,7 @@ public class CancelOrderCommandHandler(ICurrentUserService currentUserService, I
 
             pendingOrder.UpdateStatus(OrderStatus.Cancelled);
             await unitOfWork.Commit();
+            await cache.RemoveAsync($"{CacheKeys.UserOrders}_{userId}", cancellationToken);
 
             return Result.Success();
         }

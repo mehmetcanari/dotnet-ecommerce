@@ -8,8 +8,10 @@ namespace ECommerce.Application.Commands.Basket;
 
 public class ClearBasketCommand : IRequest<Result> { }
 
-public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<ClearBasketCommand, Result>
+public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<ClearBasketCommand, Result>
 {
+    private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
+
     public async Task<Result> Handle(ClearBasketCommand request, CancellationToken cancellationToken)
     {
         try
@@ -27,6 +29,7 @@ public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepositor
                 basketItemRepository.Delete(basketItem);
             }
 
+            await cache.RemoveAsync(_cacheKey, cancellationToken);
             await unitOfWork.Commit();
             return Result.Success();
         }

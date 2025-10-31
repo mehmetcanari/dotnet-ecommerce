@@ -1,48 +1,31 @@
-using StackExchange.Redis;
-using System.Text.Json;
-using ECommerce.Shared.Constants;
 using ECommerce.Application.Abstract;
+using ECommerce.Domain.Model;
+using ECommerce.Shared.Constants;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 
 namespace ECommerce.Application.Services.Cache;
 
-public class CacheService(IConnectionMultiplexer redis, ILogService logger) : ICacheService
+public class CacheService(IDistributedCache cache, ILogService logger) : ICacheService
 {
-    private readonly IDatabase _database = redis.GetDatabase();
-
-    private readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = null
-    };
-
-    public async Task<T?> GetAsync<T>(string key)
+    public async Task SetAsync<T>(string key, T value, CacheExpirationType expirationType, TimeSpan? expiry, CancellationToken cancellationToken)
     {
         try
         {
-            if (await _database.KeyExistsAsync(key))
+            var options = new DistributedCacheEntryOptions();
+            switch (expirationType)
             {
-                var value = await _database.StringGetAsync(key);
-                if (value.IsNull) 
-                    return default;
+                case CacheExpirationType.Absolute:
+                    options.AbsoluteExpirationRelativeToNow = expiry;
+                    break;
 
-                var result = JsonSerializer.Deserialize<T>(value!, _jsonOptions);
-                return result;
+                case CacheExpirationType.Sliding:
+                    options.SlidingExpiration = expiry;
+                    break;
             }
-            return default;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
-            return default;
-        }
-    }
 
-    public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
-    {
-        try
-        {
-            var serialized = JsonSerializer.Serialize(value, _jsonOptions);
-            await _database.StringSetAsync(key, serialized, expiry);
+            var json = JsonSerializer.Serialize(value);
+            await cache.SetStringAsync(key, json, options, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -51,19 +34,34 @@ public class CacheService(IConnectionMultiplexer redis, ILogService logger) : IC
         }
     }
 
-    public async Task RemoveAsync(string key)
+    public async Task RemoveAsync(string key, CancellationToken cancellationToken)
     {
         try
         {
-            if (await _database.KeyExistsAsync(key))
-            {
-                await _database.KeyDeleteAsync(key);
-            }
+            await cache.RemoveAsync(key, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, ErrorMessages.UnexpectedCacheError, key);
+            throw;
+        }
+    }
+
+    public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var value = await cache.GetStringAsync(key, cancellationToken);
+            if (value is null)
+                return default;
+
+            var result = JsonSerializer.Deserialize<T>(value);
+            return result;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, ErrorMessages.UnexpectedCacheError, key);
-            throw;
+            return default;
         }
     }
 }

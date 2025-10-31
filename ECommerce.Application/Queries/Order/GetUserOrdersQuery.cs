@@ -9,10 +9,12 @@ using MediatR;
 
 namespace ECommerce.Application.Queries.Order;
 
-public class GetUserOrdersQuery : IRequest<Result<List<OrderResponseDto>>>{}
+public class GetUserOrdersQuery : IRequest<Result<List<OrderResponseDto>>>;
 
-public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, IOrderRepository orderRepository, ILogService logger) : IRequestHandler<GetUserOrdersQuery, Result<List<OrderResponseDto>>>
+public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, IOrderRepository orderRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetUserOrdersQuery, Result<List<OrderResponseDto>>>
 {
+    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+
     public async Task<Result<List<OrderResponseDto>>> Handle(GetUserOrdersQuery request, CancellationToken cancellationToken)
     {
         try
@@ -21,12 +23,21 @@ public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, I
             if (string.IsNullOrEmpty(userId))
                 return Result<List<OrderResponseDto>>.Failure(ErrorMessages.AccountNotAuthorized);
 
-            var orders = await orderRepository.GetClientCompletedOrders(Guid.Parse(userId), cancellationToken);
+            var cachedResponse = await cache.GetAsync<List<Domain.Model.Order>>($"{CacheKeys.UserOrders}_{userId}", cancellationToken);
+            if (cachedResponse is { Count: > 0 })
+            {
+                var cachedOrders = cachedResponse.Select(MapToResponseDto).ToList();
+                return Result<List<OrderResponseDto>>.Success(cachedOrders);
+            }
+
+            var orders = await orderRepository.GetPurchasedOrders(Guid.Parse(userId), cancellationToken);
             if (orders.Count == 0)
                 return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
 
-            var ordersResponse = orders.Select(MapToResponseDto).ToList();
-            return Result<List<OrderResponseDto>>.Success(ordersResponse);
+            var response = orders.Select(MapToResponseDto).ToList();
+            await cache.SetAsync($"{CacheKeys.UserOrders}_{userId}", orders, CacheExpirationType.Absolute, _expiration, cancellationToken);
+
+            return Result<List<OrderResponseDto>>.Success(response);
         }
         catch (Exception ex)
         {

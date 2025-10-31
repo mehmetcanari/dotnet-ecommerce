@@ -12,26 +12,19 @@ public class GetProductByIdQuery(Guid id) : IRequest<Result<ProductResponseDto>>
     public readonly Guid Id = id;
 }
 
-public class GetProductByIdQueryHandler(IProductRepository productRepository, ICacheService cacheService, ILogService logger) : IRequestHandler<GetProductByIdQuery, Result<ProductResponseDto>>
+public class GetProductByIdQueryHandler(IProductRepository productRepository, ILogService logger) : IRequestHandler<GetProductByIdQuery, Result<ProductResponseDto>>
 {
-    private static readonly TimeSpan ExpirationTime = TimeSpan.FromMinutes(60);
-
     public async Task<Result<ProductResponseDto>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var cachedProduct = await cacheService.GetAsync<ProductResponseDto>(string.Format(CacheKeys.ProductById, request.Id));
-            if (cachedProduct != null)
-                return Result<ProductResponseDto>.Success(cachedProduct);
-
             var product = await productRepository.GetById(request.Id, cancellationToken);
             if (product == null)
                 return Result<ProductResponseDto>.Failure(ErrorMessages.ProductNotFound);
             
-            var productResponse = MapToResponseDto(product);
-            await cacheService.SetAsync(string.Format(CacheKeys.ProductById, product.Id), productResponse, ExpirationTime);
+            var response = MapToResponseDto(product);
 
-            return Result<ProductResponseDto>.Success(productResponse);
+            return Result<ProductResponseDto>.Success(response);
         }
         catch (Exception ex)
         {

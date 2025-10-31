@@ -1,4 +1,5 @@
 ﻿using ECommerce.Application.DTO.Response.BasketItem;
+using ECommerce.Domain.Model;
 
 namespace ECommerce.Application.DTO.Response.Order;
 

@@ -17,6 +17,7 @@ public static class ApplicationDependencyExtension
     {
         services.AddSingleton<ILogService, LogService>();
         services.AddSingleton<IElasticSearchService, ElasticSearchService>();
+
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

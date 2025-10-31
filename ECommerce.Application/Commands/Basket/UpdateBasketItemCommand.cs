@@ -13,9 +13,9 @@ public class UpdateBasketItemCommand(UpdateBasketItemRequestDto request) : IRequ
 }
 
 public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, 
-    IProductRepository productRepository, IUnitOfWork unitOfWork, ICacheService cacheService) : IRequestHandler<UpdateBasketItemCommand, Result>
+    IProductRepository productRepository, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<UpdateBasketItemCommand, Result>
 {
-    private const int CacheDurationInMinutes = 30;
+    private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
 
     public async Task<Result> Handle(UpdateBasketItemCommand request, CancellationToken cancellationToken)
     {
@@ -37,6 +37,7 @@ public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
                 return Result.Failure(ErrorMessages.StockNotAvailable);
 
             await UpdateBasketItem(basketItem, product, request);
+            await cache.RemoveAsync(_cacheKey, cancellationToken);
 
             return Result.Success();
         }
@@ -50,14 +51,12 @@ public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
     private async Task UpdateBasketItem(Domain.Model.BasketItem basketItem, Domain.Model.Product product, UpdateBasketItemCommand request)
     {
         basketItem.Quantity = request.Model.Quantity;
-        basketItem.ProductId = request.Model.ProductId;
+        basketItem.ProductId = product.Id;
         basketItem.ProductName = product.Name;
         basketItem.UnitPrice = product.Price;
         basketItem.IsPurchased = false;
 
         basketItemRepository.Update(basketItem);
-        var cacheKey = $"{CacheKeys.AllBasketItems}_{currentUserService.GetUserEmail()}";
-        await cacheService.SetAsync(cacheKey, basketItem, TimeSpan.FromMinutes(CacheDurationInMinutes));
         await unitOfWork.Commit();
     }
 }

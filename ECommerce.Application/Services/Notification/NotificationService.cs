@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Application.DTO.Request.Notification;
 using ECommerce.Application.Queries.Account;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
 
@@ -54,10 +54,11 @@ public class NotificationService(INotificationRepository notificationRepository,
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.AccountNotFound);
 
             var notifications = await notificationRepository.GetAsync(account.Data.Id, page, size);
-            if (!notifications.Any())
+            var enumerable = notifications as Domain.Model.Notification[] ?? notifications.ToArray();
+            if (!enumerable.Any())
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.NotificationsNotFound);
 
-            return Result<IEnumerable<Domain.Model.Notification>>.Success(notifications);
+            return Result<IEnumerable<Domain.Model.Notification>>.Success(enumerable);
         }
         catch (Exception ex)
         {

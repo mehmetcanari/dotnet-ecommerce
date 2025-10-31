@@ -1,8 +1,10 @@
+using ECommerce.Domain.Model;
+
 namespace ECommerce.Application.Abstract;
 
 public interface ICacheService
 {
-    Task<T?> GetAsync<T>(string key);
-    Task SetAsync<T>(string key, T value, TimeSpan? expiry = null);
-    Task RemoveAsync(string key);
+    Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken);
+    Task SetAsync<T>(string key, T value, CacheExpirationType expirationType, TimeSpan? expiry, CancellationToken cancellationToken);
+    Task RemoveAsync(string key, CancellationToken cancellationToken);
 }

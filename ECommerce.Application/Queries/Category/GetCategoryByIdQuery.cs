@@ -2,6 +2,7 @@ using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
+using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
 
@@ -14,23 +15,23 @@ public class GetCategoryByIdQuery(Guid id) : IRequest<Result<CategoryResponseDto
 
 public class GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository, ILogService logger, ICacheService cacheService) : IRequestHandler<GetCategoryByIdQuery, Result<CategoryResponseDto>>
 {
-    private const int CacheExpirationMinutes = 60;
+    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
 
     public async Task<Result<CategoryResponseDto>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var cachedCategory = await cacheService.GetAsync<CategoryResponseDto>(string.Format(CacheKeys.CategoryById, request.CategoryId));
-            if (cachedCategory != null)
-                return Result<CategoryResponseDto>.Success(cachedCategory);
+            var cachedItem = await cacheService.GetAsync<CategoryResponseDto>($"{CacheKeys.CategoryId}_{request.CategoryId}", cancellationToken);
+            if (cachedItem is not null)
+                return Result<CategoryResponseDto>.Success(cachedItem);
 
             var category = await categoryRepository.GetById(request.CategoryId, cancellationToken);
             if (category == null)
                 return Result<CategoryResponseDto>.Failure(ErrorMessages.CategoryNotFound);
 
             var categoryResponseDto = MapToResponseDto(category);
-            await CacheCategory(request.CategoryId, categoryResponseDto);
-    
+            await cacheService.SetAsync($"{CacheKeys.CategoryId}_{request.CategoryId}", categoryResponseDto, CacheExpirationType.Absolute, _expiration, cancellationToken);
+
             return Result<CategoryResponseDto>.Success(categoryResponseDto);
         }
         catch (Exception ex)
@@ -38,12 +39,6 @@ public class GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository,
             logger.LogError(ex, ErrorMessages.CategoryNotFound, request.CategoryId);
             return Result<CategoryResponseDto>.Failure(ErrorMessages.UnexpectedError);
         }
-    }
-
-    private async Task CacheCategory(Guid categoryId, CategoryResponseDto categoryDto)
-    {
-        var expirationTime = TimeSpan.FromMinutes(CacheExpirationMinutes);
-        await cacheService.SetAsync(string.Format(CacheKeys.CategoryById, categoryId), categoryDto, expirationTime);
     }
 
     private CategoryResponseDto MapToResponseDto(Domain.Model.Category category) => new()

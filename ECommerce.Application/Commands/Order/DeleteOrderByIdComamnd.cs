@@ -11,7 +11,7 @@ public class DeleteOrderByIdCommand(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class DeleteOrderByIdCommandHandler(IOrderRepository orderRepository, ILogService logger, IUnitOfWork unitOfWork) : IRequestHandler<DeleteOrderByIdCommand, Result>
+public class DeleteOrderByIdCommandHandler(IOrderRepository orderRepository, ILogService logger, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<DeleteOrderByIdCommand, Result>
 {
     public async Task<Result> Handle(DeleteOrderByIdCommand request, CancellationToken cancellationToken)
     {
@@ -21,6 +21,7 @@ public class DeleteOrderByIdCommandHandler(IOrderRepository orderRepository, ILo
             if (order is null)
                 return Result.Failure(ErrorMessages.OrderNotFound);
 
+            await cache.RemoveAsync($"{CacheKeys.UserOrders}_{order.UserId}", cancellationToken);
             orderRepository.Delete(order);
             await unitOfWork.Commit();
 

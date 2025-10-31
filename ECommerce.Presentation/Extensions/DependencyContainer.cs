@@ -1,5 +1,4 @@
-﻿using ECommerce.Application.Abstract;
-using ECommerce.Application.Commands.Account;
+﻿using ECommerce.Application.Commands.Account;
 using ECommerce.Application.Commands.Auth;
 using ECommerce.Application.Commands.Basket;
 using ECommerce.Application.Commands.Category;
@@ -72,7 +71,7 @@ public class DependencyContainer(WebApplicationBuilder builder) : IDependencyCon
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllAccountsQuery).Assembly));
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetClientAccountAsEntityQuery).Assembly));
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProfileQuery).Assembly));
-        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllBasketItemsQuery).Assembly));
+        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetBasketQuery).Assembly));
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetCategoryByIdQuery).Assembly));
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllOrdersQuery).Assembly));
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetOrderByIdQuery).Assembly));

@@ -11,8 +11,10 @@ public class RemoveBasketItemById(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService, IBasketItemRepository basketItemRepository, IUnitOfWork unitOfWork, ILogService logService) : IRequestHandler<RemoveBasketItemById, Result>
+public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService, IBasketItemRepository basketItemRepository, IUnitOfWork unitOfWork, ILogService logService, ICacheService cache) : IRequestHandler<RemoveBasketItemById, Result>
 {
+    private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
+
     public async Task<Result> Handle(RemoveBasketItemById request, CancellationToken cancellationToken)
     {
         try
@@ -29,6 +31,7 @@ public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService,
                 return Result.Failure(ErrorMessages.UnauthorizedAction);
 
             basketItemRepository.Delete(basketItem);
+            await cache.RemoveAsync(_cacheKey, cancellationToken);
             await unitOfWork.Commit();
 
             return Result.Success();
