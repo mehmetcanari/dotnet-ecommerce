@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class StoreUnitOfWork(StoreDbContext storeContext) : IStoreUnitOfWork
+public class StoreUnitOfWork(DbContext context) : IStoreUnitOfWork
 {
     private IDbContextTransaction? _transaction;
 
     public async Task BeginTransactionAsync()
     {
-        _transaction = await storeContext.Database.BeginTransactionAsync();
+        _transaction = await context.Database.BeginTransactionAsync();
     }
 
     public async Task CommitTransactionAsync()
@@ -21,7 +21,7 @@ public class StoreUnitOfWork(StoreDbContext storeContext) : IStoreUnitOfWork
             if (_transaction == null)
                 throw new InvalidOperationException(ErrorMessages.NoTransactionInProgress);
 
-            await storeContext.SaveChangesAsync();
+            await context.SaveChangesAsync();
             await _transaction.CommitAsync();
         }
         catch
@@ -58,7 +58,7 @@ public class StoreUnitOfWork(StoreDbContext storeContext) : IStoreUnitOfWork
     {
         try
         {
-            await storeContext.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -78,6 +78,6 @@ public class StoreUnitOfWork(StoreDbContext storeContext) : IStoreUnitOfWork
     public void Dispose()
     {
         _transaction?.Dispose();
-        storeContext.Dispose();
+        context.Dispose();
     }
 } 

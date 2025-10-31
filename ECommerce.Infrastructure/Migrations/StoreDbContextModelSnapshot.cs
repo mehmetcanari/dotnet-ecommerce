@@ -5,12 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 #nullable disable
 
 namespace ECommerce.Infrastructure.Migrations
 {
-    [DbContext(typeof(StoreDbContext))]
+    [DbContext(typeof(DbContext))]
     partial class StoreDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -282,6 +283,10 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
+                    b.Property<string>("PhoneCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
@@ -310,7 +315,7 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ECommerce.Domain.Model.BasketItem", b =>

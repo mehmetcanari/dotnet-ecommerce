@@ -12,6 +12,7 @@ public class User : IdentityUser<Guid>
     public required string Country { get; set; }
     public required string ZipCode { get; set; }
     public required string Address { get; set; }
+    public required string PhoneCode { get; set; }
     public required DateTime DateOfBirth { get; init; }
     public DateTime CreatedOn { get; init; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; }

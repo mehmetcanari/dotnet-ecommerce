@@ -3,10 +3,11 @@ using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
+using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class NotificationRepository(StoreDbContext context) : INotificationRepository
+public class NotificationRepository(DbContext context) : INotificationRepository
 {
     public async Task CreateAsync(Notification notification, CancellationToken cancellationToken = default)
     {

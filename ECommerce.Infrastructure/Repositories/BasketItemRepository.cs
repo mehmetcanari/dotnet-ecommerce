@@ -1,12 +1,12 @@
 ﻿using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
-using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
+using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class BasketItemRepository(StoreDbContext context) : IBasketItemRepository
+public class BasketItemRepository(DbContext context) : IBasketItemRepository
 {
     public async Task Create(BasketItem basketItem, CancellationToken cancellationToken = default)
     {
@@ -32,25 +32,6 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
                 .ToListAsync(cancellationToken);
             
             return items;
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
-    
-    public async Task<BasketItem?> GetItemById(Guid id, User account, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            IQueryable<BasketItem> query = context.BasketItems;
-
-            var basketItem = await query
-                .AsNoTracking()
-                .Where(b => b.Id == id && b.UserId == account.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            return basketItem;
         }
         catch (Exception exception)
         {

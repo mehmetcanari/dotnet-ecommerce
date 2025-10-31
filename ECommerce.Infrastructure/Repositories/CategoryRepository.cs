@@ -1,12 +1,12 @@
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
-using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
+using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class CategoryRepository(StoreDbContext context) : ICategoryRepository
+public class CategoryRepository(DbContext context) : ICategoryRepository
 {
     public async Task Create(Category category, CancellationToken cancellationToken = default)
     {

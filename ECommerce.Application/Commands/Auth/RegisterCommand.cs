@@ -32,7 +32,8 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
             {
                 UserName = request.Model.Email,
                 Email = request.Model.Email,
-                PhoneNumber = request.Model.PhoneNumber,
+                PhoneNumber = request.Model.Phone,
+                PhoneCode = request.Model.PhoneCode,
                 Name = request.Model.Name,
                 Surname = request.Model.Surname,
                 IdentityNumber = request.Model.IdentityNumber,
@@ -40,7 +41,7 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
                 Country = request.Model.Country,
                 ZipCode = request.Model.ZipCode,
                 Address = request.Model.Address,
-                DateOfBirth = request.Model.DateOfBirth.ToUniversalTime(),
+                DateOfBirth = request.Model.DateOfBirth.ToUniversalTime()
             };
 
             var createResult = await userManager.CreateAsync(user, request.Model.Password);

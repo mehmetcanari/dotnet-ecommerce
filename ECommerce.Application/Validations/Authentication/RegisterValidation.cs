@@ -1,5 +1,4 @@
 using FluentValidation;
-using System.Text.RegularExpressions;
 using ECommerce.Application.Commands.Auth;
 
 namespace ECommerce.Application.Validations.Authentication;
@@ -25,7 +24,9 @@ public class RegisterValidation : AbstractValidator<RegisterCommand>
 
         RuleFor(x => x.Model.Address).NotEmpty().Length(5, 200);
 
-        RuleFor(x => x.Model.PhoneNumber).NotEmpty().Matches(@"^\+?[1-9]\d{1,14}$").Must(IsValidPhoneNumber);
+        RuleFor(x => x.Model.Phone).NotEmpty().Matches(@"^\d{10}$");
+
+        RuleFor(x => x.Model.PhoneCode).NotEmpty().Matches(@"^\d{1,3}$");
 
         RuleFor(x => x.Model.Password).NotEmpty().MinimumLength(8).MaximumLength(128)
             .Matches("[A-Z]")
@@ -42,18 +43,6 @@ public class RegisterValidation : AbstractValidator<RegisterCommand>
         var age = today.Year - dateOfBirth.Year;
         if (dateOfBirth.Date > today.AddYears(-age)) age--;
         return age >= 18;
-    }
-
-    private bool IsValidPhoneNumber(string phoneNumber)
-    {
-        var digitsOnly = Regex.Replace(phoneNumber, @"[^\d+]", "");
-
-        if (digitsOnly.StartsWith($"+"))
-        {
-            digitsOnly = digitsOnly[1..];
-        }
-        
-        return digitsOnly.Length is >= 8 and <= 15;
     }
 
     private bool IsValidTurkishIdentity(string identityNumber)

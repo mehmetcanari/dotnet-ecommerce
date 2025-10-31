@@ -6,10 +6,8 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace ECommerce.Infrastructure.Context;
 
-public class ApplicationIdentityDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
 {
-    public ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) : base(options){}
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -24,9 +22,9 @@ public class ApplicationIdentityDbContext : IdentityDbContext<User, IdentityRole
     }
 }
 
-public class ApplicationIdentityDbContextFactory : IDesignTimeDbContextFactory<ApplicationIdentityDbContext>
+public class ApplicationIdentityDbContextFactory : IDesignTimeDbContextFactory<IdentityDbContext>
 {
-    public ApplicationIdentityDbContext CreateDbContext(string[] args)
+    public IdentityDbContext CreateDbContext(string[] args)
     {
         EnvConfig.LoadEnv();
         
@@ -37,9 +35,9 @@ public class ApplicationIdentityDbContextFactory : IDesignTimeDbContextFactory<A
                 "DB_CONNECTION_STRING environment variable not found. Please ensure it is set in the .env file.");
         }
 
-        var optionsBuilder = new DbContextOptionsBuilder<ApplicationIdentityDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<IdentityDbContext>();
         optionsBuilder.UseNpgsql(connectionString);
 
-        return new ApplicationIdentityDbContext(optionsBuilder.Options);
+        return new IdentityDbContext(optionsBuilder.Options);
     }
 }

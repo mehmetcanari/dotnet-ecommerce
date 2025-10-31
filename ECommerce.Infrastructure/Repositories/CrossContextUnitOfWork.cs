@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class CrossContextUnitOfWork(StoreDbContext storeContext, ApplicationIdentityDbContext identityContext) : ICrossContextUnitOfWork
+public class CrossContextUnitOfWork(DbContext context, IdentityDbContext identityContext) : ICrossContextUnitOfWork
 {
     private IDbContextTransaction? _storeTransaction;
     private IDbContextTransaction? _identityTransaction;
@@ -13,7 +13,7 @@ public class CrossContextUnitOfWork(StoreDbContext storeContext, ApplicationIden
 
     public async Task BeginTransactionAsync()
     {
-        _storeTransaction = await storeContext.Database.BeginTransactionAsync();
+        _storeTransaction = await context.Database.BeginTransactionAsync();
         _identityTransaction = await identityContext.Database.BeginTransactionAsync();
     }
 
@@ -24,7 +24,7 @@ public class CrossContextUnitOfWork(StoreDbContext storeContext, ApplicationIden
             if (_storeTransaction == null || _identityTransaction == null)
                 throw new InvalidOperationException(ErrorMessages.NoTransactionInProgress);
 
-            await storeContext.SaveChangesAsync();
+            await context.SaveChangesAsync();
             await identityContext.SaveChangesAsync();
             
             await _storeTransaction.CommitAsync();
@@ -69,7 +69,7 @@ public class CrossContextUnitOfWork(StoreDbContext storeContext, ApplicationIden
     {
         try
         {
-            await storeContext.SaveChangesAsync();
+            await context.SaveChangesAsync();
             await identityContext.SaveChangesAsync();
         }
         catch (Exception ex)

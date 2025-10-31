@@ -1,18 +1,18 @@
 using ECommerce.Domain.Abstract.Repository;
 using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Model;
-using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
+using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class UserRepository(StoreDbContext context) : IUserRepository
+public class UserRepository(DbContext context) : IUserRepository
 {
     public async Task<List<User>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
-            IQueryable<User> query = context.Accounts;
+            IQueryable<User> query = context.Users;
 
             var accounts = await query
                 .AsNoTracking()
@@ -33,7 +33,7 @@ public class UserRepository(StoreDbContext context) : IUserRepository
         try
         {
             
-            var account = await context.Accounts
+            var account = await context.Users
                 .AsNoTracking()
                 .Where(a => a.Email == email)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -50,7 +50,7 @@ public class UserRepository(StoreDbContext context) : IUserRepository
     {
         try
         {
-            var account = await context.Accounts
+            var account = await context.Users
                 .AsNoTracking()
                 .Where(a => a.Id == userId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -67,7 +67,7 @@ public class UserRepository(StoreDbContext context) : IUserRepository
     {
         try
         {
-            await context.Accounts.AddAsync(userAccount, cancellationToken);
+            await context.Users.AddAsync(userAccount, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -79,7 +79,7 @@ public class UserRepository(StoreDbContext context) : IUserRepository
     {
         try
         {
-            context.Accounts.Update(account);
+            context.Users.Update(account);
         }
         catch (Exception exception)
         {
@@ -91,7 +91,7 @@ public class UserRepository(StoreDbContext context) : IUserRepository
     {
         try
         {
-            context.Accounts.Remove(account);
+            context.Users.Remove(account);
         }
         catch (Exception exception)
         {

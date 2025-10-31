@@ -26,6 +26,7 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Threading.RateLimiting;
+using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.API;
 
@@ -111,7 +112,7 @@ internal static class Program
 
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
-        builder.Services.AddDbContext<StoreDbContext>(options =>
+        builder.Services.AddDbContext<DbContext>(options =>
         {
             options.UseNpgsql(requiredEnvVars["DB_CONNECTION_STRING"]);
             if (builder.Environment.IsDevelopment())
@@ -121,7 +122,7 @@ internal static class Program
             }
         });
 
-        builder.Services.AddDbContext<ApplicationIdentityDbContext>(options =>
+        builder.Services.AddDbContext<IdentityDbContext>(options =>
         {
             options.UseNpgsql(requiredEnvVars["DB_CONNECTION_STRING"]);
             if (builder.Environment.IsDevelopment())
@@ -148,7 +149,7 @@ internal static class Program
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
         })
-        .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
+        .AddEntityFrameworkStores<IdentityDbContext>()
         .AddDefaultTokenProviders();
 
         #endregion
