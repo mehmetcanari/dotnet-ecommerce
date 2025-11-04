@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace ECommerce.Infrastructure.Context;
 
-public sealed class DbContext(DbContextOptions<DbContext> options) : Microsoft.EntityFrameworkCore.DbContext(options)
+public sealed class StoreDbContext(DbContextOptions<StoreDbContext> options) : Microsoft.EntityFrameworkCore.DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<BasketItem> BasketItems => Set<BasketItem>();
@@ -40,9 +40,9 @@ public sealed class DbContext(DbContextOptions<DbContext> options) : Microsoft.E
     }
 }
 
-public class StoreDbContextFactory : IDesignTimeDbContextFactory<DbContext>
+public class StoreDbContextFactory : IDesignTimeDbContextFactory<StoreDbContext>
 {
-    public DbContext CreateDbContext(string[] args)
+    public StoreDbContext CreateDbContext(string[] args)
     {
         EnvConfig.LoadEnv();
 
@@ -53,9 +53,9 @@ public class StoreDbContextFactory : IDesignTimeDbContextFactory<DbContext>
                 "DB_CONNECTION_STRING environment variable not found. Please ensure it is set in the .env file.");
         }
 
-        var optionsBuilder = new DbContextOptionsBuilder<DbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<StoreDbContext>();
         optionsBuilder.UseNpgsql(connectionString);
 
-        return new DbContext(optionsBuilder.Options);
+        return new StoreDbContext(optionsBuilder.Options);
     }
 }

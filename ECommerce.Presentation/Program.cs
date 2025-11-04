@@ -26,7 +26,6 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Threading.RateLimiting;
-using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.API;
 
@@ -112,7 +111,7 @@ internal static class Program
 
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
-        builder.Services.AddDbContext<DbContext>(options =>
+        builder.Services.AddDbContext<StoreDbContext>(options =>
         {
             options.UseNpgsql(requiredEnvVars["DB_CONNECTION_STRING"]);
             if (builder.Environment.IsDevelopment())

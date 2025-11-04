@@ -1,12 +1,12 @@
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
+using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
-using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class RefreshTokenRepository(DbContext context) : IRefreshTokenRepository
+public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepository
 {
     public async Task CreateAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
     {

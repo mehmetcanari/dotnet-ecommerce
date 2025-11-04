@@ -2,8 +2,9 @@ namespace ECommerce.Domain.Model;
 
 public class RefreshToken : BaseEntity
 {
-    public string Token { get; set; } = string.Empty;
-    public DateTime ExpiresAt { get; set; }
+    public string Token { get; init; } = string.Empty;
+    public byte[] Salt { get; init; } = [];
+    public DateTime ExpiresAt { get; init; }
     public DateTime? RevokedAt { get; set; }
     public string? ReplacedByToken { get; set; }
     public string? ReasonRevoked { get; set; }

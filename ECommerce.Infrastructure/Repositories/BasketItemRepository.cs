@@ -1,12 +1,12 @@
 ﻿using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
+using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
-using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class BasketItemRepository(DbContext context) : IBasketItemRepository
+public class BasketItemRepository(StoreDbContext context) : IBasketItemRepository
 {
     public async Task Create(BasketItem basketItem, CancellationToken cancellationToken = default)
     {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class StoreUnitOfWork(DbContext context) : IStoreUnitOfWork
+public class StoreUnitOfWork(StoreDbContext context) : IStoreUnitOfWork
 {
     private IDbContextTransaction? _transaction;
 

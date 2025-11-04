@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
+using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
-using DbContext = ECommerce.Infrastructure.Context.DbContext;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class OrderRepository(DbContext context) : IOrderRepository
+public class OrderRepository(StoreDbContext context) : IOrderRepository
 {
     public async Task<List<Order>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {

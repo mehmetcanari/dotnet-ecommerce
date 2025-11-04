@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class CrossContextUnitOfWork(DbContext context, IdentityDbContext identityContext) : ICrossContextUnitOfWork
+public class CrossContextUnitOfWork(StoreDbContext context, IdentityDbContext identityContext) : ICrossContextUnitOfWork
 {
     private IDbContextTransaction? _storeTransaction;
     private IDbContextTransaction? _identityTransaction;

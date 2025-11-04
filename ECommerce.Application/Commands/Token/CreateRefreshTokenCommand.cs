@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ECommerce.Application.Commands.Token
@@ -45,10 +46,12 @@ namespace ECommerce.Application.Commands.Token
                 var request = new TokenRevokeRequestDto { Email = email, Reason = Reason};
                 await mediator.Send(new RevokeRefreshTokenCommand(request), cancellationToken);
 
+                byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
                 var refreshTokenExpiry = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRATION_DAYS");
                 var refreshToken = new RefreshToken
                 {
-                    Token = GenerateToken(userId, email, roles),
+                    Token = TokenHasher.HashToken(GenerateToken(userId, email, roles), salt),
+                    Salt = salt,
                     Email = email,
                     ExpiresAt = DateTime.UtcNow.AddDays(Convert.ToDouble(refreshTokenExpiry))
                 };
