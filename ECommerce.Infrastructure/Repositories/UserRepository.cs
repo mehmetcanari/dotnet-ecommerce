@@ -8,7 +8,7 @@ namespace ECommerce.Infrastructure.Repositories;
 
 public class UserRepository(StoreDbContext context) : IUserRepository
 {
-    public async Task<List<User>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+    public async Task<List<User>> Read(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -16,7 +16,7 @@ public class UserRepository(StoreDbContext context) : IUserRepository
 
             var accounts = await query
                 .AsNoTracking()
-                .Skip((pageNumber - 1) * pageSize)
+                .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
 

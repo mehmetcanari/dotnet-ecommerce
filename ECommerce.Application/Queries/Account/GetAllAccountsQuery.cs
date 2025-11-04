@@ -8,10 +8,9 @@ using MediatR;
 
 namespace ECommerce.Application.Queries.Account;
 
-public class GetAllAccountsQuery(int pageSize, int page) : IRequest<Result<List<AccountResponseDto>>>
+public class GetAllAccountsQuery(QueryPagination pagination) : IRequest<Result<List<AccountResponseDto>>>
 {
-    public readonly int PageSize = pageSize;
-    public readonly int Page = page;
+    public readonly QueryPagination Pagination = pagination;
 }
 
 public class GetAllAccountsQueryHandler(IUserRepository userRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetAllAccountsQuery, Result<List<AccountResponseDto>>>
@@ -27,7 +26,7 @@ public class GetAllAccountsQueryHandler(IUserRepository userRepository, ILogServ
             if (cacheItems is { Count: > 0 })
                 return Result<List<AccountResponseDto>>.Success(cacheItems);
 
-            var users = await userRepository.Read(request.Page, request.PageSize, cancellationToken);
+            var users = await userRepository.Read(request.Pagination.Page, request.Pagination.PageSize, cancellationToken);
             if (users.Count == 0)
                 return Result<List<AccountResponseDto>>.Failure(ErrorMessages.AccountNotFound);
 

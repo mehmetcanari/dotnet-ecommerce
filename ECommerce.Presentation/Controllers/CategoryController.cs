@@ -1,6 +1,7 @@
 using ECommerce.Application.Commands.Category;
 using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Queries.Category;
+using ECommerce.Application.Utility;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,8 +25,8 @@ public class CategoryController(IMediator mediator) : ApiBaseController
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequestDto request) => HandleResult(await mediator.Send(new UpdateCategoryCommand(request)));
 
     [Authorize]
-    [HttpGet]
-    public async Task<IActionResult> GetAllCategories(int pageSize, int page) => HandleResult(await mediator.Send(new GetAllCategoriesQuery(pageSize, page)));
+    [HttpPost]
+    public async Task<IActionResult> GetAllCategories(QueryPagination pagination) => HandleResult(await mediator.Send(new GetAllCategoriesQuery(pagination)));
 
     [Authorize]
     [HttpGet("{id}")]

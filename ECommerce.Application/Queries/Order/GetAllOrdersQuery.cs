@@ -9,7 +9,10 @@ using MediatR;
 
 namespace ECommerce.Application.Queries.Order;
 
-public class GetAllOrdersQuery : IRequest<Result<List<OrderResponseDto>>>;
+public class GetAllOrdersQuery(QueryPagination pagination) : IRequest<Result<List<OrderResponseDto>>>
+{
+    public readonly QueryPagination Pagination = pagination;
+}
 
 public class GetAllOrdersQueryHandler(IOrderRepository orderRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetAllOrdersQuery, Result<List<OrderResponseDto>>>
 {
@@ -26,7 +29,7 @@ public class GetAllOrdersQueryHandler(IOrderRepository orderRepository, ILogServ
                 return Result<List<OrderResponseDto>>.Success(cachedResponse);
             }
 
-            var orders = await orderRepository.Read(cancellationToken: cancellationToken);
+            var orders = await orderRepository.Read(request.Pagination.Page, request.Pagination.PageSize, cancellationToken);
             if (orders.Count == 0)
                 return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
 

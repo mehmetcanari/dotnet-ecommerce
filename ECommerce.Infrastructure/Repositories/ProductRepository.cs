@@ -32,13 +32,13 @@ public sealed class ProductRepository : IProductRepository
         _products.Indexes.CreateOneAsync(new CreateIndexModel<Product>(stockIndexKeys));
     }
 
-    public async Task<List<Product>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+    public async Task<List<Product>> Read(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
             var options = new FindOptions<Product>
             {
-                Skip = (pageNumber - 1) * pageSize,
+                Skip = (page - 1) * pageSize,
                 Limit = pageSize,
                 Sort = Builders<Product>.Sort.Descending(p => p.CreatedOn)
             };

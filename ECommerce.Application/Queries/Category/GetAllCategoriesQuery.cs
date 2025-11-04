@@ -8,10 +8,9 @@ using MediatR;
 
 namespace ECommerce.Application.Queries.Category;
 
-public class GetAllCategoriesQuery(int pageSize, int page) : IRequest<Result<List<CategoryResponseDto>>>
+public class GetAllCategoriesQuery(QueryPagination pagination) : IRequest<Result<List<CategoryResponseDto>>>
 {
-    public readonly int PageSize = pageSize;
-    public readonly int Page = page;
+    public readonly QueryPagination Pagination = pagination;
 }
 
 public class GetCategoriesQueryHandler(ICategoryRepository categoryRepository, ILogService logService, ICacheService cache) : IRequestHandler<GetAllCategoriesQuery, Result<List<CategoryResponseDto>>>
@@ -26,7 +25,7 @@ public class GetCategoriesQueryHandler(ICategoryRepository categoryRepository, I
             if (cacheItems is { Count: > 0 })
                 return Result<List<CategoryResponseDto>>.Success(cacheItems);
 
-            var categories = await categoryRepository.Read(request.Page, request.PageSize, cancellationToken);
+            var categories = await categoryRepository.Read(request.Pagination.Page, request.Pagination.PageSize, cancellationToken);
             if (categories.Count == 0)
                 return Result<List<CategoryResponseDto>>.Failure(ErrorMessages.CategoryNotFound);
 

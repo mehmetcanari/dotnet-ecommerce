@@ -1,6 +1,7 @@
 using ECommerce.Application.Commands.Product;
 using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Queries.Product;
+using ECommerce.Application.Utility;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +24,9 @@ public class ProductController(IMediator mediator) : ApiBaseController
     [HttpPut("update")]
     public async Task<IActionResult> UpdateProduct([FromBody] ProductUpdateRequestDto request) => HandleResult(await mediator.Send(new UpdateProductCommand(request)));
 
-    [HttpGet]
+    [HttpPost]
     [Authorize]
-    public async Task<IActionResult> GetAllProducts() => HandleResult(await mediator.Send(new GetAllProductsQuery()));
+    public async Task<IActionResult> GetAllProducts(QueryPagination pagination) => HandleResult(await mediator.Send(new GetAllProductsQuery(pagination)));
 
     [HttpGet("{id}")]
     [Authorize]

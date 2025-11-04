@@ -8,7 +8,7 @@ namespace ECommerce.Infrastructure.Repositories;
 
 public class OrderRepository(StoreDbContext context) : IOrderRepository
 {
-    public async Task<List<Order>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+    public async Task<List<Order>> Read(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -17,7 +17,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
             var orders = await query
             .AsNoTracking()
             .Include(o => o.BasketItems)
-            .Skip((pageNumber - 1) * pageSize)
+            .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 

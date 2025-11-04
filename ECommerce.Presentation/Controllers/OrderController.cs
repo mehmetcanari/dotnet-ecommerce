@@ -1,6 +1,7 @@
 using ECommerce.Application.Commands.Order;
 using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Application.Queries.Order;
+using ECommerce.Application.Utility;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,8 +29,8 @@ public class OrderController(IMediator mediator) : ApiBaseController
     public async Task<IActionResult> CancelActiveOrder(Guid id) => HandleResult(await mediator.Send(new CancelOrderCommand(id)));
 
     [Authorize("Admin")]
-    [HttpGet("allOrders")]
-    public async Task<IActionResult> GetAllOrders() => HandleResult(await mediator.Send(new GetAllOrdersQuery()));
+    [HttpPost("allOrders")]
+    public async Task<IActionResult> GetAllOrders(QueryPagination pagination) => HandleResult(await mediator.Send(new GetAllOrdersQuery(pagination)));
 
     [Authorize("Admin")]
     [HttpGet("{id}")]

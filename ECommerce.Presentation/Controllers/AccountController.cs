@@ -3,6 +3,7 @@ using ECommerce.Application.Commands.Token;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Queries.Account;
+using ECommerce.Application.Utility;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,8 +19,8 @@ public class AccountController(IMediator mediator) : ApiBaseController
     public async Task<IActionResult> GetProfile() => HandleResult(await mediator.Send(new GetProfileQuery()));
 
     [Authorize("Admin")]
-    [HttpGet]
-    public async Task<IActionResult> GetAllAccounts(int page, int pageSize) => HandleResult(await mediator.Send(new GetAllAccountsQuery(pageSize, page)));
+    [HttpPost]
+    public async Task<IActionResult> GetAllAccounts(QueryPagination pagination) => HandleResult(await mediator.Send(new GetAllAccountsQuery(pagination)));
 
     [Authorize("Admin")]
     [HttpGet("{id}")]

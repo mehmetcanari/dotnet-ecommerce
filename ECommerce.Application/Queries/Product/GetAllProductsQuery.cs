@@ -8,7 +8,10 @@ using ECommerce.Domain.Model;
 
 namespace ECommerce.Application.Queries.Product;
 
-public class GetAllProductsQuery : IRequest<Result<List<ProductResponseDto>>>;
+public class GetAllProductsQuery(QueryPagination pagination) : IRequest<Result<List<ProductResponseDto>>>
+{
+    public readonly QueryPagination Pagination = pagination;
+}
 
 public class GetAllProductsQueryHandler(IProductRepository productRepository, ICacheService cache, ILogService logger) : IRequestHandler<GetAllProductsQuery, Result<List<ProductResponseDto>>>
 {
@@ -22,7 +25,7 @@ public class GetAllProductsQueryHandler(IProductRepository productRepository, IC
             if (cachedProducts is { Count: > 0 })
                 return Result<List<ProductResponseDto>>.Success(cachedProducts);
 
-            var products = await productRepository.Read(cancellationToken: cancellationToken);
+            var products = await productRepository.Read(request.Pagination.Page, request.Pagination.PageSize, cancellationToken);
             if (products.Count == 0)
                 return Result<List<ProductResponseDto>>.Failure(ErrorMessages.ProductNotFound);
 

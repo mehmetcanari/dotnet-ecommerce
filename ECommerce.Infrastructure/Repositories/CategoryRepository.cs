@@ -20,7 +20,7 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
         }
     }
 
-    public async Task<List<Category>> Read(int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+    public async Task<List<Category>> Read(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -28,7 +28,7 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
 
             var categories = await query
                 .AsNoTracking()
-                .Skip((pageNumber - 1) * pageSize)
+                .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
 
