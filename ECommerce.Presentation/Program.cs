@@ -243,22 +243,30 @@ internal static class Program
         #region Serilog Configuration
 
         //======================================================
-        // SERILOG IMPLEMENTATION
+        // SERILOG IMPLEMENTATION 
         //======================================================
-        builder.Host.UseSerilog((_, _, configuration) => configuration
-            .MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
-            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-            .MinimumLevel.Override("System", LogEventLevel.Warning)
-            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-            .WriteTo.File("Logs/log-{Date}.log",
-                rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 30,
-                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-            .Enrich.FromLogContext()
-            .Enrich.WithProcessId()
-            .Enrich.WithEnvironmentUserName()
-            .Enrich.WithMachineName());
+        builder.Host.UseSerilog((context, _, configuration) =>
+        {
+            var env = context.HostingEnvironment;
+
+            configuration
+                .MinimumLevel.Is(env.IsDevelopment()
+                    ? LogEventLevel.Debug     
+                    : LogEventLevel.Information) 
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Override("System", LogEventLevel.Warning)
+                .Enrich.FromLogContext()
+                .Enrich.WithProcessId()
+                .Enrich.WithMachineName()
+                .WriteTo.Console(
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File("Logs/log-.log",
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 15,
+                    shared: true,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}");
+        });
 
         #endregion
 
