@@ -12,7 +12,8 @@ public class UpdateProductStockCommand(List<BasketItem> request) : IRequest<Resu
     public readonly List<BasketItem> Model = request;
 }
 
-public class UpdateProductStockCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService, ICacheService cache) : IRequestHandler<UpdateProductStockCommand, Result>
+public class UpdateProductStockCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService, 
+    ICacheService cache, ILockProvider lockProvider) : IRequestHandler<UpdateProductStockCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductStockCommand request, CancellationToken cancellationToken)
     {
@@ -27,15 +28,18 @@ public class UpdateProductStockCommandHandler(IProductRepository productReposito
                 if (item.Quantity > product.StockQuantity)
                     return Result.Failure(ErrorMessages.StockNotAvailable);
 
-                product.StockQuantity -= item.Quantity;
-                if(product.StockQuantity < 0)
-                    product.StockQuantity = 0;
+                using (await lockProvider.AcquireLockAsync($"product:{product.Id}", cancellationToken))
+                {
+                    product.StockQuantity -= item.Quantity;
+                    if (product.StockQuantity < 0)
+                        product.StockQuantity = 0;
 
-                product.UpdatedOn = DateTime.UtcNow;
+                    product.UpdatedOn = DateTime.UtcNow;
 
-                await cache.RemoveAsync(CacheKeys.Products, cancellationToken);
-                await elasticSearchService.UpdateAsync(product.Id.ToString(), product, "products", cancellationToken);
-                await productRepository.Update(product, cancellationToken);
+                    await cache.RemoveAsync(CacheKeys.Products, cancellationToken);
+                    await elasticSearchService.UpdateAsync(product.Id.ToString(), product, "products", cancellationToken);
+                    await productRepository.Update(product, cancellationToken);
+                }
             }
 
             await unitOfWork.Commit();

@@ -12,7 +12,8 @@ public class CancelOrderCommand(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILogService logger, IOrderRepository orderRepository, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<CancelOrderCommand, Result>
+public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILogService logger, IOrderRepository orderRepository, IUnitOfWork unitOfWork, 
+    ICacheService cache, ILockProvider lockProvider) : IRequestHandler<CancelOrderCommand, Result>
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
@@ -26,9 +27,12 @@ public class CancelOrderCommandHandler(ICurrentUserService currentUserService, I
             if (pendingOrder is null)
                 return Result.Failure(ErrorMessages.NoPendingOrders);
 
-            pendingOrder.UpdateStatus(OrderStatus.Cancelled);
-            await unitOfWork.Commit();
-            await cache.RemoveAsync($"{CacheKeys.UserOrders}_{userId}", cancellationToken);
+            using (await lockProvider.AcquireLockAsync($"order:{pendingOrder.Id}", cancellationToken))
+            {
+                await cache.RemoveAsync($"{CacheKeys.UserOrders}_{userId}", cancellationToken);
+                pendingOrder.UpdateStatus(OrderStatus.Cancelled);
+                await unitOfWork.Commit();
+            }
 
             return Result.Success();
         }

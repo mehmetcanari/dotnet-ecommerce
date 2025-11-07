@@ -103,6 +103,7 @@
         #region Order
         public const string OrderNotFound = "order.not.found";
         public const string NoPendingOrders = "order.no.pending.orders";
+        public const string OrderAlreadyExists = "order.already.exists";
         #endregion
 
         #region Search

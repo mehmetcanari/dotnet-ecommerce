@@ -11,7 +11,8 @@ public class RemoveBasketItemById(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService, IBasketItemRepository basketItemRepository, IUnitOfWork unitOfWork, ILogService logService, ICacheService cache) : IRequestHandler<RemoveBasketItemById, Result>
+public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService, IBasketItemRepository basketItemRepository, IUnitOfWork unitOfWork, ILogService logService, 
+    ICacheService cache, ILockProvider lockProvider) : IRequestHandler<RemoveBasketItemById, Result>
 {
     private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
 
@@ -30,9 +31,12 @@ public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService,
             if(basketItem.UserId.ToString() != userId)
                 return Result.Failure(ErrorMessages.UnauthorizedAction);
 
-            basketItemRepository.Delete(basketItem);
-            await cache.RemoveAsync(_cacheKey, cancellationToken);
-            await unitOfWork.Commit();
+            using (await lockProvider.AcquireLockAsync($"basket:{userId}", cancellationToken))
+            {
+                basketItemRepository.Delete(basketItem);
+                await cache.RemoveAsync(_cacheKey, cancellationToken);
+                await unitOfWork.Commit();
+            }
 
             return Result.Success();
         }

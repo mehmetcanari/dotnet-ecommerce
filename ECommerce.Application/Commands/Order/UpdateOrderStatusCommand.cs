@@ -12,7 +12,7 @@ public class UpdateOrderStatusCommand(UpdateOrderStatusRequestDto request) : IRe
     public readonly UpdateOrderStatusRequestDto Model = request;
 }
 
-public class UpdateOrderStatusCommandHandler(IOrderRepository orderRepository, ILogService logger, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<UpdateOrderStatusCommand, Result>
+public class UpdateOrderStatusCommandHandler(IOrderRepository orderRepository, ILogService logger, IUnitOfWork unitOfWork, ICacheService cache, ILockProvider lockProvider) : IRequestHandler<UpdateOrderStatusCommand, Result>
 {
     public async Task<Result> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
     {
@@ -22,10 +22,13 @@ public class UpdateOrderStatusCommandHandler(IOrderRepository orderRepository, I
             if (order is null)
                 return Result.Failure(ErrorMessages.OrderNotFound);
 
-            order.UpdateStatus(request.Model.Status);
-            orderRepository.Update(order);
-            await cache.RemoveAsync($"{CacheKeys.UserOrders}_{order.UserId}", cancellationToken);
-            await unitOfWork.Commit();
+            await lockProvider.AcquireLockAsync($"order:{order.Id}", cancellationToken);
+            {
+                order.UpdateStatus(request.Model.Status);
+                orderRepository.Update(order);
+                await cache.RemoveAsync($"{CacheKeys.UserOrders}_{order.UserId}", cancellationToken);
+                await unitOfWork.Commit();
+            }
 
             return Result.Success();
         }

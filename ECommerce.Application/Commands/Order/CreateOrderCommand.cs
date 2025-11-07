@@ -15,7 +15,7 @@ public class CreateOrderCommand(CreateOrderRequestDto request) : IRequest<Result
 }
 
 public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasketItemRepository basketItemRepository, IStoreUnitOfWork unitOfWork, IMediator mediator, IUserRepository userRepository, 
-    ILogService logger, IPaymentService paymentService, ICurrentUserService currentUserService, ICacheService cache) : IRequestHandler<CreateOrderCommand, Result>
+    ILogService logger, IPaymentService paymentService, ICurrentUserService currentUserService, ICacheService cache, ILockProvider lockProvider) : IRequestHandler<CreateOrderCommand, Result>
 {
     public async Task<Result> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
@@ -43,20 +43,27 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
             var shippingAddress = CreateAddress(user);
             var billingAddress = CreateAddress(user);
 
-            await unitOfWork.BeginTransactionAsync();
+            var existingOrder = await orderRepository.GetById(order.Id, cancellationToken);
+            if (existingOrder != null)
+                return Result.Failure(ErrorMessages.OrderAlreadyExists);
 
-            var paymentResult = await paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
-            if (paymentResult is { IsFailure: true, Message: not null })
+            using (await lockProvider.AcquireLockAsync($"order:{order.Id}", cancellationToken))
             {
-                logger.LogWarning(ErrorMessages.PaymentFailed, paymentResult.Message);
-                await unitOfWork.RollbackTransaction();
-                return Result.Failure($"{ErrorMessages.PaymentFailed}: {paymentResult.Message}");
+                await unitOfWork.BeginTransactionAsync();
+
+                var paymentResult = await paymentService.ProcessPaymentAsync(order, buyer, shippingAddress, billingAddress, paymentCard, basketItems);
+                if (paymentResult is { IsFailure: true, Message: not null })
+                {
+                    logger.LogWarning(ErrorMessages.PaymentFailed, paymentResult.Message);
+                    await unitOfWork.RollbackTransaction();
+                    return Result.Failure($"{ErrorMessages.PaymentFailed}: {paymentResult.Message}");
+                }
+
+                await mediator.Send(new UpdateProductStockCommand(basketItems), cancellationToken);
+                await orderRepository.Create(order, cancellationToken);
+                await unitOfWork.CommitTransactionAsync();
             }
 
-            await mediator.Send(new UpdateProductStockCommand(basketItems), cancellationToken);
-            await orderRepository.Create(order, cancellationToken);
-
-            await unitOfWork.CommitTransactionAsync();
             await cache.RemoveAsync($"{CacheKeys.UserOrders}_{userId}", cancellationToken);
             return Result.Success();
         }
@@ -88,7 +95,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         return Result<List<BasketItem>>.Success(items);
     }
 
-    private PaymentCard CreatePaymentCard(CreateOrderRequestDto request) => new PaymentCard
+    private PaymentCard CreatePaymentCard(CreateOrderRequestDto request) => new()
     {
         CardHolderName = request.PaymentCard.CardHolderName,
         CardNumber = request.PaymentCard.CardNumber,
@@ -98,7 +105,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         RegisterCard = request.PaymentCard.RegisterCard
     };
 
-    private Domain.Model.Order CreateOrder(string userId, string address, List<BasketItem> basketItems) => new Domain.Model.Order
+    private Domain.Model.Order CreateOrder(string userId, string address, List<BasketItem> basketItems) => new()
     {
         UserId = Guid.Parse(userId),
         ShippingAddress = address,
@@ -106,7 +113,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         BasketItems = basketItems
     };
 
-    private Buyer CreateBuyer(User account) => new Buyer
+    private Buyer CreateBuyer(User account) => new()
     {
         Id = account.Id,
         Name = account.Name,
@@ -121,7 +128,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         ZipCode = account.ZipCode
     };
 
-    private Address CreateAddress(User account) => new Address
+    private Address CreateAddress(User account) => new()
     {
         ContactName = $"{account.Name} {account.Surname}",
         Description = account.Address,

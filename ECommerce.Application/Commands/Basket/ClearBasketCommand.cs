@@ -6,9 +6,10 @@ using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
 
-public class ClearBasketCommand : IRequest<Result> { }
+public class ClearBasketCommand : IRequest<Result>;
 
-public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<ClearBasketCommand, Result>
+public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, IUnitOfWork unitOfWork,
+    ICacheService cache, ILockProvider lockProvider) : IRequestHandler<ClearBasketCommand, Result>
 {
     private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
 
@@ -24,13 +25,18 @@ public class ClearBasketCommandHandler(IBasketItemRepository basketItemRepositor
             if (basketItems.Count == 0)
                 return Result.Failure(ErrorMessages.BasketItemNotFound);
 
-            foreach (var basketItem in basketItems)
+            using (await lockProvider.AcquireLockAsync($"basket:{userId}", cancellationToken))
             {
-                basketItemRepository.Delete(basketItem);
+                foreach (var basketItem in basketItems)
+                {
+                    basketItemRepository.Delete(basketItem);
+                }
+
+
+                await cache.RemoveAsync(_cacheKey, cancellationToken);
+                await unitOfWork.Commit();
             }
 
-            await cache.RemoveAsync(_cacheKey, cancellationToken);
-            await unitOfWork.Commit();
             return Result.Success();
         }
         catch (Exception ex)

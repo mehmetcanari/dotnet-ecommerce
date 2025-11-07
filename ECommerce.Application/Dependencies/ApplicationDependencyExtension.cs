@@ -3,6 +3,7 @@ using ECommerce.Application.Services.Cache;
 using ECommerce.Application.Services.Client;
 using ECommerce.Application.Services.Elastic;
 using ECommerce.Application.Services.Elastic.Descriptors;
+using ECommerce.Application.Services.Lock;
 using ECommerce.Application.Services.Logging;
 using ECommerce.Application.Services.Notification;
 using ECommerce.Application.Services.Payment;
@@ -26,5 +27,6 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IRealtimeNotificationHandler, RealtimeNotificationHandler>();
         services.AddScoped<IElasticSearchService, ElasticSearchService>();
         services.AddScoped<ISearchDescriptor<Domain.Model.Product>, ProductSearchDescriptor>();
+        services.AddScoped<ILockProvider, InMemoryLockProvider>();
     }
 }

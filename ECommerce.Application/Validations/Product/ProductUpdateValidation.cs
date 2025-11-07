@@ -7,6 +7,8 @@ public class ProductUpdateValidation : AbstractValidator<UpdateProductCommand>
 {
     public ProductUpdateValidation()
     {
+        RuleFor(p => p.Model.Id).NotEmpty();
+
         RuleFor(p => p.Model.Name).NotEmpty().MaximumLength(50);
 
         RuleFor(p => p.Model.ImageUrl).MaximumLength(200);

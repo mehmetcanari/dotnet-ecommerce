@@ -13,7 +13,7 @@ public class UpdateBasketItemCommand(UpdateBasketItemRequestDto request) : IRequ
 }
 
 public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, 
-    IProductRepository productRepository, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<UpdateBasketItemCommand, Result>
+    IProductRepository productRepository, IUnitOfWork unitOfWork, ICacheService cache, ILockProvider lockProvider) : IRequestHandler<UpdateBasketItemCommand, Result>
 {
     private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
 
@@ -36,8 +36,11 @@ public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
             if (request.Model.Quantity > product.StockQuantity)
                 return Result.Failure(ErrorMessages.StockNotAvailable);
 
-            await UpdateBasketItem(basketItem, product, request);
-            await cache.RemoveAsync(_cacheKey, cancellationToken);
+            using (await lockProvider.AcquireLockAsync($"basket:{userId}", cancellationToken))
+            {
+                await UpdateBasketItem(basketItem, product, request);
+                await cache.RemoveAsync(_cacheKey, cancellationToken);
+            }
 
             return Result.Success();
         }
@@ -54,7 +57,6 @@ public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
         basketItem.ProductId = product.Id;
         basketItem.ProductName = product.Name;
         basketItem.UnitPrice = product.Price;
-        basketItem.IsPurchased = false;
 
         basketItemRepository.Update(basketItem);
         await unitOfWork.Commit();
