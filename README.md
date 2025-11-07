@@ -1,4 +1,4 @@
-# E-Commerce API
+# E-Commerce Project
 ## 📋 Overview
 Modern, scalable e-commerce RESTful API built with Clean Architecture and SOLID principles. Supports product management, user authentication, secure payment processing, and other essential online store capabilities.
 
@@ -12,13 +12,12 @@ Modern, scalable e-commerce RESTful API built with Clean Architecture and SOLID 
 | **JWT & Identity** | Authentication/authorization |
 | **AWS S3** | File storage and management |
 | **Iyzico** | Payment gateway |
-| **RabbitMQ** | Message broker for event-driven architecture |
 | **FluentValidation** | Input validation |
 | **Serilog** | Structured logging |
 | **Docker** | Containerization |
 | **MediatR** | CQRS implementation |
 | **Elasticsearch** | Advanced product search and filtering |
-| **SignalR** | Action based notifications |
+| **SignalR** | Store notifications |
 
 ## 🛡️ Technical Approaches & Best Practices
 
@@ -37,7 +36,6 @@ Modern, scalable e-commerce RESTful API built with Clean Architecture and SOLID 
 | **Cloud Storage**            | Secure and scalable file management | AWS S3 integration for file upload |
 | **Pagination**              | Efficient data retrieval and performance | Repository pattern with Skip/Take implementation, default page size of 50 items |
 | **CQRS Pattern**            | Separation of read and write operations | MediatR implementation with Commands and Queries for better scalability and maintainability |
-| **Event-Driven Architecture** | Loose coupling between services | RabbitMQ implementation for asynchronous message publishing and consumption |
 
 ## 📐 Architecture
 Clean Architecture implementation with clear separation of concerns:
@@ -80,18 +78,9 @@ Clean Architecture implementation with clear separation of concerns:
 
 ### Prerequisites
 - .NET 9 SDK
-- Docker & Docker Compose
-- PostgreSQL (if running locally)
-- MongoDB (if running locally)
-- Elasticsearch (if running locally)
-- Redis (if running locally)
-- AWS S3 account and bucket (for file storage)
+- Docker 
 
-### IMPORTANT 
- - In this project, Elasticsearch runs as a standalone Docker container, separate from Docker Compose. 
- - Check the ELASTICSEARCH_SETUP.md file for more information.
-
-### Option 1: Docker Compose (Recommended)
+### Setup dependencies: Docker Compose
 ```bash
 git clone https://github.com/mehmetcanari/dotnet-ecommerce-demo.git
 cd dotnet-ecommerce-demo
@@ -99,32 +88,11 @@ docker compose up --build
 ```
 API will be available at http://localhost:5076
 
-### Option 2: Local Development
-```bash
-git clone https://github.com/mehmetcanari/dotnet-ecommerce-demo.git
-cd dotnet-ecommerce-demo
-dotnet restore
-cd ECommerce.Presentation
-dotnet watch run
-```
-
-## ☁️ AWS S3 Integration
-- All product images and file uploads are securely stored in AWS S3.
-- S3 credentials and bucket info are managed via environment variables for security and flexibility.
-
 ## 📚 API Documentation
 
 ### Swagger/OpenAPI
-Interactive API documentation and testing interface:
 - **Local Development**: [http://localhost:5076](http://localhost:5076)
-- **Docker**: [http://localhost:8080](http://localhost:8080)
-
-The Swagger UI provides:
-- Complete endpoint documentation
-- Request/response schemas
-- Interactive API testing
-- Authentication support (JWT Bearer tokens)
-
+  
 ## 📧 Contact
 **Mehmet Can Arı** - [bsn.mehmetcanari@gmail.com](mailto:bsn.mehmetcanari@gmail.com)
 
