@@ -47,7 +47,7 @@ public class CreateBasketItemCommandHandler(IBasketItemRepository basketItemRepo
         }
     }
 
-    private Domain.Model.BasketItem CreateBasketItem(CreateBasketItemCommand request, Domain.Model.Product product, string userId) => new Domain.Model.BasketItem
+    private Domain.Model.BasketItem CreateBasketItem(CreateBasketItemCommand request, Domain.Model.Product product, string userId) => new()
     {
         UserId = Guid.Parse(userId),
         ExternalId = Guid.NewGuid().ToString(),

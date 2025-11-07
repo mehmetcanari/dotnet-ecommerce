@@ -1,4 +1,3 @@
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
@@ -31,6 +30,6 @@ public class Product : BaseEntity
     public required int StockQuantity { get; set; }
 
     [BsonElement("categoryId")]
-    public required Guid CategoryId { get; set; }
+    public required Guid CategoryId { get; init; }
 }
 

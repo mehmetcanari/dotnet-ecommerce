@@ -1,7 +1,6 @@
 using ECommerce.Domain.Model;
 
 namespace ECommerce.Domain.Abstract.Repository;
-
 public interface ICategoryRepository
 {
     Task Create(Category category, CancellationToken cancellationToken = default);

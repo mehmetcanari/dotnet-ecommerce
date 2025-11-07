@@ -1,10 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ECommerce.Domain.Model;
 
 public class Notification : BaseEntity
 {
-    public required string Title { get; set; }
-    public required string Message { get; set; }
-    public NotificationType Type { get; set; }
+    [StringLength(50)] public required string Title { get; init; }
+    [StringLength(200)] public required string Message { get; init; }
+    public NotificationType Type { get; init; }
     public NotificationStatus Status { get; set; } = NotificationStatus.Unread;
     public DateTime? ReadAt { get; set; }
 

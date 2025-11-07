@@ -1,7 +1,6 @@
 using ECommerce.Domain.Model;
 
 namespace ECommerce.Domain.Abstract.Repository;
-
 public interface IOrderRepository
 {
     Task Create(Order order, CancellationToken cancellationToken = default);
