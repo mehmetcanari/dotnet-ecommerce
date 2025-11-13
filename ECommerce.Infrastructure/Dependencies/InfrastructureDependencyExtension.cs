@@ -9,7 +9,6 @@ public static class InfrastructureDependencyExtension
 {
     public static void AddInfrastructureDependencies(this IServiceCollection services)
     {
-        // PostgreSQL Repositories
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
@@ -18,10 +17,8 @@ public static class InfrastructureDependencyExtension
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
 
-        // MongoDB Context
         services.AddSingleton<MongoDbContext>();
 
-        // Unit of Work
         services.AddScoped<IStoreUnitOfWork, StoreUnitOfWork>();
         services.AddScoped<ICrossContextUnitOfWork, CrossContextUnitOfWork>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<IStoreUnitOfWork>());

@@ -28,9 +28,12 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
             if (isIdentityExists)
                 return Result.Failure(ErrorMessages.IdentityNumberAlreadyExists);
 
+            var normalizedUserName = $"{request.Model.Name}{request.Model.Surname}".ToLowerInvariant().Replace(" ", string.Empty).Trim();
+
             var user = new Domain.Model.User
             {
-                UserName = request.Model.Email,
+                UserName = normalizedUserName,
+                NormalizedUserName = normalizedUserName,
                 Email = request.Model.Email,
                 PhoneNumber = request.Model.Phone,
                 PhoneCode = request.Model.PhoneCode,
@@ -48,7 +51,7 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
             if (!createResult.Succeeded)
             {
                 var errors = createResult.Errors.Select(e => e.Description).Aggregate((a, b) => a + ", " + b);
-                await unitOfWork.RollbackTransaction();
+                await unitOfWork.RollbackTransactionAsync();
                 return Result.Failure(errors);
             }
 
@@ -64,7 +67,7 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
         catch (Exception ex)
         {
             logService.LogError(ex, ErrorMessages.AccountCreationFailed);
-            await unitOfWork.RollbackTransaction();
+            await unitOfWork.RollbackTransactionAsync();
             return Result.Failure(ErrorMessages.AccountCreationFailed);
         }
     }

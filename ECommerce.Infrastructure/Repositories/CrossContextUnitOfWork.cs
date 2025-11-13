@@ -32,7 +32,7 @@ public class CrossContextUnitOfWork(StoreDbContext context, IdentityDbContext id
         }
         catch
         {
-            await RollbackTransaction();
+            await RollbackTransactionAsync();
             throw;
         }
         finally
@@ -41,7 +41,7 @@ public class CrossContextUnitOfWork(StoreDbContext context, IdentityDbContext id
         }
     }
 
-    public async Task RollbackTransaction()
+    public async Task RollbackTransactionAsync()
     {
         try
         {

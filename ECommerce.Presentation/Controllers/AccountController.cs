@@ -30,6 +30,10 @@ public class AccountController(IMediator mediator) : ApiBaseController
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteAccount([FromRoute] Guid id) => HandleResult(await mediator.Send(new DeleteAccountCommand(id)));
 
+    [Authorize("User")]
+    [HttpPost("update")]
+    public async Task<IActionResult> UpdateProfile([FromBody] AccountUpdateRequestDto request) => HandleResult(await mediator.Send(new UpdateProfileCommand(request)));
+
     [Authorize("Admin")]
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] TokenRevokeRequestDto request) => HandleResult(await mediator.Send(new RevokeRefreshTokenCommand(request)));

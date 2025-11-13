@@ -55,7 +55,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
                 if (paymentResult is { IsFailure: true, Message: not null })
                 {
                     logger.LogWarning(ErrorMessages.PaymentFailed, paymentResult.Message);
-                    await unitOfWork.RollbackTransaction();
+                    await unitOfWork.RollbackTransactionAsync();
                     return Result.Failure($"{ErrorMessages.PaymentFailed}: {paymentResult.Message}");
                 }
 
@@ -69,7 +69,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         }
         catch (Exception ex)
         {
-            await unitOfWork.RollbackTransaction();
+            await unitOfWork.RollbackTransactionAsync();
             logger.LogError(ex, ErrorMessages.UnexpectedError, ex.Message);
             return Result.Failure(ex.Message);
         }

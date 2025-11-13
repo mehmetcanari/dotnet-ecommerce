@@ -7,7 +7,7 @@ public class User : IdentityUser<Guid>
 {
     public required string Name { get; set; }
     public required string Surname { get; set; }
-    public required string IdentityNumber { get; set; }
+    public required string IdentityNumber { get; init; }
     public required string City { get; set; }
     public required string Country { get; set; }
     public required string ZipCode { get; set; }

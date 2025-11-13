@@ -84,7 +84,7 @@ public static class DatabaseSeeder
             }
             else
             {
-                await unitOfWork.RollbackTransaction();
+                await unitOfWork.RollbackTransactionAsync();
             }
 
             await unitOfWork.CommitTransactionAsync();
@@ -92,7 +92,7 @@ public static class DatabaseSeeder
         else
         {
             logger.LogInformation(ErrorMessages.AdminAccountAlreadyExists);
-            await unitOfWork.RollbackTransaction();
+            await unitOfWork.RollbackTransactionAsync();
         }
     }
 }

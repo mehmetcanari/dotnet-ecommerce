@@ -52,9 +52,12 @@
         public const string AccountDeleted = "account.deleted";
         public const string AccountUnrestricted = "account.unrestricted";
         public const string InvalidEmailOrPassword = "account.invalid.email.or.password";
+        public const string OldPasswordIncorrect = "account.old.password.incorrect";
         public const string ErrorSeedingAdminUser = "account.error.seeding.admin.user";
         public const string AdminAccountAlreadyExists = "account.admin.already.exists";
         public const string UnauthorizedAction = "account.unauthorized.action";
+        public const string EmailAlreadyInUse = "account.email.already.in.use";
+        public const string AccountUpdateFailed = "account.update.failed";
         #endregion
 
         #region Authentication

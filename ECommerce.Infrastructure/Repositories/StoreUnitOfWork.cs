@@ -26,7 +26,7 @@ public class StoreUnitOfWork(StoreDbContext context) : IStoreUnitOfWork
         }
         catch
         {
-            await RollbackTransaction();
+            await RollbackTransactionAsync();
             throw;
         }
         finally
@@ -35,7 +35,7 @@ public class StoreUnitOfWork(StoreDbContext context) : IStoreUnitOfWork
         }
     }
 
-    public async Task RollbackTransaction()
+    public async Task RollbackTransactionAsync()
     {
         try
         {
