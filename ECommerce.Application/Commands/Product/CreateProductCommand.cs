@@ -4,6 +4,7 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
 using MediatR;
+using ProductEntity = ECommerce.Domain.Model.Product;
 
 namespace ECommerce.Application.Commands.Product;
 
@@ -27,7 +28,7 @@ public class CreateProductCommandHandler(IProductRepository productRepository, I
             if (category is null)
                 return Result.Failure(ErrorMessages.CategoryNotFound);
 
-            var product = new Domain.Model.Product
+            var product = new ProductEntity
             {
                 Name = request.Model.Name,
                 Description = request.Model.Description,

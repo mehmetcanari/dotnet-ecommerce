@@ -6,6 +6,7 @@ using ECommerce.Shared.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using UserEntity = ECommerce.Domain.Model.User;
 
 namespace ECommerce.Application.Commands.Auth;
 
@@ -30,7 +31,7 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
 
             var normalizedUserName = $"{request.Model.Name}{request.Model.Surname}".ToLowerInvariant().Replace(" ", string.Empty).Trim();
 
-            var user = new Domain.Model.User
+            var user = new UserEntity
             {
                 UserName = normalizedUserName,
                 NormalizedUserName = normalizedUserName,

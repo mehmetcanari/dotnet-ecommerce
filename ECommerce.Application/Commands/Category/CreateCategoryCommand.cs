@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using CategoryEntity = ECommerce.Domain.Model.Category;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Category;
@@ -22,7 +23,7 @@ public class CreateCategoryCommandHandler(ICategoryRepository categoryRepository
             if (categoryExists)
                 return Result.Failure(ErrorMessages.CategoryExists);
 
-            var category = new Domain.Model.Category
+            var category = new CategoryEntity
             {
                 Name = request.Model.Name,
                 Description = request.Model.Description

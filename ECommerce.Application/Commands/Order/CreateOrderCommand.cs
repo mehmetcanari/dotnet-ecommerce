@@ -6,6 +6,7 @@ using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using MediatR;
+using OrderEntity = ECommerce.Domain.Model.Order;
 
 namespace ECommerce.Application.Commands.Order;
 
@@ -105,7 +106,7 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
         RegisterCard = request.PaymentCard.RegisterCard
     };
 
-    private Domain.Model.Order CreateOrder(string userId, string address, List<BasketItem> basketItems) => new()
+    private OrderEntity CreateOrder(string userId, string address, List<BasketItem> basketItems) => new()
     {
         UserId = Guid.Parse(userId),
         ShippingAddress = address,
