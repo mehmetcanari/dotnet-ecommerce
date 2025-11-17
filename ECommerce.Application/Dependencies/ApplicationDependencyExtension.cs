@@ -28,5 +28,9 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IElasticSearchService, ElasticSearchService>();
         services.AddScoped<ISearchDescriptor<Domain.Model.Product>, ProductSearchDescriptor>();
         services.AddScoped<ILockProvider, InMemoryLockProvider>();
+
+        RegisterMediatr(services);
     }
+
+    private static void RegisterMediatr(IServiceCollection services) => services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ApplicationDependencyExtension).Assembly));
 }
