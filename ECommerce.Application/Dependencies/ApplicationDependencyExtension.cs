@@ -25,7 +25,6 @@ public static class ApplicationDependencyExtension
         services.AddScoped<IFileUploadService, FileUploadService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IRealtimeNotificationHandler, RealtimeNotificationHandler>();
-        services.AddScoped<IElasticSearchService, ElasticSearchService>();
         services.AddScoped<ISearchDescriptor<Domain.Model.Product>, ProductSearchDescriptor>();
         services.AddScoped<ILockProvider, InMemoryLockProvider>();
 

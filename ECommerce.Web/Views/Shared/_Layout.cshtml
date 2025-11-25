@@ -1,0 +1,460 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MCA Mağaza</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ECommerce.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --primary-dark: #ffffff;
+            --secondary-dark: #e0e0e0;
+            --accent-orange: #ff9900;
+            --accent-orange-hover: #fa8900;
+            --text-dark: #e8e8e8;
+            --text-gray: #b0b0b0;
+            --border-gray: #2d2d2d;
+            --bg-light: #1a1a1a;
+            --bg-white: #1a1a1a;
+            --navbar-bg: #1f1f1f;
+            --footer-bg: #1f1f1f;
+            --body-bg: #121212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-dark);
+        }
+
+        .top-bar {
+            background-color: #0d0d0d;
+            color: #e8e8e8;
+            padding: 0.5rem 0;
+            font-size: 0.813rem;
+            text-align: center;
+        }
+
+        .modern-navbar {
+            background-color: var(--navbar-bg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-main {
+            padding: 1rem 0;
+        }
+
+        .navbar-main .container-fluid {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .modern-navbar .navbar-brand {
+            color: var(--text-dark) !important;
+            font-weight: 700;
+            font-size: 1.75rem;
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modern-navbar .navbar-brand i {
+            font-size: 2rem;
+        }
+
+        .navbar-right-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-left: auto;
+        }
+
+        .search-container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .search-wrapper {
+            display: flex;
+            align-items: stretch;
+            height: 42px;
+            border: 2px solid var(--border-gray);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+            background-color: var(--bg-white);
+        }
+
+        .search-wrapper:focus-within {
+            border-color: var(--accent-orange);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            padding: 0.5rem 1rem;
+            background-color: var(--bg-white);
+            color: var(--text-dark);
+            font-size: 0.938rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+        }
+
+        .search-btn {
+            background-color: var(--bg-white);
+            border: none;
+            padding: 0 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background-color: var(--bg-light);
+        }
+
+        .search-btn i {
+            color: var(--text-gray);
+            font-size: 1.25rem;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .icon-btn {
+            position: relative;
+            color: var(--text-dark) !important;
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            font-size: 0.938rem;
+            font-weight: 500;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .icon-btn:hover {
+            background-color: var(--bg-light);
+            color: var(--accent-orange) !important;
+        }
+
+        .icon-btn:visited {
+            color: var(--text-dark) !important;
+        }
+
+        .icon-btn i {
+            display: none;
+        }
+
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28232, 232, 232, 0.95%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        .navbar-menu {
+            background-color: var(--navbar-bg);
+            padding: 0.75rem 0;
+        }
+
+        .navbar-menu .container-fluid {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-menu .navbar-nav {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .navbar-menu .nav-link {
+            color: var(--text-dark) !important;
+            font-weight: 500;
+            font-size: 0.938rem;
+            padding: 0.5rem 1rem !important;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .navbar-menu .nav-link:hover {
+            background-color: var(--bg-light);
+            color: var(--accent-orange) !important;
+        }
+
+        .navbar-menu .nav-link:visited {
+            color: var(--text-dark) !important;
+        }
+
+        .navbar-menu .nav-link:active {
+            color: var(--accent-orange) !important;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            min-height: calc(100vh - 500px);
+        }
+
+        .modern-footer {
+            background-color: var(--footer-bg);
+            color: var(--text-gray);
+            padding: 3rem 0 0;
+            margin-top: 4rem;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            padding: 2rem 0;
+        }
+
+        .footer-section h5 {
+            color: var(--text-dark);
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-section a {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent-orange);
+        }
+
+        .footer-bottom {
+            background-color: var(--bg-light);
+            padding: 1.5rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .footer-bottom p {
+            margin: 0;
+            font-size: 0.813rem;
+            color: var(--text-gray);
+        }
+
+        @@media (max-width: 992px) {
+            .navbar-main .container-fluid {
+                flex-wrap: wrap;
+            }
+
+            .navbar-right-section {
+                order: 2;
+                width: 100%;
+                flex-wrap: wrap;
+                margin-left: 0;
+            }
+
+            .search-container {
+                order: 3;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .user-actions {
+                order: 2;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.5rem !important;
+            }
+
+            .user-actions span {
+                display: none;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        1000₺ üzeri siparişlerde ücretsiz kargo | 7/24 Müşteri Desteği
+    </div>
+
+    <header>
+        <nav class="navbar navbar-expand-lg modern-navbar">
+            <div class="navbar-main">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-shop"></i>
+                        MAĞAZAM+
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                        aria-controls="navbarContent" aria-expanded="false" aria-label="Menüyü Aç">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="navbar-right-section">
+                        <div class="search-container">
+                            <div class="search-wrapper">
+                                <input type="text" class="search-input" placeholder="Ürün ara..." />
+                                <button class="search-btn">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="user-actions">
+                            <a class="icon-btn" asp-controller="auth" asp-action="login">
+                                Hesabım
+                            </a>
+                            <a class="icon-btn" href="#">
+                                Sepetim
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navbar-menu collapse navbar-collapse" id="navbarContent">
+                <div class="container-fluid">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Ana Sayfa</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Yeni Ürünler</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Elektronik</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Moda</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Ev & Yaşam</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">İndirimler</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="modern-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h5>MCA Mağaza Hakkında</h5>
+                    <p style="font-size: 0.875rem; line-height: 1.6;">
+                        Kaliteli ürünleri uygun fiyatlarla sunan güvenilir online alışveriş platformunuz.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h5>Müşteri Hizmetleri</h5>
+                    <ul>
+                        <li><a href="#">İletişim</a></li>
+                        <li><a href="#">Kargo Bilgileri</a></li>
+                        <li><a href="#">İade & Değişim</a></li>
+                        <li><a href="#">Sık Sorulan Sorular</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h5>Hızlı Linkler</h5>
+                    <ul>
+                        <li><a href="#">Hesabım</a></li>
+                        <li><a href="#">Sipariş Geçmişim</a></li>
+                        <li><a href="#">Favorilerim</a></li>
+                        <li><a href="#">Sipariş Takibi</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h5>İletişim</h5>
+                    <ul>
+                        <li><a href="mailto:info@mcamagaza.com">info@mcamagaza.com</a></li>
+                        <li><a href="tel:+905551234567">+90 555 123 4567</a></li>
+                        <li>İstanbul, Türkiye</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Mehmet Can Arı E-Ticaret. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

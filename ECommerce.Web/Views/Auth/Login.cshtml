@@ -1,0 +1,233 @@
+﻿@model ECommerce.Web.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<style>
+    .login-container {
+        min-height: calc(100vh - 400px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .login-card {
+        background: var(--bg-white);
+        border-radius: 12px;
+        border: 1px solid var(--border-gray);
+        padding: 3rem;
+        max-width: 450px;
+        width: 100%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .login-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .login-subtitle {
+        color: var(--text-gray);
+        font-size: 0.938rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        color: var(--text-dark);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-size: 0.938rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: #2d2d2d;
+        border: 2px solid var(--border-gray);
+        border-radius: 6px;
+        color: var(--text-dark);
+        font-size: 0.938rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent-orange);
+        background-color: #2d2d2d;
+    }
+
+    .form-control::placeholder {
+        color: var(--text-gray);
+    }
+
+    .text-danger {
+        color: #ef4444;
+        font-size: 0.813rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-orange-hover) 100%);
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 1rem;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 153, 0, 0.3);
+    }
+
+    .login-divider {
+        display: flex;
+        align-items: center;
+        margin: 2rem 0;
+        color: var(--text-gray);
+        font-size: 0.875rem;
+    }
+
+    .login-divider::before,
+    .login-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background-color: var(--border-gray);
+    }
+
+    .login-divider span {
+        padding: 0 1rem;
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: var(--text-gray);
+        font-size: 0.938rem;
+    }
+
+    .login-footer a {
+        color: var(--accent-orange);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .login-footer a:hover {
+        color: var(--accent-orange-hover);
+        text-decoration: underline;
+    }
+
+    .alert-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 0.875rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+    }
+
+    .password-toggle {
+        position: relative;
+    }
+
+    .password-toggle-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-gray);
+        cursor: pointer;
+        padding: 0.25rem;
+        transition: color 0.2s ease;
+    }
+
+    .password-toggle-btn:hover {
+        color: var(--accent-orange);
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2 class="login-title">Hoş Geldiniz</h2>
+            <p class="login-subtitle">Hesabınıza giriş yapın</p>
+        </div>
+
+        <form asp-controller="auth" asp-action="login" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert-danger"></div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="Email">E-posta Adresi</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="Password">Şifre</label>
+                <div class="password-toggle">
+                    <input asp-for="Password" class="form-control" type="password" id="passwordInput" placeholder="••••••••" />
+                    <button type="button" class="password-toggle-btn" onclick="togglePassword()">
+                        <i class="bi bi-eye" id="toggleIcon"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn-login">Giriş Yap</button>
+        </form>
+
+        <div class="login-divider">
+            <span>veya</span>
+        </div>
+
+        <div class="login-footer">
+            <p>Hesabınız yok mu? <a href="#">Kayıt Olun</a></p>
+            <p style="margin-top: 0.5rem;"><a href="#">Şifremi Unuttum</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('passwordInput');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('bi-eye');
+            toggleIcon.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('bi-eye-slash');
+            toggleIcon.classList.add('bi-eye');
+        }
+    }
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
