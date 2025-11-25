@@ -1,0 +1,237 @@
+﻿@model ECommerce.Web.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/register.css" asp-append-version="true" />
+}
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <h2 class="register-title">Yeni Üyelik</h2>
+            <p class="register-subtitle">Yeni hesap oluşturarak alışverişe başlayın</p>
+        </div>
+
+        <form asp-controller="auth" asp-action="register" method="post" id="registerForm">
+            <div asp-validation-summary="ModelOnly" class="alert-danger"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" asp-for="Name">Ad</label>
+                    <input asp-for="Name" class="form-control" placeholder="Adınız" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Surname">Soyad</label>
+                    <input asp-for="Surname" class="form-control" placeholder="Soyadınız" />
+                    <span asp-validation-for="Surname" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="Email">E-posta Adresi</label>
+                <input asp-for="Email" class="form-control" placeholder="ornek@email.com" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="Password">Şifre</label>
+                <div class="password-toggle">
+                    <input asp-for="Password" class="form-control" type="password" id="passwordInput" placeholder="••••••••" />
+                    <button type="button" class="password-toggle-btn" id="togglePasswordBtn">
+                        <i class="bi bi-eye" id="toggleIcon"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Cep Telefonu</label>
+                <div class="phone-group">
+                    <input asp-for="PhoneCode" class="form-control" placeholder="+90" maxlength="3" />
+                    <input asp-for="Phone" class="form-control" placeholder="(5XX) XXX XX XX" maxlength="10" />
+                </div>
+                <span asp-validation-for="PhoneCode" class="text-danger"></span>
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="DateOfBirth">Doğum Tarihi</label>
+                <input asp-for="DateOfBirth" class="form-control" type="date" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+
+            <div class="agreements-section">
+                <div class="checkbox-group">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="electronicConsent" name="ElectronicConsent" asp-for="ElectronicConsent" />
+                        <label class="checkbox-label">
+                            Aydınlatma Metninde belirtilen ilkeler nezdinde Elektronik Ticaret İletişi almak istiyorum.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="membershipAgreement" name="MembershipAgreement" asp-for="MembershipAgreement" required />
+                        <label class="checkbox-label">
+                            <span class="modal-link" data-modal="membershipModal">Üyelik sözleşmesini</span> kabul ediyorum.
+                        </label>
+                    </div>
+                    <span class="text-danger" id="membershipAgreementError"></span>
+                </div>
+
+                <div class="checkbox-group">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="kvkkConsent" name="KvkkConsent" asp-for="KvkkConsent" required />
+                        <label class="checkbox-label">
+                            Kişisel verilerin işlenmesine ilişkin <span class="modal-link" data-modal="kvkkModal">Aydınlatma Metnini</span> okudum.
+                        </label>
+                    </div>
+                    <span class="text-danger" id="kvkkConsentError"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register" id="submitBtn">Kayıt Ol</button>
+        </form>
+
+        <div class="register-footer">
+            <p>Zaten hesabınız var mı? <a asp-controller="auth" asp-action="login">Giriş Yap</a></p>
+        </div>
+    </div>
+</div>
+
+<div id="membershipModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Üyelik Sözleşmesi</h2>
+            <button type="button" class="modal-close" data-close="membershipModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h3>1. Taraflar</h3>
+            <p>
+                İşbu üyelik sözleşmesi MAĞAZAM+ ("Platform") ile Platform'a üye olmak isteyen gerçek kişi ("Üye") arasında 
+                elektronik ortamda akdedilmiştir.
+            </p>
+
+            <h3>2. Sözleşmenin Konusu</h3>
+            <p>
+                İşbu sözleşmenin konusu, Üye'nin Platform'a üye olması ve Platform üzerinden sunulan hizmetlerden 
+                yararlanmasına ilişkin tarafların hak ve yükümlülüklerinin belirlenmesidir.
+            </p>
+
+            <h3>3. Üyelik Koşulları</h3>
+            <ul>
+                <li>Üye olmak isteyen kişinin 18 yaşını doldurmuş olması gerekmektedir.</li>
+                <li>Üyelik başvurusu sırasında doğru ve güncel bilgiler verilmelidir.</li>
+                <li>Üyelik hesabı şahsi olup, başkalarıyla paylaşılamaz.</li>
+                <li>Üyelik hesabının güvenliği tamamen üyenin sorumluluğundadır.</li>
+            </ul>
+
+            <h3>4. Üye Yükümlülükleri</h3>
+            <ul>
+                <li>Platform'u yürürlükteki mevzuata ve işbu sözleşme hükümlerine uygun kullanmak</li>
+                <li>Üçüncü kişilerin haklarına tecavüz etmemek</li>
+                <li>Yanıltıcı, hukuka aykırı, tehditkar içerik paylaşmamak</li>
+                <li>Platform'un güvenliğini tehlikeye düşürecek eylemlerden kaçınmak</li>
+            </ul>
+
+            <h3>5. Platform'un Hakları</h3>
+            <p>
+                Platform, işbu sözleşmeye aykırı hareket eden üyelerin hesaplarını geçici veya kalıcı olarak 
+                askıya alma/silme hakkını saklı tutar.
+            </p>
+
+            <h3>6. Sözleşmenin Feshi</h3>
+            <p>
+                Üye, dilediği zaman üyeliğini sonlandırabilir. Platform, önemli sebeplerin varlığı halinde 
+                üyeliği tek taraflı olarak feshedebilir.
+            </p>
+
+            <h3>7. Uygulanacak Hukuk ve Yetki</h3>
+            <p>
+                İşbu sözleşmeden doğabilecek her türlü uyuşmazlıkta Türkiye Cumhuriyeti yasaları uygulanacak olup, 
+                İstanbul Mahkemeleri ve İcra Daireleri yetkilidir.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div id="kvkkModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">KVKK Aydınlatma Metni</h2>
+            <button type="button" class="modal-close" data-close="kvkkModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h3>1. Veri Sorumlusu</h3>
+            <p>
+                6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz; 
+                veri sorumlusu olarak MAĞAZAM+ tarafından aşağıda açıklanan kapsamda işlenebilecektir.
+            </p>
+
+            <h3>2. Kişisel Verilerin Toplanma Yöntemi ve Hukuki Sebebi</h3>
+            <p>
+                Kişisel verileriniz, Platform üzerinden üyelik oluşturulması, alışveriş yapılması süreçlerinde, 
+                elektronik ortamda ve fiziksel yollarla KVKK'nın 5. ve 6. maddelerinde belirtilen kişisel veri 
+                işleme şartları ve amaçları dahilinde işlenmektedir.
+            </p>
+
+            <h3>3. İşlenen Kişisel Veriler</h3>
+            <ul>
+                <li>Kimlik Bilgileri: Ad, Soyad, T.C. Kimlik Numarası, Doğum Tarihi</li>
+                <li>İletişim Bilgileri: E-posta adresi, Telefon numarası, Adres</li>
+                <li>Müşteri İşlem Bilgileri: Sipariş geçmişi, Ödeme bilgileri</li>
+                <li>İşlem Güvenliği Bilgileri: IP adresi, Log kayıtları</li>
+            </ul>
+
+            <h3>4. Kişisel Verilerin İşlenme Amacı</h3>
+            <p>
+                Toplanan kişisel verileriniz aşağıdaki amaçlarla işlenmektedir:
+            </p>
+            <ul>
+                <li>Üyelik işlemlerinin gerçekleştirilmesi</li>
+                <li>Sipariş ve teslimat süreçlerinin yönetilmesi</li>
+                <li>Müşteri ilişkileri yönetimi</li>
+                <li>Pazarlama ve tanıtım faaliyetlerinin yürütülmesi</li>
+                <li>Yasal yükümlülüklerin yerine getirilmesi</li>
+                <li>Güvenlik ve dolandırıcılık önleme</li>
+            </ul>
+
+            <h3>5. Kişisel Verilerin Aktarılması</h3>
+            <p>
+                Kişisel verileriniz, KVKK'nın 8. ve 9. maddelerinde belirtilen kişisel veri işleme şartları ve 
+                amaçları çerçevesinde kargo şirketleri, ödeme kuruluşları ve yasal yükümlülükler kapsamında 
+                kamu kurum ve kuruluşlarına aktarılabilecektir.
+            </p>
+
+            <h3>6. Kişisel Veri Sahibinin Hakları</h3>
+            <p>
+                KVKK'nın 11. maddesi uyarınca aşağıdaki haklara sahipsiniz:
+            </p>
+            <ul>
+                <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme</li>
+                <li>Kişisel verileriniz işlenmişse buna ilişkin bilgi talep etme</li>
+                <li>Kişisel verilerin işlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme</li>
+                <li>Yurt içinde veya yurt dışında kişisel verilerin aktarıldığı üçüncü kişileri bilme</li>
+                <li>Kişisel verilerin eksik veya yanlış işlenmiş olması hâlinde bunların düzeltilmesini isteme</li>
+                <li>KVKK'nın 7. maddesinde öngörülen şartlar çerçevesinde kişisel verilerin silinmesini veya yok edilmesini isteme</li>
+            </ul>
+
+            <h3>7. İletişim</h3>
+            <p>
+                Yukarıda belirtilen haklarınızı kullanmak için talebinizi kvkk@magazamplus.com adresine 
+                iletebilirsiniz.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/register.js" asp-append-version="true"></script>
+}

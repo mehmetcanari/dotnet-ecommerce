@@ -463,14 +463,29 @@ internal static class Program
         {
             var response = context.Response;
 
-            response.Headers.Append("Content-Security-Policy",
-                "default-src 'none'; " +
-                "script-src 'self'; " +
-                "connect-src 'self' http://localhost:3000 http://localhost:3002 http://localhost:5076 ws://localhost:5076; " +
-                "img-src 'self' data:; " +
-                "style-src 'self' 'unsafe-inline'; " +
-                "base-uri 'self'; " +
-                "form-action 'self'");
+            if (context.Request.Path.StartsWithSegments("/api"))
+            {
+                response.Headers.Append("Content-Security-Policy",
+                    "default-src 'none'; " +
+                    "script-src 'self'; " +
+                    "connect-src 'self' http://localhost:3000 http://localhost:3002 http://localhost:5076 ws://localhost:5076; " +
+                    "img-src 'self' data:; " +
+                    "style-src 'self' 'unsafe-inline'; " +
+                    "base-uri 'self'; " +
+                    "form-action 'self'");
+            }
+            else
+            {
+                response.Headers.Append("Content-Security-Policy",
+                    "default-src 'self'; " +
+                    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+                    "connect-src 'self' http://localhost:* ws://localhost:* https://cdn.jsdelivr.net; " +
+                    "img-src 'self' data: https:; " +
+                    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+                    "font-src 'self' data: https://cdn.jsdelivr.net; " +
+                    "base-uri 'self'; " +
+                    "form-action 'self'");
+            }
 
             response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
             response.Headers.Append("X-Content-Type-Options", "nosniff");

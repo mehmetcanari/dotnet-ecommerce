@@ -12,6 +12,28 @@ public class AuthController : Controller
     [HttpPost]
     public IActionResult Login(LoginViewModel model)
     {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public IActionResult Register(RegisterViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
         return View(model);
     }
 }
