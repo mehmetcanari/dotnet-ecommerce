@@ -537,7 +537,7 @@ internal static class Program
 
         if (app.Environment.IsDevelopment())
         {
-            Console.WriteLine("API Documentation available at the root URL (e.g., http://localhost:5076/swagger)");
+            Console.WriteLine("API Documentation available at the root URL (e.g., http://localhost:5076/)");
         }
 
         await app.RunAsync();

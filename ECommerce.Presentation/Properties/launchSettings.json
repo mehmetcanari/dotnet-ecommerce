@@ -1,12 +1,14 @@
 {
   "profiles": {
-    "ECommerce.Presentation": {
+    "ECommerce.API": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:5076/index.html;https://localhost:5076/index.html"
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5076;https://localhost:7233"
     }
-  }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json"
 }
