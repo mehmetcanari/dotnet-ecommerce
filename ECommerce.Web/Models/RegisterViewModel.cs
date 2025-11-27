@@ -19,6 +19,12 @@ public class RegisterViewModel
     [Display(Name = "Email")]
     public string Email { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "T.C. Kimlik No zorunludur.")]
+    [StringLength(11, MinimumLength = 11, ErrorMessage = "T.C. Kimlik No 11 haneli olmalidir.")]
+    [RegularExpression(@"^[0-9]{11}$", ErrorMessage = "T.C. Kimlik No sadece rakamlardan olusmalidir.")]
+    [Display(Name = "T.C. Kimlik No")]
+    public string IdentityNumber { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Sifre alani zorunludur.")]
     [StringLength(128, MinimumLength = 8, ErrorMessage = "Sifre en az 8 karakter olmalidir.")]
     [DataType(DataType.Password)]
@@ -50,7 +56,6 @@ public class RegisterViewModel
     [Display(Name = "KVKK Aydinlatma Metni Onayi")]
     public bool KvkkConsent { get; set; }
 
-    public string IdentityNumber { get; set; } = string.Empty;
     public string Country { get; set; } = "Türkiye";
     public string City { get; set; } = string.Empty;
     public string ZipCode { get; set; } = string.Empty;

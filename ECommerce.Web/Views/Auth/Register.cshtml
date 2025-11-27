@@ -39,6 +39,12 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label" asp-for="IdentityNumber">T.C. Kimlik No</label>
+                <input asp-for="IdentityNumber" class="form-control" placeholder="XXXXXXXXXXX" maxlength="11" />
+                <span asp-validation-for="IdentityNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label" asp-for="Password">Şifre</label>
                 <div class="password-toggle">
                     <input asp-for="Password" class="form-control" type="password" id="passwordInput" placeholder="••••••••" />

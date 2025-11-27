@@ -58,7 +58,7 @@
         background-color: #2d2d2d;
         border: 2px solid var(--border-gray);
         border-radius: 6px;
-        color: var(--text-dark);
+        color: #ffffff !important;
         font-size: 0.938rem;
         transition: all 0.2s ease;
     }
@@ -67,9 +67,22 @@
         outline: none;
         border-color: var(--accent-orange);
         background-color: #2d2d2d;
+        color: #ffffff !important;
     }
 
     .form-control::placeholder {
+        color: var(--text-gray);
+    }
+
+    .form-control::-webkit-input-placeholder {
+        color: var(--text-gray);
+    }
+
+    .form-control::-moz-placeholder {
+        color: var(--text-gray);
+    }
+
+    .form-control:-ms-input-placeholder {
         color: var(--text-gray);
     }
 
