@@ -1,62 +1,62 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ECommerce.Web.Models;
 
 public class RegisterViewModel
 {
-    [Required(ErrorMessage = "Ad alani zorunludur.")]
+    [Required(ErrorMessage = "Ad alanı zorunludur.")]
     [StringLength(50, MinimumLength = 2, ErrorMessage = "Ad 2-50 karakter arasinda olmalidir.")]
     [Display(Name = "Ad")]
     public string Name { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Soyad alani zorunludur.")]
+    [Required(ErrorMessage = "Soyad alanı zorunludur.")]
     [StringLength(50, MinimumLength = 2, ErrorMessage = "Soyad 2-50 karakter arasinda olmalidir.")]
     [Display(Name = "Soyad")]
     public string Surname { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Email alani zorunludur.")]
-    [EmailAddress(ErrorMessage = "Ge�erli bir email adresi giriniz.")]
+    [Required(ErrorMessage = "Email alanı zorunludur.")]
+    [EmailAddress(ErrorMessage = "Geçerli bir email adresi giriniz.")]
     [Display(Name = "Email")]
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "T.C. Kimlik No zorunludur.")]
-    [StringLength(11, MinimumLength = 11, ErrorMessage = "T.C. Kimlik No 11 haneli olmalidir.")]
-    [RegularExpression(@"^[0-9]{11}$", ErrorMessage = "T.C. Kimlik No sadece rakamlardan olusmalidir.")]
+    [StringLength(11, MinimumLength = 11, ErrorMessage = "T.C. Kimlik No 11 haneli olmalıdır.")]
+    [RegularExpression(@"^[0-9]{11}$", ErrorMessage = "T.C. Kimlik No sadece rakamlardan oluşmalıdır.")]
     [Display(Name = "T.C. Kimlik No")]
     public string IdentityNumber { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Sifre alani zorunludur.")]
-    [StringLength(128, MinimumLength = 8, ErrorMessage = "Sifre en az 8 karakter olmalidir.")]
+    [Required(ErrorMessage = "Şifre alani zorunludur.")]
+    [StringLength(128, MinimumLength = 8, ErrorMessage = "Şifre en az 8 karakter olmalıdır.")]
     [DataType(DataType.Password)]
-    [Display(Name = "Sifre")]
+    [Display(Name = "Şifre")]
     public string Password { get; set; } = string.Empty;
 
     [Display(Name = "Cinsiyet")]
     public string? Gender { get; set; }
 
-    [Required(ErrorMessage = "Telefon alani zorunludur.")]
-    [RegularExpression(@"^\d{10}$", ErrorMessage = "Telefon numarasi 10 haneli olmalidir.")]
+    [Required(ErrorMessage = "Telefon alanı zorunludur.")]
+    [RegularExpression(@"^\d{10}$", ErrorMessage = "Telefon numarası 10 haneli olmalıdır.")]
     [Display(Name = "Telefon")]
     public string Phone { get; set; } = string.Empty;
 
     [Display(Name = "Telefon Kodu")]
     public string PhoneCode { get; set; } = "90";
 
-    [Required(ErrorMessage = "Dogum tarihi zorunludur.")]
+    [Required(ErrorMessage = "Doğum tarihi zorunludur.")]
     [DataType(DataType.Date)]
-    [Display(Name = "Dogum Tarihi")]
+    [Display(Name = "Doğum Tarihi")]
     public DateTime? DateOfBirth { get; set; }
 
-    [Display(Name = "Elektronik Ticaret Iletisim Onayi")]
+    [Display(Name = "Elektronik Ticaret Iletişim Onayı")]
     public bool ElectronicConsent { get; set; }
 
-    [Display(Name = "�yelik S�zlesmesi Onayi")]
+    [Display(Name = "Üyelik Sözleşmesi Onayı")]
     public bool MembershipAgreement { get; set; }
 
-    [Display(Name = "KVKK Aydinlatma Metni Onayi")]
+    [Display(Name = "KVKK Aydınlatma Metni Onayı")]
     public bool KvkkConsent { get; set; }
 
-    public string Country { get; set; } = "T�rkiye";
+    public string Country { get; set; } = "Türkiye";
     public string City { get; set; } = string.Empty;
     public string ZipCode { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;

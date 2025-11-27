@@ -1,6 +1,8 @@
 ﻿using ECommerce.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
+namespace ECommerce.Web.Controllers;
+
 public class AuthController : Controller
 {
     [HttpGet]
@@ -28,6 +30,23 @@ public class AuthController : Controller
 
     [HttpPost]
     public IActionResult Register(RegisterViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid)
         {
