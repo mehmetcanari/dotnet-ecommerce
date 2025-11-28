@@ -1,4 +1,4 @@
-using ECommerce.Domain.Model;
+using ECommerce.Shared.Enum;
 
 namespace ECommerce.Application.Abstract;
 

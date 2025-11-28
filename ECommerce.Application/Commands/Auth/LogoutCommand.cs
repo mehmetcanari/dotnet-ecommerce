@@ -1,8 +1,8 @@
 ﻿using ECommerce.Application.Abstract;
 using ECommerce.Application.Commands.Token;
-using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.DTO.Request.Token;
 using ECommerce.Shared.Wrappers;
 using MediatR;
 

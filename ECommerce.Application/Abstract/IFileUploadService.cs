@@ -1,4 +1,4 @@
-using ECommerce.Application.DTO.Request.FileUpload;
+using ECommerce.Shared.DTO.Request.FileUpload;
 using ECommerce.Shared.Wrappers;
 
 namespace ECommerce.Application.Abstract;

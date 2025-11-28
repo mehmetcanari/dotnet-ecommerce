@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ECommerce.Shared.Enum;
 
 namespace ECommerce.Domain.Model
 {

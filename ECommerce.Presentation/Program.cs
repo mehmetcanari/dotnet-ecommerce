@@ -6,7 +6,6 @@ using DotNetEnv;
 using ECommerce.API.Configurations;
 using ECommerce.API.Extensions;
 using ECommerce.API.Middlewares;
-using ECommerce.API.SwaggerFilters;
 using ECommerce.Application.Services.Notification;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;

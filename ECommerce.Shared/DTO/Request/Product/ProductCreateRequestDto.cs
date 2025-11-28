@@ -1,0 +1,12 @@
+namespace ECommerce.Shared.DTO.Request.Product;
+
+public record ProductCreateRequestDto
+{
+    public required string Name { get; set; }
+    public required string Description { get; set; }
+    public required decimal Price { get; set; }
+    public required decimal DiscountRate { get; set; }
+    public string? ImageUrl { get; set; }
+    public required int StockQuantity { get; set; }
+    public required Guid CategoryId { get; set; }
+}

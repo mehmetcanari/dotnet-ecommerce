@@ -1,9 +1,9 @@
 using ECommerce.Application.Commands.Account;
 using ECommerce.Application.Commands.Token;
-using ECommerce.Application.DTO.Request.Account;
-using ECommerce.Application.DTO.Request.Token;
 using ECommerce.Application.Queries.Account;
 using ECommerce.Application.Utility;
+using ECommerce.Shared.DTO.Request.Account;
+using ECommerce.Shared.DTO.Request.Token;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

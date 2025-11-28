@@ -1,7 +1,7 @@
 using ECommerce.Application.Commands.Product;
-using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Queries.Product;
 using ECommerce.Application.Utility;
+using ECommerce.Shared.DTO.Request.Product;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

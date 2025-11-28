@@ -1,5 +1,5 @@
 using ECommerce.Application.Commands.Auth;
-using ECommerce.Application.DTO.Request.Account;
+using ECommerce.Shared.DTO.Request.Account;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

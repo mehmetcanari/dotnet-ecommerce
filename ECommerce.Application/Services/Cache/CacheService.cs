@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
+using ECommerce.Shared.Enum;
 
 namespace ECommerce.Application.Services.Cache;
 

@@ -1,9 +1,9 @@
 ﻿using ECommerce.Application.Abstract;
-using ECommerce.Application.DTO.Response.Category;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.DTO.Response.Category;
+using ECommerce.Shared.Enum;
 using ECommerce.Shared.Wrappers;
 using MediatR;
 

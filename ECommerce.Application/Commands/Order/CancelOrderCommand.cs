@@ -1,7 +1,7 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Enum;
 using ECommerce.Shared.Wrappers;
 using MediatR;
 

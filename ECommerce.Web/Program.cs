@@ -1,3 +1,5 @@
+using ECommerce.Web.Extensions;
+
 namespace ECommerce.Web;
 
 internal static class Program
@@ -6,6 +8,7 @@ internal static class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Services.AddHttpClientServices(builder.Configuration);
         builder.Services.AddControllersWithViews();
 
         builder.Services.AddHttpClient("ECommerceAPI", client =>

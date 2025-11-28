@@ -1,148 +1,64 @@
 ﻿using ECommerce.Web.Models;
+using ECommerce.Web.Services;
+using ECommerce.Web.Utility;
 using Microsoft.AspNetCore.Mvc;
-using System.Text;
-using System.Text.Json;
 
 namespace ECommerce.Web.Controllers;
 
-public class AuthController(IHttpClientFactory httpClientFactory) : Controller
+public class AuthController(AuthApiService authService) : Controller
 {
     [HttpGet]
-    public IActionResult Login()
-    {
-        return View();
-    }
+    public IActionResult Login() => View();
 
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
-        if (!ModelState.IsValid)
+        if (!ModelState.IsValid) return View(model);
+        var result = await authService.LoginAsync(model);
+
+        if (result is { IsSuccess: true, Data: not null })
         {
-            return View(model);
+            HttpContext.Session.SetString("AccessToken", result.Data.AccessToken);
+            HttpContext.Session.SetString("UserEmail", model.Email);
+
+            return RedirectToAction("Index", "Home");
         }
 
-        try
-        {
-            var client = httpClientFactory.CreateClient("ECommerceAPI");
+        var userMessage = ClientErrorMessageTranslator.GetUserFriendlyMessage(result.Message);
+        ModelState.AddModelError(string.Empty, userMessage);
 
-            var loginRequest = new
-            {
-                email = model.Email,
-                password = model.Password
-            };
-
-            var json = JsonSerializer.Serialize(loginRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await client.PostAsync("/api/authentication/login", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<AuthResponse>>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                if (result is { IsSuccess: true, Data.AccessToken: not null })
-                {
-                    HttpContext.Session.SetString("AccessToken", result.Data.AccessToken);
-                    HttpContext.Session.SetString("UserEmail", model.Email);
-
-                    return RedirectToAction("Index", "Home");
-                }
-                else
-                {
-                    var userFriendlyMessage = GetUserFriendlyErrorMessage(result?.Message);
-                    ModelState.AddModelError(string.Empty, userFriendlyMessage);
-                    return View(model);
-                }
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                var errorResult = JsonSerializer.Deserialize<ApiResponse<object>>(errorContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                var userFriendlyMessage = GetUserFriendlyErrorMessage(errorResult?.Message);
-                ModelState.AddModelError(string.Empty, userFriendlyMessage);
-                return View(model);
-            }
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError(string.Empty, "Bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
-            return View(model);
-        }
+        return View(model);
     }
 
     [HttpGet]
-    public IActionResult Register()
-    {
-        return View();
-    }
+    public IActionResult Register() => View();
 
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        if (!ModelState.IsValid)
+        if (!ModelState.IsValid) return View(model);
+        var result = await authService.RegisterAsync(model);
+
+        if (result.IsSuccess)
         {
-            return View(model);
+            TempData["SuccessMessage"] = "Kayıt başarılı! Giriş yapabilirsiniz.";
+            return RedirectToAction(nameof(Login));
         }
 
-        try
-        {
-            var client = httpClientFactory.CreateClient("ECommerceAPI");
+        var userMessage = ClientErrorMessageTranslator.GetUserFriendlyMessage(result.Message);
+        ModelState.AddModelError(string.Empty, userMessage);
 
-            var registerRequest = new
-            {
-                name = model.Name,
-                surname = model.Surname,
-                email = model.Email,
-                identityNumber = model.IdentityNumber,
-                password = model.Password,
-                phone = model.Phone,
-                phoneCode = model.PhoneCode,
-                dateOfBirth = model.DateOfBirth,
-                electronicConsent = model.ElectronicConsent,
-                membershipAgreement = model.MembershipAgreement,
-                kvkkConsent = model.PrivacyPolicyConsent,
-                country = model.Country,
-                city = model.City,
-                zipCode = model.ZipCode,
-                address = model.Address
-            };
+        return View(model);
+    }
 
-            var json = JsonSerializer.Serialize(registerRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+    [HttpPost]
+    public async Task<IActionResult> Logout()
+    {
+        await authService.LogoutAsync();
+        HttpContext.Session.Clear();
 
-            var response = await client.PostAsync("/api/authentication/register", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                TempData["SuccessMessage"] = "Kayıt başarılı! Giriş yapabilirsiniz.";
-                return RedirectToAction(nameof(Login));
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                var errorResult = JsonSerializer.Deserialize<ApiResponse<object>>(errorContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                var userFriendlyMessage = GetUserFriendlyErrorMessage(errorResult?.Message);
-                ModelState.AddModelError(string.Empty, userFriendlyMessage);
-                return View(model);
-            }
-        }
-        catch (Exception)
-        {
-            ModelState.AddModelError(string.Empty, "Bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
-            return View(model);
-        }
+        TempData["SuccessMessage"] = "Başarıyla çıkış yaptınız.";
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
@@ -152,81 +68,24 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
     }
 
     [HttpPost]
-    public IActionResult ForgotPassword(ForgotPasswordViewModel model)
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
+        var result = await authService.ForgotPasswordAsync(model);
+
+        if (result.IsSuccess)
+        {
+            TempData["SuccessMessage"] = "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        var userMessage = ClientErrorMessageTranslator.GetUserFriendlyMessage(result.Message);
+        ModelState.AddModelError(string.Empty, userMessage);
+
         return View(model);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Logout()
-    {
-        try
-        {
-            var accessToken = HttpContext.Session.GetString("AccessToken");
-
-            if (!string.IsNullOrEmpty(accessToken))
-            {
-                var client = httpClientFactory.CreateClient("ECommerceAPI");
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-
-                await client.PostAsync("/api/Authentication/logout", null);
-            }
-        }
-        catch { }
-        finally
-        {
-            HttpContext.Session.Clear();
-        }
-
-        TempData["SuccessMessage"] = "Başarıyla çıkış yaptınız.";
-        return RedirectToAction("Index", "Home");
-    }
-
-    private static string GetUserFriendlyErrorMessage(string? apiErrorMessage)
-    {
-        if (string.IsNullOrEmpty(apiErrorMessage))
-            return "İşlem başarısız oldu. Lütfen tekrar deneyiniz.";
-
-        return apiErrorMessage switch
-        {
-            "authentication.invalid.credentials" => "E-posta veya şifre hatalı.",
-            "authentication.error.logging.in" => "Giriş yapılırken bir hata oluştu.",
-            "authentication.account.not.authorized" => "Bu hesap yetkili değil.",
-            "authentication.error.validating.login" => "Giriş bilgileri doğrulanamadı.",
-            "account.not.found" => "Kullanıcı bulunamadı.",
-            "account.email.not.found" => "E-posta adresi bulunamadı.",
-            "account.banned" => "Bu hesap engellenmiştir.",
-            "account.invalid.email.or.password" => "E-posta veya şifre hatalı.",
-            "account.email.already.in.use" => "Bu e-posta adresi zaten kullanılıyor.",
-            "account.identity.number.already.exists" => "Bu T.C. kimlik numarası zaten kayıtlı.",
-            "account.creation.failed" => "Hesap oluşturulamadı.",
-            "account.deleted" => "Bu hesap silinmiştir.",
-            "account.identity.user.not.found" => "Kullanıcı bulunamadı.",
-            "authentication.error.generating.tokens" => "Oturum oluşturulamadı.",
-            "authentication.failed.to.generate.access.token" => "Giriş işlemi tamamlanamadı.",
-
-            _ when apiErrorMessage.Contains("invalid", StringComparison.OrdinalIgnoreCase) => "Geçersiz bilgi girdiniz.",
-            _ when apiErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase) => "Bilgi bulunamadı.",
-            _ when apiErrorMessage.Contains("already exists", StringComparison.OrdinalIgnoreCase) => "Bu bilgi zaten kayıtlı.",
-            _ when apiErrorMessage.Contains("unauthorized", StringComparison.OrdinalIgnoreCase) => "Bu işlem için yetkiniz yok.",
-            _ => "İşlem başarısız oldu. Lütfen tekrar deneyiniz."
-        };
-    }
-
-    private class ApiResponse<T>
-    {
-        public bool IsSuccess { get; set; }
-        public T? Data { get; set; }
-        public string? Message { get; set; }
-    }
-
-    private class AuthResponse
-    {
-        public string AccessToken { get; set; } = string.Empty;
     }
 }

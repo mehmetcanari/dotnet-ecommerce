@@ -1,6 +1,6 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.DTO.Response.Product;
 using ECommerce.Shared.Wrappers;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using MediatR;

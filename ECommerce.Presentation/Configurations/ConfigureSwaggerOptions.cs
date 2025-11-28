@@ -1,4 +1,5 @@
 using Asp.Versioning.ApiExplorer;
+using ECommerce.Application.Abstract;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -6,22 +7,13 @@ using System.Reflection;
 
 namespace ECommerce.API.Configurations
 {
-    public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
+    public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider, ILogService logger) : IConfigureOptions<SwaggerGenOptions>
     {
-        private readonly IApiVersionDescriptionProvider _provider;
-        private readonly ILogger<ConfigureSwaggerOptions> _logger;
-
-        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider, ILogger<ConfigureSwaggerOptions> logger)
-        {
-            _provider = provider;
-            _logger = logger;
-        }
-
         public void Configure(SwaggerGenOptions options)
         {
-            _logger.LogDebug("Discovered API versions: {ApiVersions}", string.Join(", ", _provider.ApiVersionDescriptions.Select(d => d.ApiVersion)));
+            logger.LogInformation("Discovered API versions: {ApiVersions}", string.Join(", ", provider.ApiVersionDescriptions.Select(d => d.ApiVersion)));
 
-            foreach (var description in _provider.ApiVersionDescriptions)
+            foreach (var description in provider.ApiVersionDescriptions)
             {
                 options.SwaggerDoc(description.GroupName, CreateVersionInfo(description));
             }
@@ -55,17 +47,11 @@ namespace ECommerce.API.Configurations
                             Type = ReferenceType.SecurityScheme,
                             Id = "Bearer"
                         }
-                    },
-                    new string[] { }
+                    }, []
                 }
             });
         }
 
-        /// <summary>
-        /// Creates an OpenApiInfo object for the specified API version.
-        /// </summary>
-        /// <param name="description">API version description.</param>
-        /// <returns>OpenApiInfo object.</returns>
         private static OpenApiInfo CreateVersionInfo(ApiVersionDescription description)
         {
             var info = new OpenApiInfo()

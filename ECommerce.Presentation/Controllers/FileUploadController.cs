@@ -1,5 +1,5 @@
 ﻿using ECommerce.Application.Abstract;
-using ECommerce.Application.DTO.Request.FileUpload;
+using ECommerce.Shared.DTO.Request.FileUpload;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

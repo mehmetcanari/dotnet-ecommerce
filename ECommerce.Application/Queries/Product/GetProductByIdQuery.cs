@@ -1,7 +1,7 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Application.DTO.Response.Product;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.DTO.Response.Product;
 using ECommerce.Shared.Wrappers;
 using MediatR;
 

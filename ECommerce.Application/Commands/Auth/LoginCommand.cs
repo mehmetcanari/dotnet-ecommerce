@@ -1,10 +1,10 @@
 ﻿using ECommerce.Application.Abstract;
 using ECommerce.Application.Commands.Token;
-using ECommerce.Application.DTO.Request.Account;
-using ECommerce.Application.DTO.Response.Auth;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.DTO.Request.Account;
+using ECommerce.Shared.DTO.Response.Auth;
 using ECommerce.Shared.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Identity;

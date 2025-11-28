@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Application.DTO.Response.BasketItem;
-using ECommerce.Application.DTO.Response.Order;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.DTO.Response.BasketItem;
+using ECommerce.Shared.DTO.Response.Order;
 using ECommerce.Shared.Wrappers;
 using MediatR;
 

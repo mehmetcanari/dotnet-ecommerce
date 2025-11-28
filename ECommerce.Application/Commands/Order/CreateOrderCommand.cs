@@ -1,9 +1,9 @@
 ﻿using ECommerce.Application.Abstract;
 using ECommerce.Application.Commands.Product;
-using ECommerce.Application.DTO.Request.Order;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.DTO.Request.Order;
 using ECommerce.Shared.Wrappers;
 using MediatR;
 using OrderEntity = ECommerce.Domain.Model.Order;
@@ -98,12 +98,12 @@ public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasket
 
     private PaymentCard CreatePaymentCard(CreateOrderRequestDto request) => new()
     {
-        CardHolderName = request.PaymentCard.CardHolderName,
-        CardNumber = request.PaymentCard.CardNumber,
-        ExpirationMonth = request.PaymentCard.ExpirationMonth,
-        ExpirationYear = request.PaymentCard.ExpirationYear,
-        Cvc = request.PaymentCard.Cvc,
-        RegisterCard = request.PaymentCard.RegisterCard
+        CardHolderName = request.CardHolderName,
+        CardNumber = request.CardNumber,
+        ExpirationMonth = request.ExpirationMonth,
+        ExpirationYear = request.ExpirationYear,
+        Cvc = request.Cvc,
+        RegisterCard = request.RegisterCard
     };
 
     private OrderEntity CreateOrder(string userId, string address, List<BasketItem> basketItems) => new()

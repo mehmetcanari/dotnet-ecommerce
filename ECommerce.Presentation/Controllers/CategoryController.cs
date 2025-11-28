@@ -1,7 +1,7 @@
 using ECommerce.Application.Commands.Category;
-using ECommerce.Application.DTO.Request.Category;
 using ECommerce.Application.Queries.Category;
 using ECommerce.Application.Utility;
+using ECommerce.Shared.DTO.Request.Category;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,6 @@
 ﻿using ECommerce.Application.Commands.Basket;
-using ECommerce.Application.DTO.Request.BasketItem;
 using ECommerce.Application.Queries.Basket;
+using ECommerce.Shared.DTO.Request.BasketItem;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
