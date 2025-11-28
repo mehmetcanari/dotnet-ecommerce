@@ -1,3 +1,5 @@
+namespace ECommerce.Web;
+
 internal static class Program
 {
     private static void Main(string[] args)
@@ -5,6 +7,20 @@ internal static class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddControllersWithViews();
+
+        builder.Services.AddHttpClient("ECommerceAPI", client =>
+        {
+            var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5076";
+            client.BaseAddress = new Uri(apiBaseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
+
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
 
         var app = builder.Build();
 
@@ -19,6 +35,7 @@ internal static class Program
 
         app.UseRouting();
 
+        app.UseSession();
         app.UseAuthorization();
 
         app.MapControllerRoute(
@@ -28,4 +45,3 @@ internal static class Program
         app.Run();
     }
 }
-

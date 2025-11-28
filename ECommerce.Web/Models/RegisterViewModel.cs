@@ -31,14 +31,13 @@ public class RegisterViewModel
     [Display(Name = "Şifre")]
     public string Password { get; set; } = string.Empty;
 
-    [Display(Name = "Cinsiyet")]
-    public string? Gender { get; set; }
-
     [Required(ErrorMessage = "Telefon alanı zorunludur.")]
     [RegularExpression(@"^\d{10}$", ErrorMessage = "Telefon numarası 10 haneli olmalıdır.")]
     [Display(Name = "Telefon")]
     public string Phone { get; set; } = string.Empty;
 
+
+    [Required(ErrorMessage = "Telefon kodu zorunludur.")]
     [Display(Name = "Telefon Kodu")]
     public string PhoneCode { get; set; } = "90";
 
@@ -50,11 +49,12 @@ public class RegisterViewModel
     [Display(Name = "Elektronik Ticaret Iletişim Onayı")]
     public bool ElectronicConsent { get; set; }
 
+    [Display(Name = "KVKK Aydınlatma Metni Onayı")]
+    public bool PrivacyPolicyConsent { get; set; }
+
+    [Required(ErrorMessage = "Üyelik sözleşmesinin onaylanması zorunludur.")]
     [Display(Name = "Üyelik Sözleşmesi Onayı")]
     public bool MembershipAgreement { get; set; }
-
-    [Display(Name = "KVKK Aydınlatma Metni Onayı")]
-    public bool KvkkConsent { get; set; }
 
     public string Country { get; set; } = "Türkiye";
     public string City { get; set; } = string.Empty;

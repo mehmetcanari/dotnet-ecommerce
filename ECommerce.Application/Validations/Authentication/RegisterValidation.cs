@@ -16,14 +16,6 @@ public class RegisterValidation : AbstractValidator<RegisterCommand>
 
         RuleFor(x => x.Model.IdentityNumber).NotEmpty().Length(11).Matches("^[0-9]+$").Must(IsValidTurkishIdentity);
 
-        RuleFor(x => x.Model.Country).NotEmpty().Length(2, 50);
-
-        RuleFor(x => x.Model.City).NotEmpty().Length(2, 50);
-
-        RuleFor(x => x.Model.ZipCode).NotEmpty().Length(5, 10).Matches(@"^[0-9a-zA-Z\-\s]+$");
-
-        RuleFor(x => x.Model.Address).NotEmpty().Length(5, 200);
-
         RuleFor(x => x.Model.Phone).NotEmpty().Matches(@"^\d{10}$");
 
         RuleFor(x => x.Model.PhoneCode).NotEmpty().Matches(@"^\d{1,3}$");

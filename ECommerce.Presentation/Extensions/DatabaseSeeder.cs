@@ -72,6 +72,9 @@ public static class DatabaseSeeder
                 Country = "Default",
                 ZipCode = "00000",
                 Address = "Default",
+                MembershipAgreement = true,
+                ElectronicConsent = true,
+                PrivacyPolicyConsent = true,
                 DateOfBirth = DateTime.UtcNow.AddYears(-30)
             };
 

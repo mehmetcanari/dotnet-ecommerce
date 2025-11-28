@@ -45,6 +45,9 @@ public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, 
                 Country = request.Model.Country,
                 ZipCode = request.Model.ZipCode,
                 Address = request.Model.Address,
+                MembershipAgreement = request.Model.MembershipAgreement,
+                PrivacyPolicyConsent = request.Model.PrivacyPolicyConsent,
+                ElectronicConsent = request.Model.ElectronicConsent,
                 DateOfBirth = request.Model.DateOfBirth.ToUniversalTime()
             };
 
