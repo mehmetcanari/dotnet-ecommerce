@@ -45,4 +45,4 @@ public class AccountController(IMediator mediator) : ApiBaseController
     [Authorize("Admin")]
     [HttpPost("unrestrict")]
     public async Task<IActionResult> UnbanAccount([FromBody] AccountUnbanRequestDto request) => HandleResult(await mediator.Send(new UnbanAccountCommand(request)));
-} 
+}

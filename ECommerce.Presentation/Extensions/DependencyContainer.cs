@@ -17,10 +17,10 @@ public class DependencyContainer(WebApplicationBuilder builder) : IDependencyCon
         var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
         var rabbitMqConnection = Environment.GetEnvironmentVariable("RABBITMQ_CONNECTION");
 
-        if(string.IsNullOrEmpty(redisConnectionString))
+        if (string.IsNullOrEmpty(redisConnectionString))
             throw new InvalidOperationException(ErrorMessages.CacheConnectionStringNotConfigured);
 
-        if(string.IsNullOrEmpty(rabbitMqConnection))
+        if (string.IsNullOrEmpty(rabbitMqConnection))
             throw new InvalidOperationException(ErrorMessages.QueueConnectionStringNotConfigured);
 
         builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString));

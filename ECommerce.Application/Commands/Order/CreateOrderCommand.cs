@@ -1,10 +1,10 @@
 ﻿using ECommerce.Application.Abstract;
 using ECommerce.Application.Commands.Product;
 using ECommerce.Application.DTO.Request.Order;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 using OrderEntity = ECommerce.Domain.Model.Order;
 
@@ -15,7 +15,7 @@ public class CreateOrderCommand(CreateOrderRequestDto request) : IRequest<Result
     public readonly CreateOrderRequestDto Model = request;
 }
 
-public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasketItemRepository basketItemRepository, IStoreUnitOfWork unitOfWork, IMediator mediator, IUserRepository userRepository, 
+public class CreateOrderCommandHandler(IOrderRepository orderRepository, IBasketItemRepository basketItemRepository, IStoreUnitOfWork unitOfWork, IMediator mediator, IUserRepository userRepository,
     ILogService logger, IPaymentService paymentService, ICurrentUserService currentUserService, ICacheService cache, ILockProvider lockProvider) : IRequestHandler<CreateOrderCommand, Result>
 {
     public async Task<Result> Handle(CreateOrderCommand request, CancellationToken cancellationToken)

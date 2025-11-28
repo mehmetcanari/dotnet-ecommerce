@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Order;
@@ -12,7 +12,7 @@ public class CancelOrderCommand(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILogService logger, IOrderRepository orderRepository, IUnitOfWork unitOfWork, 
+public class CancelOrderCommandHandler(ICurrentUserService currentUserService, ILogService logger, IOrderRepository orderRepository, IUnitOfWork unitOfWork,
     ICacheService cache, ILockProvider lockProvider) : IRequestHandler<CancelOrderCommand, Result>
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
@@ -20,7 +20,7 @@ public class CancelOrderCommandHandler(ICurrentUserService currentUserService, I
         try
         {
             var userId = currentUserService.GetUserId();
-            if(string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userId))
                 return Result.Failure(ErrorMessages.UnauthorizedAction);
 
             var pendingOrder = await orderRepository.GetPendingOrderById(Guid.Parse(userId), request.Id, cancellationToken);

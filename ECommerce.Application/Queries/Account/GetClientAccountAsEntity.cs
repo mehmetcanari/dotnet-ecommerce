@@ -1,13 +1,13 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Account;
 
-public class GetClientAccountAsEntityQuery : IRequest<Result<User>>{}
+public class GetClientAccountAsEntityQuery : IRequest<Result<User>> { }
 
 public class GetClientAccountAsEntityQueryHandler(IUserRepository userRepository, ILogService logger, ICurrentUserService currentUserService) : IRequestHandler<GetClientAccountAsEntityQuery, Result<User>>
 {

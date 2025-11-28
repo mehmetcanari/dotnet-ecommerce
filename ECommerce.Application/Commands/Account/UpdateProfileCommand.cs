@@ -1,10 +1,10 @@
 ﻿using ECommerce.Application.Abstract;
 using ECommerce.Application.Commands.Auth;
 using ECommerce.Application.DTO.Request.Account;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -15,7 +15,7 @@ public class UpdateProfileCommand(AccountUpdateRequestDto request) : IRequest<Re
     public readonly AccountUpdateRequestDto Model = request;
 }
 
-public class UpdateAccountCommandHandler(ICurrentUserService currentUserService, IUserRepository userRepository, UserManager<User> userManager, ICrossContextUnitOfWork unitOfWork, 
+public class UpdateAccountCommandHandler(ICurrentUserService currentUserService, IUserRepository userRepository, UserManager<User> userManager, ICrossContextUnitOfWork unitOfWork,
     ILogService logService, IMediator mediator) : IRequestHandler<UpdateProfileCommand, Result>
 {
     public async Task<Result> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)

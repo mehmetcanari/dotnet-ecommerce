@@ -1,6 +1,7 @@
 using ECommerce.Domain.Model;
 
 namespace ECommerce.Domain.Abstract.Repository;
+
 public interface IUserRepository
 {
     Task CreateAsync(User userAccount, CancellationToken cancellationToken = default);

@@ -1,4 +1,4 @@
-namespace ECommerce.Application.Utility;
+namespace ECommerce.Shared.Wrappers;
 
 public class Result<T>
 {

@@ -215,13 +215,13 @@ internal static class Program
             options.AddPolicy("User", policy =>
             {
                 policy.RequireAuthenticatedUser();
-                policy.RequireRole("User", "Admin"); 
+                policy.RequireRole("User", "Admin");
             });
 
             options.AddPolicy("Admin", policy =>
             {
                 policy.RequireAuthenticatedUser();
-                policy.RequireRole("Admin"); 
+                policy.RequireRole("Admin");
             });
         });
 
@@ -251,8 +251,8 @@ internal static class Program
 
             configuration
                 .MinimumLevel.Is(env.IsDevelopment()
-                    ? LogEventLevel.Debug     
-                    : LogEventLevel.Information) 
+                    ? LogEventLevel.Debug
+                    : LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .MinimumLevel.Override("System", LogEventLevel.Warning)

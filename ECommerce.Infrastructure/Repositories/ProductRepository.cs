@@ -21,7 +21,7 @@ public sealed class ProductRepository : IProductRepository
         var indexKeys = Builders<Product>.IndexKeys
             .Ascending(p => p.Name)
             .Ascending(p => p.CategoryId);
-        
+
         var categoryIndexKeys = Builders<Product>.IndexKeys.Ascending(p => p.CategoryId);
         var nameIndexKeys = Builders<Product>.IndexKeys.Ascending(p => p.Name);
         var stockIndexKeys = Builders<Product>.IndexKeys.Ascending(p => p.StockQuantity);
@@ -42,7 +42,7 @@ public sealed class ProductRepository : IProductRepository
                 Limit = pageSize,
                 Sort = Builders<Product>.Sort.Descending(p => p.CreatedOn)
             };
-            
+
             var cursor = await _products.FindAsync(_ => true, options, cancellationToken);
             return await cursor.ToListAsync(cancellationToken);
         }
@@ -51,7 +51,7 @@ public sealed class ProductRepository : IProductRepository
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
+
     public async Task<Product?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         try
@@ -64,7 +64,7 @@ public sealed class ProductRepository : IProductRepository
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
+
     public async Task<bool> CheckExistsWithName(string name, CancellationToken cancellationToken = default)
     {
         try
@@ -81,7 +81,7 @@ public sealed class ProductRepository : IProductRepository
     public async Task Create(Product product, CancellationToken cancellationToken = default)
     {
         try
-        {            
+        {
             await _products.InsertOneAsync(product, new InsertOneOptions(), cancellationToken);
         }
         catch (Exception exception)

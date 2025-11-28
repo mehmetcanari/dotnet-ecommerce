@@ -1,5 +1,5 @@
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Model;
+using ECommerce.Shared.Wrappers;
 
 namespace ECommerce.Application.Abstract;
 

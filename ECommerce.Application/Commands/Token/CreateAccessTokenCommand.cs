@@ -1,12 +1,12 @@
-﻿using ECommerce.Application.Utility;
+﻿using ECommerce.Application.Abstract;
 using ECommerce.Domain.Model;
+using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using ECommerce.Shared.Constants;
-using ECommerce.Application.Abstract;
 
 namespace ECommerce.Application.Commands.Token
 {

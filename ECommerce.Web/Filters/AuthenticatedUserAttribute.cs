@@ -19,7 +19,7 @@ public class AuthenticatedUserAttribute : ActionFilterAttribute
 
         if (IsTokenExpired(accessToken))
         {
-            httpContext.Session.Clear(); 
+            httpContext.Session.Clear();
             RedirectToLogin(context);
             return;
         }
@@ -36,7 +36,7 @@ public class AuthenticatedUserAttribute : ActionFilterAttribute
 
             var expClaim = jwt.Claims.FirstOrDefault(c => c.Type == "exp");
             if (expClaim == null)
-                return true; 
+                return true;
 
             var expUnix = long.Parse(expClaim.Value);
             var expTime = DateTimeOffset.FromUnixTimeSeconds(expUnix);

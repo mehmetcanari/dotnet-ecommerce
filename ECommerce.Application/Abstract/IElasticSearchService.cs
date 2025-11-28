@@ -1,5 +1,5 @@
 using Elastic.Clients.Elasticsearch;
-using Result = ECommerce.Application.Utility.Result;
+using Result = ECommerce.Shared.Wrappers.Result;
 
 namespace ECommerce.Application.Abstract;
 

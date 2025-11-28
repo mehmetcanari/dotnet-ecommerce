@@ -1,7 +1,7 @@
 using Asp.Versioning.ApiExplorer;
 using Microsoft.Extensions.Options;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 
 namespace ECommerce.API.Configurations

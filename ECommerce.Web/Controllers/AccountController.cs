@@ -1,9 +1,11 @@
-﻿using ECommerce.Web.Filters;
+﻿using ECommerce.Shared.Wrappers;
+using ECommerce.Web.Filters;
 using ECommerce.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+
 
 namespace ECommerce.Web.Controllers;
 
@@ -31,8 +33,8 @@ public class AccountController(IHttpClientFactory httpClientFactory) : Controlle
             {
                 var responseBytes = await response.Content.ReadAsByteArrayAsync();
                 var responseContent = Encoding.UTF8.GetString(responseBytes);
-                
-                var result = JsonSerializer.Deserialize<ApiResponse<ProfileViewModel>>(responseContent, new JsonSerializerOptions
+
+                var result = JsonSerializer.Deserialize<Result<ProfileViewModel>>(responseContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
@@ -70,12 +72,5 @@ public class AccountController(IHttpClientFactory httpClientFactory) : Controlle
             TempData["ErrorMessage"] = "Bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.";
             return RedirectToAction("Index", "Home");
         }
-    }
-
-    private class ApiResponse<T>
-    {
-        public bool IsSuccess { get; set; }
-        public T? Data { get; set; }
-        public string? Message { get; set; }
     }
 }

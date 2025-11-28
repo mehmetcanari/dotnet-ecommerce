@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.Account;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +15,8 @@ public class RegisterCommand(AccountRegisterRequestDto request) : IRequest<Resul
     public readonly AccountRegisterRequestDto Model = request;
 }
 
-public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IUserRepository userRepository, 
-    ICrossContextUnitOfWork unitOfWork, ILogService logService)  : IRequestHandler<RegisterCommand, Result>
+public class RegisterCommandHandler(UserManager<Domain.Model.User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IUserRepository userRepository,
+    ICrossContextUnitOfWork unitOfWork, ILogService logService) : IRequestHandler<RegisterCommand, Result>
 {
     private const string Role = "User";
     public async Task<Result> Handle(RegisterCommand request, CancellationToken cancellationToken)

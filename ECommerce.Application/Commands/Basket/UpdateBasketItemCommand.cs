@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.BasketItem;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
@@ -12,7 +12,7 @@ public class UpdateBasketItemCommand(UpdateBasketItemRequestDto request) : IRequ
     public readonly UpdateBasketItemRequestDto Model = request;
 }
 
-public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, 
+public class UpdateBasketItemCommandHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger,
     IProductRepository productRepository, IUnitOfWork unitOfWork, ICacheService cache, ILockProvider lockProvider) : IRequestHandler<UpdateBasketItemCommand, Result>
 {
     private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";

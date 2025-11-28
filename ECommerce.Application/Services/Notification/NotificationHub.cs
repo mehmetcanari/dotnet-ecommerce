@@ -22,7 +22,7 @@ public class NotificationHub(ICurrentUserService currentUserService) : Hub
         {
             _connections[userId] = Context.ConnectionId;
         }
-        
+
         await base.OnConnectedAsync();
     }
 
@@ -33,7 +33,7 @@ public class NotificationHub(ICurrentUserService currentUserService) : Hub
         {
             _connections.Remove(userId);
         }
-        
+
         await base.OnDisconnectedAsync(exception);
     }
-} 
+}

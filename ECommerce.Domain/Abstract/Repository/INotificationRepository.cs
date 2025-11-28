@@ -1,6 +1,7 @@
 using ECommerce.Domain.Model;
 
 namespace ECommerce.Domain.Abstract.Repository;
+
 public interface INotificationRepository
 {
     Task CreateAsync(Notification notification, CancellationToken cancellationToken = default);

@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -28,8 +28,8 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
-    public async Task<Order?> GetPendingOrderById(Guid accountId, Guid orderId,CancellationToken cancellationToken = default)
+
+    public async Task<Order?> GetPendingOrderById(Guid accountId, Guid orderId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -47,7 +47,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
+
     public async Task<Order?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         try
@@ -66,7 +66,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
         }
     }
 
-    public async Task<Order?> GetByUserId(Guid userId, Guid orderId,CancellationToken cancellationToken = default)
+    public async Task<Order?> GetByUserId(Guid userId, Guid orderId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -82,7 +82,7 @@ public class OrderRepository(StoreDbContext context) : IOrderRepository
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
+
     public async Task<List<Order>> GetPurchasedOrders(Guid userId, CancellationToken cancellationToken = default)
     {
         try

@@ -1,10 +1,11 @@
+using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Product;
-using MediatR;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Shared.Constants;
-using ECommerce.Application.Abstract;
 using ECommerce.Domain.Model;
+using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
+using MediatR;
 
 namespace ECommerce.Application.Queries.Product;
 
@@ -42,7 +43,7 @@ public class GetAllProductsQueryHandler(IProductRepository productRepository, IC
             }).ToList();
 
             await cache.SetAsync(CacheKeys.Products, response, CacheExpirationType.Sliding, _expiration, cancellationToken);
-            
+
             return Result<List<ProductResponseDto>>.Success(response);
         }
         catch (Exception ex)

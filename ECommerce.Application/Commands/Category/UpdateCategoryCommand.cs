@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.Category;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Category;
@@ -23,7 +23,7 @@ public class UpdateCategoryCommandHandler(ICategoryRepository categoryRepository
                 return Result.Failure(ErrorMessages.CategoryExists);
 
             var category = await categoryRepository.GetById(request.Model.Id, cancellationToken);
-            if(category is null)
+            if (category is null)
                 return Result.Failure(ErrorMessages.CategoryNotFound);
 
             category.Name = request.Model.Name;

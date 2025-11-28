@@ -10,7 +10,7 @@ public static class EnvConfig
 
         DotEnv.Fluent()
             .WithEnvFiles(envPath)
-            .WithOverwriteExistingVars() 
+            .WithOverwriteExistingVars()
             .Load();
     }
 }

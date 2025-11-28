@@ -4,6 +4,7 @@ using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -21,7 +22,7 @@ namespace ECommerce.Application.Commands.Token
         public readonly IList<string> Roles = roles;
     }
 
-    public class CreateRefreshTokenCommandHandler(ILogService logService, IRefreshTokenRepository refreshTokenRepository, IUnitOfWork unitOfWork, IMediator mediator, IHttpContextAccessor contextAccessor) 
+    public class CreateRefreshTokenCommandHandler(ILogService logService, IRefreshTokenRepository refreshTokenRepository, IUnitOfWork unitOfWork, IMediator mediator, IHttpContextAccessor contextAccessor)
         : IRequestHandler<CreateRefreshTokenCommand, Result<RefreshToken>>
     {
         private const string Reason = "Generating new refresh token";
@@ -33,17 +34,17 @@ namespace ECommerce.Application.Commands.Token
                 return Result<RefreshToken>.Failure(tokenResult.Message ?? ErrorMessages.FailedToGenerateRefreshToken);
 
             var refreshToken = tokenResult.Data;
-            if(refreshToken is null)
+            if (refreshToken is null)
                 return Result<RefreshToken>.Failure(ErrorMessages.FailedToGenerateRefreshToken);
 
             return Result<RefreshToken>.Success(refreshToken);
         }
 
-        private async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(Guid userId, string email, IList<string> roles, CancellationToken cancellationToken) 
+        private async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(Guid userId, string email, IList<string> roles, CancellationToken cancellationToken)
         {
             try
             {
-                var request = new TokenRevokeRequestDto { Email = email, Reason = Reason};
+                var request = new TokenRevokeRequestDto { Email = email, Reason = Reason };
                 await mediator.Send(new RevokeRefreshTokenCommand(request), cancellationToken);
 
                 byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);

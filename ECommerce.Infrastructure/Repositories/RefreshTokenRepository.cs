@@ -19,7 +19,7 @@ public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepos
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
+
     public async Task<RefreshToken?> GetActive(string email, CancellationToken cancellationToken = default)
     {
         try
@@ -30,7 +30,7 @@ public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepos
                 .AsNoTracking()
                 .Where(rt => rt.Email == email && rt.ExpiresAt > DateTime.UtcNow && rt.RevokedAt == null)
                 .FirstOrDefaultAsync(cancellationToken);
-            
+
             return refreshToken;
         }
         catch (Exception exception)

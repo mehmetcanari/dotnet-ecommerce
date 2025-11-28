@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ECommerce.Domain.Model
 {
     public class Order : BaseEntity
-    {   
+    {
         public required Guid UserId { get; init; }
         public ICollection<BasketItem> BasketItems { get; init; } = new List<BasketItem>();
         public decimal TotalPrice => BasketItems.Sum(oi => oi.TotalPrice);

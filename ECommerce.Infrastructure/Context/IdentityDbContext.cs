@@ -11,7 +11,7 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        
+
         builder.Entity<User>().ToTable("Users", "Identity");
         builder.Entity<IdentityRole>().ToTable("Roles", "Identity");
         builder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles", "Identity");
@@ -27,7 +27,7 @@ public class ApplicationIdentityDbContextFactory : IDesignTimeDbContextFactory<I
     public IdentityDbContext CreateDbContext(string[] args)
     {
         EnvConfig.LoadEnv();
-        
+
         var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
         if (string.IsNullOrEmpty(connectionString))
         {

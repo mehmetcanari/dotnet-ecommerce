@@ -1,5 +1,5 @@
-using FluentValidation;
 using ECommerce.Application.Commands.Auth;
+using FluentValidation;
 
 namespace ECommerce.Application.Validations.Authentication;
 

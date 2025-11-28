@@ -2,10 +2,10 @@
 using ECommerce.Application.Commands.Token;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Response.Auth;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -23,7 +23,7 @@ namespace ECommerce.Application.Commands.Auth
             try
             {
                 var verifyResult = await VerifyCredentialsAsync(request.Model.Email, request.Model.Password);
-                if(verifyResult is { IsFailure: true })
+                if (verifyResult is { IsFailure: true })
                     return Result<AuthResponseDto>.Failure(ErrorMessages.InvalidCredentials);
 
                 var user = verifyResult.Data;
@@ -84,11 +84,11 @@ namespace ECommerce.Application.Commands.Auth
             try
             {
                 var accessTokenResult = await mediator.Send(new CreateAccessTokenCommand(userId, email, roles));
-                if(accessTokenResult is { IsFailure: true })
+                if (accessTokenResult is { IsFailure: true })
                     return Result<AuthResponseDto>.Failure(ErrorMessages.FailedToGenerateAccessToken);
 
                 var refreshTokenResult = await mediator.Send(new CreateRefreshTokenCommand(userId, email, roles));
-                if(refreshTokenResult is { IsFailure: true })
+                if (refreshTokenResult is { IsFailure: true })
                     return Result<AuthResponseDto>.Failure(ErrorMessages.FailedToGenerateRefreshToken);
 
                 if (accessTokenResult.Data is null)

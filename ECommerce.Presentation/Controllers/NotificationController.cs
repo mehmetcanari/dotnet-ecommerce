@@ -33,14 +33,14 @@ public class NotificationController(INotificationService notificationService, IC
     {
         try
         {
-            var userId = currentUserService.GetUserId();            
+            var userId = currentUserService.GetUserId();
             var isConnected = NotificationHub.IsUserConnected(userId);
             var connectionId = NotificationHub.GetUserConnectionId(userId);
             var totalConnections = NotificationHub.GetTotalConnections();
 
-            return Ok(new 
-            { 
-                message = "Hub status retrieved successfully", 
+            return Ok(new
+            {
+                message = "Hub status retrieved successfully",
                 data = new
                 {
                     hubConnected = isConnected,
@@ -55,4 +55,4 @@ public class NotificationController(INotificationService notificationService, IC
             return BadRequest(new { message = $"Error checking hub status: {ex.Message}", hubConnected = false });
         }
     }
-} 
+}

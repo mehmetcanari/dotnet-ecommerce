@@ -24,7 +24,7 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
         try
         {
             var client = httpClientFactory.CreateClient("ECommerceAPI");
-            
+
             var loginRequest = new
             {
                 email = model.Email,
@@ -34,7 +34,7 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
             var json = JsonSerializer.Serialize(loginRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync("/api/Authentication/login", content);
+            var response = await client.PostAsync("/api/authentication/login", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -95,7 +95,7 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
         try
         {
             var client = httpClientFactory.CreateClient("ECommerceAPI");
-            
+
             var registerRequest = new
             {
                 name = model.Name,
@@ -118,7 +118,7 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
             var json = JsonSerializer.Serialize(registerRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync("/api/Authentication/register", content);
+            var response = await client.PostAsync("/api/authentication/register", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -168,7 +168,7 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
         try
         {
             var accessToken = HttpContext.Session.GetString("AccessToken");
-            
+
             if (!string.IsNullOrEmpty(accessToken))
             {
                 var client = httpClientFactory.CreateClient("ECommerceAPI");
@@ -177,7 +177,7 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
                 await client.PostAsync("/api/Authentication/logout", null);
             }
         }
-        catch{}
+        catch { }
         finally
         {
             HttpContext.Session.Clear();
@@ -209,7 +209,7 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
             "account.identity.user.not.found" => "Kullanıcı bulunamadı.",
             "authentication.error.generating.tokens" => "Oturum oluşturulamadı.",
             "authentication.failed.to.generate.access.token" => "Giriş işlemi tamamlanamadı.",
-            
+
             _ when apiErrorMessage.Contains("invalid", StringComparison.OrdinalIgnoreCase) => "Geçersiz bilgi girdiniz.",
             _ when apiErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase) => "Bilgi bulunamadı.",
             _ when apiErrorMessage.Contains("already exists", StringComparison.OrdinalIgnoreCase) => "Bu bilgi zaten kayıtlı.",

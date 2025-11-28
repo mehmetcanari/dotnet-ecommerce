@@ -102,7 +102,7 @@ public class NotificationRepository(StoreDbContext context) : INotificationRepos
         {
             var notification = await context.Notifications.FindAsync(id, cancellationToken);
             if (notification == null) return false;
-            
+
             notification.MarkAsRead();
             context.Notifications.Update(notification);
             return true;
@@ -137,4 +137,4 @@ public class NotificationRepository(StoreDbContext context) : INotificationRepos
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-} 
+}

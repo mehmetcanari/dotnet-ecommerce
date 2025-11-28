@@ -1,9 +1,9 @@
 ﻿using ECommerce.Application.Abstract;
 using ECommerce.Application.Commands.Token;
 using ECommerce.Application.DTO.Request.Token;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Auth
@@ -26,7 +26,7 @@ namespace ECommerce.Application.Commands.Auth
                 if (refreshToken is null)
                     return Result.Failure(ErrorMessages.NoActiveTokensFound);
 
-                var revokeRequest = new TokenRevokeRequestDto { Email = refreshToken.Email, Reason = Reason};
+                var revokeRequest = new TokenRevokeRequestDto { Email = refreshToken.Email, Reason = Reason };
                 var revokeResult = await mediator.Send(new RevokeRefreshTokenCommand(revokeRequest), cancellationToken);
                 if (revokeResult is { IsFailure: true, Message: not null })
                     return Result.Failure(revokeResult.Message);

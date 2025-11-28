@@ -9,7 +9,7 @@ public sealed class MongoDbContext
     public MongoDbContext()
     {
         var connectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "mongodb://localhost:27017";
-        var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME")  ?? "ecommerce-products";
+        var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME") ?? "ecommerce-products";
 
         var client = new MongoClient(connectionString);
         _database = client.GetDatabase(databaseName);
@@ -19,4 +19,4 @@ public sealed class MongoDbContext
     {
         return _database.GetCollection<T>(collectionName);
     }
-} 
+}

@@ -1,5 +1,5 @@
-﻿using System.Collections.Concurrent;
-using ECommerce.Application.Abstract;
+﻿using ECommerce.Application.Abstract;
+using System.Collections.Concurrent;
 
 namespace ECommerce.Application.Services.Lock
 {

@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Product;
@@ -12,7 +12,7 @@ public class UpdateProductStockCommand(List<BasketItem> request) : IRequest<Resu
     public readonly List<BasketItem> Model = request;
 }
 
-public class UpdateProductStockCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService, 
+public class UpdateProductStockCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService,
     ICacheService cache, ILockProvider lockProvider) : IRequestHandler<UpdateProductStockCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductStockCommand request, CancellationToken cancellationToken)

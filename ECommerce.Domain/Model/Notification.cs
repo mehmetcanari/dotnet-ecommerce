@@ -14,16 +14,16 @@ public class Notification : BaseEntity
     public User? User { get; set; }
     public Guid UserId { get; set; }
 
-    
+
     public void MarkAsRead()
     {
         if (Status == NotificationStatus.Read)
             return;
-            
+
         Status = NotificationStatus.Read;
         ReadAt = DateTime.UtcNow;
     }
-    
+
     public void MarkAsUnread()
     {
         Status = NotificationStatus.Unread;

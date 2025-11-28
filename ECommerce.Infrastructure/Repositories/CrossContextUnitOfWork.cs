@@ -26,7 +26,7 @@ public class CrossContextUnitOfWork(StoreDbContext context, IdentityDbContext id
 
             await context.SaveChangesAsync();
             await identityContext.SaveChangesAsync();
-            
+
             await _storeTransaction.CommitAsync();
             await _identityTransaction.CommitAsync();
         }
@@ -49,7 +49,7 @@ public class CrossContextUnitOfWork(StoreDbContext context, IdentityDbContext id
             {
                 await _storeTransaction.RollbackAsync();
             }
-            
+
             if (_identityTransaction != null)
             {
                 await _identityTransaction.RollbackAsync();
@@ -85,7 +85,7 @@ public class CrossContextUnitOfWork(StoreDbContext context, IdentityDbContext id
             await _storeTransaction.DisposeAsync();
             _storeTransaction = null;
         }
-        
+
         if (_identityTransaction != null)
         {
             await _identityTransaction.DisposeAsync();

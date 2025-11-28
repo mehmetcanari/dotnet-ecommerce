@@ -25,12 +25,12 @@ public class BasketItemRepository(StoreDbContext context) : IBasketItemRepositor
         try
         {
             IQueryable<BasketItem> query = context.BasketItems;
-        
+
             var items = await query
                 .AsNoTracking()
                 .Where(b => b.UserId == userId && b.IsPurchased == false)
                 .ToListAsync(cancellationToken);
-            
+
             return items;
         }
         catch (Exception exception)

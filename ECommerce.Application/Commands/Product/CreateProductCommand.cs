@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 using ProductEntity = ECommerce.Domain.Model.Product;
 
@@ -13,7 +14,7 @@ public class CreateProductCommand(ProductCreateRequestDto request) : IRequest<Re
     public readonly ProductCreateRequestDto Model = request;
 }
 
-public class CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork, 
+public class CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, ILogService logger, IUnitOfWork unitOfWork,
     IElasticSearchService elasticSearchService, ICacheService cache) : IRequestHandler<CreateProductCommand, Result>
 {
     public async Task<Result> Handle(CreateProductCommand request, CancellationToken cancellationToken)

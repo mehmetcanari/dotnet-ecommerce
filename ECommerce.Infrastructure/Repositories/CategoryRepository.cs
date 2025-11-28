@@ -39,7 +39,7 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
+
     public async Task<bool> CheckNameExists(string name, CancellationToken cancellationToken = default)
     {
         try
@@ -58,7 +58,7 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
             throw new Exception(ErrorMessages.UnexpectedError, exception);
         }
     }
-    
+
     public async Task<Category?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         try

@@ -2,8 +2,8 @@ using Amazon.S3;
 using Amazon.S3.Transfer;
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Request.FileUpload;
-using ECommerce.Application.Utility;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using Microsoft.Extensions.Configuration;
 
 namespace ECommerce.Application.Services.Upload;

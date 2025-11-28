@@ -1,6 +1,6 @@
 using ECommerce.Domain.Abstract.Repository;
-using ECommerce.Infrastructure.Repositories;
 using ECommerce.Infrastructure.Context;
+using ECommerce.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerce.Infrastructure.Dependencies;

@@ -1,8 +1,8 @@
 using ECommerce.Domain.Abstract.Repository;
-using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories;
 
@@ -32,7 +32,7 @@ public class UserRepository(StoreDbContext context) : IUserRepository
     {
         try
         {
-            
+
             var account = await context.Users
                 .AsNoTracking()
                 .Where(a => a.Email == email)

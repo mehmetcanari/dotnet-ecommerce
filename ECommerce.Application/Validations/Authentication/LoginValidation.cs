@@ -11,4 +11,4 @@ public class LoginValidation : AbstractValidator<LoginCommand>
 
         RuleFor(x => x.Model.Password).NotEmpty();
     }
-} 
+}

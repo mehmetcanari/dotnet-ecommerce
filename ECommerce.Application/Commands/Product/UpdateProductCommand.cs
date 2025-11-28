@@ -3,6 +3,7 @@ using ECommerce.Application.DTO.Request.Product;
 using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Product;
@@ -12,7 +13,7 @@ public class UpdateProductCommand(ProductUpdateRequestDto request) : IRequest<Re
     public readonly ProductUpdateRequestDto Model = request;
 }
 
-public class UpdateProductCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork, 
+public class UpdateProductCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork,
     IElasticSearchService elasticSearchService, ICacheService cache, ILockProvider lockProvider) : IRequestHandler<UpdateProductCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken cancellationToken)

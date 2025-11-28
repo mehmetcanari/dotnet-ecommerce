@@ -2,7 +2,7 @@ using ECommerce.Application.Abstract;
 using ECommerce.Shared.Constants;
 using Elastic.Clients.Elasticsearch;
 using ElasticResult = Elastic.Clients.Elasticsearch.Result;
-using Result = ECommerce.Application.Utility.Result;
+using Result = ECommerce.Shared.Wrappers.Result;
 
 namespace ECommerce.Application.Services.Elastic;
 

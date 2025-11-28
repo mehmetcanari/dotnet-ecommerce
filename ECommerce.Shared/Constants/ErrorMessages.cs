@@ -37,7 +37,7 @@
         public const string IndexFailure = "elastic.index.failure";
         public const string IndexCreationFailure = "elastic.index.creation.failure";
         public const string UpdateFailure = "elastic.update.failure";
-        public const string DeleteFailure = "elastic.delete.failure";  
+        public const string DeleteFailure = "elastic.delete.failure";
         public const string SearchFailure = "elastic.search.failure";
         #endregion
 

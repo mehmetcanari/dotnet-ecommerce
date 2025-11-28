@@ -2,9 +2,9 @@ using ECommerce.Application.Abstract;
 using ECommerce.Application.Commands.Token;
 using ECommerce.Application.DTO.Request.Account;
 using ECommerce.Application.DTO.Request.Token;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Account;
@@ -23,7 +23,7 @@ public class UnbanAccountCommandHandler(IUserRepository userRepository, IMediato
             var account = await userRepository.GetByEmail(request.Model.Email, cancellationToken);
             if (account == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
-            
+
             account.UnbanAccount();
             userRepository.Update(account);
 

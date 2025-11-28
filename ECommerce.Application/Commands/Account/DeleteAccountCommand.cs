@@ -1,7 +1,7 @@
 using ECommerce.Application.Abstract;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -22,7 +22,7 @@ public class DeleteAccountCommandHandler(IUserRepository userRepository, UserMan
             if (account == null)
                 return Result.Failure(ErrorMessages.AccountNotFound);
 
-            if(account.Email is null)
+            if (account.Email is null)
                 return Result.Failure(ErrorMessages.IdentityUserNotFound);
 
             var user = await userManager.FindByEmailAsync(account.Email);

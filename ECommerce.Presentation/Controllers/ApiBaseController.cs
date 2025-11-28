@@ -1,4 +1,4 @@
-﻿using ECommerce.Application.Utility;
+﻿using ECommerce.Shared.Wrappers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Controllers

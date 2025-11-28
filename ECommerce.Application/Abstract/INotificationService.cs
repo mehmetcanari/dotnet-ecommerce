@@ -1,5 +1,5 @@
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Model;
+using ECommerce.Shared.Wrappers;
 
 namespace ECommerce.Application.Abstract;
 
@@ -12,4 +12,4 @@ public interface INotificationService
     Task<Result<bool>> MarkAsReadAsync(Guid notificationId);
     Task<Result<bool>> MarkAllAsReadAsync();
     Task<Result> DeleteNotificationAsync(Guid notificationId);
-} 
+}

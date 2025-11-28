@@ -1,9 +1,9 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Account;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Account;
@@ -30,7 +30,7 @@ public class GetProfileQueryHandler(IUserRepository userRepository, ILogService 
             var account = await userRepository.GetById(Guid.Parse(userId), cancellationToken);
             if (account == null)
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountEmailNotFound);
-            
+
             var response = MapToResponseDto(account);
 
             await cacheService.SetAsync(_cacheKey, response, CacheExpirationType.Sliding, _expirationTime, cancellationToken);

@@ -21,13 +21,13 @@ public sealed class StoreDbContext(DbContextOptions<StoreDbContext> options) : M
                 .HasForeignKey(oi => oi.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         modelBuilder.Entity<BasketItem>(entity =>
         {
             entity.HasOne(oi => oi.Order)
                 .WithMany(o => o.BasketItems)
                 .HasForeignKey(oi => oi.OrderId)
-                .IsRequired(false); 
+                .IsRequired(false);
         });
 
         modelBuilder.Entity<Notification>(entity =>

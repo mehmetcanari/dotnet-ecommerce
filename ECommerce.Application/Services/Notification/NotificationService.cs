@@ -1,9 +1,9 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.Queries.Account;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Services.Notification;
@@ -18,7 +18,7 @@ public class NotificationService(INotificationRepository notificationRepository,
             if (accountResult.IsFailure && accountResult.Message is not null)
                 return Result<Domain.Model.Notification>.Failure(accountResult.Message);
 
-            if(accountResult.Data == null)
+            if (accountResult.Data == null)
                 return Result<Domain.Model.Notification>.Failure(ErrorMessages.AccountNotFound);
 
             var notification = new Domain.Model.Notification
@@ -50,7 +50,7 @@ public class NotificationService(INotificationRepository notificationRepository,
             if (account.IsFailure && account.Message is not null)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(account.Message);
 
-            if(account.Data == null)
+            if (account.Data == null)
                 return Result<IEnumerable<Domain.Model.Notification>>.Failure(ErrorMessages.AccountNotFound);
 
             var notifications = await notificationRepository.GetAsync(account.Data.Id, page, size);
@@ -174,4 +174,4 @@ public class NotificationService(INotificationRepository notificationRepository,
             return Result.Failure(exception.Message);
         }
     }
-} 
+}

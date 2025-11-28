@@ -1,7 +1,7 @@
 ﻿using ECommerce.Application.Abstract;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Product;
@@ -11,7 +11,7 @@ public class DeleteProductCommand(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class DeleteProductCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService, 
+public class DeleteProductCommandHandler(IProductRepository productRepository, ILogService logger, IUnitOfWork unitOfWork, IElasticSearchService elasticSearchService,
     ICacheService cache, ILockProvider lockProvider) : IRequestHandler<DeleteProductCommand, Result>
 {
     public async Task<Result> Handle(DeleteProductCommand request, CancellationToken cancellationToken)

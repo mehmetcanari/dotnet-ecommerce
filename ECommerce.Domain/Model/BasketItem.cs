@@ -5,7 +5,7 @@ public class BasketItem : BaseEntity
 {
     public required Guid UserId { get; set; }
     public required Guid ProductId { get; set; }
-    public required string ExternalId { get; set; } 
+    public required string ExternalId { get; set; }
     public required int Quantity { get; set; }
     public required decimal UnitPrice { get; set; }
     public required string ProductName { get; set; }

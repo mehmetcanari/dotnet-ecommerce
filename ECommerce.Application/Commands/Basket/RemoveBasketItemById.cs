@@ -1,7 +1,7 @@
 ﻿using ECommerce.Application.Abstract;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Commands.Basket;
@@ -11,7 +11,7 @@ public class RemoveBasketItemById(Guid id) : IRequest<Result>
     public readonly Guid Id = id;
 }
 
-public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService, IBasketItemRepository basketItemRepository, IUnitOfWork unitOfWork, ILogService logService, 
+public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService, IBasketItemRepository basketItemRepository, IUnitOfWork unitOfWork, ILogService logService,
     ICacheService cache, ILockProvider lockProvider) : IRequestHandler<RemoveBasketItemById, Result>
 {
     private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
@@ -28,7 +28,7 @@ public class RemoveBasketItemByIdHandler(ICurrentUserService currentUserService,
             if (basketItem is null)
                 return Result.Failure(ErrorMessages.BasketItemNotFound);
 
-            if(basketItem.UserId.ToString() != userId)
+            if (basketItem.UserId.ToString() != userId)
                 return Result.Failure(ErrorMessages.UnauthorizedAction);
 
             using (await lockProvider.AcquireLockAsync($"basket:{userId}", cancellationToken))

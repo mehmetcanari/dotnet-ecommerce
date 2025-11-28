@@ -13,7 +13,7 @@ public class User : IdentityUser<Guid>
     public required string ZipCode { get; set; }
     public required string Address { get; set; }
     public required string PhoneCode { get; set; }
-    public required bool MembershipAgreement { get; init; } 
+    public required bool MembershipAgreement { get; init; }
     public bool PrivacyPolicyConsent { get; set; }
     public bool ElectronicConsent { get; set; }
     public required DateTime DateOfBirth { get; init; }

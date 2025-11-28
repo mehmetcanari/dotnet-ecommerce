@@ -1,8 +1,8 @@
 using ECommerce.Application.Abstract;
 using ECommerce.Application.DTO.Response.Product;
-using ECommerce.Application.Utility;
 using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Shared.Constants;
+using ECommerce.Shared.Wrappers;
 using MediatR;
 
 namespace ECommerce.Application.Queries.Product;
@@ -21,7 +21,7 @@ public class GetProductByIdQueryHandler(IProductRepository productRepository, IL
             var product = await productRepository.GetById(request.Id, cancellationToken);
             if (product == null)
                 return Result<ProductResponseDto>.Failure(ErrorMessages.ProductNotFound);
-            
+
             var response = MapToResponseDto(product);
 
             return Result<ProductResponseDto>.Success(response);
