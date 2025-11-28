@@ -163,9 +163,27 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
     }
 
     [HttpPost]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
-        HttpContext.Session.Clear();
+        try
+        {
+            var accessToken = HttpContext.Session.GetString("AccessToken");
+            
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                var client = httpClientFactory.CreateClient("ECommerceAPI");
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+                await client.PostAsync("/api/Authentication/logout", null);
+            }
+        }
+        catch{}
+        finally
+        {
+            HttpContext.Session.Clear();
+        }
+
+        TempData["SuccessMessage"] = "Başarıyla çıkış yaptınız.";
         return RedirectToAction("Index", "Home");
     }
 
@@ -176,13 +194,10 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
 
         return apiErrorMessage switch
         {
-            // Authentication errors
             "authentication.invalid.credentials" => "E-posta veya şifre hatalı.",
             "authentication.error.logging.in" => "Giriş yapılırken bir hata oluştu.",
             "authentication.account.not.authorized" => "Bu hesap yetkili değil.",
             "authentication.error.validating.login" => "Giriş bilgileri doğrulanamadı.",
-            
-            // Account errors
             "account.not.found" => "Kullanıcı bulunamadı.",
             "account.email.not.found" => "E-posta adresi bulunamadı.",
             "account.banned" => "Bu hesap engellenmiştir.",
@@ -191,15 +206,10 @@ public class AuthController(IHttpClientFactory httpClientFactory) : Controller
             "account.identity.number.already.exists" => "Bu T.C. kimlik numarası zaten kayıtlı.",
             "account.creation.failed" => "Hesap oluşturulamadı.",
             "account.deleted" => "Bu hesap silinmiştir.",
-            
-            // Identity errors
             "account.identity.user.not.found" => "Kullanıcı bulunamadı.",
-            
-            // Token errors
             "authentication.error.generating.tokens" => "Oturum oluşturulamadı.",
             "authentication.failed.to.generate.access.token" => "Giriş işlemi tamamlanamadı.",
             
-            // Default fallback
             _ when apiErrorMessage.Contains("invalid", StringComparison.OrdinalIgnoreCase) => "Geçersiz bilgi girdiniz.",
             _ when apiErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase) => "Bilgi bulunamadı.",
             _ when apiErrorMessage.Contains("already exists", StringComparison.OrdinalIgnoreCase) => "Bu bilgi zaten kayıtlı.",

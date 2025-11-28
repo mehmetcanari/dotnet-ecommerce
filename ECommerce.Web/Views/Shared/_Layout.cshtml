@@ -469,7 +469,11 @@
                         </div>
 
                         <div class="user-actions">
-                            <a class="icon-btn" asp-controller="auth" asp-action="login">
+                            @{
+                                var isLoggedIn = Context.Session.GetString("AccessToken") != null;
+                                var accountUrl = isLoggedIn ? Url.Action("Index", "Account") : Url.Action("Login", "Auth");
+                            }
+                            <a class="icon-btn" href="@accountUrl">
                                 <i class="bi bi-person"></i>
                                 <span>Hesabım</span>
                             </a>
