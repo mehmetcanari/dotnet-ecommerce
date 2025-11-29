@@ -38,412 +38,80 @@
             color: var(--text-dark);
         }
 
+        .modern-navbar {
+            background-color: var(--navbar-bg);
+            border-bottom: 1px solid #333;
+            padding: 15px 30px;
+            position: relative; 
+        }
+
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background-color: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+
+            .search-wrapper:focus-within {
+                border-color: var(--accent-orange); 
+            }
+
+        .custom-search-input {
+            background-color: transparent;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            outline: none;
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+
+        .custom-search-btn {
+            background-color: transparent;
+            border: none;
+            padding: 0 15px;
+            cursor: pointer;
+            color: #888;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+            .custom-search-btn:hover i {
+                color: var(--accent-orange);
+            }
+
+        .nav-link-custom {
+            color: #e8e8e8;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 5px 12px;
+            transition: color 0.2s;
+            white-space: nowrap;
+            font-size: 0.95rem;
+        }
+
+            .nav-link-custom:hover {
+                color: var(--accent-orange);
+            }
+
+        .absolute-center-menu {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
         .top-bar {
             background-color: #0d0d0d;
             color: #e8e8e8;
             padding: 0.5rem 0;
             font-size: 0.813rem;
             text-align: center;
-        }
-
-        .modern-navbar {
-            background-color: var(--navbar-bg);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            padding: 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .navbar-main {
-            padding: 1rem 0;
-        }
-
-            .navbar-main .container-fluid {
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-                max-width: 1400px;
-                margin: 0 auto;
-                padding: 0 1rem;
-                flex-wrap: nowrap;
-            }
-
-        .modern-navbar .navbar-brand {
-            color: var(--text-dark) !important;
-            font-weight: 700;
-            font-size: 1.75rem;
-            letter-spacing: -0.5px;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-shrink: 0;
-        }
-
-            .modern-navbar .navbar-brand i {
-                font-size: 2rem;
-            }
-
-        .navbar-right-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-
-        .search-container {
-            max-width: 600px;
-            width: 100%;
-            min-width: 200px;
-        }
-
-        .search-wrapper {
-            display: flex;
-            align-items: stretch;
-            height: 42px;
-            border: 2px solid var(--border-gray);
-            border-radius: 6px;
-            overflow: hidden;
-            transition: border-color 0.2s ease;
-            background-color: var(--bg-white);
-        }
-
-            .search-wrapper:focus-within {
-                border-color: var(--accent-orange);
-            }
-
-        .search-input {
-            flex: 1;
-            border: none;
-            padding: 0.5rem 1rem;
-            background-color: var(--bg-white);
-            color: var(--text-dark);
-            font-size: 0.938rem;
-        }
-
-            .search-input:focus {
-                outline: none;
-            }
-
-        .search-btn {
-            background-color: var(--bg-white);
-            border: none;
-            padding: 0 1rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-            .search-btn:hover {
-                background-color: var(--bg-light);
-            }
-
-            .search-btn i {
-                color: var(--text-gray);
-                font-size: 1.25rem;
-            }
-
-        .user-actions {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .icon-btn {
-            position: relative;
-            color: var(--text-dark) !important;
-            background: transparent;
-            border: none;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            font-size: 0.938rem;
-            font-weight: 500;
-            border-radius: 4px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-            .icon-btn:hover {
-                background-color: var(--bg-light);
-                color: var(--accent-orange) !important;
-            }
-
-            .icon-btn:visited {
-                color: var(--text-dark) !important;
-            }
-
-            .icon-btn i {
-                display: none;
-                font-size: 1.25rem;
-            }
-
-        .user-info-wrapper {
-            display: flex;
-            align-items: center;
-            flex-shrink: 0;
-            margin-left: 0.5rem;
-        }
-
-        .user-avatar-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-orange-hover) 100%);
-            border: 2px solid var(--border-gray);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            padding: 0;
-        }
-
-        .user-avatar-btn:hover {
-            transform: scale(1.05);
-            border-color: var(--accent-orange);
-            box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
-        }
-
-        .avatar-initials {
-            color: white;
-            font-size: 0.938rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        /* Sidebar Overlay */
-        .user-sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            z-index: 1999;
-            backdrop-filter: blur(2px);
-        }
-
-        .user-sidebar-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .user-sidebar {
-            position: fixed;
-            top: 0;
-            right: -400px;
-            width: 380px;
-            height: 100%;
-            background-color: var(--bg-white);
-            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
-            transition: right 0.3s ease;
-            z-index: 2000;
-            overflow-y: auto;
-            border-left: 1px solid var(--border-gray);
-        }
-
-        .user-sidebar.active {
-            right: 0;
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-gray);
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .sidebar-close {
-            background: transparent;
-            border: none;
-            color: var(--text-gray);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sidebar-close:hover {
-            background-color: var(--bg-light);
-            color: var(--accent-orange);
-        }
-
-        .sidebar-user-info {
-            padding: 2rem 1.5rem;
-            text-align: center;
-            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-orange-hover) 100%);
-            border-bottom: 1px solid var(--border-gray);
-        }
-
-        .sidebar-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .sidebar-user-name {
-            font-size: 0.938rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 0.25rem;
-        }
-
-        .sidebar-full-name {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: white;
-        }
-
-        .sidebar-menu {
-            padding: 1.5rem;
-        }
-
-        .sidebar-menu-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-gray);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-menu-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar-menu-list li {
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-menu-link {
-            display: flex;
-            align-items: center;
-            padding: 0.875rem 1rem;
-            color: var(--text-dark);
-            text-decoration: none;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            font-size: 0.938rem;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-        }
-
-        .sidebar-menu-link:hover {
-            background-color: rgba(255, 153, 0, 0.1);
-            color: var(--accent-orange);
-        }
-
-        .sidebar-menu-link i {
-            margin-right: 0.875rem;
-            font-size: 1.125rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background-color: var(--border-gray);
-            margin: 1.5rem 0;
-        }
-
-        .sidebar-logout-btn {
-            color: #ff4444 !important;
-        }
-
-        .sidebar-logout-btn:hover {
-            background-color: rgba(255, 68, 68, 0.1) !important;
-        }
-
-        .navbar-toggler {
-            border: none;
-            padding: 0.5rem;
-        }
-
-            .navbar-toggler:focus {
-                box-shadow: none;
-            }
-
-        .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28232, 232, 232, 0.95%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-        }
-
-        .navbar-menu {
-            background-color: var(--navbar-bg);
-            padding: 0.75rem 0;
-        }
-
-            .navbar-menu .container-fluid {
-                max-width: 1400px;
-                margin: 0 auto;
-                padding: 0 1rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .navbar-menu .navbar-nav {
-                display: flex;
-                gap: 0.5rem;
-                flex-wrap: wrap;
-            }
-
-            .navbar-menu .nav-link {
-                color: var(--text-dark) !important;
-                font-weight: 500;
-                font-size: 0.938rem;
-                padding: 0.5rem 1rem !important;
-                border-radius: 4px;
-                transition: all 0.2s ease;
-                white-space: nowrap;
-            }
-
-                .navbar-menu .nav-link:hover {
-                    background-color: var(--bg-light);
-                    color: var(--accent-orange) !important;
-                }
-
-                .navbar-menu .nav-link:visited {
-                    color: var(--text-dark) !important;
-                }
-
-                .navbar-menu .nav-link:active {
-                    color: var(--accent-orange) !important;
-                }
-
-        .main-container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            min-height: calc(100vh - 500px);
         }
 
         .modern-footer {
@@ -501,166 +169,175 @@
                 color: var(--text-gray);
             }
 
-        @@media (max-width: 1200px) {
-            .search-container {
-                max-width: 400px;
-            }
-
-            .navbar-right-section {
-                gap: 0.75rem;
-            }
+        .user-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1999;
+            backdrop-filter: blur(2px);
         }
 
-        @@media (max-width: 992px) {
-            .navbar-main {
-                padding: 0.75rem 0;
+            .user-sidebar-overlay.active {
+                opacity: 1;
+                visibility: visible;
             }
 
-                .navbar-main .container-fluid {
-                    flex-wrap: wrap;
-                    gap: 0.75rem;
-                }
-
-            .modern-navbar .navbar-brand {
-                font-size: 1.5rem;
-            }
-
-            .navbar-right-section {
-                order: 2;
-                width: 100%;
-                flex-wrap: nowrap;
-                margin-left: 0;
-                justify-content: flex-start;
-                gap: 0.5rem;
-            }
-
-            .search-container {
-                order: 1;
-                flex: 1;
-                max-width: none;
-                min-width: 150px;
-            }
-
-            .user-actions {
-                order: 2;
-                flex-shrink: 0;
-            }
-
-            .user-info-wrapper {
-                order: 3;
-                margin-left: auto;
-            }
-
-            .icon-btn {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.875rem;
-            }
-
-            .navbar-toggler {
-                order: 1;
-            }
-
-            .user-sidebar {
-                width: 320px;
-                right: -320px;
-            }
+        .user-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100%;
+            background-color: var(--bg-white);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 2000;
+            overflow-y: auto;
+            border-left: 1px solid var(--border-gray);
         }
 
-        @@media (max-width: 768px) {
-            .navbar-brand {
-                font-size: 1.375rem !important;
+            .user-sidebar.active {
+                right: 0;
             }
 
-            .modern-navbar .navbar-brand i {
-                font-size: 1.5rem;
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-gray);
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .sidebar-close {
+            background: transparent;
+            border: none;
+            color: var(--text-gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .sidebar-close:hover {
+                background-color: var(--bg-light);
+                color: var(--accent-orange);
             }
 
-            .icon-btn span {
-                display: none;
+        .sidebar-user-info {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-orange-hover) 100%);
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .sidebar-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-user-name {
+            font-size: 0.938rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-full-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .sidebar-menu {
+            padding: 1.5rem;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-menu-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            .sidebar-menu-list li {
+                margin-bottom: 0.5rem;
             }
 
-            .icon-btn {
-                padding: 0.5rem;
-                min-width: auto;
+        .sidebar-menu-link {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-size: 0.938rem;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+            .sidebar-menu-link:hover {
+                background-color: rgba(255, 153, 0, 0.1);
+                color: var(--accent-orange);
             }
 
-                .icon-btn i {
-                    display: block;
-                    font-size: 1.25rem;
-                }
-
-            .search-container {
-                min-width: 120px;
-            }
-
-            .search-input {
-                font-size: 0.875rem;
-                padding: 0.5rem 0.75rem;
-            }
-
-            .footer-content {
-                grid-template-columns: 1fr;
+            .sidebar-menu-link i {
+                margin-right: 0.875rem;
+                font-size: 1.125rem;
+                width: 20px;
                 text-align: center;
             }
 
-            .user-sidebar {
-                width: 300px;
-                right: -300px;
-            }
+        .sidebar-divider {
+            height: 1px;
+            background-color: var(--border-gray);
+            margin: 1.5rem 0;
         }
 
-        @@media (max-width: 576px) {
-            .navbar-main {
-                padding: 0.5rem 0;
+        .sidebar-logout-btn {
+            color: #ff4444 !important;
+        }
+
+            .sidebar-logout-btn:hover {
+                background-color: rgba(255, 68, 68, 0.1) !important;
             }
 
-            .modern-navbar .navbar-brand {
-                font-size: 1.25rem !important;
-            }
-
-                .modern-navbar .navbar-brand i {
-                    font-size: 1.25rem;
-                }
-
-            .navbar-right-section {
-                gap: 0.25rem;
-            }
-
-            .search-container {
-                min-width: 100px;
-            }
-
-            .search-input {
-                font-size: 0.813rem;
-                padding: 0.5rem;
-            }
-
-            .icon-btn {
-                padding: 0.4rem;
-            }
-
-                .icon-btn i {
-                    font-size: 1.125rem;
-                }
-
-            .top-bar {
-                font-size: 0.75rem;
-                padding: 0.4rem 0;
-            }
-
-            .user-sidebar {
-                width: 280px;
-                right: -280px;
-            }
-
-            .user-avatar-btn {
-                width: 36px;
-                height: 36px;
-            }
-
-            .avatar-initials {
-                font-size: 0.813rem;
-            }
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            min-height: calc(100vh - 500px);
         }
     </style>
 </head>
@@ -671,96 +348,69 @@
     </div>
 
     <header>
-        <nav class="navbar navbar-expand-lg modern-navbar">
-            <div class="navbar-main">
-                <div class="container-fluid">
-                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                        <i class="bi bi-shop"></i>
+        <nav class="modern-navbar">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+
+                <div style="display: flex; align-items: center; gap: 30px;">
+                    <a href="/" style="display: flex; align-items: center; color: white; text-decoration: none; font-size: 1.5rem; font-weight: bold;">
+                        <i class="bi bi-shop" style="margin-right: 10px; font-size: 1.8rem;"></i>
                         MAĞAZAM
                     </a>
 
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-                            aria-controls="navbarContent" aria-expanded="false" aria-label="Menüyü Aç">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-
-                    <div class="navbar-right-section">
-                        <div class="search-container">
-                            <div class="search-wrapper">
-                                <input type="text" class="search-input" placeholder="Ürün ara..." />
-                                <button class="search-btn">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
+                    <div class="d-none d-lg-block" style="width: 350px;">
+                        <div class="search-wrapper">
+                            <input type="text" class="custom-search-input" placeholder="Ürün ara...">
+                            <button class="custom-search-btn" type="button">
+                                <i class="bi bi-search"></i>
+                            </button>
                         </div>
-
-                        <div class="user-actions">
-                            @{
-                                var isLoggedIn = Context.Session.GetString("AccessToken") != null;
-                                var userName = Context.Session.GetString("UserName");
-                                var userSurname = Context.Session.GetString("UserSurname");
-                            }
-                            
-                            @if (!isLoggedIn)
-                            {
-                                <a class="icon-btn" href="@Url.Action("Login", "Auth")">
-                                    <i class="bi bi-person"></i>
-                                    <span>Hesabım</span>
-                                </a>
-                            }
-                            
-                            <a class="icon-btn" href="#">
-                                <i class="bi bi-cart3"></i>
-                                <span>Sepetim</span>
-                            </a>
-                        </div>
-                        
-                        @if (isLoggedIn && !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(userSurname))
-                        {
-                            <div class="user-info-wrapper">
-                                <button class="user-avatar-btn" id="userAvatarBtn" type="button">
-                                    <span class="avatar-initials">@userName.Substring(0, 1).ToUpper()@userSurname.Substring(0, 1).ToUpper()</span>
-                                </button>
-                            </div>
-                        }
                     </div>
                 </div>
-            </div>
 
-            <div class="navbar-menu collapse navbar-collapse" id="navbarContent">
-                <div class="container-fluid">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Ana Sayfa</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Yeni Ürünler</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Elektronik</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Moda</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Ev & Yaşam</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">İndirimler</a>
-                        </li>
-                    </ul>
+                <div class="d-none d-xl-block absolute-center-menu">
+                    <div style="display: flex; gap: 20px;">
+                        <a href="/" class="nav-link-custom">Ana Sayfa</a>
+                        <a href="#" class="nav-link-custom">Yeni Ürünler</a>
+                        <a href="#" class="nav-link-custom">Elektronik</a>
+                        <a href="#" class="nav-link-custom">Moda</a>
+                        <a href="#" class="nav-link-custom">Ev & Yaşam</a>
+                        <a href="#" class="nav-link-custom">İndirimler</a>
+                    </div>
                 </div>
+
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    @{
+                        var isLoggedIn = Context.Session.GetString("AccessToken") != null;
+                        var userName = Context.Session.GetString("UserName");
+                        var userSurname = Context.Session.GetString("UserSurname");
+                    }
+
+                    @if (!isLoggedIn)
+                    {
+                        <a href="@Url.Action("Login", "Auth")" class="nav-link-custom" style="display: flex; align-items: center; gap: 8px;">
+                            <i class="bi bi-person" style="font-size: 1.2rem;"></i>
+                            Hesabım
+                        </a>
+                    }
+
+                    <a href="#" class="nav-link-custom" style="display: flex; align-items: center; gap: 8px;">
+                        <i class="bi bi-cart3" style="font-size: 1.2rem;"></i>
+                        Sepetim
+                    </a>
+
+                    @if (isLoggedIn && !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(userSurname))
+                    {
+                        <button id="userAvatarBtn" type="button" style="border: none; width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #ff9900 0%, #fa8900 100%); color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                            @userName.Substring(0, 1).ToUpper()@userSurname.Substring(0, 1).ToUpper()
+                        </button>
+                    }
+                </div>
+
             </div>
         </nav>
     </header>
-    
-    @{
-        var isLoggedInForSidebar = Context.Session.GetString("AccessToken") != null;
-        var userNameForSidebar = Context.Session.GetString("UserName");
-        var userSurnameForSidebar = Context.Session.GetString("UserSurname");
-    }
-    
-    @if (isLoggedInForSidebar && !string.IsNullOrEmpty(userNameForSidebar) && !string.IsNullOrEmpty(userSurnameForSidebar))
+
+    @if (isLoggedIn && !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(userSurname))
     {
         <div class="user-sidebar-overlay" id="userSidebarOverlay"></div>
         <div class="user-sidebar" id="userSidebar">
@@ -772,10 +422,10 @@
 
             <div class="sidebar-user-info">
                 <div class="sidebar-avatar">
-                    @userNameForSidebar.Substring(0, 1).ToUpper()@userSurnameForSidebar.Substring(0, 1).ToUpper()
+                    @userName.Substring(0, 1).ToUpper()@userSurname.Substring(0, 1).ToUpper()
                 </div>
                 <div class="sidebar-user-name">Hoş Geldiniz</div>
-                <div class="sidebar-full-name">@userNameForSidebar @userSurnameForSidebar</div>
+                <div class="sidebar-full-name">@userName @userSurname</div>
             </div>
 
             <div class="sidebar-menu">
@@ -880,14 +530,14 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const userAvatarBtn = document.getElementById('userAvatarBtn');
             const userSidebar = document.getElementById('userSidebar');
             const sidebarOverlay = document.getElementById('userSidebarOverlay');
             const sidebarClose = document.getElementById('sidebarClose');
-            
+
             if (userAvatarBtn && userSidebar && sidebarOverlay) {
                 userAvatarBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -895,19 +545,19 @@
                     sidebarOverlay.classList.add('active');
                     document.body.style.overflow = 'hidden';
                 });
-                
+
                 sidebarClose.addEventListener('click', function() {
                     userSidebar.classList.remove('active');
                     sidebarOverlay.classList.remove('active');
                     document.body.style.overflow = '';
                 });
-                
+
                 sidebarOverlay.addEventListener('click', function() {
                     userSidebar.classList.remove('active');
                     sidebarOverlay.classList.remove('active');
                     document.body.style.overflow = '';
                 });
-                
+
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape' && userSidebar.classList.contains('active')) {
                         userSidebar.classList.remove('active');
@@ -918,7 +568,7 @@
             }
         });
     </script>
-    
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 
