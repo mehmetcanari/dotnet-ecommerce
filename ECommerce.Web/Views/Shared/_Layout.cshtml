@@ -62,7 +62,6 @@
             .navbar-main .container-fluid {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
                 gap: 1rem;
                 max-width: 1400px;
                 margin: 0 auto;
@@ -184,6 +183,205 @@
                 display: none;
                 font-size: 1.25rem;
             }
+
+        .user-info-wrapper {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            margin-left: 0.5rem;
+        }
+
+        .user-avatar-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-orange-hover) 100%);
+            border: 2px solid var(--border-gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        .user-avatar-btn:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-orange);
+            box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+        }
+
+        .avatar-initials {
+            color: white;
+            font-size: 0.938rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* Sidebar Overlay */
+        .user-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1999;
+            backdrop-filter: blur(2px);
+        }
+
+        .user-sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .user-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100%;
+            background-color: var(--bg-white);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 2000;
+            overflow-y: auto;
+            border-left: 1px solid var(--border-gray);
+        }
+
+        .user-sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-gray);
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .sidebar-close {
+            background: transparent;
+            border: none;
+            color: var(--text-gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-close:hover {
+            background-color: var(--bg-light);
+            color: var(--accent-orange);
+        }
+
+        .sidebar-user-info {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-orange-hover) 100%);
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .sidebar-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-user-name {
+            font-size: 0.938rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-full-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .sidebar-menu {
+            padding: 1.5rem;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-menu-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu-link {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-size: 0.938rem;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .sidebar-menu-link:hover {
+            background-color: rgba(255, 153, 0, 0.1);
+            color: var(--accent-orange);
+        }
+
+        .sidebar-menu-link i {
+            margin-right: 0.875rem;
+            font-size: 1.125rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background-color: var(--border-gray);
+            margin: 1.5rem 0;
+        }
+
+        .sidebar-logout-btn {
+            color: #ff4444 !important;
+        }
+
+        .sidebar-logout-btn:hover {
+            background-color: rgba(255, 68, 68, 0.1) !important;
+        }
 
         .navbar-toggler {
             border: none;
@@ -332,13 +530,12 @@
                 width: 100%;
                 flex-wrap: nowrap;
                 margin-left: 0;
-                justify-content: space-between;
+                justify-content: flex-start;
                 gap: 0.5rem;
             }
 
             .search-container {
                 order: 1;
-                width: auto;
                 flex: 1;
                 max-width: none;
                 min-width: 150px;
@@ -349,6 +546,11 @@
                 flex-shrink: 0;
             }
 
+            .user-info-wrapper {
+                order: 3;
+                margin-left: auto;
+            }
+
             .icon-btn {
                 padding: 0.5rem 0.75rem;
                 font-size: 0.875rem;
@@ -356,6 +558,11 @@
 
             .navbar-toggler {
                 order: 1;
+            }
+
+            .user-sidebar {
+                width: 320px;
+                right: -320px;
             }
         }
 
@@ -394,6 +601,11 @@
             .footer-content {
                 grid-template-columns: 1fr;
                 text-align: center;
+            }
+
+            .user-sidebar {
+                width: 300px;
+                right: -300px;
             }
         }
 
@@ -435,6 +647,20 @@
                 font-size: 0.75rem;
                 padding: 0.4rem 0;
             }
+
+            .user-sidebar {
+                width: 280px;
+                right: -280px;
+            }
+
+            .user-avatar-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .avatar-initials {
+                font-size: 0.813rem;
+            }
         }
     </style>
 </head>
@@ -450,7 +676,7 @@
                 <div class="container-fluid">
                     <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                         <i class="bi bi-shop"></i>
-                        MAĞAZAM+
+                        MAĞAZAM
                     </a>
 
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
@@ -471,17 +697,32 @@
                         <div class="user-actions">
                             @{
                                 var isLoggedIn = Context.Session.GetString("AccessToken") != null;
-                                var accountUrl = isLoggedIn ? Url.Action("Index", "Account") : Url.Action("Login", "Auth");
+                                var userName = Context.Session.GetString("UserName");
+                                var userSurname = Context.Session.GetString("UserSurname");
                             }
-                            <a class="icon-btn" href="@accountUrl">
-                                <i class="bi bi-person"></i>
-                                <span>Hesabım</span>
-                            </a>
+                            
+                            @if (!isLoggedIn)
+                            {
+                                <a class="icon-btn" href="@Url.Action("Login", "Auth")">
+                                    <i class="bi bi-person"></i>
+                                    <span>Hesabım</span>
+                                </a>
+                            }
+                            
                             <a class="icon-btn" href="#">
                                 <i class="bi bi-cart3"></i>
                                 <span>Sepetim</span>
                             </a>
                         </div>
+                        
+                        @if (isLoggedIn && !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(userSurname))
+                        {
+                            <div class="user-info-wrapper">
+                                <button class="user-avatar-btn" id="userAvatarBtn" type="button">
+                                    <span class="avatar-initials">@userName.Substring(0, 1).ToUpper()@userSurname.Substring(0, 1).ToUpper()</span>
+                                </button>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -512,6 +753,81 @@
             </div>
         </nav>
     </header>
+    
+    @{
+        var isLoggedInForSidebar = Context.Session.GetString("AccessToken") != null;
+        var userNameForSidebar = Context.Session.GetString("UserName");
+        var userSurnameForSidebar = Context.Session.GetString("UserSurname");
+    }
+    
+    @if (isLoggedInForSidebar && !string.IsNullOrEmpty(userNameForSidebar) && !string.IsNullOrEmpty(userSurnameForSidebar))
+    {
+        <div class="user-sidebar-overlay" id="userSidebarOverlay"></div>
+        <div class="user-sidebar" id="userSidebar">
+            <div class="sidebar-header">
+                <button class="sidebar-close" id="sidebarClose" type="button">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-user-info">
+                <div class="sidebar-avatar">
+                    @userNameForSidebar.Substring(0, 1).ToUpper()@userSurnameForSidebar.Substring(0, 1).ToUpper()
+                </div>
+                <div class="sidebar-user-name">Hoş Geldiniz</div>
+                <div class="sidebar-full-name">@userNameForSidebar @userSurnameForSidebar</div>
+            </div>
+
+            <div class="sidebar-menu">
+                <h3 class="sidebar-menu-title">HESAP BİLGİLERİ</h3>
+                <ul class="sidebar-menu-list">
+                    <li>
+                        <a href="@Url.Action("Index", "Account")" class="sidebar-menu-link">
+                            <i class="bi bi-person"></i>
+                            <span>Hesap Bilgilerim</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-menu-link">
+                            <i class="bi bi-receipt"></i>
+                            <span>Siparişlerim</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-menu-link">
+                            <i class="bi bi-heart"></i>
+                            <span>Favori Ürünlerim</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-menu-link">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>Adres Defterim</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-menu-link">
+                            <i class="bi bi-gift"></i>
+                            <span>Hediye Çeklerim &amp; Puanlarım</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-divider"></div>
+
+                <ul class="sidebar-menu-list">
+                    <li>
+                        <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
+                            <button type="submit" class="sidebar-menu-link sidebar-logout-btn">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Çıkış Yap</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    }
 
     <div class="main-container">
         <main role="main">
@@ -564,6 +880,45 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userAvatarBtn = document.getElementById('userAvatarBtn');
+            const userSidebar = document.getElementById('userSidebar');
+            const sidebarOverlay = document.getElementById('userSidebarOverlay');
+            const sidebarClose = document.getElementById('sidebarClose');
+            
+            if (userAvatarBtn && userSidebar && sidebarOverlay) {
+                userAvatarBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userSidebar.classList.add('active');
+                    sidebarOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+                
+                sidebarClose.addEventListener('click', function() {
+                    userSidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+                
+                sidebarOverlay.addEventListener('click', function() {
+                    userSidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+                
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && userSidebar.classList.contains('active')) {
+                        userSidebar.classList.remove('active');
+                        sidebarOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+        });
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 

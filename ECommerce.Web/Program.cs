@@ -11,6 +11,12 @@ internal static class Program
         builder.Services.AddHttpClientServices(builder.Configuration);
         builder.Services.AddControllersWithViews();
 
+        builder.Services.AddRouting(options =>
+        {
+            options.LowercaseUrls = true;
+            options.LowercaseQueryStrings = false;
+        });
+
         builder.Services.AddHttpClient("ECommerceAPI", client =>
         {
             var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5076";
@@ -35,12 +41,9 @@ internal static class Program
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
-
         app.UseRouting();
-
         app.UseSession();
         app.UseAuthorization();
-
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");

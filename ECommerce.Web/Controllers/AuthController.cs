@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Web.Controllers;
 
-public class AuthController(AuthApiService authService) : Controller
+public class AuthController(AuthApiService authService, AccountApiService accountApiService)
+    : Controller
 {
     [HttpGet]
     public IActionResult Login() => View();
@@ -20,6 +21,13 @@ public class AuthController(AuthApiService authService) : Controller
         {
             HttpContext.Session.SetString("AccessToken", result.Data.AccessToken);
             HttpContext.Session.SetString("UserEmail", model.Email);
+
+            var profileResult = await accountApiService.GetProfileAsync();
+            if (profileResult is { IsSuccess: true, Data: not null })
+            {
+                HttpContext.Session.SetString("UserName", profileResult.Data.Name);
+                HttpContext.Session.SetString("UserSurname", profileResult.Data.Surname);
+            }
 
             return RedirectToAction("Index", "Home");
         }
@@ -41,7 +49,6 @@ public class AuthController(AuthApiService authService) : Controller
 
         if (result.IsSuccess)
         {
-            TempData["SuccessMessage"] = "Kayıt başarılı! Giriş yapabilirsiniz.";
             return RedirectToAction(nameof(Login));
         }
 
@@ -57,7 +64,6 @@ public class AuthController(AuthApiService authService) : Controller
         await authService.LogoutAsync();
         HttpContext.Session.Clear();
 
-        TempData["SuccessMessage"] = "Başarıyla çıkış yaptınız.";
         return RedirectToAction("Index", "Home");
     }
 
