@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Web.Controllers;
 
-public class AuthController(AuthApiService authService, AccountApiService accountApiService)
-    : Controller
+public class AuthController(AuthApiService authService, AccountApiService accountApiService) : Controller
 {
     [HttpGet]
     public IActionResult Login() => View();
