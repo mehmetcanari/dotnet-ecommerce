@@ -13,6 +13,7 @@ using Elastic.Clients.Elasticsearch;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
@@ -23,6 +24,7 @@ using Serilog.Events;
 using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO.Compression;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -237,6 +239,20 @@ internal static class Program
             options.OperationFilter<FileUploadOperationFilter>();
         });
 
+        #endregion
+
+        #region Response Compression
+        builder.Services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+        });
+
+        builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+        {
+            options.Level = CompressionLevel.Fastest;
+        });
         #endregion
 
         #region Serilog Configuration
@@ -519,6 +535,7 @@ internal static class Program
             };
         });
 
+        app.UseResponseCompression();
         app.UseCors();
         app.UseWebSockets();
         app.UseAuthentication();

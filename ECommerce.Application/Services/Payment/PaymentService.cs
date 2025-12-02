@@ -61,9 +61,6 @@ public class PaymentService(ILogService logger, INotificationService notificatio
         BillingAddress = MapToAddress(billingAddress, order.BillingAddress),
         BasketItems = MapToBasketItems(basketItems)
     };
-
-    private string CalculateTotalPrice(List<Domain.Model.BasketItem> basketItems) => basketItems.Sum(item => item.UnitPrice * item.Quantity).ToString(CultureInfo.InvariantCulture);
-
     private PaymentCard MapToCard(Domain.Model.PaymentCard paymentCard) => new()
     {
         CardHolderName = paymentCard.CardHolderName,
@@ -106,4 +103,6 @@ public class PaymentService(ILogService logger, INotificationService notificatio
         ItemType = nameof(BasketItemType.PHYSICAL),
         Price = CalculateTotalPrice(basketItems),
     }).ToList();
+
+    private string CalculateTotalPrice(List<Domain.Model.BasketItem> basketItems) => basketItems.Sum(item => item.UnitPrice * item.Quantity).ToString(CultureInfo.InvariantCulture);
 }

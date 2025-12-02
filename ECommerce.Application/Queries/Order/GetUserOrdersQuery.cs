@@ -24,11 +24,10 @@ public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, I
             if (string.IsNullOrEmpty(userId))
                 return Result<List<OrderResponseDto>>.Failure(ErrorMessages.AccountNotAuthorized);
 
-            var cachedResponse = await cache.GetAsync<List<Domain.Model.Order>>($"{CacheKeys.UserOrders}_{userId}", cancellationToken);
+            var cachedResponse = await cache.GetAsync<List<OrderResponseDto>>($"{CacheKeys.UserOrders}_{userId}", cancellationToken);
             if (cachedResponse is { Count: > 0 })
             {
-                var cachedOrders = cachedResponse.Select(MapToResponseDto).ToList();
-                return Result<List<OrderResponseDto>>.Success(cachedOrders);
+                return Result<List<OrderResponseDto>>.Success(cachedResponse);
             }
 
             var orders = await orderRepository.GetPurchasedOrders(Guid.Parse(userId), cancellationToken);
@@ -36,7 +35,7 @@ public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, I
                 return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
 
             var response = orders.Select(MapToResponseDto).ToList();
-            await cache.SetAsync($"{CacheKeys.UserOrders}_{userId}", orders, CacheExpirationType.Absolute, _expiration, cancellationToken);
+            await cache.SetAsync($"{CacheKeys.UserOrders}_{userId}", response, CacheExpirationType.Absolute, _expiration, cancellationToken);
 
             return Result<List<OrderResponseDto>>.Success(response);
         }
