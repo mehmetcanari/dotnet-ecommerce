@@ -1,5 +1,4 @@
 ﻿using ECommerce.Application.Dependencies;
-using ECommerce.Application.Services.Background;
 using ECommerce.Application.Validations;
 using ECommerce.Infrastructure.Dependencies;
 using ECommerce.Shared.Constants;
@@ -25,7 +24,6 @@ public class DependencyContainer(WebApplicationBuilder builder) : IDependencyCon
 
         builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString));
         builder.Services.AddSingleton(Log.Logger);
-        builder.Services.AddHostedService<TokenCleanupBackgroundService>();
         builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddApplicationDependencies();

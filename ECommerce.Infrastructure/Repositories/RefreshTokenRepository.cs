@@ -2,17 +2,36 @@ using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepository
+public sealed class RefreshTokenRepository : IRefreshTokenRepository
 {
+    private readonly IMongoCollection<RefreshToken> _refreshTokens;
+
+    public RefreshTokenRepository(MongoDbContext context)
+    {
+        _refreshTokens = context.GetCollection<RefreshToken>("refresh_tokens");
+        CreateIndexes();
+    }
+
+    private void CreateIndexes()
+    {
+        var tokenIndexKeys = Builders<RefreshToken>.IndexKeys.Ascending(rt => rt.Token);
+        _refreshTokens.Indexes.CreateOneAsync(new CreateIndexModel<RefreshToken>(tokenIndexKeys));
+
+        var ttlIndexKeys = Builders<RefreshToken>.IndexKeys.Ascending(rt => rt.ExpiresAt);
+        var ttlOptions = new CreateIndexOptions { ExpireAfter = TimeSpan.Zero }; 
+
+        _refreshTokens.Indexes.CreateOneAsync(new CreateIndexModel<RefreshToken>(ttlIndexKeys, ttlOptions));
+    }
+
     public async Task CreateAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
     {
         try
         {
-            await context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+            await _refreshTokens.InsertOneAsync(refreshToken, new InsertOneOptions(), cancellationToken);
         }
         catch (Exception exception)
         {
@@ -24,14 +43,15 @@ public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepos
     {
         try
         {
-            IQueryable<RefreshToken> query = context.RefreshTokens;
+            var filter = Builders<RefreshToken>.Filter.And(
+                Builders<RefreshToken>.Filter.Eq(rt => rt.Email, email),
+                Builders<RefreshToken>.Filter.Gt(rt => rt.ExpiresAt, DateTime.UtcNow),
+                Builders<RefreshToken>.Filter.Eq(rt => rt.RevokedAt, null)
+            );
 
-            var refreshToken = await query
-                .AsNoTracking()
-                .Where(rt => rt.Email == email && rt.ExpiresAt > DateTime.UtcNow && rt.RevokedAt == null)
-                .FirstOrDefaultAsync(cancellationToken);
+            var sort = Builders<RefreshToken>.Sort.Descending(rt => rt.CreatedOn);
 
-            return refreshToken;
+            return await _refreshTokens.Find(filter).Sort(sort).FirstOrDefaultAsync(cancellationToken);
         }
         catch (Exception exception)
         {
@@ -43,13 +63,13 @@ public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepos
     {
         try
         {
-            IQueryable<RefreshToken> query = context.RefreshTokens;
+            var filter = Builders<RefreshToken>.Filter.And(
+                Builders<RefreshToken>.Filter.Eq(rt => rt.Token, token),
+                Builders<RefreshToken>.Filter.Gt(rt => rt.ExpiresAt, DateTime.UtcNow),
+                Builders<RefreshToken>.Filter.Eq(rt => rt.RevokedAt, null)
+            );
 
-            var refreshToken = await query
-                .AsNoTracking()
-                .FirstOrDefaultAsync(rt => rt.Token == token && rt.ExpiresAt > DateTime.UtcNow && rt.RevokedAt == null, cancellationToken);
-
-            return refreshToken;
+            return await _refreshTokens.Find(filter).FirstOrDefaultAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -57,31 +77,14 @@ public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepos
         }
     }
 
-    public void Revoke(RefreshToken refreshToken, string? reason = null)
+    public async Task Revoke(RefreshToken refreshToken, string? reason = null)
     {
         try
         {
             refreshToken.RevokeToken(reason);
-            context.RefreshTokens.Update(refreshToken);
-        }
-        catch (Exception exception)
-        {
-            throw new Exception(ErrorMessages.UnexpectedError, exception);
-        }
-    }
+            var filter = Builders<RefreshToken>.Filter.Eq(rt => rt.Id, refreshToken.Id);
 
-    public async Task CleanupExpiredAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            IQueryable<RefreshToken> query = context.RefreshTokens;
-
-            var expiredTokens = await query
-                .AsNoTracking()
-                .Where(rt => rt.ExpiresAt < DateTime.UtcNow || rt.RevokedAt != null)
-                .ToListAsync(cancellationToken);
-
-            context.RefreshTokens.RemoveRange(expiredTokens);
+            await _refreshTokens.ReplaceOneAsync(filter, refreshToken);
         }
         catch (Exception exception)
         {
@@ -89,4 +92,3 @@ public class RefreshTokenRepository(StoreDbContext context) : IRefreshTokenRepos
         }
     }
 }
-

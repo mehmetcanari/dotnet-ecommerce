@@ -9,8 +9,6 @@ public sealed class StoreDbContext(DbContextOptions<StoreDbContext> options) : D
     public DbSet<User> Users => Set<User>();
     public DbSet<BasketItem> BasketItems => Set<BasketItem>();
     public DbSet<Order> Orders => Set<Order>();
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
-    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,14 +26,6 @@ public sealed class StoreDbContext(DbContextOptions<StoreDbContext> options) : D
                 .WithMany(o => o.BasketItems)
                 .HasForeignKey(oi => oi.OrderId)
                 .IsRequired(false);
-        });
-
-        modelBuilder.Entity<Notification>(entity =>
-        {
-            entity.HasOne(n => n.User)
-                .WithMany()
-                .HasForeignKey(n => n.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

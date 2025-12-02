@@ -3,17 +3,35 @@ using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
 using ECommerce.Shared.Enum;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class NotificationRepository(StoreDbContext context) : INotificationRepository
+public sealed class NotificationRepository : INotificationRepository
 {
+    private readonly IMongoCollection<Notification> _notifications;
+
+    public NotificationRepository(MongoDbContext context)
+    {
+        _notifications = context.GetCollection<Notification>("notifications");
+        CreateIndexes();
+    }
+
+    private void CreateIndexes()
+    {
+        var indexKeys = Builders<Notification>.IndexKeys
+            .Ascending(n => n.UserId)
+            .Ascending(n => n.Status)     
+            .Descending(n => n.CreatedOn); 
+
+        _notifications.Indexes.CreateOneAsync(new CreateIndexModel<Notification>(indexKeys));
+    }
+
     public async Task CreateAsync(Notification notification, CancellationToken cancellationToken = default)
     {
         try
         {
-            await context.Notifications.AddAsync(notification, cancellationToken);
+            await _notifications.InsertOneAsync(notification, new InsertOneOptions(), cancellationToken);
         }
         catch (Exception exception)
         {
@@ -25,17 +43,17 @@ public class NotificationRepository(StoreDbContext context) : INotificationRepos
     {
         try
         {
-            IQueryable<Notification> query = context.Notifications;
+            var filter = Builders<Notification>.Filter.Eq(n => n.UserId, userId);
 
-            var notifications = await query
-                .AsNoTracking()
-                .Where(n => n.UserId == userId)
-                .OrderByDescending(n => n.CreatedOn)
-                .Skip((page - 1) * size)
-                .Take(size)
-                .ToListAsync(cancellationToken);
+            var options = new FindOptions<Notification>
+            {
+                Skip = (page - 1) * size,
+                Limit = size,
+                Sort = Builders<Notification>.Sort.Descending(n => n.CreatedOn)
+            };
 
-            return notifications;
+            var cursor = await _notifications.FindAsync(filter, options, cancellationToken);
+            return await cursor.ToListAsync(cancellationToken);
         }
         catch (Exception exception)
         {
@@ -47,15 +65,14 @@ public class NotificationRepository(StoreDbContext context) : INotificationRepos
     {
         try
         {
-            IQueryable<Notification> query = context.Notifications;
+            var filter = Builders<Notification>.Filter.And(
+                Builders<Notification>.Filter.Eq(n => n.UserId, userId),
+                Builders<Notification>.Filter.Eq(n => n.Status, NotificationStatus.Unread)
+            );
 
-            var notifications = await query
-            .AsNoTracking()
-            .Where(n => n.UserId == userId && n.Status == NotificationStatus.Unread)
-            .OrderByDescending(n => n.CreatedOn)
-            .ToListAsync(cancellationToken);
+            var sort = Builders<Notification>.Sort.Descending(n => n.CreatedOn);
 
-            return notifications;
+            return await _notifications.Find(filter).Sort(sort).ToListAsync(cancellationToken);
         }
         catch (Exception exception)
         {
@@ -67,13 +84,13 @@ public class NotificationRepository(StoreDbContext context) : INotificationRepos
     {
         try
         {
-            IQueryable<Notification> query = context.Notifications;
+            var filter = Builders<Notification>.Filter.And(
+                Builders<Notification>.Filter.Eq(n => n.UserId, userId),
+                Builders<Notification>.Filter.Eq(n => n.Status, NotificationStatus.Unread)
+            );
 
-            var count = await query
-                .AsNoTracking()
-                .CountAsync(n => n.UserId == userId && n.Status == NotificationStatus.Unread, cancellationToken);
-
-            return count;
+            var count = await _notifications.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+            return (int)count;
         }
         catch (Exception exception)
         {
@@ -81,15 +98,11 @@ public class NotificationRepository(StoreDbContext context) : INotificationRepos
         }
     }
 
-    public void Delete(Guid id, CancellationToken cancellationToken = default)
+    public async Task Delete(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
-            var notification = context.Notifications.Find(id);
-            if (notification is not null)
-                context.Notifications.Remove(notification);
-
-            return;
+            await _notifications.DeleteOneAsync(n => n.Id == id, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -101,12 +114,15 @@ public class NotificationRepository(StoreDbContext context) : INotificationRepos
     {
         try
         {
-            var notification = await context.Notifications.FindAsync(id, cancellationToken);
-            if (notification == null) return false;
+            var filter = Builders<Notification>.Filter.Eq(n => n.Id, id);
 
-            notification.MarkAsRead();
-            context.Notifications.Update(notification);
-            return true;
+            var update = Builders<Notification>.Update
+                .Set(n => n.Status, NotificationStatus.Read)
+                .Set(n => n.UpdatedOn, DateTime.UtcNow); 
+
+            var result = await _notifications.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+
+            return result.ModifiedCount > 0;
         }
         catch (Exception exception)
         {
@@ -118,20 +134,18 @@ public class NotificationRepository(StoreDbContext context) : INotificationRepos
     {
         try
         {
-            IQueryable<Notification> query = context.Notifications;
+            var filter = Builders<Notification>.Filter.And(
+                Builders<Notification>.Filter.Eq(n => n.UserId, userId),
+                Builders<Notification>.Filter.Eq(n => n.Status, NotificationStatus.Unread)
+            );
 
-            var unreadNotifications = await query
-                .AsNoTracking()
-                .Where(n => n.UserId == userId && n.Status == NotificationStatus.Unread)
-                .ToListAsync(cancellationToken);
+            var update = Builders<Notification>.Update
+                .Set(n => n.Status, NotificationStatus.Read)
+                .Set(n => n.UpdatedOn, DateTime.UtcNow);
 
-            foreach (var notification in unreadNotifications)
-            {
-                notification.MarkAsRead();
-                context.Notifications.Update(notification);
-            }
+            var result = await _notifications.UpdateManyAsync(filter, update, cancellationToken: cancellationToken);
 
-            return true;
+            return result.ModifiedCount > 0;
         }
         catch (Exception exception)
         {
