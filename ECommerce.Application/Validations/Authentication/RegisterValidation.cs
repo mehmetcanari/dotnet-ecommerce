@@ -27,6 +27,8 @@ public class RegisterValidation : AbstractValidator<RegisterCommand>
             .Matches("[^a-zA-Z0-9]");
 
         RuleFor(x => x.Model.DateOfBirth).NotEmpty().LessThan(DateTime.UtcNow).GreaterThan(DateTime.UtcNow.AddYears(-120)).Must(IsAgeValid);
+
+        RuleFor(x => x.Model.MembershipAgreement).Equal(true);
     }
 
     private bool IsAgeValid(DateTime dateOfBirth)

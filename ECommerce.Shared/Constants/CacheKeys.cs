@@ -10,5 +10,6 @@
         public const string UserOrders = "cache:orders:user";
         public const string Orders = "cache:orders";
         public const string Products = "cache:products";
+        public const string Wishlist = "cache:wishlist:user";
     }
 }

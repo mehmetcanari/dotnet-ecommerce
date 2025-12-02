@@ -8,8 +8,8 @@ public sealed class MongoDbContext
 
     public MongoDbContext()
     {
-        var connectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "mongodb://localhost:27017";
-        var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME") ?? "ecommerce-products";
+        var connectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING");
+        var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME");
 
         var client = new MongoClient(connectionString);
         _database = client.GetDatabase(databaseName);

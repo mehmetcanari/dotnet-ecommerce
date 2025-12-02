@@ -2,17 +2,31 @@ using ECommerce.Domain.Abstract.Repository;
 using ECommerce.Domain.Model;
 using ECommerce.Infrastructure.Context;
 using ECommerce.Shared.Constants;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
 namespace ECommerce.Infrastructure.Repositories;
 
-public class CategoryRepository(StoreDbContext context) : ICategoryRepository
+public sealed class CategoryRepository : ICategoryRepository
 {
+    private readonly IMongoCollection<Category> _categories;
+
+    public CategoryRepository(MongoDbContext context)
+    {
+        _categories = context.GetCollection<Category>("categories");
+        CreateIndexes();
+    }
+
+    private void CreateIndexes()
+    {
+        var nameIndexKeys = Builders<Category>.IndexKeys.Ascending(c => c.Name);
+        _categories.Indexes.CreateOneAsync(new CreateIndexModel<Category>(nameIndexKeys));
+    }
+
     public async Task Create(Category category, CancellationToken cancellationToken = default)
     {
         try
         {
-            await context.Categories.AddAsync(category, cancellationToken);
+            await _categories.InsertOneAsync(category, new InsertOneOptions(), cancellationToken);
         }
         catch (Exception exception)
         {
@@ -24,15 +38,15 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
     {
         try
         {
-            IQueryable<Category> query = context.Categories;
+            var options = new FindOptions<Category>
+            {
+                Skip = (page - 1) * pageSize,
+                Limit = pageSize,
+                Sort = Builders<Category>.Sort.Ascending(c => c.Name)
+            };
 
-            var categories = await query
-                .AsNoTracking()
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync(cancellationToken);
-
-            return categories;
+            var cursor = await _categories.FindAsync(_ => true, options, cancellationToken);
+            return await cursor.ToListAsync(cancellationToken);
         }
         catch (Exception exception)
         {
@@ -44,14 +58,8 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
     {
         try
         {
-            IQueryable<Category> query = context.Categories;
-
-            var category = await query
-                .AsNoTracking()
-                .Where(c => c.Name == name)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            return category != null;
+            var count = await _categories.CountDocumentsAsync(c => c.Name == name, cancellationToken: cancellationToken);
+            return count > 0;
         }
         catch (Exception exception)
         {
@@ -63,14 +71,8 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
     {
         try
         {
-            IQueryable<Category> query = context.Categories;
-
-            var category = await query
-                .AsNoTracking()
-                .Where(c => c.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            return category;
+            var cursor = await _categories.FindAsync(c => c.Id == id, cancellationToken: cancellationToken);
+            return await cursor.FirstOrDefaultAsync(cancellationToken);
         }
         catch (Exception exception)
         {
@@ -78,11 +80,12 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
         }
     }
 
-    public void Update(Category category)
+    public async Task Update(Category category, CancellationToken cancellationToken = default)
     {
         try
         {
-            context.Categories.Update(category);
+            category.UpdatedOn = DateTime.UtcNow;
+            await _categories.ReplaceOneAsync(c => c.Id == category.Id, category, cancellationToken: cancellationToken);
         }
         catch (Exception exception)
         {
@@ -90,11 +93,11 @@ public class CategoryRepository(StoreDbContext context) : ICategoryRepository
         }
     }
 
-    public void Delete(Category category)
+    public async Task Delete(Category category, CancellationToken cancellationToken = default)
     {
         try
         {
-            context.Categories.Remove(category);
+            await _categories.DeleteOneAsync(c => c.Id == category.Id, cancellationToken: cancellationToken);
         }
         catch (Exception exception)
         {

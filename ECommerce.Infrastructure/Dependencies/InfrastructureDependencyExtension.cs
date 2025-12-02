@@ -9,6 +9,8 @@ public static class InfrastructureDependencyExtension
 {
     public static void AddInfrastructureDependencies(this IServiceCollection services)
     {
+        services.AddSingleton<MongoDbContext>();
+        
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
@@ -16,8 +18,7 @@ public static class InfrastructureDependencyExtension
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
-
-        services.AddSingleton<MongoDbContext>();
+        services.AddScoped<IWishlistRepository, WishlistRepository>();
 
         services.AddScoped<IStoreUnitOfWork, StoreUnitOfWork>();
         services.AddScoped<ICrossContextUnitOfWork, CrossContextUnitOfWork>();

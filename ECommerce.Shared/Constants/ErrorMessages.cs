@@ -117,5 +117,12 @@
         #region ObjectStorage
         public const string FileUploadFailed = "objectstorage.file.upload.failed";
         #endregion
+
+        #region Wishlist
+        public const string WishlistItemAlreadyExists = "wishlist.already.exists";
+        public const string ErrorCreatingWishlistItem = "wishlist.error.creating.item";
+        public const string WishlistItemNotFound = "wishlist.item.not.found";
+        public const string ErrorDeletingWishlistItem = "wishlist.error.removing.item";
+        #endregion
     }
 }

@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace ECommerce.Infrastructure.Context;
 
-public sealed class StoreDbContext(DbContextOptions<StoreDbContext> options) : Microsoft.EntityFrameworkCore.DbContext(options)
+public sealed class StoreDbContext(DbContextOptions<StoreDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<BasketItem> BasketItems => Set<BasketItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
-    public DbSet<Category> Categories => Set<Category>();
     public DbSet<Notification> Notifications => Set<Notification>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Order>(entity =>
