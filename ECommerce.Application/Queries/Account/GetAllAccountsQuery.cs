@@ -18,7 +18,7 @@ public class GetAllAccountsQuery(QueryPagination pagination) : IRequest<Result<L
 public class GetAllAccountsQueryHandler(IUserRepository userRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetAllAccountsQuery, Result<List<AccountResponseDto>>>
 {
     private readonly string _cacheKey = $"{CacheKeys.AllAccounts}";
-    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
 
     public async Task<Result<List<AccountResponseDto>>> Handle(GetAllAccountsQuery request, CancellationToken cancellationToken)
     {
@@ -33,7 +33,7 @@ public class GetAllAccountsQueryHandler(IUserRepository userRepository, ILogServ
                 return Result<List<AccountResponseDto>>.Failure(ErrorMessages.AccountNotFound);
 
             var response = users.Select(MapToResponseDto).ToList();
-            await cache.SetAsync(_cacheKey, response, CacheExpirationType.Absolute, _expiration, cancellationToken);
+            await cache.SetAsync(_cacheKey, response, CacheExpirationType.Absolute, _ttl, cancellationToken);
 
             return Result<List<AccountResponseDto>>.Success(response);
         }

@@ -16,7 +16,7 @@ public class GetAccountByIdQuery(Guid id) : IRequest<Result<AccountResponseDto>>
 
 public class GetAccountWithIdQueryHandler(IUserRepository userRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetAccountByIdQuery, Result<AccountResponseDto>>
 {
-    private readonly TimeSpan _expiration = TimeSpan.FromHours(1);
+    private readonly TimeSpan _ttl = TimeSpan.FromHours(1);
 
     public async Task<Result<AccountResponseDto>> Handle(GetAccountByIdQuery request, CancellationToken cancellationToken)
     {
@@ -31,7 +31,7 @@ public class GetAccountWithIdQueryHandler(IUserRepository userRepository, ILogSe
                 return Result<AccountResponseDto>.Failure(ErrorMessages.AccountNotFound);
 
             var response = MapToResponseDto(account);
-            await cache.SetAsync($"{CacheKeys.UserAccount}_{request.UserId}", response, CacheExpirationType.Absolute, _expiration, cancellationToken);
+            await cache.SetAsync($"{CacheKeys.UserAccount}_{request.UserId}", response, CacheExpirationType.Absolute, _ttl, cancellationToken);
 
             return Result<AccountResponseDto>.Success(response);
         }

@@ -14,7 +14,7 @@ public class GetUserOrdersQuery : IRequest<Result<List<OrderResponseDto>>>;
 
 public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, IOrderRepository orderRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetUserOrdersQuery, Result<List<OrderResponseDto>>>
 {
-    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
 
     public async Task<Result<List<OrderResponseDto>>> Handle(GetUserOrdersQuery request, CancellationToken cancellationToken)
     {
@@ -35,7 +35,7 @@ public class GetUserOrdersQueryHandler(ICurrentUserService currentUserService, I
                 return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
 
             var response = orders.Select(MapToResponseDto).ToList();
-            await cache.SetAsync($"{CacheKeys.UserOrders}_{userId}", response, CacheExpirationType.Absolute, _expiration, cancellationToken);
+            await cache.SetAsync($"{CacheKeys.UserOrders}_{userId}", response, CacheExpirationType.Absolute, _ttl, cancellationToken);
 
             return Result<List<OrderResponseDto>>.Success(response);
         }

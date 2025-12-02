@@ -16,7 +16,7 @@ public class GetAllProductsQuery(QueryPagination pagination) : IRequest<Result<L
 
 public class GetAllProductsQueryHandler(IProductRepository productRepository, ICacheService cache, ILogService logger) : IRequestHandler<GetAllProductsQuery, Result<List<ProductResponseDto>>>
 {
-    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
 
     public async Task<Result<List<ProductResponseDto>>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
     {
@@ -42,7 +42,7 @@ public class GetAllProductsQueryHandler(IProductRepository productRepository, IC
                 CategoryId = p.CategoryId
             }).ToList();
 
-            await cache.SetAsync(CacheKeys.Products, response, CacheExpirationType.Sliding, _expiration, cancellationToken);
+            await cache.SetAsync(CacheKeys.Products, response, CacheExpirationType.Sliding, _ttl, cancellationToken);
 
             return Result<List<ProductResponseDto>>.Success(response);
         }

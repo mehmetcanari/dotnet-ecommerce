@@ -13,7 +13,7 @@ public class GetProfileQuery : IRequest<Result<AccountResponseDto>>;
 
 public class GetProfileQueryHandler(IUserRepository userRepository, ILogService logger, ICurrentUserService currentUserService, ICacheService cacheService) : IRequestHandler<GetProfileQuery, Result<AccountResponseDto>>
 {
-    private readonly TimeSpan _expirationTime = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
     private readonly string _cacheKey = $"{CacheKeys.UserAccount}_{currentUserService.GetUserId()}";
 
     public async Task<Result<AccountResponseDto>> Handle(GetProfileQuery request, CancellationToken cancellationToken)
@@ -34,7 +34,7 @@ public class GetProfileQueryHandler(IUserRepository userRepository, ILogService 
 
             var response = MapToResponseDto(account);
 
-            await cacheService.SetAsync(_cacheKey, response, CacheExpirationType.Sliding, _expirationTime, cancellationToken);
+            await cacheService.SetAsync(_cacheKey, response, CacheExpirationType.Sliding, _ttl, cancellationToken);
             return Result<AccountResponseDto>.Success(response);
         }
         catch (Exception ex)

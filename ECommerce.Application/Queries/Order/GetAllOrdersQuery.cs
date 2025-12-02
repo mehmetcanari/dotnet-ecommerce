@@ -18,7 +18,7 @@ public class GetAllOrdersQuery(QueryPagination pagination) : IRequest<Result<Lis
 
 public class GetAllOrdersQueryHandler(IOrderRepository orderRepository, ILogService logger, ICacheService cache) : IRequestHandler<GetAllOrdersQuery, Result<List<OrderResponseDto>>>
 {
-    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
 
     public async Task<Result<List<OrderResponseDto>>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
     {
@@ -36,7 +36,7 @@ public class GetAllOrdersQueryHandler(IOrderRepository orderRepository, ILogServ
                 return Result<List<OrderResponseDto>>.Failure(ErrorMessages.OrderNotFound);
 
             var response = orders.Select(MapToResponseDto).ToList();
-            await cache.SetAsync(CacheKeys.Orders, orders, CacheExpirationType.Absolute, _expiration, cancellationToken);
+            await cache.SetAsync(CacheKeys.Orders, orders, CacheExpirationType.Absolute, _ttl, cancellationToken);
 
             return Result<List<OrderResponseDto>>.Success(response);
         }

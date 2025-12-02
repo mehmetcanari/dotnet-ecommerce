@@ -15,7 +15,7 @@ public class GetCategoryByIdQuery(Guid id) : IRequest<Result<CategoryResponseDto
 
 public class GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository, ILogService logger, ICacheService cacheService) : IRequestHandler<GetCategoryByIdQuery, Result<CategoryResponseDto>>
 {
-    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
 
     public async Task<Result<CategoryResponseDto>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
     {
@@ -30,7 +30,7 @@ public class GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository,
                 return Result<CategoryResponseDto>.Failure(ErrorMessages.CategoryNotFound);
 
             var categoryResponseDto = MapToResponseDto(category);
-            await cacheService.SetAsync($"{CacheKeys.CategoryId}_{request.CategoryId}", categoryResponseDto, CacheExpirationType.Absolute, _expiration, cancellationToken);
+            await cacheService.SetAsync($"{CacheKeys.CategoryId}_{request.CategoryId}", categoryResponseDto, CacheExpirationType.Absolute, _ttl, cancellationToken);
 
             return Result<CategoryResponseDto>.Success(categoryResponseDto);
         }

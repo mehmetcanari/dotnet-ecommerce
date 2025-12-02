@@ -17,7 +17,7 @@ public class GetWishlistItemQuery(QueryPagination pagination) : IRequest<Result<
 public class GetWishlistItemQueryHandler(IWishlistRepository wishlistRepository, ILogService logger, ICacheService cacheService, ICurrentUserService currentUserService)
     : IRequestHandler<GetWishlistItemQuery, Result<List<WishlistItemResponseDto>>>
 {
-    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
 
     public async Task<Result<List<WishlistItemResponseDto>>> Handle(GetWishlistItemQuery request, CancellationToken cancellationToken)
     {
@@ -41,7 +41,7 @@ public class GetWishlistItemQueryHandler(IWishlistRepository wishlistRepository,
                 ProductId = w.ProductId
             }).ToList();
 
-            await cacheService.SetAsync(cacheKey, response, CacheExpirationType.Sliding, _expiration, cancellationToken);
+            await cacheService.SetAsync(cacheKey, response, CacheExpirationType.Sliding, _ttl, cancellationToken);
 
             return Result<List<WishlistItemResponseDto>>.Success(response);
         }

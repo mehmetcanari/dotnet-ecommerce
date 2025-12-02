@@ -13,7 +13,7 @@ public class GetBasketQuery : IRequest<Result<List<BasketItemResponseDto>>>;
 
 public class GetBasketQueryHandler(IBasketItemRepository basketItemRepository, ICurrentUserService currentUserService, ILogService logger, ICacheService cacheService) : IRequestHandler<GetBasketQuery, Result<List<BasketItemResponseDto>>>
 {
-    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(15);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(15);
     private readonly string _cacheKey = $"{CacheKeys.UserBasket}_{currentUserService.GetUserId()}";
 
     public async Task<Result<List<BasketItemResponseDto>>> Handle(GetBasketQuery request, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public class GetBasketQueryHandler(IBasketItemRepository basketItemRepository, I
                 return Result<List<BasketItemResponseDto>>.Failure(ErrorMessages.BasketItemNotFound);
 
             var responseItems = basketItems.Select(MapToResponseDto).ToList();
-            await cacheService.SetAsync(_cacheKey, responseItems, CacheExpirationType.Sliding, _expiration, cancellationToken);
+            await cacheService.SetAsync(_cacheKey, responseItems, CacheExpirationType.Sliding, _ttl, cancellationToken);
 
             return Result<List<BasketItemResponseDto>>.Success(responseItems);
         }

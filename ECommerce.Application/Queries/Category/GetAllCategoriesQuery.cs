@@ -16,7 +16,7 @@ public class GetAllCategoriesQuery(QueryPagination pagination) : IRequest<Result
 
 public class GetCategoriesQueryHandler(ICategoryRepository categoryRepository, ILogService logService, ICacheService cache) : IRequestHandler<GetAllCategoriesQuery, Result<List<CategoryResponseDto>>>
 {
-    private readonly TimeSpan _expiration = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _ttl = TimeSpan.FromMinutes(30);
 
     public async Task<Result<List<CategoryResponseDto>>> Handle(GetAllCategoriesQuery request, CancellationToken cancellationToken)
     {
@@ -31,7 +31,7 @@ public class GetCategoriesQueryHandler(ICategoryRepository categoryRepository, I
                 return Result<List<CategoryResponseDto>>.Failure(ErrorMessages.CategoryNotFound);
 
             var response = categories.Select(MapToResponseDto).ToList();
-            await cache.SetAsync(CacheKeys.Category, response, CacheExpirationType.Sliding, _expiration, cancellationToken);
+            await cache.SetAsync(CacheKeys.Category, response, CacheExpirationType.Sliding, _ttl, cancellationToken);
 
             return Result<List<CategoryResponseDto>>.Success(response);
         }
